@@ -1,0 +1,10 @@
+{
+    "name": "@purifyjs/core",
+    "type": "module",
+    "exports": {
+        ".": {
+            "default": "./all.ts",
+            "types": "./all.ts"
+        }
+    }
+}

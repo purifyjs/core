@@ -1,0 +1,10 @@
+{
+    "tabWidth": 4,
+    "printWidth": 90,
+    "semi": false,
+    "trailingComma": "none",
+    "arrowParens": "always",
+    "bracketSpacing": true,
+    "experimentalTernaries": true,
+    "plugins": ["prettier-plugin-organize-imports"]
+}

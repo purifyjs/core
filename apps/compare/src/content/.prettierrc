@@ -1,0 +1,24 @@
+{
+	"overrides": [
+		{
+			"files": ["*"],
+			"options": {
+				"tabWidth": 4,
+				"useTabs": true,
+				"bracketSameLine": true,
+				"printWidth": 60,
+				"arrowParens": "always",
+				"bracketSpacing": true,
+				"experimentalTernaries": true
+			}
+		},
+		{
+			"files": "*.svelte",
+			"options": { "parser": "svelte" }
+		}
+	],
+	"plugins": [
+		"prettier-plugin-svelte",
+		"prettier-plugin-organize-imports"
+	]
+}
