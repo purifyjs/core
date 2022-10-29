@@ -1,33 +1,14 @@
-import { ComponentFunctions } from ".."
+import { mountComponent } from "../mount"
+import { deserializeObject } from "../serialize"
+import * as Test from "../test"
 
-export {}
-
-const $functions: { [componentId: string]: ComponentFunctions } = {}
-
-function search(path: EventTarget[], attribute: string)
-{
-    return path
-        .filter((target) => target instanceof Element && target.hasAttribute(attribute))
-        .map((target) => 
-        {
-            const element = target as Element
-            const value = element.getAttribute(attribute)!
-            const id = element.getAttribute('component:id')!
-            return { id, value, element }
-        })
+const windowAsAny = window as any
+windowAsAny.$mountComponent = mountComponent
+windowAsAny.$componentModules = {
+    Test
 }
+windowAsAny.$deserializeObject = deserializeObject;
 
-window.addEventListener('click', (e) => 
-{
-    for (const { id, value } of search(e.composedPath(), 'on:click'))
-    {
-        try
-        {
-            $functions[id]?.[value]?.(e)
-        }
-        catch (error)
-        {
-            console.error(error)
-        }
-    }
+document.querySelectorAll('[component\\:id]').forEach((element) => {
+    const component = mountComponent(Test, element)
 })

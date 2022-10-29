@@ -8,3 +8,7 @@ export function html(parts: TemplateStringsArray, ...params: TemplateAccepts[])
         params
     }
 }
+export interface TemplateFactory
+{
+    (): Template
+}
