@@ -1,17 +1,21 @@
+import { component, ComponentInstance } from "./component"
 import { html } from "./template"
 
-export let hellow = "world"
-let hidden = 123
-
-export async function onMount()
+export const Test = component(class extends ComponentInstance
 {
-    console.log("mounted")
-}
+    hellow = "world"
+    hidden = 123
 
-export async function onRender()
-{
-    hellow = "world2"
-    console.log("rendered")
-}
 
-export default () => html`<h1 on:abc="1" test="1">Hello ${hellow} ${hidden}<Abc></Abc></h1>`
+    async onMount()
+    {
+        console.log("mounted")
+    }
+
+    async render()
+    {
+        this.hellow = "world2"
+        console.log("rendered")
+        return html`<h1 on:abc="1" test="1">Hello ${this.hellow} ${this.hidden}<Abc></Abc></h1>`
+    }
+})

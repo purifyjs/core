@@ -1,7 +1,4 @@
-import { renderComponent } from "./master/render"
-import * as Test from "./master/test"
-
-export async function render()
+export async function render(url: string): Promise<string>
 {
-    return await renderComponent(Test)
+    return `Hello world! ${url}`
 }

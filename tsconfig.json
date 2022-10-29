@@ -16,7 +16,8 @@
     "noImplicitReturns": true,
     "skipLibCheck": true,
     "removeComments": false,
-    "useUnknownInCatchVariables": true
+    "useUnknownInCatchVariables": true,
+    "importsNotUsedAsValues": "error"
   },
   "include": ["src"]
 }
