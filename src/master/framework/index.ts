@@ -1,9 +1,5 @@
-export { }
-/* import { mountComponent } from "../mount"
+import { mountComponent } from "../component/mount"
+import { Root } from "../components/root"
 
-const windowAsAny = window as any
-windowAsAny.$mountComponent = mountComponent
-
-document.querySelectorAll('[component\\:id]').forEach((element) => {
-    mountComponent(, element)
-}) */
+const root = await mountComponent(new Root(), document.querySelector("#app")!.firstElementChild!)
+console.log(root, root.$component)

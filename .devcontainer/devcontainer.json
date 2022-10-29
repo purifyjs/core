@@ -19,5 +19,12 @@
 	"remoteUser": "vscode",
 	"features": {
 		"node": "18"
+	},
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"bierner.lit-html"
+			]
+		}
 	}
 }

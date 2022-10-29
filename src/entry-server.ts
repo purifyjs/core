@@ -1,4 +1,7 @@
+import { renderComponent } from "./master/component/render"
+import { Root } from "./master/components/root"
+
 export async function render(url: string): Promise<string>
 {
-    return `Hello world! ${url}`
+    return await renderComponent(new Root())
 }
