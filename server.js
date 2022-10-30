@@ -33,6 +33,7 @@ async function createServer()
         app.use("*", async (req, res, next) =>
         {
             const url = req.originalUrl
+
             try
             {
                 // 1. Read index.html

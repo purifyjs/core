@@ -1,12 +1,14 @@
-import type { ComponentInstance } from "./component"
+import type { Serializable } from "../utils/serialize"
 
-export type TemplateAcceptsValues = string | number | ComponentInstance
-export type TemplateAccepts = TemplateAcceptsValues | EventListener
-export type Template = Awaited<ReturnType<typeof html>>
-export function html(parts: TemplateStringsArray, ...params: TemplateAccepts[])
+export type TemplateAccepts = Serializable
+export class Template
 {
-    return {
-        parts,
-        params
-    }
+    constructor(
+        public readonly parts: TemplateStringsArray,
+        public readonly values: TemplateAccepts[]
+    ) {}
+}
+export function html(htmlParts: TemplateStringsArray, ...values: TemplateAccepts[]): Template
+{
+    return new Template(htmlParts, values)
 }

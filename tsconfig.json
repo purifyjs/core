@@ -17,7 +17,8 @@
     "skipLibCheck": true,
     "removeComments": false,
     "useUnknownInCatchVariables": true,
-    "importsNotUsedAsValues": "error"
+    "importsNotUsedAsValues": "error",
+    "preserveConstEnums": true
   },
   "include": ["src"]
 }
