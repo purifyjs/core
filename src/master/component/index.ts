@@ -61,11 +61,9 @@ export abstract class ComponentInstance
     }
 }
 
-
-
 export const components: Record<string, typeof ComponentInstance> = {}
 
-export function registerComponent<T extends Record<string, typeof ComponentInstance>>(values: T): { [K in keyof T]: T[K] & { __name: string } } 
+export function registerComponent<T extends Record<string, { new(...props: any): ComponentInstance }>>(values: T): { [K in keyof T]: T[K] & { __name: string } } 
 {
     for (const key in values)
     {
