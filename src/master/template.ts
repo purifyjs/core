@@ -136,6 +136,7 @@ export class Template extends DocumentFragment
             if (!outlet) throw new Error(`No outlet found for node ${index}`)
             if (node instanceof MasterElement)
             {
+                node.append(...Array.from(outlet.childNodes))
                 outlet.removeAttribute('x:element')
                 for (const attribute of Array.from(outlet.attributes))
                     node.setAttribute(attribute.name, attribute.value)
