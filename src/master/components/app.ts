@@ -1,5 +1,7 @@
 import { defineFragment } from "../framework"
+import { Signal } from "../signal"
 import { html } from "../template"
+import { Counter } from "./counter"
 import { Test } from "./test"
 
 export const App = defineFragment(async () => html`
@@ -24,6 +26,8 @@ export const App = defineFragment(async () => html`
             await html`
             <p>Test</p>
         `)}
+
+        ${await Counter({ number: new Signal(0) })}
     </main>`)
 
 document.body.append(await App({}))

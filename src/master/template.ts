@@ -1,6 +1,6 @@
 import { Signal } from "./signal"
 
-type TemplateAcceptsValue = HTMLElement | DocumentFragment | string | number | boolean | null | undefined | Date
+type TemplateAcceptsValue = HTMLElement | DocumentFragment | string | number | boolean | null | undefined | Date | Function
 export type TemplateAccepts = TemplateAcceptsValue | Signal<HTMLElement> | Signal<DocumentFragment> | Signal<string> | Signal<number> | Signal<boolean> | Signal<Date> | Signal<null> | Signal<undefined>
 
 async function parseValue(value: TemplateAcceptsValue): Promise<Node>
@@ -19,20 +19,20 @@ async function parseValue(value: TemplateAcceptsValue): Promise<Node>
     }
     else
     {
-        return document.createTextNode(String(value))
+        return document.createTextNode(`${value}`)
     }
 }
 
 export async function html(parts: TemplateStringsArray, ...values: TemplateAccepts[])
 {
     const nodes: Node[] = []
+    const funcs: Function[] = []
     const htmlParts = await Promise.all(parts.map(async (htmlPart, index) => 
     {
         const value = values[index]
         if (value == null || value === undefined) return htmlPart
         if (value instanceof Signal)
         {
-
             const fragment = document.createDocumentFragment()
             const comment = `signal ${value.id}`
             const startComment = document.createComment(comment)
@@ -50,11 +50,16 @@ export async function html(parts: TemplateStringsArray, ...values: TemplateAccep
 
             nodes.push(fragment)
         }
+        else if (value instanceof Function)
+        {
+            return `${htmlPart}${funcs.push(value) - 1}`
+        }
         else
         {
             nodes.push(await parseValue(value))
         }
 
+        index = nodes.length - 1
         return `${htmlPart}<outlet-${index}></outlet-${index}>`
     }))
 
@@ -64,6 +69,7 @@ export async function html(parts: TemplateStringsArray, ...values: TemplateAccep
     template.innerHTML = html
 
     nodes.forEach((node, index) => template.content.querySelector(`outlet-${index}`)!.replaceWith(node))
+    funcs.forEach((funcs, index) => (template.content.querySelector(`[on\\:click="${index}"]`) as any).$funcs = funcs)
 
     return template.content
 }

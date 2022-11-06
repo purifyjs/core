@@ -1,5 +1,17 @@
 import { randomId } from '../utils/id'
 
+window.document.body.addEventListener('click', (event) =>
+{
+    const target = event.target as HTMLElement
+    console.log(target)
+    if (target.hasAttribute('on:click'))
+    {
+        console.log((target as any).$funcs)
+        const id = target.getAttribute('on:click')!;
+        (target as any).$funcs[id]()
+    }
+})
+
 export function defineElement<Props extends Record<string, any>>(tag: string, template: (params: { props: Props, root: ShadowRoot, onDestroy(callback: () => void): void }) => Promise<DocumentFragment>)
 {
     const typeId = randomId()
