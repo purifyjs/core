@@ -40,7 +40,7 @@ export class SignalDerive<T> extends Signal<T>
 {
     private triggerSubs: SignalSubscription[]
 
-    constructor(getter: () => T, ...triggerSignals: Signal[])
+    constructor(private getter: () => T, ...triggerSignals: Signal[])
     {
         super(getter())
         this.triggerSubs = triggerSignals.map((signal) => signal.subscribe(() => super.signal(getter())))
@@ -51,9 +51,9 @@ export class SignalDerive<T> extends Signal<T>
         this.triggerSubs.forEach((sub) => sub.unsubscribe())
     }
 
-    signal: () => Promise<void> = (async (value: any) => {
+    signal: () => Promise<void> = (async (value: any = Signal.Empty) => {
         if (value !== Signal.Empty) throw new Error('Cannot set value of derived signal')
-        return super.signal()
+        return super.signal(this.getter())
     }) as any
 }
 
