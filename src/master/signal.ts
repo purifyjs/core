@@ -1,4 +1,4 @@
-import { randomId } from "../utils/id"
+import { randomId } from "./utils/id"
 
 export type SignalListener<T> = (value?: T) => Promise<void> | void
 export class Signal<T = any>
@@ -25,8 +25,7 @@ export class Signal<T = any>
     async signal(value: T | ((value: T) => T) | typeof Signal.empty = Signal.empty)
     {
 
-        if (value !== Signal.empty)
-            this.value = value instanceof Function ? value(this.value) : value    
+        if (value !== Signal.empty) this.value = value instanceof Function ? value(this.value) : value    
         await Promise.all(this._listeners.map((listener) => listener(this.value)))
     }
 }

@@ -1,4 +1,4 @@
-import { randomId } from '../utils/id'
+import { randomId } from './utils/id'
 import type { Template } from './template'
 
 export function onNodeDestroy(node: Node, callback: () => void)
@@ -63,7 +63,7 @@ export abstract class MasterElement<Props extends ElementProps = ElementProps> e
         await this._mountParams.slot?.$mount(this, true)
 
         onNodeDestroy(this, () => this.$destroy())
-        
+
         this._mountParams = null!
     }
 
@@ -104,7 +104,7 @@ export function defineElement<Props extends ElementProps>(tag: string, template:
 
         async $mount(parent: HTMLElement): Promise<void>
         {
-            this.classList.add('master-element', Element.typeId)
+            this.classList.add('master-element', `m${Element.typeId}`)
             await super.$mount(parent)
         }
     }
@@ -140,27 +140,26 @@ export function defineFragment<Props extends ElementProps>(fragmentTemplate: Fra
         template.prepend(startComment)
         template.append(endComment)
 
-        template.querySelectorAll('*:not(style):not(script)').forEach((element) => element.classList.add('master-fragment', typeId))
+        template.querySelectorAll('*:not(style):not(script)').forEach((element) => element.classList.add('master-fragment', `m${typeId}`))
         template.querySelectorAll('style:not([\\:global])').forEach((style) =>
         {
-            style.textContent = scopeCss(style.textContent ?? '', `.--${typeId}`)
+            style.textContent = scopeCss(style.textContent ?? '', `.m${typeId}`)
         })
 
-        mountCallbacks.push(async ({ }) =>
-        {
-            if (slot) {
-                const mountPoint = template.querySelector('slot')
-                if (mountPoint) await slot.$mount(mountPoint)
-            }
-        })
-
-        const $mountCache = template.$mount
+        const templateMountCache = template.$mount
         Object.defineProperty(template, '$mount', {
             value: async (mountPoint: Element) =>
             {
-                await $mountCache.call(template, mountPoint)
+                await templateMountCache.call(template, mountPoint)
+
                 for (const callback of mountCallbacks)
                     await callback({ mountPoint })
+
+                if (slot)
+                {
+                    const mountPoint = template.querySelector('slot')
+                    if (mountPoint) await slot.$mount(mountPoint)
+                }
 
                 onNodeDestroy(startComment, async () =>
                 {

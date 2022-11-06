@@ -1,10 +1,10 @@
-import { defineFragment } from "../framework"
+import { defineElement } from "../framework"
 import { Signal } from "../signal"
 import { html } from "../template"
 import { Counter } from "./counter"
 import { Test } from "./test"
 
-export const App = defineFragment(() => html`
+export const App = defineElement('x-app', () => html`
     <style>
         h1 + p, main:has(h1)  {
             color: red;
