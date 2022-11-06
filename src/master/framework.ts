@@ -2,14 +2,14 @@ import { randomId } from '../utils/id'
 
 export function onNodeDestroy(node: Node, callback: () => void)
 {
-    setTimeout((async () =>
+    (async () =>
     {
         while (getRootNode(node) === document)
         {
             await new Promise((resolve) => requestAnimationFrame(resolve))
         }
         callback()
-    }), 2000)
+    })()
 }
 
 function getRootNode(node: Node): Node
