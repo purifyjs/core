@@ -1,4 +1,4 @@
-import { Signal, signal, signalDerive } from './signal'
+import { Signal, signal, signalDerive, SignalListener } from './signal'
 import type { Template } from './template'
 import { randomId } from './utils/id'
 
@@ -91,6 +91,13 @@ export abstract class MasterElement<Props extends ElementProps = ElementProps> e
     $signal<T>(value: T)
     {
         return signal(value)
+    }
+
+    $subscribe<T>(signal: Signal<T>, callback: SignalListener<T>)
+    {
+        const subscription = signal.subscribe(callback)
+        this.$onDestroy(() => subscription.unsubscribe())
+        return subscription
     }
 
     $signalDerive<T>(getter: () => T, ...triggerSignals: Signal[])
