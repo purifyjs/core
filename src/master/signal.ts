@@ -1,12 +1,12 @@
 import { randomId } from "../utils/id"
 
-export type SignalListener<T> = (value: T) => Promise<void> | void
+export type SignalListener<T> = (value?: T) => Promise<void> | void
 export class Signal<T = any>
 {
     public readonly id = randomId()
     private _listeners: SignalListener<T>[] = []
     constructor(
-        public value: T
+        public value?: T
     ) {}
 
     subscribe(listener: SignalListener<T>)
