@@ -1,6 +1,6 @@
 import { Signal } from "./signal"
 
-type TemplateAcceptsValue = HTMLElement | DocumentFragment | string | number | boolean | null | undefined | Date | Function
+type TemplateAcceptsValue = HTMLElement | DocumentFragment | string | number | boolean | null | undefined | Date | EventListener
 export type TemplateAccepts = TemplateAcceptsValue | Signal<HTMLElement> | Signal<DocumentFragment> | Signal<string> | Signal<number> | Signal<boolean> | Signal<Date> | Signal<null> | Signal<undefined>
 
 async function parseValue(value: TemplateAcceptsValue): Promise<Node>
@@ -26,7 +26,7 @@ async function parseValue(value: TemplateAcceptsValue): Promise<Node>
 export async function html(parts: TemplateStringsArray, ...values: TemplateAccepts[])
 {
     const nodes: Node[] = []
-    const funcs: Function[] = []
+    const listeners: EventListener[] = []
     const htmlParts = await Promise.all(parts.map(async (htmlPart, index) => 
     {
         const value = values[index]
@@ -52,7 +52,7 @@ export async function html(parts: TemplateStringsArray, ...values: TemplateAccep
         }
         else if (value instanceof Function)
         {
-            return `${htmlPart}${funcs.push(value) - 1}`
+            return `${htmlPart}${listeners.push(value) - 1}`
         }
         else
         {
@@ -69,7 +69,14 @@ export async function html(parts: TemplateStringsArray, ...values: TemplateAccep
     template.innerHTML = html
 
     nodes.forEach((node, index) => template.content.querySelector(`outlet-${index}`)!.replaceWith(node))
-    funcs.forEach((funcs, index) => (template.content.querySelector(`[on\\:click="${index}"]`) as any).$funcs = funcs)
+    template.content.querySelectorAll('*:not(style):not(script)').forEach((element) => {
+        Array.from(element.attributes).forEach((attribute) => {
+            if (!attribute.name.startsWith('on:')) return
+            const eventName = attribute.name.slice(3)
+            const func = listeners[parseInt(attribute.value)]
+            element.addEventListener(eventName, func)
+        })
+    })
 
     return template.content
 }

@@ -1,4 +1,4 @@
-import { defineFragment } from "../framework"
+import { defineElement, defineFragment } from "../framework"
 import { Signal } from "../signal"
 import { html } from "../template"
 import { Counter } from "./counter"

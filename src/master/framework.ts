@@ -1,18 +1,6 @@
 import { randomId } from '../utils/id'
 
-window.document.body.addEventListener('click', (event) =>
-{
-    const target = event.target as HTMLElement
-    console.log(target)
-    if (target.hasAttribute('on:click'))
-    {
-        console.log((target as any).$funcs)
-        const id = target.getAttribute('on:click')!;
-        (target as any).$funcs[id]()
-    }
-})
-
-export function defineElement<Props extends Record<string, any>>(tag: string, template: (params: { props: Props, root: ShadowRoot, onDestroy(callback: () => void): void }) => Promise<DocumentFragment>)
+export function defineElement<Props extends Record<string, any>>(tag: string, template: (params: { props: Props, shadowRoot: ShadowRoot, onDestroy(callback: () => void): void }) => Promise<DocumentFragment>)
 {
     const typeId = randomId()
 
@@ -21,7 +9,13 @@ export function defineElement<Props extends Record<string, any>>(tag: string, te
         const element = document.createElement(tag)
         const shadowRoot = element.attachShadow({ mode: 'open' })
 
-        const fragment = await template({ props, root: shadowRoot, onDestroy(callback) { element.addEventListener('master:removed', () => callback(), { once: true }) } })
+        const fragment = await template({
+            props, shadowRoot,
+            onDestroy(callback)
+            {
+
+            }
+        })
         shadowRoot.append(fragment)
         if (slot) element.append(slot)
 
@@ -80,7 +74,7 @@ function scopeCssSelector(selector: string, scopeSelector: string): string
 {
     const combinators = [' ', '>', '+', '~']
     const parts = selector.split(/(?<combinator>[ >+~])/g).map((part) => part.trim()).filter((part) => part !== '')
-    const scopedParts = parts.map((part, index) =>
+    const scopedParts = parts.map((part) =>
     {
         if (combinators.includes(part)) return part
 
@@ -90,14 +84,13 @@ function scopeCssSelector(selector: string, scopeSelector: string): string
             for (const match of matches)
             {
                 if (!match.index) continue
-                console.log(match)
                 const scopedPart = scopeCssSelector(match[1], scopeSelector)
                 const partArr = Array.from(part)
                 partArr.splice(match.index, match[0].length, `(${scopedPart})`).join('')
                 part = partArr.join('')
             }
         }
-        
+
         return `${part}${scopeSelector}`
     })
     return scopedParts.join('')
