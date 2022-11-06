@@ -88,7 +88,7 @@ export class Template extends DocumentFragment
         const root = mountPoint instanceof ShadowRoot ? mountPoint : mountPoint.parentElement
         if (!root) throw new Error('Cannot mount template to a node that is not attached to the DOM')
 
-        const toMount = this.insertOutlets()
+        const toMount = this.insertNodes()
         
         if (append) mountPoint.append(this)
         else if (!mountPoint.parentNode) throw new Error('Cannot mount template to a node that is not attached to the DOM')
@@ -127,7 +127,7 @@ export class Template extends DocumentFragment
         }
     }
 
-    private insertOutlets()
+    private insertNodes()
     {
         const toMount: { node: MasterElement | Template, outlet: Element }[] = []
         this.$_nodes.forEach((node, index) =>
