@@ -174,6 +174,9 @@ export function defineFragment<Props extends ElementProps>(fragmentTemplate: Fra
                 for (const callback of mountCallbacks)
                     await callback({ mountPoint })
 
+                // I did this but maybe it's not necessary
+                // Maybe fragment shouldnt have slots and stuff
+                // maybe it just should be a bunch of elements with scoped styles
                 const slotMountPoint = template.querySelector('slot')
                 if (slotMountPoint)
                 {
