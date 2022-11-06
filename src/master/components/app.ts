@@ -8,6 +8,11 @@ export const App = defineFragment(async () => html`
             color: red;
         }
     </style>
+    <style :global>
+        :root {
+            font-size: 1.2rem
+        }
+    </style>
     <main>
         <h1>Master</h1>
         <p>Master is a framework for building web apps.</p>

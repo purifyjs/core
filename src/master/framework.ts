@@ -38,7 +38,7 @@ export function defineFragment<Props extends Record<string, any>>(template: (par
         fragment.append(endComment)
 
         fragment.querySelectorAll('*:not(style):not(script)').forEach((element) => element.setAttribute(':scope', typeId))
-        fragment.querySelectorAll('style').forEach((style) =>
+        fragment.querySelectorAll('style:not([\\:global])').forEach((style) =>
         {
             style.textContent = scopeCss(style.textContent ?? '', `[\\:scope="${typeId}"]`)
         })
