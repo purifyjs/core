@@ -1,13 +1,12 @@
 import { randomId } from '../utils/id'
 
-// emit event when node has no parent (removed from DOM)
 export function onNodeDestroy(node: Node, callback: () => void)
 {
     setTimeout((async () =>
     {
         while (getRootNode(node) === document)
         {
-            await new Promise((resolve) => setTimeout(resolve, 1000))
+            await new Promise((resolve) => requestAnimationFrame(resolve))
         }
         callback()
     }), 2000)
@@ -48,8 +47,8 @@ export abstract class MasterElement<Props extends ElementProps = ElementProps> e
         const parentNode = mountPoint.parentNode
         if (!parentNode) throw new Error('Cannot mount element to a node that is not attached to the DOM')
 
-        if (this.$_mounted) return
-        if (this.$_destroyed) return
+        if (this.$_mounted) throw new Error('Cannot mount element that is already mounted')
+        if (this.$_destroyed) throw new Error('Cannot mount destroyed element')
         this.$_mounted = true
         for (const callback of this.$_mountCallbacks)
         {
@@ -74,8 +73,8 @@ export abstract class MasterElement<Props extends ElementProps = ElementProps> e
 
     async $destroy()
     {
-        if (!this.$_mounted) return
-        if (this.$_destroyed) return
+        if (!this.$_mounted) throw new Error('Cannot destroy element that is not mounted')
+        if (this.$_destroyed) throw new Error('Cannot destroy element that is already destroyed')
         this.$_mounted = false
         this.$_destroyed = true
         for (const callback of this.$_destroyCallbacks)
