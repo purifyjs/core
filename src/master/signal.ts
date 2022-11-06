@@ -61,3 +61,16 @@ export function signalDerive<T>(getter: () => T, ...triggerSignals: Signal[])
 {
     return new SignalDerive(getter, ...triggerSignals)
 }
+
+export function text(parts: TemplateStringsArray, ...values: any[])
+{
+    function update()
+    {
+        return parts.map((part, index) => {
+            const value = values[index]
+            if (!value) return part
+            return `${part}${value instanceof Signal ? value.value : value}`
+        }).join('')
+    }
+    return signalDerive(update, ...values.filter((value) => value instanceof Signal))
+}

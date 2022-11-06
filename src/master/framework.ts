@@ -1,4 +1,4 @@
-import { Signal, signal, signalDerive, SignalListener } from './signal'
+import { Signal, signal, signalDerive, SignalListener, text } from './signal'
 import type { Template } from './template'
 import { randomId } from './utils/id'
 
@@ -86,6 +86,13 @@ export abstract class MasterElement<Props extends ElementProps = ElementProps> e
     $onDestroy(callback: ElementDestroyCallback)
     {
         this.$_destroyCallbacks.push(callback)
+    }
+
+    $text(parts: TemplateStringsArray, ...values: any[])
+    {
+        const signal = text(parts, ...values)
+        this.$onDestroy(() => signal.cleanup())
+        return signal
     }
 
     $signal<T>(value: T)

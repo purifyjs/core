@@ -10,15 +10,15 @@ interface Props
     string?: Signal<string | null>
 }
 
-export const Test = defineElement<Props>('x-test', ({ props, self }) => 
+export const Test = defineElement<Props>('x-test', ({ props, self: $ }) => 
 {
-    const date = self.$signalDerive(() => new Date())
-    self.$interval(date.signal, 1000)
+    const date = $.$signalDerive(() => new Date())
+    $.$interval(date.signal, 1000)
 
-    const value = self.$signalDerive(randomId)
-    self.$interval(value.signal, 500)
+    const value = $.$signalDerive(randomId)
+    $.$interval(value.signal, 500)
 
-    const valueText = self.$signalDerive(() => `foo-${value.value}`, value)
+    const valueText = $.$signalDerive(() => `foo-${value.value}`, value)
 
     return html`
         <style>
@@ -31,7 +31,7 @@ export const Test = defineElement<Props>('x-test', ({ props, self }) =>
                 color: white
             }
         </style>
-        <span class=${self.$signalDerive(() => `bar ${valueText.value}`, valueText)}>
+        <span class=${$.$text`bar ${valueText}`}>
             ${date}
         </span>
         <x ${Test2({ number: 123 })}>

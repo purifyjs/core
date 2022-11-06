@@ -2,10 +2,8 @@ import { MasterElement, onNodeDestroy } from "./framework"
 import { Signal } from "./signal"
 import { randomId } from "./utils/id"
 
-type TemplateAcceptsValue = HTMLElement | DocumentFragment | string | number | boolean | null | undefined | Date | EventListener
-type TemplateAcceptsSignal = Signal<HTMLElement> | Signal<DocumentFragment> | Signal<string> | Signal<number> | Signal<boolean> | Signal<Date> | Signal<null> | Signal<undefined>
-export type TemplateAccepts = TemplateAcceptsValue | TemplateAcceptsSignal
-function parseValue(value: TemplateAcceptsValue): Node
+export type TemplateAccepts = any
+function parseValue(value: TemplateAccepts): Node
 {
     if (value instanceof HTMLElement)
         return value
