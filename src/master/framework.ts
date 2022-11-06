@@ -174,10 +174,16 @@ export function defineFragment<Props extends ElementProps>(fragmentTemplate: Fra
                 for (const callback of mountCallbacks)
                     await callback({ mountPoint })
 
-                if (slot)
+                const slotMountPoint = template.querySelector('slot')
+                if (slotMountPoint)
                 {
-                    const mountPoint = template.querySelector('slot')
-                    if (mountPoint) await slot.$mount(mountPoint)
+                    if (slot) await slot.$mount(slotMountPoint)
+                    else if (slotMountPoint.parentNode)
+                    {
+                        while (slotMountPoint.firstChild)
+                            slotMountPoint.parentNode.insertBefore(slotMountPoint.firstChild, slotMountPoint)
+                        slotMountPoint.parentNode.removeChild(slotMountPoint)
+                    }
                 }
 
                 onNodeDestroy(startComment, () =>
