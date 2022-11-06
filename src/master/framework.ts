@@ -1,6 +1,7 @@
 import { randomId } from './utils/id'
 import type { Template } from './template'
 
+// This is bad but good enough for now for testing and development
 export function onNodeDestroy(node: Node, callback: () => void)
 {
     (async () =>
@@ -128,7 +129,7 @@ export function defineFragment<Props extends ElementProps>(fragmentTemplate: Fra
         template.prepend(startComment)
         template.append(endComment)
 
-        template.querySelectorAll('*:not(style):not(script)').forEach((element) => element.classList.add(`f-${typeId}`))
+        template.querySelectorAll('*:not(style):not(script)').forEach((element) => element.classList.add(`f-S${typeId}`))
         template.querySelectorAll('style:not([\\:global])').forEach((style) =>
         {
             style.textContent = scopeCss(style.textContent ?? '', `.f-${typeId}`)
