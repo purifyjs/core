@@ -8,21 +8,11 @@ export type TemplateAccepts = TemplateAcceptsValue | TemplateAcceptsSignal
 function parseValue(value: TemplateAcceptsValue): Node
 {
     if (value instanceof HTMLElement)
-    {
         return value
-    }
     else if (value instanceof DocumentFragment)
-    {
         return value
-    }
-    else if (value instanceof Date)
-    {
-        return document.createTextNode(value.toISOString())
-    }
     else
-    {
         return document.createTextNode(`${value}`)
-    }
 }
 
 export function html(parts: TemplateStringsArray, ...values: TemplateAccepts[])
@@ -34,7 +24,8 @@ export class Template extends DocumentFragment
 {
     private readonly $_nodes: Node[] = []
     private readonly $_listeners: Record<string, EventListener> = {}
-    private readonly $_signals: Record<string, { signal: Signal, startNode: Node, endNode: Node }> = {}
+    private readonly $_signal_texts: Record<string, { signal: Signal, startNode: Node, endNode: Node }> = {}
+    private readonly $_signal_attributes: Record<string, { signal: Signal, attribute: string }> = {}
 
     constructor(parts: TemplateStringsArray, ...values: TemplateAccepts[]) 
     {
@@ -54,6 +45,16 @@ export class Template extends DocumentFragment
                 this.$_listeners[id] = value
                 return `${htmlPart}${id}`
             }
+            if (htmlPart.endsWith('='))
+            {
+                if (value instanceof Signal)
+                {
+                    this.$_signal_attributes[value.id] = { signal: value, attribute: htmlPart.substring(htmlPart.lastIndexOf(' ') + 1).slice(0, -1) }
+                    console.log(this.$_signal_attributes[value.id].attribute)
+                    return `${htmlPart}"${value.id}"`
+                }
+                return `${htmlPart}"${value.toString().replaceAll('"', '\\"')}"`
+            }
             else if (value instanceof Signal)
             {
                 const fragment = document.createDocumentFragment()
@@ -64,7 +65,7 @@ export class Template extends DocumentFragment
                 const node = parseValue(value.value)
                 fragment.append(startComment, node, endComment)
 
-                this.$_signals[value.id] = { signal: value, startNode: startComment, endNode: endComment }
+                this.$_signal_texts[value.id] = { signal: value, startNode: startComment, endNode: endComment }
 
                 this.$_nodes.push(fragment)
             }
@@ -87,8 +88,8 @@ export class Template extends DocumentFragment
 
     async $mount(mountPoint: Element | ShadowRoot, append = false)
     {
-        const listenRoot = mountPoint instanceof ShadowRoot ? mountPoint : mountPoint.parentElement
-        if (!listenRoot) throw new Error('Cannot mount template to a node that is not attached to the DOM')
+        const root = mountPoint instanceof ShadowRoot ? mountPoint : mountPoint.parentElement
+        if (!root) throw new Error('Cannot mount template to a node that is not attached to the DOM')
 
         const toMount = this.insertOutlets()
         
@@ -98,16 +99,16 @@ export class Template extends DocumentFragment
         
         await Promise.all(toMount.map(async ({ node, outlet }) => await node.$mount(outlet)))
 
-        this.listenToEvents(listenRoot)
-        this.subscribeToSignals()
+        this.listenToEvents(root)
+        this.subscribeToSignals(root)
         
     }
 
-    private subscribeToSignals()
+    private subscribeToSignals(root: Element | ShadowRoot)
     {
-        for (const id in this.$_signals)
+        for (const id in this.$_signal_texts)
         {
-            const { signal, startNode, endNode } = this.$_signals[id]
+            const { signal, startNode, endNode } = this.$_signal_texts[id]
             const sub = signal.subscribe((value) =>
             {
                 const newNode = parseValue(value)
@@ -116,6 +117,16 @@ export class Template extends DocumentFragment
                 startNode.parentNode.insertBefore(newNode, endNode)
             })
             onNodeDestroy(startNode, () => sub.unsubscribe())
+        }
+
+        for (const id in this.$_signal_attributes)
+        {
+            const { signal, attribute } = this.$_signal_attributes[id]
+            const element = root.querySelector(`[${attribute}="${id}"]`)
+            if (!element) throw new Error(`Cannot find element with attribute ${attribute}="${id}"`)
+            element.setAttribute(attribute, signal.value.toString())
+            const sub = signal.subscribe((value) => element.setAttribute(attribute, value.toString()))
+            onNodeDestroy(element, () => sub.unsubscribe())
         }
     }
 

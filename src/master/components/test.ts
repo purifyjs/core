@@ -26,7 +26,7 @@ export const Test = defineElement<Props>('x-test', ({ props, element }) =>
                 color: white
             }
         </style>
-        <span>
+        <span class=${date}>
             ${date}
         </span>
         ${Test2({ number: 123 })}
