@@ -1,52 +1,154 @@
 import { randomId } from '../utils/id'
 
-export function defineElement<Props extends Record<string, any>>(tag: string, template: (params: { props: Props, shadowRoot: ShadowRoot, onDestroy(callback: () => void): void }) => Promise<DocumentFragment>)
+// emit event when node has no parent (removed from DOM)
+export function onNodeDestroy(node: Node, callback: () => void)
 {
-    const typeId = randomId()
-
-    return async (props: Props, slot?: DocumentFragment) =>
+    setTimeout((async () =>
     {
-        const element = document.createElement(tag)
-        const shadowRoot = element.attachShadow({ mode: 'open' })
+        while (getRootNode(node) === document)
+        {
+            await new Promise((resolve) => setTimeout(resolve, 1000))
+        }
+        callback()
+    }), 2000)
+}
 
-        const fragment = await template({
-            props, shadowRoot,
-            onDestroy(callback)
-            {
+function getRootNode(node: Node): Node
+{
+    if (node instanceof ShadowRoot) return getRootNode(node.host)
+    if (node.parentNode) return getRootNode(node.parentNode)
+    return node
+}
 
-            }
-        })
-        shadowRoot.append(fragment)
-        if (slot) element.append(slot)
+export type ElementMountCallback = ({ element }: { element: HTMLElement }) => Promise<void> | void
+export type ElementDestroyCallback = ({ element }: { element: HTMLElement }) => Promise<void> | void
+export type ElementProps = { [key: string]: any }
+export type ElementTemplate<Props extends ElementProps> = (params: { props: Props, element: MasterElement<Props> }) => DocumentFragment
 
-        element.setAttribute(':element', typeId)
+export abstract class MasterElement<Props extends ElementProps = ElementProps> extends HTMLElement
+{
+    private $_mountCallbacks: ElementMountCallback[] = []
+    private $_destroyCallbacks: ElementDestroyCallback[] = []
+    private $_mounted = false
+    private $_destroyed = false
 
-        // shadowRoot.querySelectorAll('*:not(script):not(style)').forEach((node) => node.setAttribute(':scope', typeId))
+    constructor(
+        protected _mountParams: { props: Props, template: ElementTemplate<Props>, slot?: DocumentFragment },
+    )
+    {
+        super()
+    }
 
-        return element
+    get $mounted() { return this.$_mounted }
+    get $destroyed() { return this.$_destroyed }
+
+    async $mount(mountPoint: Node)
+    {
+        console.log('mounting', this)
+        const parentNode = mountPoint.parentNode
+        if (!parentNode) throw new Error('Cannot mount element to a node that is not attached to the DOM')
+
+        if (this.$_mounted) return
+        if (this.$_destroyed) return
+        this.$_mounted = true
+        for (const callback of this.$_mountCallbacks)
+        {
+            await callback({ element: this })
+        }
+
+        parentNode.replaceChild(this, mountPoint)
+
+        const content = this._mountParams.template({ props: this._mountParams.props, element: this })
+        const shadowRoot = this.attachShadow({ mode: 'open' })
+        shadowRoot.append(content)
+
+        const slot = this._mountParams.slot
+        if (slot) this.append(slot)
+
+        shadowRoot.querySelectorAll('style[\\:global]').forEach((style) => this.append(style))
+
+        onNodeDestroy(this, () => this.$destroy())
+
+        this._mountParams = null!
+    }
+
+    async $destroy()
+    {
+        if (!this.$_mounted) return
+        if (this.$_destroyed) return
+        this.$_mounted = false
+        this.$_destroyed = true
+        for (const callback of this.$_destroyCallbacks)
+        {
+            await callback({ element: this })
+        }
+    }
+
+    $onMount(callback: ElementMountCallback)
+    {
+        this.$_mountCallbacks.push(callback)
+        if (this.$_mounted) callback({ element: this })
+    }
+
+    $onDestroy(callback: ElementDestroyCallback)
+    {
+        this.$_destroyCallbacks.push(callback)
     }
 }
 
-export function defineFragment<Props extends Record<string, any>>(template: (params: { props: Props }) => Promise<DocumentFragment>)
+export function defineElement<Props extends ElementProps>(tag: string, template: ElementTemplate<Props>)
+{
+    const Element = class extends MasterElement<Props>
+    {
+        public static typeId = randomId()
+
+        constructor(params: typeof Element.prototype._mountParams)
+        {
+            super(params)
+        }
+
+        async $mount(parent: HTMLElement): Promise<void>
+        {
+            this.classList.add('master-element', Element.typeId)
+            await super.$mount(parent)
+        }
+    }
+
+    customElements.define(tag, Element)
+
+    return (props: Props, slot?: DocumentFragment) => new Element({ props, template, slot })
+}
+
+export type FragmentTemplate<Props extends ElementProps> = (params: { props: Props, onMount(callback: ElementMountCallback): void, onDestroy(callback: ElementDestroyCallback): void }) => DocumentFragment
+
+export function defineFragment<Props extends ElementProps>(template: FragmentTemplate<Props>)
 {
     const typeId = randomId()
 
-    return async (props: Props, slot?: DocumentFragment) =>
+    return (props: Props, slot?: DocumentFragment) =>
     {
         const comment = `fragment ${typeId}`
         const startComment = document.createComment(comment)
         const endComment = document.createComment(`/${comment}`)
 
-        const fragment = await template({ props })
+        const callbacks: ElementMountCallback[] = []
+        const destroyCallbacks: ElementDestroyCallback[] = []
+
+        const fragment = template({
+            props,
+            onMount(callback) { callbacks.push(callback) },
+            onDestroy(callback) { destroyCallbacks.push(callback) },
+        })
+
         if (slot) fragment.querySelector('slot')?.replaceWith(slot)
 
         fragment.prepend(startComment)
         fragment.append(endComment)
 
-        fragment.querySelectorAll('*:not(style):not(script)').forEach((element) => element.setAttribute(':scope', typeId))
+        fragment.querySelectorAll('*:not(style):not(script)').forEach((element) => element.classList.add('master-fragment', typeId))
         fragment.querySelectorAll('style:not([\\:global])').forEach((style) =>
         {
-            style.textContent = scopeCss(style.textContent ?? '', `[\\:scope="${typeId}"]`)
+            style.textContent = scopeCss(style.textContent ?? '', `.--${typeId}`)
         })
 
         return fragment

@@ -1,10 +1,10 @@
-import { defineElement, defineFragment } from "../framework"
+import { defineElement } from "../framework"
 import { Signal } from "../signal"
 import { html } from "../template"
 import { Counter } from "./counter"
 import { Test } from "./test"
 
-export const App = defineFragment(async () => html`
+export const App = defineElement('x-app', () => html`
     <style>
         h1 + p, main:has(h1)  {
             color: red;
@@ -22,12 +22,12 @@ export const App = defineFragment(async () => html`
         <p>It's not ready for production.</p>
         <p>It's not ready for anything.</p>
     
-        ${await Test({ number: 123 }, 
-            await html`
+        ${Test({ number: 123 }, html`
             <p>Test</p>
         `)}
 
-        ${await Counter({ number: new Signal(0) })}
+        ${Counter({ number: new Signal(0) })}
     </main>`)
 
-document.body.append(await App({}))
+const app = App({})
+await app.$mount(document.querySelector('#app')!)

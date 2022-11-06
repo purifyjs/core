@@ -6,7 +6,7 @@ export class Signal<T = any>
     public readonly id = randomId()
     private _listeners: SignalListener<T>[] = []
     constructor(
-        public value?: T
+        public value: T
     ) {}
 
     subscribe(listener: SignalListener<T>)
@@ -20,11 +20,13 @@ export class Signal<T = any>
         }
     }
 
-    private static empty = Symbol('empty')
+    private static readonly empty = Symbol('empty')
     
-    async signal(value: T = Signal.empty as any)
+    async signal(value: T | ((value: T) => T) | typeof Signal.empty = Signal.empty)
     {
-        if (value !== Signal.empty) this.value = value
+
+        if (value !== Signal.empty)
+            this.value = value instanceof Function ? value(this.value) : value    
         await Promise.all(this._listeners.map((listener) => listener(this.value)))
     }
 }

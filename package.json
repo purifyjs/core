@@ -5,9 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "export NODE_ENV=dev && node server",
-    "build": "npm run build:client && npm run build:server",
-    "build:client": "vite build --outDir dist/client",
-    "build:server": "vite build --outDir dist/server --ssr src/entry-server.ts",
+    "build": "vite build --outDir dist",
     "serve": "node server"
   },
   "devDependencies": {

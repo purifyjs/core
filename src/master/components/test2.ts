@@ -1,7 +1,6 @@
 import { defineElement } from "../framework"
 import { Signal } from "../signal"
 import { html } from "../template"
-import { Test2 } from "./test2"
 
 interface Props
 {
@@ -9,11 +8,13 @@ interface Props
     string?: Signal<string | null>
 }
 
-export const Test = defineElement<Props>('x-test', ({ props, element }) => 
+export const Test2 = defineElement<Props>('x-test2', ({ props, element }) => 
 {
     const date = new Signal(new Date())
     const interval = setInterval(() => date.signal(new Date()), 1000)
     element.$onDestroy(() => clearInterval(interval))
+
+    date.subscribe((v) => console.log(v))
 
     return html`
         <style>
@@ -29,7 +30,7 @@ export const Test = defineElement<Props>('x-test', ({ props, element }) =>
         <span>
             ${date}
         </span>
-        ${Test2({ number: 123 })}
+        <slot></slot>
         <pre>${props.number}</pre>
         `
 })
