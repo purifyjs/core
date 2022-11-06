@@ -1,4 +1,5 @@
 import { randomId } from '../utils/id'
+import type { Template } from './template'
 
 export function onNodeDestroy(node: Node, callback: () => void)
 {
@@ -8,6 +9,7 @@ export function onNodeDestroy(node: Node, callback: () => void)
         {
             await new Promise((resolve) => requestAnimationFrame(resolve))
         }
+        console.log('destroyed', node)
         callback()
     })()
 }
@@ -22,7 +24,7 @@ function getRootNode(node: Node): Node
 export type ElementMountCallback = ({ element }: { element: HTMLElement }) => Promise<void> | void
 export type ElementDestroyCallback = ({ element }: { element: HTMLElement }) => Promise<void> | void
 export type ElementProps = { [key: string]: any }
-export type ElementTemplate<Props extends ElementProps> = (params: { props: Props, element: MasterElement<Props> }) => DocumentFragment
+export type ElementTemplate<Props extends ElementProps> = (params: { props: Props, element: MasterElement<Props> }) => Template
 
 export abstract class MasterElement<Props extends ElementProps = ElementProps> extends HTMLElement
 {
@@ -32,7 +34,7 @@ export abstract class MasterElement<Props extends ElementProps = ElementProps> e
     private $_destroyed = false
 
     constructor(
-        protected _mountParams: { props: Props, template: ElementTemplate<Props>, slot?: DocumentFragment },
+        protected _mountParams: { props: Props, template: ElementTemplate<Props>, slot?: Template },
     )
     {
         super()
@@ -41,33 +43,27 @@ export abstract class MasterElement<Props extends ElementProps = ElementProps> e
     get $mounted() { return this.$_mounted }
     get $destroyed() { return this.$_destroyed }
 
-    async $mount(mountPoint: Node)
+    async $mount(mountPoint: Element)
     {
         console.log('mounting', this)
-        const parentNode = mountPoint.parentNode
-        if (!parentNode) throw new Error('Cannot mount element to a node that is not attached to the DOM')
 
         if (this.$_mounted) throw new Error('Cannot mount element that is already mounted')
         if (this.$_destroyed) throw new Error('Cannot mount destroyed element')
         this.$_mounted = true
+
         for (const callback of this.$_mountCallbacks)
-        {
             await callback({ element: this })
-        }
 
-        parentNode.replaceChild(this, mountPoint)
+        const template = this._mountParams.template({ props: this._mountParams.props, element: this })
 
-        const content = this._mountParams.template({ props: this._mountParams.props, element: this })
+        mountPoint.replaceWith(this)
         const shadowRoot = this.attachShadow({ mode: 'open' })
-        shadowRoot.append(content)
-
-        const slot = this._mountParams.slot
-        if (slot) this.append(slot)
-
         shadowRoot.querySelectorAll('style[\\:global]').forEach((style) => this.append(style))
+        await template.$mount(shadowRoot, true)
+        await this._mountParams.slot?.$mount(this, true)
 
         onNodeDestroy(this, () => this.$destroy())
-
+        
         this._mountParams = null!
     }
 
@@ -115,42 +111,67 @@ export function defineElement<Props extends ElementProps>(tag: string, template:
 
     customElements.define(tag, Element)
 
-    return (props: Props, slot?: DocumentFragment) => new Element({ props, template, slot })
+    return (props: Props, slot?: Template) => new Element({ props, template, slot })
 }
 
-export type FragmentTemplate<Props extends ElementProps> = (params: { props: Props, onMount(callback: ElementMountCallback): void, onDestroy(callback: ElementDestroyCallback): void }) => DocumentFragment
+export type FragmentMountCallback = ({ mountPoint }: { mountPoint: Element }) => Promise<void> | void
+export type FragmentDestroyCallback = () => Promise<void> | void
+export type FragmentTemplate<Props extends ElementProps> = (params: { props: Props, onMount(callback: FragmentMountCallback): void, onDestroy(callback: FragmentDestroyCallback): void }) => Template
 
-export function defineFragment<Props extends ElementProps>(template: FragmentTemplate<Props>)
+export function defineFragment<Props extends ElementProps>(fragmentTemplate: FragmentTemplate<Props>)
 {
     const typeId = randomId()
 
-    return (props: Props, slot?: DocumentFragment) =>
+    return (props: Props, slot?: Template) =>
     {
         const comment = `fragment ${typeId}`
         const startComment = document.createComment(comment)
         const endComment = document.createComment(`/${comment}`)
 
-        const callbacks: ElementMountCallback[] = []
-        const destroyCallbacks: ElementDestroyCallback[] = []
+        const mountCallbacks: FragmentMountCallback[] = []
+        const destroyCallbacks: FragmentDestroyCallback[] = []
 
-        const fragment = template({
+        const template = fragmentTemplate({
             props,
-            onMount(callback) { callbacks.push(callback) },
+            onMount(callback) { mountCallbacks.push(callback) },
             onDestroy(callback) { destroyCallbacks.push(callback) },
         })
 
-        if (slot) fragment.querySelector('slot')?.replaceWith(slot)
+        template.prepend(startComment)
+        template.append(endComment)
 
-        fragment.prepend(startComment)
-        fragment.append(endComment)
-
-        fragment.querySelectorAll('*:not(style):not(script)').forEach((element) => element.classList.add('master-fragment', typeId))
-        fragment.querySelectorAll('style:not([\\:global])').forEach((style) =>
+        template.querySelectorAll('*:not(style):not(script)').forEach((element) => element.classList.add('master-fragment', typeId))
+        template.querySelectorAll('style:not([\\:global])').forEach((style) =>
         {
             style.textContent = scopeCss(style.textContent ?? '', `.--${typeId}`)
         })
 
-        return fragment
+        mountCallbacks.push(async ({ }) =>
+        {
+            if (slot) {
+                const mountPoint = template.querySelector('slot')
+                if (mountPoint) await slot.$mount(mountPoint)
+            }
+        })
+
+        const $mountCache = template.$mount
+        Object.defineProperty(template, '$mount', {
+            value: async (mountPoint: Element) =>
+            {
+                await $mountCache.call(template, mountPoint)
+                for (const callback of mountCallbacks)
+                    await callback({ mountPoint })
+
+                onNodeDestroy(startComment, async () =>
+                {
+                    for (const callback of destroyCallbacks)
+                        await callback()
+                })
+            },
+            writable: false
+        })
+
+        return template
     }
 }
 
