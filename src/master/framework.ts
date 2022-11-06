@@ -1,5 +1,6 @@
-import { randomId } from './utils/id'
+import { Signal, signal, signalDerive } from './signal'
 import type { Template } from './template'
+import { randomId } from './utils/id'
 
 // This is bad but good enough for now for testing and development
 export function onNodeDestroy(node: Node, callback: () => void)
@@ -25,7 +26,7 @@ function getRootNode(node: Node): Node
 export type ElementMountCallback = ({ element }: { element: HTMLElement }) => Promise<void> | void
 export type ElementDestroyCallback = ({ element }: { element: HTMLElement }) => Promise<void> | void
 export type ElementProps = { [key: string]: any }
-export type ElementTemplate<Props extends ElementProps> = (params: { props: Props, element: MasterElement<Props> }) => Template
+export type ElementTemplate<Props extends ElementProps> = (params: { props: Props, self: MasterElement<Props> }) => Template
 
 export abstract class MasterElement<Props extends ElementProps = ElementProps> extends HTMLElement
 {
@@ -55,7 +56,7 @@ export abstract class MasterElement<Props extends ElementProps = ElementProps> e
         for (const callback of this.$_mountCallbacks)
             await callback({ element: this })
 
-        const template = this._mountParams.template({ props: this._mountParams.props, element: this })
+        const template = this._mountParams.template({ props: this._mountParams.props, self: this })
 
         mountPoint.replaceWith(this)
         const shadowRoot = this.attachShadow({ mode: 'open' })
@@ -75,9 +76,7 @@ export abstract class MasterElement<Props extends ElementProps = ElementProps> e
         this.$_mounted = false
         this.$_destroyed = true
         for (const callback of this.$_destroyCallbacks)
-        {
             await callback({ element: this })
-        }
     }
 
     $onMount(callback: ElementMountCallback)
@@ -89,6 +88,32 @@ export abstract class MasterElement<Props extends ElementProps = ElementProps> e
     $onDestroy(callback: ElementDestroyCallback)
     {
         this.$_destroyCallbacks.push(callback)
+    }
+    
+    $signal<T>(value: T)
+    {
+        return signal(value)
+    }
+
+    $signalDerive<T>(getter: () => T, ...triggerSignals: Signal[])
+    {
+        const signal = signalDerive(getter, ...triggerSignals)
+        this.$onDestroy(() => signal.cleanup())
+        return signal
+    }
+
+    $interval(callback: () => void, interval: number)
+    {
+        const id = setInterval(() => callback(), interval)
+        this.$onDestroy(() => clearInterval(interval))
+        return id
+    }
+
+    $timeout(callback: () => void, timeout: number)
+    {
+        const id = setTimeout(() => callback(), timeout)
+        this.$onDestroy(() => clearTimeout(id))
+        return id
     }
 }
 

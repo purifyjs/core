@@ -1,6 +1,7 @@
 import { defineElement } from "../framework"
-import { Signal } from "../signal"
+import type { Signal } from "../signal"
 import { html } from "../template"
+import { randomId } from "../utils/id"
 import { Test2 } from "./test2"
 
 interface Props
@@ -9,11 +10,15 @@ interface Props
     string?: Signal<string | null>
 }
 
-export const Test = defineElement<Props>('x-test', ({ props, element }) => 
+export const Test = defineElement<Props>('x-test', ({ props, self }) => 
 {
-    const date = new Signal(new Date())
-    const interval = setInterval(() => date.signal(new Date()), 1000)
-    element.$onDestroy(() => clearInterval(interval))
+    const date = self.$signal(new Date())
+    self.$interval(() => date.signal(new Date()), 1000)
+
+    const value = self.$signal(randomId())
+    self.$interval(() => value.signal(randomId()), 500)
+
+    const valueText = self.$signalDerive(() => `foo-${value.value}`, value)
 
     return html`
         <style>
@@ -26,7 +31,7 @@ export const Test = defineElement<Props>('x-test', ({ props, element }) =>
                 color: white
             }
         </style>
-        <span class=${date}>
+        <span class=${self.$signalDerive(() => `bar ${valueText.value}`, valueText)}>
             ${date}
         </span>
         ${Test2({ number: 123 })}

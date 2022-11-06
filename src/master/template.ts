@@ -50,7 +50,6 @@ export class Template extends DocumentFragment
                 if (value instanceof Signal)
                 {
                     this.$_signal_attributes[value.id] = { signal: value, attribute: htmlPart.substring(htmlPart.lastIndexOf(' ') + 1).slice(0, -1) }
-                    console.log(this.$_signal_attributes[value.id].attribute)
                     return `${htmlPart}"${value.id}"`
                 }
                 return `${htmlPart}"${value.toString().replaceAll('"', '\\"')}"`

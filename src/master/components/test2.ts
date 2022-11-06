@@ -1,5 +1,5 @@
 import { defineElement } from "../framework"
-import { Signal } from "../signal"
+import type { Signal } from "../signal"
 import { html } from "../template"
 
 interface Props
@@ -8,14 +8,11 @@ interface Props
     string?: Signal<string | null>
 }
 
-export const Test2 = defineElement<Props>('x-test2', ({ props, element }) => 
+export const Test2 = defineElement<Props>('x-test2', ({ props, self }) => 
 {
-    const date = new Signal(new Date())
-    const interval = setInterval(() => date.signal(new Date()), 1000)
-    element.$onDestroy(() => clearInterval(interval))
-
-    date.subscribe((v) => console.log(v))
-
+    const date = self.$signal(new Date())
+    self.$interval(() => date.signal(new Date()), 1000)
+    
     return html`
         <style>
             :host {
