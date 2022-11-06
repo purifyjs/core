@@ -29,7 +29,7 @@ export const Test = defineElement<Props>('x-test', ({ props, element }) =>
         <span>
             ${date}
         </span>
-        ${Test2({ number: 123 })}
+        ${Test2({ number: 123 }, {})}
         <pre>${props.number}</pre>
         `
 })

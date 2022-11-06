@@ -9,6 +9,10 @@ export const App = defineElement('x-app', () => html`
         h1 + p, main:has(h1)  {
             color: red;
         }
+
+        .hey {
+            background: blue;
+        }
     </style>
     <style :global>
         :root {
@@ -22,12 +26,12 @@ export const App = defineElement('x-app', () => html`
         <p>It's not ready for production.</p>
         <p>It's not ready for anything.</p>
     
-        ${Test({ number: 123 }, html`
+        ${Test({ number: 123 }, { class: ['hey'] }, html`
             <p>Test</p>
         `)}
 
         ${Counter({ number: new Signal(0) })}
     </main>`)
 
-const app = App({})
+const app = App({}, {})
 await app.$mount(document.querySelector('#app')!)

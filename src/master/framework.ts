@@ -25,6 +25,7 @@ export type ElementMountCallback = ({ element }: { element: HTMLElement }) => Pr
 export type ElementDestroyCallback = ({ element }: { element: HTMLElement }) => Promise<void> | void
 export type ElementProps = { [key: string]: any }
 export type ElementTemplate<Props extends ElementProps> = (params: { props: Props, element: MasterElement<Props> }) => Template
+export type ElementAttributes = { [attrName: string]: string | string[] | undefined, class?: string[] }
 
 export abstract class MasterElement<Props extends ElementProps = ElementProps> extends HTMLElement
 {
@@ -34,10 +35,14 @@ export abstract class MasterElement<Props extends ElementProps = ElementProps> e
     private $_destroyed = false
 
     constructor(
-        protected _mountParams: { props: Props, template: ElementTemplate<Props>, slot?: Template },
+        protected _mountParams: { props: Props, attr: ElementAttributes, template: ElementTemplate<Props>, slot?: Template },
     )
     {
         super()
+        if (_mountParams.attr.class) this.classList.add(..._mountParams.attr.class)
+        delete _mountParams.attr.class
+        for (const key in _mountParams.attr)
+            if (_mountParams.attr[key] !== undefined) this.setAttribute(key, _mountParams.attr[key] as string)
     }
 
     get $mounted() { return this.$_mounted }
@@ -58,7 +63,7 @@ export abstract class MasterElement<Props extends ElementProps = ElementProps> e
 
         mountPoint.replaceWith(this)
         const shadowRoot = this.attachShadow({ mode: 'open' })
-        shadowRoot.querySelectorAll('style[\\:global]').forEach((style) => this.append(style))
+        template.querySelectorAll('style[\\:global]').forEach((style) => this.append(style))
         await template.$mount(shadowRoot, true)
         await this._mountParams.slot?.$mount(this, true)
 
@@ -111,7 +116,7 @@ export function defineElement<Props extends ElementProps>(tag: string, template:
 
     customElements.define(tag, Element)
 
-    return (props: Props, slot?: Template) => new Element({ props, template, slot })
+    return (props: Props, attr: ElementAttributes, slot?: Template) => new Element({ props, attr, template, slot })
 }
 
 export type FragmentMountCallback = ({ mountPoint }: { mountPoint: Element }) => Promise<void> | void
