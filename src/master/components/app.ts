@@ -25,13 +25,17 @@ export const App = defineElement('x-app', () => html`
         <p>It's a work in progress.</p>
         <p>It's not ready for production.</p>
         <p>It's not ready for anything.</p>
+
+        <x ${Test({ number: 123 })} class="hey" on:click=${() => alert('Hello World')}>
+            <p>Test</p>
+        </x>
     
-        ${Test({ number: 123 }, { class: ['hey'] }, html`
+        ${Test({ number: 123 }, html`
             <p>Test</p>
         `)}
 
         ${Counter({ number: new Signal(0) })}
     </main>`)
 
-const app = App({}, {})
+const app = App({})
 await app.$mount(document.querySelector('#app')!)

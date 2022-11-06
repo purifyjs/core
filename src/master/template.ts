@@ -1,5 +1,6 @@
 import { MasterElement, onNodeDestroy } from "./framework"
 import { Signal } from "./signal"
+import { randomId } from "./utils/id"
 
 type TemplateAcceptsValue = HTMLElement | DocumentFragment | string | number | boolean | null | undefined | Date | EventListener
 type TemplateAcceptsSignal = Signal<HTMLElement> | Signal<DocumentFragment> | Signal<string> | Signal<number> | Signal<boolean> | Signal<Date> | Signal<null> | Signal<undefined>
@@ -32,7 +33,7 @@ export function html(parts: TemplateStringsArray, ...values: TemplateAccepts[])
 export class Template extends DocumentFragment
 {
     private readonly $_nodes: Node[] = []
-    private readonly $_listeners: EventListener[] = []
+    private readonly $_listeners: Record<string, EventListener> = {}
     private readonly $_signals: Record<string, { signal: Signal, startNode: Node, endNode: Node }> = {}
 
     constructor(parts: TemplateStringsArray, ...values: TemplateAccepts[]) 
@@ -42,7 +43,18 @@ export class Template extends DocumentFragment
         {
             const value: TemplateAccepts = values[index]
             if (value == null || value === undefined) return htmlPart
-            if (value instanceof Signal)
+            if (htmlPart.trimEnd().endsWith('<x') && value instanceof MasterElement)
+            {
+                return `${htmlPart} x:element="${this.$_nodes.push(value) - 1}"`
+            }
+            else if (value instanceof Function)
+            {
+                // We use a random id to avoid collisions with fragments
+                const id = randomId()
+                this.$_listeners[id] = value
+                return `${htmlPart}${id}`
+            }
+            else if (value instanceof Signal)
             {
                 const fragment = document.createDocumentFragment()
                 const comment = `signal ${value.id}`
@@ -56,17 +68,13 @@ export class Template extends DocumentFragment
 
                 this.$_nodes.push(fragment)
             }
-            else if (value instanceof Function)
-            {
-                return `${htmlPart}${this.$_listeners.push(value) - 1}`
-            }
             else
             {
                 this.$_nodes.push(parseValue(value))
             }
 
             index = this.$_nodes.length - 1
-            return `${htmlPart}<outlet-${index}></outlet-${index}>`
+            return `${htmlPart}<x x:element="${index}"></x>`
         })
 
         const html = htmlParts.join('')
@@ -79,15 +87,20 @@ export class Template extends DocumentFragment
 
     async $mount(mountPoint: Element | ShadowRoot, append = false)
     {
-        const toMount = this.insertOutlets()
-        this.listenToEvents()
+        const listenRoot = mountPoint instanceof ShadowRoot ? mountPoint : mountPoint.parentElement
+        if (!listenRoot) throw new Error('Cannot mount template to a node that is not attached to the DOM')
 
+        const toMount = this.insertOutlets()
+        
         if (append) mountPoint.append(this)
         else if (!mountPoint.parentNode) throw new Error('Cannot mount template to a node that is not attached to the DOM')
         else mountPoint.parentNode.replaceChild(this, mountPoint)
-
+        
         await Promise.all(toMount.map(async ({ node, outlet }) => await node.$mount(outlet)))
+
+        this.listenToEvents(listenRoot)
         this.subscribeToSignals()
+        
     }
 
     private subscribeToSignals()
@@ -111,8 +124,14 @@ export class Template extends DocumentFragment
         const toMount: { node: MasterElement | Template, outlet: Element }[] = []
         this.$_nodes.forEach((node, index) =>
         {
-            const outlet = this.querySelector(`outlet-${index}`)
+            const outlet = this.querySelector(`x[x\\:element="${index}"]`)
             if (!outlet) throw new Error(`No outlet found for node ${index}`)
+            if (node instanceof MasterElement)
+            {
+                outlet.removeAttribute('x:element')
+                for (const attribute of Array.from(outlet.attributes))
+                    node.setAttribute(attribute.name, attribute.value)
+            }
             if (node instanceof Template || node instanceof MasterElement)
                 toMount.push({ node, outlet })
             else
@@ -122,16 +141,19 @@ export class Template extends DocumentFragment
         return toMount
     }
 
-    private listenToEvents()
+    private listenToEvents(root: Element | ShadowRoot)
     {
-        this.querySelectorAll('*').forEach((node) =>
+        root.querySelectorAll('*').forEach((node) =>
         {
             Array.from(node.attributes).forEach((attribute) =>
             {
                 if (attribute.name.startsWith('on:'))
                 {
+                    const listener = this.$_listeners[attribute.value]
+                    if (!listener) return
                     const eventName = attribute.name.slice(3)
-                    node.addEventListener(eventName, this.$_listeners[parseInt(attribute.value)])
+                    console.log('registering event', eventName, node)
+                    node.addEventListener(eventName, listener)
                 }
             })
         })

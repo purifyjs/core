@@ -25,7 +25,6 @@ export type ElementMountCallback = ({ element }: { element: HTMLElement }) => Pr
 export type ElementDestroyCallback = ({ element }: { element: HTMLElement }) => Promise<void> | void
 export type ElementProps = { [key: string]: any }
 export type ElementTemplate<Props extends ElementProps> = (params: { props: Props, element: MasterElement<Props> }) => Template
-export type ElementAttributes = { [attrName: string]: string | string[] | undefined, class?: string[] }
 
 export abstract class MasterElement<Props extends ElementProps = ElementProps> extends HTMLElement
 {
@@ -35,14 +34,10 @@ export abstract class MasterElement<Props extends ElementProps = ElementProps> e
     private $_destroyed = false
 
     constructor(
-        protected _mountParams: { props: Props, attr: ElementAttributes, template: ElementTemplate<Props>, slot?: Template },
+        protected _mountParams: { props: Props, template: ElementTemplate<Props>, slot?: Template },
     )
     {
         super()
-        if (_mountParams.attr.class) this.classList.add(..._mountParams.attr.class)
-        delete _mountParams.attr.class
-        for (const key in _mountParams.attr)
-            if (_mountParams.attr[key] !== undefined) this.setAttribute(key, _mountParams.attr[key] as string)
     }
 
     get $mounted() { return this.$_mounted }
@@ -100,23 +95,11 @@ export function defineElement<Props extends ElementProps>(tag: string, template:
 {
     const Element = class extends MasterElement<Props>
     {
-        public static typeId = randomId()
-
-        constructor(params: typeof Element.prototype._mountParams)
-        {
-            super(params)
-        }
-
-        async $mount(parent: HTMLElement): Promise<void>
-        {
-            this.classList.add('master-element', `m${Element.typeId}`)
-            await super.$mount(parent)
-        }
     }
 
     customElements.define(tag, Element)
 
-    return (props: Props, attr: ElementAttributes, slot?: Template) => new Element({ props, attr, template, slot })
+    return (props: Props, slot?: Template) => new Element({ props, template, slot })
 }
 
 export type FragmentMountCallback = ({ mountPoint }: { mountPoint: Element }) => Promise<void> | void
@@ -145,10 +128,10 @@ export function defineFragment<Props extends ElementProps>(fragmentTemplate: Fra
         template.prepend(startComment)
         template.append(endComment)
 
-        template.querySelectorAll('*:not(style):not(script)').forEach((element) => element.classList.add('master-fragment', `m${typeId}`))
+        template.querySelectorAll('*:not(style):not(script)').forEach((element) => element.classList.add(`f-${typeId}`))
         template.querySelectorAll('style:not([\\:global])').forEach((style) =>
         {
-            style.textContent = scopeCss(style.textContent ?? '', `.m${typeId}`)
+            style.textContent = scopeCss(style.textContent ?? '', `.f-${typeId}`)
         })
 
         const templateMountCache = template.$mount
