@@ -48,6 +48,7 @@ export const App = defineElement('x-app', ({ self: $ }) =>
         ${Promise.resolve()}
         ${'abc'}
         <span hey="${123} ${'aaa'} ${'"'} ${counterCount}"></span>
+        <span hey='${123} ${'aaa'} ${'"'} ${counterCount}'></span>
         <span hey='${123} ${'aaa'} ${"'"} ${counterCount}'></span>
 
 
