@@ -368,7 +368,7 @@ export class Template extends DocumentFragment
 
     private $_listenToEvents(root: Element | ShadowRoot)
     {
-        for (let listener = this.$_listeners.shift(); listener; listener = this.$_listeners.shift())
+        for (const listener of this.$_listeners)
         {
             const element = root.querySelector(`[on\\:${listener.event}="${listener.id}"]`)
             if (!element) throw new Error(`Cannot find element with event listener ${listener.event}=${listener.id}`)
