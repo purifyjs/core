@@ -224,9 +224,9 @@ export class Template extends DocumentFragment
                         }
                         break
                 }
-                html += char
             }
 
+            html += part
             if (i < values.length)
             {
                 const value: unknown = values[i]
