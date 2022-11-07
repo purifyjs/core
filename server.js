@@ -7,7 +7,6 @@ import { createServer as createViteServer } from 'vite'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const isDev = process.env.NODE_ENV === 'dev'
-const ssrOutletString = '<!--ssr-outlet-->'
 const root = path.resolve(__dirname, 'dist')
 
 async function createServer()
@@ -59,7 +58,7 @@ async function createServer()
     else
     {
         // Serve static files from the dist directory
-        app.use(express.static(path.resolve(root, 'client'), { index: false }))
+        app.use(express.static(path.resolve(root), { index: false }))
 
         // Serve the index.html file for all other requests
         app.use("*", async (req, res, next) =>
@@ -67,7 +66,7 @@ async function createServer()
             try
             {
                 // 1. Read index.html
-                let html = fs.readFileSync(path.resolve(root, 'client', 'index.html'), 'utf-8')
+                let html = fs.readFileSync(path.resolve(root, 'index.html'), 'utf-8')
 
                 // 6. Send the rendered HTML back.
                 res.status(200).set({ 'Content-Type': 'text/html' }).end(html)
