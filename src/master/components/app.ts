@@ -47,7 +47,8 @@ export const App = defineElement('x-app', ({ self: $ }) =>
         <span hey='${123} ${'aaa'} ${'"'} ${counterCount}'></span>
         <span hey='${123} ${'aaa'} ${"'"} ${counterCount}'></span>
 
-        <div heyy=${counterCount}></div>
+        <!-- TODO: Make this work -->
+        <div class:hello-world=${counterCount}></div>
 
 
         <p>Count: ${counterCount}</p>
