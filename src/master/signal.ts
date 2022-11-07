@@ -63,7 +63,7 @@ export function signalDerive<T>(getter: () => T, ...triggerSignals: Signal[])
     return new SignalDerive(getter, ...triggerSignals)
 }
 
-export function text(parts: TemplateStringsArray, ...values: any[])
+export function textSignal(parts: TemplateStringsArray, ...values: any[])
 {
     function update()
     {
