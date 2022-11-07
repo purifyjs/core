@@ -29,8 +29,19 @@ export class Template extends DocumentFragment
     {
         super()
 
+        const enum State
+        {
+            Outer,
+            TagInner,
+            TagName,
+            TagClose,
+            AttributeName,
+            AttributeValueUnquoted,
+            AttributeValueQuoted
+        }
+
         const state = {
-            current: 'outer' as 'outer' | 'tag_inner' | 'tag_name' | 'tag_close' | 'attribute_name' | 'attribute_value_unquoted' | 'attribute_value_quoted',
+            current: State.Outer,
             tag: null as string | null,
             attribute_name: null as string | null,
             attribute_value: null as string | null
@@ -45,64 +56,64 @@ export class Template extends DocumentFragment
             {
                 switch (state.current)
                 {
-                    case 'outer':
+                    case State.Outer:
                         if (char === '<')
                         {
-                            state.current = 'tag_name'
+                            state.current = State.TagName
                             state.tag = ''
                         }
                         break
-                    case 'tag_name':
+                    case State.TagName:
                         if (!state.tag && char === '/')
                         {
-                            state.current = 'tag_close'
+                            state.current = State.TagClose
                             state.tag = ''
                         }
                         else if (char === '>')
                         {
-                            state.current = 'outer'
+                            state.current = State.Outer
                             state.tag = null
                         }
                         else if (char === ' ')
                         {
-                            state.current = 'tag_inner'
+                            state.current = State.TagInner
                         }
                         else
                         {
                             state.tag += char
                         }
                         break
-                    case 'tag_inner':
+                    case State.TagInner:
                         if (char === '>')
                         {
-                            state.current = 'outer'
+                            state.current = State.Outer
                             state.tag = null
                         }
                         else if (char === ' ')
                         {
-                            state.current = 'tag_inner'
+                            state.current = State.TagInner
                         }
                         else
                         {
-                            state.current = 'attribute_name'
+                            state.current = State.AttributeName
                             state.attribute_name = char
                         }
                         break
-                    case 'attribute_name':
+                    case State.AttributeName:
                         if (char === '>')
                         {
-                            state.current = 'outer'
+                            state.current = State.Outer
                             state.tag = null
                             state.attribute_name = null
                         }
                         else if (char === ' ')
                         {
-                            state.current = 'tag_inner'
+                            state.current = State.TagInner
                             state.attribute_name = null
                         }
                         else if (char === '=')
                         {
-                            state.current = 'attribute_value_unquoted'
+                            state.current = State.AttributeValueUnquoted
                             state.attribute_value = ''
                         }
                         else
@@ -110,23 +121,23 @@ export class Template extends DocumentFragment
                             state.attribute_name += char
                         }
                         break
-                    case 'attribute_value_unquoted':
+                    case State.AttributeValueUnquoted:
                         if (char === '>')
                         {
-                            state.current = 'outer'
+                            state.current = State.Outer
                             state.tag = null
                             state.attribute_name = null
                             state.attribute_value = null
                         }
                         else if (char === ' ')
                         {
-                            state.current = 'tag_inner'
+                            state.current = State.TagInner
                             state.attribute_name = null
                             state.attribute_value = null
                         }
                         else if (char === '"')
                         {
-                            state.current = 'attribute_value_quoted'
+                            state.current = State.AttributeValueQuoted
                             state.attribute_value = ''
                         }
                         else
@@ -134,10 +145,10 @@ export class Template extends DocumentFragment
                             state.attribute_value += char
                         }
                         break
-                    case 'attribute_value_quoted':
+                    case State.AttributeValueQuoted:
                         if (char === '"')
                         {
-                            state.current = 'tag_inner'
+                            state.current = State.TagInner
                             state.attribute_name = null
                             state.attribute_value = null
                         }
@@ -146,10 +157,10 @@ export class Template extends DocumentFragment
                             state.attribute_value += char
                         }
                         break
-                    case 'tag_close':
+                    case State.TagClose:
                         if (char === '>')
                         {
-                            state.current = 'outer'
+                            state.current = State.Outer
                             state.tag = null
                         }
                         else
@@ -165,11 +176,11 @@ export class Template extends DocumentFragment
             {
                 const value = values[i]
 
-                if (state.current === 'tag_inner' && state.tag === 'x' && value instanceof MasterElement)
+                if (state.current === State.TagInner && state.tag === 'x' && value instanceof MasterElement)
                 {
                     html += ` x:element="${this.$_nodes.push(value) - 1}"`
                 }
-                else if (state.current === 'attribute_value_quoted')
+                else if (state.current === State.AttributeValueQuoted)
                 {
                     if (value instanceof Signal)
                     {
@@ -181,7 +192,7 @@ export class Template extends DocumentFragment
                         html += value.toString().replace(/"/g, '\\"')
                     }
                 }
-                else if (state.current === 'attribute_value_unquoted')
+                else if (state.current === State.AttributeValueUnquoted)
                 {
                     if (value instanceof Signal)
                     {
