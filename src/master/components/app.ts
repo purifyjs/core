@@ -6,7 +6,7 @@ import { Counter } from "./counter"
 export const App = defineElement('x-app', ({ self: $ }) => 
 {
     const counterCount = $.$signal(0)
-    const signalFragment = $.$signal(html`<div on:click=${()=> alert('hey!!!')}>Fragment</div>`)
+    const signalFragment = $.$signal(html`<div on:click=${() => alert('hey!!!')}>Fragment</div>`)
 
     $.$subscribe(counterCount, (count) => console.log('Counter count:', count))
 
@@ -33,6 +33,13 @@ export const App = defineElement('x-app', ({ self: $ }) =>
         html`
             <p>Not Counting!</p>`,
         counterCount)}
+
+        <!-- TODO: If Else Syntax -->
+        ${/* $
+            .$if(counterCount, html`<p>Counting...</p>`)
+            .elseif(counterCount, html`<p>Not Counting!</p>`)
+            .else(html`<p>Not Counting!</p>`)
+         */null}
 
         <p>Master.ts is a framework for building web apps.</p>
         <p>It's a framework for building web apps.</p>
