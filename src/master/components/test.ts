@@ -13,12 +13,12 @@ interface Props
 export const Test = defineElement<Props>('x-test', ({ props, self: $ }) => 
 {
     const date = $.$signalDerive(() => new Date())
-    $.$interval(date.signal, 1000)
+    $.$interval(date.signal, 5000)
 
     const value = $.$signalDerive(randomId)
-    $.$interval(value.signal, 500)
+    $.$interval(value.signal, 2000)
 
-    const valueText = $.$signalDerive(() => `foo-${value.value}`, value)
+    const valueText = $.$text`foo-${value}`
 
     return html`
         <style>
@@ -31,7 +31,7 @@ export const Test = defineElement<Props>('x-test', ({ props, self: $ }) =>
                 color: white
             }
         </style>
-        <span class=${$.$text`bar ${valueText}`}>
+        <span class="bar ${valueText} ${valueText} ${123}">
             ${date}
         </span>
         <x ${Test2({ number: 123 })}>

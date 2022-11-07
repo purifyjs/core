@@ -1,5 +1,5 @@
 import { MasterElement, onNodeDestroy } from "./framework"
-import { Signal } from "./signal"
+import { Signal, signalDerive } from "./signal"
 import { randomId } from "./utils/id"
 
 export type TemplateAccepts = any
@@ -169,19 +169,31 @@ export class Template extends DocumentFragment
                 {
                     html += ` x:element="${this.$_nodes.push(value) - 1}"`
                 }
-                else if (value instanceof Function)
+                else if (state.current === 'attribute_value_quoted')
                 {
-                    // We use a random id to avoid collisions with fragments
-                    const id = randomId()
-                    this.$_listeners[id] = value
-                    html += `${id}`
+                    if (value instanceof Signal)
+                    {
+                        html += `<$${value.id}>`
+                        this.$_signal_attributes[value.id] = { signal: value, attribute: state.attribute_name! }
+                    }
+                    else
+                    {
+                        html += value.toString().replace(/"/g, '\\"')
+                    }
                 }
                 else if (state.current === 'attribute_value_unquoted')
                 {
                     if (value instanceof Signal)
                     {
                         this.$_signal_attributes[value.id] = { signal: value, attribute: state.attribute_name! }
-                        html += `"${value.id}"`
+                        html += `"<$${value.id}>"`
+                    }
+                    else if (value instanceof Function)
+                    {
+                        // We use a random id to avoid collisions with fragments
+                        const id = randomId()
+                        this.$_listeners[id] = value
+                        html += `${id}`
                     }
                     else
                         html += `"${value.toString().replaceAll('"', '\\"')}"`
@@ -251,12 +263,29 @@ export class Template extends DocumentFragment
 
         for (const id in this.$_signal_attributes)
         {
-            const { signal, attribute } = this.$_signal_attributes[id]
-            const element = root.querySelector(`[${attribute}="${id}"]`)
+            const { attribute } = this.$_signal_attributes[id]
+            const element = root.querySelector(`[${attribute}*="<$${id}>"]`)
             if (!element) throw new Error(`Cannot find element with attribute ${attribute}="${id}"`)
-            element.setAttribute(attribute, signal.value.toString())
-            const sub = signal.subscribe((value) => element.setAttribute(attribute, value.toString()))
-            onNodeDestroy(element, () => sub.unsubscribe())
+            const attributeSignalDerives = (element as any).$_attribute_signal_derives ?? ((element as any).$_attribute_signal_derives = {})
+            if (attributeSignalDerives[attribute]) continue
+
+            const original = element.getAttribute(attribute)!
+
+            const signalIds: string[] = /<\$([^>]+)>/g.exec(original)!.slice(1)
+
+            const update = () =>
+            {
+                let value = original
+                for (const id of signalIds)
+                {
+                    const signal = this.$_signal_attributes[id].signal
+                    value = value.replaceAll(`<$${id}>`, signal.value.toString())
+                }
+                return value
+            }
+            const signal = attributeSignalDerives[attribute] = signalDerive(update, ...signalIds.map(id => this.$_signal_attributes[id].signal))
+            signal.subscribe((value) => element.setAttribute(attribute, value))
+            onNodeDestroy(element, () => signal.cleanup())
         }
     }
 

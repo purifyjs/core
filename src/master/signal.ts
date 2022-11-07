@@ -1,6 +1,6 @@
 import { randomId } from "./utils/id"
 
-export type SignalListener<T> = (value?: T) => Promise<void> | void
+export type SignalListener<T> = (value: T) => Promise<void> | void
 export type SignalSubscription = { unsubscribe: () => void }
 export class Signal<T = any>
 {
@@ -12,6 +12,7 @@ export class Signal<T = any>
 
     subscribe(listener: SignalListener<T>): SignalSubscription
     {
+        listener(this.value)
         this._listeners.push(listener)
         return {
             unsubscribe: () => {
