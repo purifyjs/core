@@ -1,4 +1,3 @@
-import { If } from "../fragments/if"
 import { defineElement } from "../framework/element"
 import { html } from "../framework/fragment"
 import { Block } from "./block"
@@ -7,7 +6,7 @@ import { Counter } from "./counter"
 export const App = defineElement('x-app', ({ self: $ }) => 
 {
     const counterCount = $.$signal(0)
-    const signalFragment = $.$signal(html`<div on:click=${() => alert('hey!!!')}>Fragment</div>`)
+    const signalFragment = $.$signal(html`<div on:click=${()=> alert('hey!!!')}>Fragment</div>`)
 
     $.$subscribe(counterCount, (count) => console.log('Counter count:', count))
 
@@ -28,21 +27,13 @@ export const App = defineElement('x-app', ({ self: $ }) =>
     </style>
     <main>
         <h1>Master.ts</h1>
-        
-        ${If(counterCount,
-        html`
-            <p on:click=${() => alert('counting!!!')}>Counting...</p>`,
-        html`
-            <p>Not Counting!</p>
-        `)}
 
         ${$.$signalDerive(() => counterCount.value ?
-            html`
+        html`
             <p on:click=${() => alert('counting!!!')}>Counting...</p>` :
-            html`
+        html`
             <p>Not Counting!</p>`,
-            counterCount
-        )}
+        counterCount)}
 
         <p>Master.ts is a framework for building web apps.</p>
         <p>It's a framework for building web apps.</p>
