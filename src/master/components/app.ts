@@ -28,10 +28,9 @@ export const App = defineElement('x-app', ({ self: $ }) =>
     <main>
         <h1>Master.ts</h1>
 
-        ${$.$signalDerive(() => counterCount.value ? html`
-            <p on:click=${() => alert('counting!!!')}>Counting...</p>` :
-        html`
-            <p>Not Counting!</p>`,
+        ${$.$signalDerive(() => counterCount.value ?
+        html`<p>Counting...</p>` :
+        html`<p>Not Counting!</p>`,
         counterCount)}
 
         <!-- TODO: If Else Syntax -->
