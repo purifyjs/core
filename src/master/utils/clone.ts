@@ -19,7 +19,7 @@ export function isClassInstace<T extends object>(obj: T)
     return obj.constructor && obj.constructor.name !== "Object"
 }
 
-export function deepCloneClassInstance<T extends object>(obj: T) : T
+export function deepCloneClassInstance<T extends object>(obj: T): T
 {
     const clone = Object.create(Object.getPrototypeOf(obj))
     Object.assign(clone, deepClone(obj))

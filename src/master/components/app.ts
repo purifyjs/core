@@ -1,5 +1,5 @@
-import { defineElement } from "../framework"
-import { html } from "../template"
+import { defineElement } from "../framework/element"
+import { html } from "../framework/template"
 import { Counter } from "./counter"
 
 export const App = defineElement('x-app', ({ self: $ }) => 

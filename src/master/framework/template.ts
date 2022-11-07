@@ -1,6 +1,7 @@
-import { MasterElement, onNodeDestroy } from "./framework"
+import { randomId } from "../utils/id"
+import { onNodeDestroy } from "../utils/node"
+import { MasterElement } from "./element"
 import { Signal, signalDerive } from "./signal"
-import { randomId } from "./utils/id"
 
 export type TemplateAccepts = any
 function parseValue(value: TemplateAccepts): Node
