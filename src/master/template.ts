@@ -176,7 +176,7 @@ export class Template extends DocumentFragment
             {
                 const value = values[i]
 
-                if (state.current === State.TagInner && state.tag === 'x' && value instanceof MasterElement)
+                if (state.current === State.TagInner && state.tag === 'x' && value instanceof MasterElement || value instanceof Template)
                 {
                     html += ` x:element="${this.$_nodes.push(value) - 1}"`
                 }
@@ -250,7 +250,31 @@ export class Template extends DocumentFragment
         else if (!mountPoint.parentNode) throw new Error('Cannot mount template to a node that is not attached to the DOM')
         else mountPoint.parentNode.replaceChild(this, mountPoint)
 
-        await Promise.all(toMount.map(async ({ node, outlet }) => await node.$mount(outlet)))
+        await Promise.all(toMount.map(async ({ node, outlet }) => 
+        {
+            if (node instanceof MasterElement)
+            {
+                node.append(...Array.from(outlet.childNodes))
+                outlet.removeAttribute('x:element')
+                for (const attribute of Array.from(outlet.attributes))
+                    node.setAttribute(attribute.name, attribute.value)
+            }
+            else if (node instanceof Template)
+            {
+                // This might be problematic if the template slot changes
+                // Maybe we shouldnt have slot for fragments in the first place
+                // Or maybe it just works
+                // TODO: Test this
+                const slot = node.querySelector('slot')
+                if (node.firstChild && slot)
+                    slot.replaceWith(...Array.from(outlet.childNodes))
+                else if (slot)
+                    slot.remove()
+                else
+                    node.append(...Array.from(outlet.childNodes))
+            }
+            await node.$mount(outlet)
+        }))
 
         this.listenToEvents(root)
         this.subscribeToSignals(root)
@@ -307,13 +331,6 @@ export class Template extends DocumentFragment
         {
             const outlet = this.querySelector(`x[x\\:element="${index}"]`)
             if (!outlet) throw new Error(`No outlet found for node ${index}`)
-            if (node instanceof MasterElement)
-            {
-                node.append(...Array.from(outlet.childNodes))
-                outlet.removeAttribute('x:element')
-                for (const attribute of Array.from(outlet.attributes))
-                    node.setAttribute(attribute.name, attribute.value)
-            }
             if (node instanceof Template || node instanceof MasterElement)
                 toMount.push({ node, outlet })
             else

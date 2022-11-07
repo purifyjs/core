@@ -7,5 +7,8 @@ interface Props
     number: Signal<number>
 }
 
-export const Counter = defineFragment<Props>(({ props }) =>
-    html`<button on:click=${()=> props.number.signal((v) => v + 1)}>Click Me! ${props.number}</button>`)
+export const Counter = defineFragment<Props>(({ props: { number } }) =>
+    html`
+        <button on:click=${() => number.signal((v) => v + 1)}>
+            <slot>Placeholder</slot> ${number}
+        </button>`)

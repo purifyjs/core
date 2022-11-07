@@ -36,7 +36,7 @@ export abstract class MasterElement<Props extends ElementProps = ElementProps> e
     private $_destroyed = false
 
     constructor(
-        protected _mountParams: { props: Props, template: ElementTemplate<Props>, slot?: Template },
+        protected _mountParams: { props: Props, template: ElementTemplate<Props> },
     )
     {
         super()
@@ -62,7 +62,6 @@ export abstract class MasterElement<Props extends ElementProps = ElementProps> e
         const shadowRoot = this.attachShadow({ mode: 'open' })
         template.querySelectorAll('style[\\:global]').forEach((style) => this.append(style))
         await template.$mount(shadowRoot, true)
-        await this._mountParams.slot?.$mount(this, true)
 
         onNodeDestroy(this, () =>
         {
@@ -137,7 +136,7 @@ export function defineElement<Props extends ElementProps>(tag: string, template:
 
     customElements.define(tag, Element)
 
-    return (props: Props, slot?: Template) => new Element({ props, template, slot })
+    return (props: Props) => new Element({ props, template })
 }
 
 export type FragmentMountCallback = ({ mountPoint }: { mountPoint: Element }) => Promise<void> | void
@@ -148,7 +147,7 @@ export function defineFragment<Props extends ElementProps>(fragmentTemplate: Fra
 {
     const typeId = randomId()
 
-    return (props: Props, slot?: Template) =>
+    return (props: Props) =>
     {
         const comment = `fragment ${typeId}`
         const startComment = document.createComment(comment)
@@ -180,21 +179,6 @@ export function defineFragment<Props extends ElementProps>(fragmentTemplate: Fra
 
                 for (const callback of mountCallbacks)
                     await callback({ mountPoint })
-
-                // I did this but maybe it's not necessary
-                // Maybe fragment shouldnt have slots and stuff
-                // maybe it just should be a bunch of elements with scoped styles
-                const slotMountPoint = template.querySelector('slot')
-                if (slotMountPoint)
-                {
-                    if (slot) await slot.$mount(slotMountPoint)
-                    else if (slotMountPoint.parentNode)
-                    {
-                        while (slotMountPoint.firstChild)
-                            slotMountPoint.parentNode.insertBefore(slotMountPoint.firstChild, slotMountPoint)
-                        slotMountPoint.parentNode.removeChild(slotMountPoint)
-                    }
-                }
 
                 onNodeDestroy(startComment, () =>
                 {

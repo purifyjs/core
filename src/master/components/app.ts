@@ -1,10 +1,12 @@
 import { defineElement } from "../framework"
-import { Signal } from "../signal"
 import { html } from "../template"
 import { Counter } from "./counter"
-import { Test } from "./test"
 
-export const App = defineElement('x-app', () => html`
+export const App = defineElement('x-app', ({ self: $ }) => 
+{
+    const someSignal = $.$signal(0)
+
+    return html`
     <style>
         h1 + p, main:has(h1)  {
             color: red;
@@ -26,16 +28,11 @@ export const App = defineElement('x-app', () => html`
         <p>It's not ready for production.</p>
         <p>It's not ready for anything.</p>
 
-        <x ${Test({ number: 123 })} class="hey" on:click=${() => alert('Hello World')}>
-            <p>Test</p>
+        <x ${Counter({ number: someSignal })}>
+            Click me!! ${someSignal}
         </x>
-    
-        ${Test({ number: 123 }, html`
-            <p>Test</p>
-        `)}
-
-        ${Counter({ number: new Signal(0) })}
-    </main>`)
+    </main>`
+})
 
 const app = App({})
 await app.$mount(document.querySelector('#app')!)
