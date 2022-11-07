@@ -176,9 +176,9 @@ export class Template extends DocumentFragment
             {
                 const value: unknown = values[i]
 
-                if (state.current === State.TagInner && state.tag === 'x' && (value instanceof MasterElement || value instanceof Template))
+                if (state.current === State.TagInner && state.tag === 'x' && part.trimEnd().endsWith('<x') && (value instanceof MasterElement || value instanceof Template))
                 {
-                    html += ` :outlet="${this.$_nodes.push(value) - 1}"`
+                    html += `:outlet="${this.$_nodes.push(value) - 1}"`
                 }
                 else if (state.current === State.AttributeValueQuoted)
                 {
