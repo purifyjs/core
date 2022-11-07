@@ -34,10 +34,6 @@ export const App = defineElement('x-app', ({ self: $ }) =>
             Click me!!
         </x>
 
-        ${html`
-            <p>Hey</p>
-        `}
-
         ${2 + 2}
         ${[123, 456, 789]}
         ${{}}
@@ -50,6 +46,8 @@ export const App = defineElement('x-app', ({ self: $ }) =>
         <span hey="${123} ${'aaa'} ${'"'} ${counterCount}"></span>
         <span hey='${123} ${'aaa'} ${'"'} ${counterCount}'></span>
         <span hey='${123} ${'aaa'} ${"'"} ${counterCount}'></span>
+
+        <div heyy=${counterCount}></div>
 
 
         <p>Count: ${counterCount}</p>

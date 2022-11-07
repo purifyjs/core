@@ -20,10 +20,10 @@ export function html(parts: TemplateStringsArray, ...values: TemplateAccepts[])
 
 export class Template extends DocumentFragment
 {
-    private readonly $_nodes: Node[] = []
-    private readonly $_listeners: Record<string, EventListener> = {}
-    private readonly $_signal_texts: Record<string, { signal: Signal, startNode: Node, endNode: Node }> = {}
-    private readonly $_signal_attributes: Record<string, { signal: Signal, attribute: string }> = {}
+    private $_nodes: Node[] = []
+    private $_listeners: Record<string, EventListener> = {}
+    private $_signals: Record<string, Signal<any>> = {}
+    private $_signal_texts: Record<string, { startNode: Node, endNode: Node }> = {}
 
     constructor(parts: TemplateStringsArray, ...values: TemplateAccepts[]) 
     {
@@ -187,9 +187,9 @@ export class Template extends DocumentFragment
                         }
                         break
                 }
+                html += char
             }
 
-            html += part
             if (i < values.length)
             {
                 const value: unknown = values[i]
@@ -201,7 +201,7 @@ export class Template extends DocumentFragment
                 else if (value instanceof Signal && (state.current === State.AttributeValueDoubleQuoted || state.current === State.AttributeValueSingleQuoted))
                 {
                     html += `<$${value.id}>`
-                    this.$_signal_attributes[value.id] = { signal: value, attribute: state.attribute_name! }
+                    this.$_signals[value.id] = value
                 }
                 else if (state.current === State.AttributeValueDoubleQuoted)
                 {
@@ -215,7 +215,7 @@ export class Template extends DocumentFragment
                 {
                     if (value instanceof Signal)
                     {
-                        this.$_signal_attributes[value.id] = { signal: value, attribute: state.attribute_name! }
+                        this.$_signals[value.id] = value
                         html += `"<$${value.id}>"`
                     }
                     else if (value instanceof Function)
@@ -240,7 +240,8 @@ export class Template extends DocumentFragment
                         const node = parseValue(value.value)
                         fragment.append(startComment, node, endComment)
 
-                        this.$_signal_texts[value.id] = { signal: value, startNode: startComment, endNode: endComment }
+                        this.$_signal_texts[value.id] = { startNode: startComment, endNode: endComment }
+                        this.$_signals[value.id] = value
 
                         this.$_nodes.push(fragment)
                     }
@@ -320,6 +321,8 @@ export class Template extends DocumentFragment
                 outlet.replaceWith(node)
         })
 
+        this.$_nodes = null!
+
         return toMount
     }
 
@@ -339,13 +342,16 @@ export class Template extends DocumentFragment
                 }
             })
         })
+
+        this.$_listeners = null!
     }
 
     private $_subscribeToSignals(root: Element | ShadowRoot)
     {
         for (const id in this.$_signal_texts)
         {
-            const { signal, startNode, endNode } = this.$_signal_texts[id]
+            const signal = this.$_signals[id]
+            const { startNode, endNode } = this.$_signal_texts[id]
             const sub = signal.subscribe((value) =>
             {
                 const newNode = parseValue(value)
@@ -356,35 +362,26 @@ export class Template extends DocumentFragment
             onNodeDestroy(startNode, () => sub.unsubscribe())
         }
 
-        for (const id in this.$_signal_attributes)
+        root.querySelectorAll('*').forEach((node) =>
         {
-            // TODO: Refactor this later to simplify things
-            const { attribute } = this.$_signal_attributes[id]
-            const elements = root.querySelectorAll(`[${attribute}*="<$${id}>"]`)
-            if (elements.length === 0) throw new Error(`Cannot find elements with attribute "${attribute}" that contains signal ${id}`)
-            elements.forEach((element) =>
+            Array.from(node.attributes).forEach((attribute) =>
             {
-                const attributeSignalDerives = (element as any).$_attribute_signal_derives ?? ((element as any).$_attribute_signal_derives = {})
-                if (attributeSignalDerives[attribute]) return
+                const signalIds: string[] = /<\$([^>]+)>/g.exec(attribute.value)?.slice(1) ?? []
+                if (signalIds.length === 0) return
 
-                const original = element.getAttribute(attribute)!
+                const valueTemplate: (Signal | string)[] = attribute.value.split(/<\$([^>]+)>/g)
+                    .map((value, index) => index % 2 === 0 ? value : this.$_signals[value])
 
-                const signalIds: string[] = /<\$([^>]+)>/g.exec(original)!.slice(1)
-
-                const update = () =>
-                {
-                    let value = original
-                    for (const id of signalIds)
-                    {
-                        const signal = this.$_signal_attributes[id].signal
-                        value = value.replaceAll(`<$${id}>`, signal.value.toString())
-                    }
-                    return value
-                }
-                const signal = attributeSignalDerives[attribute] = signalDerive(update, ...signalIds.map(id => this.$_signal_attributes[id].signal))
-                signal.subscribe((value) => element.setAttribute(attribute, value))
-                onNodeDestroy(element, () => signal.cleanup())
+                const signal = signalDerive(
+                    () => valueTemplate.map((value) => value instanceof Signal ? value.value : value).join(''),
+                    ...signalIds.map(id => this.$_signals[id])
+                )
+                signal.subscribe((value) => node.setAttribute(attribute.name, value))
+                onNodeDestroy(node, () => signal.cleanup())
             })
-        }
+        })
+
+        this.$_signals = null!
+        this.$_signal_texts = null!
     }
 }
