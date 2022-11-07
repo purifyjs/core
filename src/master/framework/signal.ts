@@ -54,11 +54,6 @@ export class Signal<T = any>
         if (value !== Signal.Empty) this.value = value instanceof Function ? value(this.value) : value
         await Promise.all(this._listeners.map((listener) => listener(this.value)))
     }
-
-    derive<U>(derive: (value: T) => U)
-    {
-        return new SignalDerive(() => derive(this.value), this)
-    }
 }
 
 export function signal<T>(value: T)
