@@ -22,11 +22,14 @@ export const App = defineElement('x-app', ({ self: $ }) =>
         }
     </style>
     <main>
-        <h1>Master</h1>
-        <p>Master is a framework for building web apps.</p>
+        <h1>Master.ts</h1>
+        <p>Master.ts is a framework for building web apps.</p>
+        <p>It's a framework for building web apps.</p>
         <p>It's a work in progress.</p>
         <p>It's not ready for production.</p>
 
+        <h2>Counter</h2>
+        <p>Click the button to increment the counter.</p>
         <x ${Counter({ number: counterCount })} class="hey" id="counter">
             Click me!!
         </x>
