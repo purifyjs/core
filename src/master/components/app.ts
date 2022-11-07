@@ -1,12 +1,13 @@
-import { defineFragment } from "../framework/fragment"
-import { signal } from "../framework/signal"
+import { defineElement } from "../framework/element"
 import { html } from "../framework/template"
 import { Counter } from "./counter"
 import { If } from "./if"
 
-export const App = defineFragment(({ }) => 
+export const App = defineElement('x-app', ({ self: $ }) => 
 {
-    const counterCount = signal(0)
+    const counterCount = $.$signal(0)
+
+    $.$subscribe(counterCount, (count) => console.log('Counter count:', count))
 
     return html`
     <style>
@@ -60,6 +61,13 @@ export const App = defineFragment(({ }) =>
         </x>
 
         ${Counter({ number: counterCount })}
+        
+        ${If(
+        {
+            if: counterCount,
+            then: () => html`<p>Counter is not 0</p>`,
+            else: () => html`<p>Counter is 0</p>`
+        })}
 
         <x ${document.createElement('div')} class="aaaaa">
             abc

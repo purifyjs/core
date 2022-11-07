@@ -1,10 +1,9 @@
 import { randomId } from "../utils/id"
 import { onNodeDestroy } from "../utils/node"
 import { MasterElement } from "./element"
-import { Signal, signalDerive } from "./signal"
+import { Signal, signalDerive, SignalMode } from "./signal"
 
-export type TemplateAccepts = any
-function parseValue(value: TemplateAccepts): Node
+function parseValue(value: any): Node
 {
     if (value instanceof HTMLElement)
         return value
@@ -14,12 +13,12 @@ function parseValue(value: TemplateAccepts): Node
         return document.createTextNode(`${value}`)
 }
 
-export function html(parts: TemplateStringsArray, ...values: TemplateAccepts[])
+export function html(parts: TemplateStringsArray, ...values: unknown[])
 {
-    return new Template(parts, ...values)
+    return new MasterTemplate(parts, ...values)
 }
 
-export class Template extends DocumentFragment
+export class MasterTemplate extends DocumentFragment
 {
     private $_nodes: Node[] = []
     private $_listeners: { event: string, id: string, callback: EventListener }[] = []
@@ -27,7 +26,7 @@ export class Template extends DocumentFragment
     private $_signal_texts: Record<string, { startNode: Node, endNode: Node }> = {}
     private $_signal_classes: { className: string, signal: Signal<boolean> }[] = []
 
-    constructor(parts: TemplateStringsArray, ...values: TemplateAccepts[]) 
+    constructor(parts: TemplateStringsArray, ...values: unknown[]) 
     {
         super()
 
@@ -56,7 +55,7 @@ export class Template extends DocumentFragment
         for (let i = 0; i < parts.length; i++)
         {
             const part = parts[i]
-            const value: unknown = values[i]
+            const value = values[i]
 
             for (const char of part)
             {
@@ -311,24 +310,40 @@ export class Template extends DocumentFragment
         if (this.$_mounted) throw new Error('Template already mounted')
         this.$_mounted = true
 
-        const rootForQuery = mountPoint.parentElement ?? (mountPoint.parentNode instanceof ShadowRoot ? mountPoint.parentNode : null)
-        if (!rootForQuery) throw new Error('Cannot mount template without a parent element or shadow root')
+        if (!mountPoint.parentNode) throw new Error('Mount point must be attached to the DOM')
 
-        const toMount = this.$_insertNodes()
-        rootForQuery.replaceChild(this, mountPoint)
+        const { toMount } = this.$_insertNodes()
+        this.$_listenToEvents()
+        const { cleanupRegisters } = this.$_subscribeToSignals()
 
-        await Promise.all(toMount.map(async ({ node, outlet }) => 
+        mountPoint.parentNode.replaceChild(this, mountPoint)
+        for (const { node, outlet } of toMount)
         {
+            if (node instanceof MasterElement || node instanceof MasterTemplate)
+                await node.$mount(outlet)
+            else
+                outlet.replaceWith(node)
+        }
+        for (const registerCleanup of cleanupRegisters) registerCleanup()
+    }
+
+    private $_insertNodes()
+    {
+        const toMount: { node: Node, outlet: Element }[] = []
+        for (const index of this.$_nodes.keys())
+        {
+            const node = this.$_nodes[index]
+            const outlet = this.querySelector(`x[\\:outlet="${index}"]`)
+
+            // We are not throwing an error here for debugging purposes
+            if (!outlet) 
+            {
+                console.error(`Cannot find outlet ${index} for "${node.constructor.name}" node`)
+                continue
+            }
+            
             if (node instanceof DocumentFragment)
             {
-                const slot = node.querySelector('slot')
-                if (node.firstChild && slot)
-                    slot.replaceWith(...Array.from(outlet.childNodes))
-                else if (slot)
-                    slot.remove()
-                else
-                    node.append(...Array.from(outlet.childNodes))
-
                 outlet.removeAttribute(':outlet')
                 if (outlet.hasAttributes()) throw new Error('Template alone cannot have attributes. Use element instead via defineElement')
             }
@@ -340,37 +355,19 @@ export class Template extends DocumentFragment
                     node.setAttribute(attribute.name, attribute.value)
             }
 
-            if (node instanceof MasterElement || node instanceof Template)
-                await node.$mount(outlet)
-        }))
-
-        this.$_listenToEvents(rootForQuery)
-        this.$_subscribeToSignals(rootForQuery)
-    }
-
-    private $_insertNodes()
-    {
-        const toMount: { node: Node, outlet: Element }[] = []
-        this.$_nodes.forEach((node, index) =>
-        {
-            const outlet = this.querySelector(`x[\\:outlet="${index}"]`)
-            // We are not throwing an error here for debugging purposes
-            if (!outlet) return console.error(`Cannot find outlet ${index} for "${node.constructor.name}" node`)
-            if (!(node instanceof Template || node instanceof MasterElement))
-                outlet.replaceWith(node)
             toMount.push({ node, outlet })
-        })
+        }
 
         this.$_nodes = null!
 
-        return toMount
+        return { toMount }
     }
 
-    private $_listenToEvents(root: Element | ShadowRoot)
+    private $_listenToEvents()
     {
         for (const listener of this.$_listeners)
         {
-            const element = root.querySelector(`[on\\:${listener.event}="${listener.id}"]`)
+            const element = this.querySelector(`[on\\:${listener.event}="${listener.id}"]`)
             if (!element) throw new Error(`Cannot find element with event listener ${listener.event}=${listener.id}`)
             element.removeAttribute(`on:${listener.event}`)
             element.addEventListener(listener.event, listener.callback)
@@ -379,8 +376,10 @@ export class Template extends DocumentFragment
         this.$_listeners = null!
     }
 
-    private $_subscribeToSignals(root: Element | ShadowRoot)
+    private $_subscribeToSignals()
     {
+        const cleanupRegisters: (() => void)[] = []
+
         for (const id in this.$_signal_texts)
         {
             const signal = this.$_signals[id]
@@ -392,10 +391,10 @@ export class Template extends DocumentFragment
                 if (!startNode.parentNode) throw new Error('Cannot replace node that is not attached to the DOM')
                 startNode.parentNode.insertBefore(newNode, endNode)
             })
-            onNodeDestroy(startNode, () => sub.unsubscribe())
+            cleanupRegisters.push(() => onNodeDestroy(startNode, () => sub.unsubscribe()))
         }
 
-        root.querySelectorAll('*').forEach((node) =>
+        this.querySelectorAll('*').forEach((node) =>
         {
             Array.from(node.attributes).forEach((attribute) =>
             {
@@ -410,26 +409,28 @@ export class Template extends DocumentFragment
                     ...signalIds.map(id => 
                     {
                         const signal = this.$_signals[id]
-                        if (!signal) throw new Error(`Cannot find signal ${id}`)
+                        if (!signal) throw new Error(`Cannot find signal ${id} at ${this.nodeName}`)
                         return signal
                     })
                 )
-                signal.subscribe((value) => node.setAttribute(attribute.name, value))
-                onNodeDestroy(node, () => signal.cleanup())
+                signal.subscribe((value) => node.setAttribute(attribute.name, value), { mode: SignalMode.Immediate })
+                cleanupRegisters.push(() => onNodeDestroy(node, () => signal.cleanup()))
             })
         })
 
         for (const { className, signal } of this.$_signal_classes)
         {
-            const node = root.querySelector(`[class\\:${className}="${signal.id}"]`)
+            const node = this.querySelector(`[class\\:${className}="${signal.id}"]`)
             if (!node) throw new Error(`Cannot find element with class ${className}=${signal.id}`)
             node.removeAttribute(`class:${className}`)
             const sub = signal.subscribe((value) => value ? node.classList.add(className) : node.classList.remove(className))
-            onNodeDestroy(node, () => sub.unsubscribe())
+            cleanupRegisters.push(() => onNodeDestroy(node, () => sub.unsubscribe()))
         }
 
         this.$_signals = null!
         this.$_signal_texts = null!
         this.$_signal_classes = null!
+
+        return { cleanupRegisters }
     }
 }

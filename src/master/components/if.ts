@@ -5,20 +5,22 @@ import { html } from "../framework/template"
 interface Props 
 {
     if: Signal<any> | any
-    then: Node
-    else?: Node
+    then: () => Node
+    else?: () => Node
 }
 
-export const If = defineFragment<Props>(({ props: { if: ifSignal, then: thenNode, else: elseNode }, onDestroy }) =>
+export const If = defineFragment<Props>(({ props: { if: condition, then: thenNode, else: elseNode }, onDestroy }) =>
 {
-    if (ifSignal instanceof Signal)
+    if (condition instanceof Signal)
     {
-        const nodeDerive = signalDerive(() => ifSignal.value ? thenNode : elseNode, ifSignal)
+        const conditionDerive = signalDerive(() => !!condition.value, condition)
+        onDestroy(() => conditionDerive.cleanup())
+        const nodeDerive = signalDerive(() => condition.value ? thenNode() : elseNode?.(), conditionDerive)
         onDestroy(() => nodeDerive.cleanup())
-        return html`a`
+        return html`${nodeDerive}`
     }
     else
     {
-        return html`${ifSignal ? thenNode : elseNode}`
+        return html`${condition ? thenNode() : elseNode?.()}`
     }
 })

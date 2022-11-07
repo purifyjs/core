@@ -1,21 +1,21 @@
 import { onNodeDestroy } from "../utils/node"
 import { Signal, signal, signalDerive, SignalListener, textSignal } from "./signal"
-import type { Template } from "./template"
+import type { MasterTemplate } from "./template"
 
-export type ElementMountCallback = ({ element }: { element: HTMLElement }) => Promise<void> | void
-export type ElementDestroyCallback = ({ element }: { element: HTMLElement }) => void
-export type ElementProps = { [key: string]: any }
-export type ElementTemplate<Props extends ElementProps> = (params: { props: Props, self: MasterElement<Props> }) => Template
+export type MasterElementMountCallback = ({ element }: { element: HTMLElement }) => Promise<void> | void
+export type MasterElementDestroyCallback = ({ element }: { element: HTMLElement }) => void
+export type MasterElementProps = { [key: string]: any }
+export type MasterElementTemplate<Props extends MasterElementProps> = (params: { props: Props, self: MasterElement<Props> }) => MasterTemplate
 
-export abstract class MasterElement<Props extends ElementProps = ElementProps> extends HTMLElement
+export abstract class MasterElement<Props extends MasterElementProps = MasterElementProps> extends HTMLElement
 {
-    private $_mountCallbacks: ElementMountCallback[] = []
-    private $_destroyCallbacks: ElementDestroyCallback[] = []
+    private $_mountCallbacks: MasterElementMountCallback[] = []
+    private $_destroyCallbacks: MasterElementDestroyCallback[] = []
     private $_mounted = false
     private $_destroyed = false
 
     constructor(
-        protected $_mountParams: { props: Props, template: ElementTemplate<Props> },
+        protected $_mountParams: { props: Props, elementTemplate: MasterElementTemplate<Props> },
     )
     {
         super()
@@ -36,7 +36,7 @@ export abstract class MasterElement<Props extends ElementProps = ElementProps> e
             await callback({ element: this })
         this.$_mountCallbacks = []
 
-        const template = this.$_mountParams.template({ props: this.$_mountParams.props, self: this })
+        const template = this.$_mountParams.elementTemplate({ props: this.$_mountParams.props, self: this })
 
         template.querySelectorAll('style[\\:global]').forEach((style) => 
         {
@@ -62,13 +62,13 @@ export abstract class MasterElement<Props extends ElementProps = ElementProps> e
         this.$_mountParams = null!
     }
 
-    $onMount(callback: ElementMountCallback)
+    $onMount(callback: MasterElementMountCallback)
     {
         if (this.$_mounted) callback({ element: this })
         else this.$_mountCallbacks.push(callback)
     }
 
-    $onDestroy(callback: ElementDestroyCallback)
+    $onDestroy(callback: MasterElementDestroyCallback)
     {
         if (this.$_destroyed) callback({ element: this })
         else this.$_destroyCallbacks.push(callback)
@@ -115,9 +115,9 @@ export abstract class MasterElement<Props extends ElementProps = ElementProps> e
     }
 }
 
-export function defineElement<Props extends ElementProps>(tag: string, template: ElementTemplate<Props>)
+export function defineElement<Props extends MasterElementProps>(tag: string, elementTemplate: MasterElementTemplate<Props>)
 {
     const Element = class extends MasterElement<Props> { }
     customElements.define(tag, Element)
-    return (props: Props) => new Element({ props, template })
+    return (props: Props) => new Element({ props, elementTemplate })
 }
