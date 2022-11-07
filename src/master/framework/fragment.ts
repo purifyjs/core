@@ -30,12 +30,6 @@ export function defineFragment<Props extends ElementProps>(fragmentTemplate: Fra
         template.prepend(startComment)
         template.append(endComment)
 
-        template.querySelectorAll('*:not(style):not(script)').forEach((element) => element.classList.add(`f-${typeId}`))
-        template.querySelectorAll('style:not([\\:global])').forEach((style) =>
-        {
-            style.textContent = scopeCss(style.textContent ?? '', `.f-${typeId}`)
-        })
-
         const templateMountCache = template.$mount
         Object.defineProperty(template, '$mount', {
             value: async (mountPoint: Element) =>
@@ -44,6 +38,12 @@ export function defineFragment<Props extends ElementProps>(fragmentTemplate: Fra
 
                 for (const callback of mountCallbacks)
                     await callback({ mountPoint })
+
+                template.querySelectorAll('*:not(style):not(script)').forEach((element) => element.classList.add(`f-${typeId}`))
+                template.querySelectorAll('style:not([\\:global])').forEach((style) =>
+                {
+                    style.textContent = scopeCss(style.textContent ?? '', `.f-${typeId}`)
+                })
 
                 onNodeDestroy(startComment, () =>
                 {

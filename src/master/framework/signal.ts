@@ -45,7 +45,11 @@ export class SignalDerive<T> extends Signal<T>
     constructor(private getter: () => T, ...triggerSignals: Signal[])
     {
         super(getter())
-        this.triggerSubs = triggerSignals.map((signal) => signal.subscribe(() => super.signal(getter())))
+        this.triggerSubs = triggerSignals.map((signal) => 
+        {
+            if (!(signal instanceof Signal)) throw new Error(`SignalDerive can only be created from Signal instances. Got ${signal}`)
+            return signal.subscribe(() => super.signal(getter()))
+        })
     }
 
     cleanup()

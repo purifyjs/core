@@ -1,10 +1,12 @@
-import { defineElement } from "../framework/element"
+import { defineFragment } from "../framework/fragment"
+import { signal } from "../framework/signal"
 import { html } from "../framework/template"
 import { Counter } from "./counter"
+import { If } from "./if"
 
-export const App = defineElement('x-app', ({ self: $ }) => 
+export const App = defineFragment(({ }) => 
 {
-    const counterCount = $.$signal(0)
+    const counterCount = signal(0)
 
     return html`
     <style>
@@ -30,9 +32,6 @@ export const App = defineElement('x-app', ({ self: $ }) =>
 
         <h2>Counter</h2>
         <p>Click the button to increment the counter.</p>
-        <x ${Counter({ number: counterCount })} class="hey" id="counter">
-            Click me!!
-        </x>
 
         ${2 + 2}
         ${[123, 456, 789]}
@@ -56,6 +55,15 @@ export const App = defineElement('x-app', ({ self: $ }) =>
         </style>
         <div class:hello-world=${counterCount}>a</div>
 
+        <x ${Counter({ number: counterCount })} class="hey" id="counter">
+            Click me!!
+        </x>
+
+        ${Counter({ number: counterCount })}
+
+        <x ${document.createElement('div')} class="aaaaa">
+            abc
+        </x>
 
         <p>Count: ${counterCount}</p>
         <button on:click=${() => counterCount.signal((v) => v + 1)}>Increment</button>

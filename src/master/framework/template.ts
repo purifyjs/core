@@ -230,7 +230,7 @@ export class Template extends DocumentFragment
             html += part
             if (value !== undefined)
             {
-                if (state.current === State.TagInner && state.tag === 'x' && part.trimEnd().endsWith('<x') && (value instanceof MasterElement || value instanceof Template))
+                if (state.current === State.TagInner && state.tag === 'x' && part.trimEnd().endsWith('<x') && (value instanceof Node))
                 {
                     html += `:outlet="${this.$_nodes.push(value) - 1}"`
                 }
@@ -317,16 +317,9 @@ export class Template extends DocumentFragment
         const toMount = this.$_insertNodes()
         rootForQuery.replaceChild(this, mountPoint)
 
-        await Promise.all(toMount.map(async ({ mountable: node, outlet }) => 
+        await Promise.all(toMount.map(async ({ node, outlet }) => 
         {
-            if (node instanceof MasterElement)
-            {
-                node.append(...Array.from(outlet.childNodes))
-                outlet.removeAttribute(':outlet')
-                for (const attribute of Array.from(outlet.attributes))
-                    node.setAttribute(attribute.name, attribute.value)
-            }
-            else if (node instanceof Template)
+            if (node instanceof DocumentFragment)
             {
                 const slot = node.querySelector('slot')
                 if (node.firstChild && slot)
@@ -339,7 +332,16 @@ export class Template extends DocumentFragment
                 outlet.removeAttribute(':outlet')
                 if (outlet.hasAttributes()) throw new Error('Template alone cannot have attributes. Use element instead via defineElement')
             }
-            await node.$mount(outlet)
+            else if (node instanceof Element)
+            {
+                node.append(...Array.from(outlet.childNodes))
+                outlet.removeAttribute(':outlet')
+                for (const attribute of Array.from(outlet.attributes))
+                    node.setAttribute(attribute.name, attribute.value)
+            }
+
+            if (node instanceof MasterElement || node instanceof Template)
+                await node.$mount(outlet)
         }))
 
         this.$_listenToEvents(rootForQuery)
@@ -348,16 +350,15 @@ export class Template extends DocumentFragment
 
     private $_insertNodes()
     {
-        const toMount: { mountable: MasterElement | Template, outlet: Element }[] = []
+        const toMount: { node: Node, outlet: Element }[] = []
         this.$_nodes.forEach((node, index) =>
         {
             const outlet = this.querySelector(`x[\\:outlet="${index}"]`)
             // We are not throwing an error here for debugging purposes
             if (!outlet) return console.error(`Cannot find outlet ${index} for "${node.constructor.name}" node`)
-            if (node instanceof Template || node instanceof MasterElement)
-                toMount.push({ mountable: node, outlet })
-            else
+            if (!(node instanceof Template || node instanceof MasterElement))
                 outlet.replaceWith(node)
+            toMount.push({ node, outlet })
         })
 
         this.$_nodes = null!
@@ -406,7 +407,12 @@ export class Template extends DocumentFragment
 
                 const signal = signalDerive(
                     () => valueTemplate.map((value) => value instanceof Signal ? value.value : value).join(''),
-                    ...signalIds.map(id => this.$_signals[id])
+                    ...signalIds.map(id => 
+                    {
+                        const signal = this.$_signals[id]
+                        if (!signal) throw new Error(`Cannot find signal ${id}`)
+                        return signal
+                    })
                 )
                 signal.subscribe((value) => node.setAttribute(attribute.name, value))
                 onNodeDestroy(node, () => signal.cleanup())
