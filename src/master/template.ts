@@ -28,55 +28,188 @@ export class Template extends DocumentFragment
     constructor(parts: TemplateStringsArray, ...values: TemplateAccepts[]) 
     {
         super()
-        const htmlParts = parts.map((htmlPart, index) => 
+
+        const state = {
+            current: 'outer' as 'outer' | 'tag_inner' | 'tag_name' | 'tag_close' | 'attribute_name' | 'attribute_value_unquoted' | 'attribute_value_quoted',
+            tag: null as string | null,
+            attribute_name: null as string | null,
+            attribute_value: null as string | null
+        }
+
+        let html = ''
+        for (let i = 0; i < parts.length; i++)
         {
-            const value: TemplateAccepts = values[index]
-            if (value == null || value === undefined) return htmlPart
-            if (htmlPart.trimEnd().endsWith('<x') && value instanceof MasterElement)
+            const part = parts[i]
+
+            for (const char of part)
             {
-                return `${htmlPart} x:element="${this.$_nodes.push(value) - 1}"`
-            }
-            else if (value instanceof Function)
-            {
-                // We use a random id to avoid collisions with fragments
-                const id = randomId()
-                this.$_listeners[id] = value
-                return `${htmlPart}${id}`
-            }
-            if (htmlPart.endsWith('='))
-            {
-                if (value instanceof Signal)
+                switch (state.current)
                 {
-                    this.$_signal_attributes[value.id] = { signal: value, attribute: htmlPart.substring(htmlPart.lastIndexOf(' ') + 1).slice(0, -1) }
-                    return `${htmlPart}"${value.id}"`
+                    case 'outer':
+                        if (char === '<')
+                        {
+                            state.current = 'tag_name'
+                            state.tag = ''
+                        }
+                        break
+                    case 'tag_name':
+                        if (!state.tag && char === '/')
+                        {
+                            state.current = 'tag_close'
+                            state.tag = ''
+                        }
+                        else if (char === '>')
+                        {
+                            state.current = 'outer'
+                            state.tag = null
+                        }
+                        else if (char === ' ')
+                        {
+                            state.current = 'tag_inner'
+                        }
+                        else
+                        {
+                            state.tag += char
+                        }
+                        break
+                    case 'tag_inner':
+                        if (char === '>')
+                        {
+                            state.current = 'outer'
+                            state.tag = null
+                        }
+                        else if (char === ' ')
+                        {
+                            state.current = 'tag_inner'
+                        }
+                        else
+                        {
+                            state.current = 'attribute_name'
+                            state.attribute_name = char
+                        }
+                        break
+                    case 'attribute_name':
+                        if (char === '>')
+                        {
+                            state.current = 'outer'
+                            state.tag = null
+                            state.attribute_name = null
+                        }
+                        else if (char === ' ')
+                        {
+                            state.current = 'tag_inner'
+                            state.attribute_name = null
+                        }
+                        else if (char === '=')
+                        {
+                            state.current = 'attribute_value_unquoted'
+                            state.attribute_value = ''
+                        }
+                        else
+                        {
+                            state.attribute_name += char
+                        }
+                        break
+                    case 'attribute_value_unquoted':
+                        if (char === '>')
+                        {
+                            state.current = 'outer'
+                            state.tag = null
+                            state.attribute_name = null
+                            state.attribute_value = null
+                        }
+                        else if (char === ' ')
+                        {
+                            state.current = 'tag_inner'
+                            state.attribute_name = null
+                            state.attribute_value = null
+                        }
+                        else if (char === '"')
+                        {
+                            state.current = 'attribute_value_quoted'
+                            state.attribute_value = ''
+                        }
+                        else
+                        {
+                            state.attribute_value += char
+                        }
+                        break
+                    case 'attribute_value_quoted':
+                        if (char === '"')
+                        {
+                            state.current = 'tag_inner'
+                            state.attribute_name = null
+                            state.attribute_value = null
+                        }
+                        else
+                        {
+                            state.attribute_value += char
+                        }
+                        break
+                    case 'tag_close':
+                        if (char === '>')
+                        {
+                            state.current = 'outer'
+                            state.tag = null
+                        }
+                        else
+                        {
+                            state.tag += char
+                        }
+                        break
                 }
-                return `${htmlPart}"${value.toString().replaceAll('"', '\\"')}"`
             }
-            else if (value instanceof Signal)
+
+            html += part
+            if (i < values.length)
             {
-                const fragment = document.createDocumentFragment()
-                const comment = `signal ${value.id}`
-                const startComment = document.createComment(comment)
-                const endComment = document.createComment(`/${comment}`)
+                const value = values[i]
 
-                const node = parseValue(value.value)
-                fragment.append(startComment, node, endComment)
+                if (state.current === 'tag_inner' && state.tag === 'x' && value instanceof MasterElement)
+                {
+                    html += ` x:element="${this.$_nodes.push(value) - 1}"`
+                }
+                else if (value instanceof Function)
+                {
+                    // We use a random id to avoid collisions with fragments
+                    const id = randomId()
+                    this.$_listeners[id] = value
+                    html += `${id}`
+                }
+                else if (state.current === 'attribute_value_unquoted')
+                {
+                    if (value instanceof Signal)
+                    {
+                        this.$_signal_attributes[value.id] = { signal: value, attribute: state.attribute_name! }
+                        html += `"${value.id}"`
+                    }
+                    else
+                        html += `"${value.toString().replaceAll('"', '\\"')}"`
+                }
+                else 
+                {
+                    if (value instanceof Signal)
+                    {
+                        const fragment = document.createDocumentFragment()
+                        const comment = `signal ${value.id}`
+                        const startComment = document.createComment(comment)
+                        const endComment = document.createComment(`/${comment}`)
 
-                this.$_signal_texts[value.id] = { signal: value, startNode: startComment, endNode: endComment }
+                        const node = parseValue(value.value)
+                        fragment.append(startComment, node, endComment)
 
-                this.$_nodes.push(fragment)
+                        this.$_signal_texts[value.id] = { signal: value, startNode: startComment, endNode: endComment }
+
+                        this.$_nodes.push(fragment)
+                    }
+                    else
+                    {
+                        this.$_nodes.push(parseValue(value))
+                    }
+                    html += `<x x:element="${this.$_nodes.length - 1}"></x>`
+                }
             }
-            else
-            {
-                this.$_nodes.push(parseValue(value))
-            }
-
-            index = this.$_nodes.length - 1
-            return `${htmlPart}<x x:element="${index}"></x>`
-        })
-
-        const html = htmlParts.join('')
-
+        }
         const template = document.createElement('template')
         template.innerHTML = html
 
@@ -89,16 +222,16 @@ export class Template extends DocumentFragment
         if (!root) throw new Error('Cannot mount template to a node that is not attached to the DOM')
 
         const toMount = this.insertNodes()
-        
+
         if (append) mountPoint.append(this)
         else if (!mountPoint.parentNode) throw new Error('Cannot mount template to a node that is not attached to the DOM')
         else mountPoint.parentNode.replaceChild(this, mountPoint)
-        
+
         await Promise.all(toMount.map(async ({ node, outlet }) => await node.$mount(outlet)))
 
         this.listenToEvents(root)
         this.subscribeToSignals(root)
-        
+
     }
 
     private subscribeToSignals(root: Element | ShadowRoot)
