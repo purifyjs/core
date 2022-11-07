@@ -234,9 +234,14 @@ export class Template extends DocumentFragment
                 {
                     html += `:outlet="${this.$_nodes.push(value) - 1}"`
                 }
-                else if (value instanceof Signal && (state.current === State.AttributeValueDoubleQuoted || state.current === State.AttributeValueSingleQuoted || state.current === State.AttributeValueUnquoted))
+                else if (value instanceof Signal && (state.current === State.AttributeValueDoubleQuoted || state.current === State.AttributeValueSingleQuoted))
                 {
                     html += `<$${value.id}>`
+                    this.$_signals[value.id] = value
+                }
+                else if (value instanceof Signal && state.current === State.AttributeValueUnquoted)
+                {
+                    html += `"<$${value.id}>"`
                     this.$_signals[value.id] = value
                 }
                 else if (state.current === State.AttributeValueDoubleQuoted)
@@ -256,8 +261,7 @@ export class Template extends DocumentFragment
                         this.$_listeners.push({ id, event: state.attribute_key, callback: value as EventListener })
                         html += `${id}`
                     }
-                    else
-                        html += `"${`${value}`.replace(/"/g, "&quot;")}"`
+                    else html += `"${`${value}`.replace(/"/g, "&quot;")}"`
                 }
                 else if (state.current === State.Outer)
                 {
