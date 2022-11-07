@@ -295,7 +295,7 @@ export class Template extends DocumentFragment
                 return value
             }
             const signal = attributeSignalDerives[attribute] = signalDerive(update, ...signalIds.map(id => this.$_signal_attributes[id].signal))
-            signal.subscribe((value) => element.setAttribute(attribute, value))
+            signal.subscribe((value) => element.setAttribute(attribute, value.replace(/"/g, '\\"')))
             onNodeDestroy(element, () => signal.cleanup())
         }
     }
