@@ -9,6 +9,6 @@ interface Props
 
 export const Counter = defineElement<Props>('my-counter', ({ props: { number } }) =>
     html`
-        <button on:click=${() => number.signal((v) => v + 1)}>
+        <button on:click=${()=> number.signal((v) => v + 1)}>
             <slot>Placeholder</slot> ${number}
         </button>`)

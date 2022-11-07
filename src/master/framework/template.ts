@@ -25,6 +25,7 @@ export class Template extends DocumentFragment
     private $_listeners: { event: string, id: string, callback: EventListener }[] = []
     private $_signals: Record<string, Signal<any>> = {}
     private $_signal_texts: Record<string, { startNode: Node, endNode: Node }> = {}
+    private $_signal_classes: { className: string, signal: Signal<boolean> }[] = []
 
     constructor(parts: TemplateStringsArray, ...values: TemplateAccepts[]) 
     {
@@ -241,8 +242,17 @@ export class Template extends DocumentFragment
                 }
                 else if (value instanceof Signal && state.current === State.AttributeValueUnquoted)
                 {
-                    html += `"<$${value.id}>"`
-                    this.$_signals[value.id] = value
+                    if (state.attribute_name === 'class' && state.attribute_key)
+                    {
+                        html += `"${value.id}"`
+                        this.$_signals[value.id] = value
+                        this.$_signal_classes.push({ className: state.attribute_key, signal: value })
+                    }
+                    else
+                    {
+                        html += `"<$${value.id}>"`
+                        this.$_signals[value.id] = value
+                    }
                 }
                 else if (state.current === State.AttributeValueDoubleQuoted)
                 {
@@ -362,6 +372,7 @@ export class Template extends DocumentFragment
         {
             const element = root.querySelector(`[on\\:${listener.event}="${listener.id}"]`)
             if (!element) throw new Error(`Cannot find element with event listener ${listener.event}=${listener.id}`)
+            element.removeAttribute(`on:${listener.event}`)
             element.addEventListener(listener.event, listener.callback)
         }
 
@@ -403,7 +414,17 @@ export class Template extends DocumentFragment
             })
         })
 
+        for (const { className, signal } of this.$_signal_classes)
+        {
+            const node = root.querySelector(`[class\\:${className}="${signal.id}"]`)
+            if (!node) throw new Error(`Cannot find element with class ${className}=${signal.id}`)
+            node.removeAttribute(`class:${className}`)
+            const sub = signal.subscribe((value) => value ? node.classList.add(className) : node.classList.remove(className))
+            onNodeDestroy(node, () => sub.unsubscribe())
+        }
+
         this.$_signals = null!
         this.$_signal_texts = null!
+        this.$_signal_classes = null!
     }
 }
