@@ -42,7 +42,7 @@ export const App = defineElement('x-app', ({ self: $ }) =>
         ${new Error()}
         ${null}
         ${undefined}
-        ${new Promise(() => {})}
+        ${Promise.resolve()}
     </main>`
 })
 
