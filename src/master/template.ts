@@ -178,7 +178,7 @@ export class Template extends DocumentFragment
 
                 if (state.current === State.TagInner && state.tag === 'x' && value instanceof MasterElement || value instanceof Template)
                 {
-                    html += ` x:element="${this.$_nodes.push(value) - 1}"`
+                    html += ` x:outlet="${this.$_nodes.push(value) - 1}"`
                 }
                 else if (state.current === State.AttributeValueQuoted)
                 {
@@ -229,7 +229,7 @@ export class Template extends DocumentFragment
                     {
                         this.$_nodes.push(parseValue(value))
                     }
-                    html += `<x x:element="${this.$_nodes.length - 1}"></x>`
+                    html += `<x x:outlet="${this.$_nodes.length - 1}"></x>`
                 }
             }
         }
@@ -255,7 +255,7 @@ export class Template extends DocumentFragment
             if (node instanceof MasterElement)
             {
                 node.append(...Array.from(outlet.childNodes))
-                outlet.removeAttribute('x:element')
+                outlet.removeAttribute('x:outlet')
                 for (const attribute of Array.from(outlet.attributes))
                     node.setAttribute(attribute.name, attribute.value)
             }
@@ -330,7 +330,7 @@ export class Template extends DocumentFragment
         const toMount: { node: MasterElement | Template, outlet: Element }[] = []
         this.$_nodes.forEach((node, index) =>
         {
-            const outlet = this.querySelector(`x[x\\:element="${index}"]`)
+            const outlet = this.querySelector(`x[x\\:outlet="${index}"]`)
             if (!outlet) throw new Error(`No outlet found for node ${index}`)
             if (node instanceof Template || node instanceof MasterElement)
                 toMount.push({ node, outlet })

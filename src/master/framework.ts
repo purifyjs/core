@@ -60,7 +60,11 @@ export abstract class MasterElement<Props extends ElementProps = ElementProps> e
 
         mountPoint.replaceWith(this)
         const shadowRoot = this.attachShadow({ mode: 'open' })
-        template.querySelectorAll('style[\\:global]').forEach((style) => this.append(style))
+        template.querySelectorAll('style[\\:global]').forEach((style) => 
+        {
+            this.$_destroyCallbacks.push(() => style.remove())
+            document.head.append(style)
+        })
         await template.$mount(shadowRoot, true)
 
         onNodeDestroy(this, () =>
