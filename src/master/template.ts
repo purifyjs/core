@@ -264,6 +264,7 @@ export class Template extends DocumentFragment
                 // This might be problematic if the template slot changes
                 // Maybe we shouldnt have slot for fragments in the first place
                 // Or maybe it just works
+                // Actually only signals changes the slot and signals have their own logic that this might just work without any issues
                 // TODO: Test this
                 const slot = node.querySelector('slot')
                 if (node.firstChild && slot)
