@@ -1,11 +1,11 @@
 import { onNodeDestroy } from "../utils/node"
 import { Signal, signal, signalDerive, SignalListener, textSignal } from "./signal"
-import type { MasterTemplate } from "./template"
+import type { MasterFragment } from "./fragment"
 
 export type MasterElementMountCallback = ({ element }: { element: HTMLElement }) => Promise<void> | void
 export type MasterElementDestroyCallback = ({ element }: { element: HTMLElement }) => void
 export type MasterElementProps = { [key: string]: any }
-export type MasterElementTemplate<Props extends MasterElementProps> = (params: { props: Props, self: MasterElement<Props> }) => MasterTemplate
+export type MasterElementTemplate<Props extends MasterElementProps> = (params: { props: Props, self: MasterElement<Props> }) => MasterFragment
 
 export abstract class MasterElement<Props extends MasterElementProps = MasterElementProps> extends HTMLElement
 {
@@ -24,7 +24,7 @@ export abstract class MasterElement<Props extends MasterElementProps = MasterEle
     get $mounted() { return this.$_mounted }
     get $destroyed() { return this.$_destroyed }
 
-    async $mount(mountPoint: Element)
+    async $mount(mountPoint?: Element)
     {
         console.log('mounting', this)
 
@@ -37,18 +37,17 @@ export abstract class MasterElement<Props extends MasterElementProps = MasterEle
         this.$_mountCallbacks = []
 
         const template = this.$_mountParams.elementTemplate({ props: this.$_mountParams.props, self: this })
+        await template.$mount()
 
-        template.querySelectorAll('style[\\:global]').forEach((style) => 
+        mountPoint?.replaceWith(this)
+        const shadowRoot = this.attachShadow({ mode: 'open' })
+        shadowRoot.append(...template)
+
+        shadowRoot.querySelectorAll('style[\\:global]').forEach((style) => 
         {
             this.$_destroyCallbacks.push(() => style.remove())
             document.head.append(style)
         })
-
-        mountPoint.replaceWith(this)
-        const shadowRoot = this.attachShadow({ mode: 'open' })
-        const templateOutlet = document.createComment('template outlet')
-        shadowRoot.append(templateOutlet)
-        await template.$mount(templateOutlet)
 
         onNodeDestroy(this, () =>
         {

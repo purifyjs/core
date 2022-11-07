@@ -1,11 +1,13 @@
+import { If } from "../fragments/if"
 import { defineElement } from "../framework/element"
-import { html } from "../framework/template"
+import { html } from "../framework/fragment"
+import { Block } from "./block"
 import { Counter } from "./counter"
-import { If } from "./if"
 
 export const App = defineElement('x-app', ({ self: $ }) => 
 {
     const counterCount = $.$signal(0)
+    const signalFragment = $.$signal(html`<div on:click=${()=> alert('hey!!!')}>Fragment</div>`)
 
     $.$subscribe(counterCount, (count) => console.log('Counter count:', count))
 
@@ -26,6 +28,7 @@ export const App = defineElement('x-app', ({ self: $ }) =>
     </style>
     <main>
         <h1>Master.ts</h1>
+        ${If(counterCount, html`<p on:click=${() => alert('counting!!!')}>Counting...</p>`)}
         <p>Master.ts is a framework for building web apps.</p>
         <p>It's a framework for building web apps.</p>
         <p>It's a work in progress.</p>
@@ -43,11 +46,17 @@ export const App = defineElement('x-app', ({ self: $ }) =>
         ${undefined}
         ${Promise.resolve()}
         ${'abc'}
+        ${counterCount}
+        ${signalFragment}
         <span hey="${123} ${'aaa'} ${'"'} ${counterCount}"></span>
         <span hey='${123} ${'aaa'} ${'"'} ${counterCount}'></span>
         <span hey='${123} ${'aaa'} ${"'"} ${counterCount}'></span>
 
-        <div wtf=${counterCount}></div>
+        <x ${document.createElement('div')} class="hello">
+            123
+        </x>
+
+        <div aaa=${counterCount}></div>
 
         <style>
             main:has(.hello-world) {
@@ -61,16 +70,11 @@ export const App = defineElement('x-app', ({ self: $ }) =>
         </x>
 
         ${Counter({ number: counterCount })}
-        
-        ${If(
-        {
-            if: counterCount,
-            then: () => html`<p>Counter is not 0</p>`,
-            else: () => html`<p>Counter is 0</p>`
-        })}
 
-        <x ${document.createElement('div')} class="aaaaa">
-            abc
+        ${Block({})}
+
+        <x ${Block({})}>
+            Hey
         </x>
 
         <p>Count: ${counterCount}</p>
