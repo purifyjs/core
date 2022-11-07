@@ -198,7 +198,7 @@ export class Template extends DocumentFragment
                 {
                     html += `:outlet="${this.$_nodes.push(value) - 1}"`
                 }
-                else if (value instanceof Signal && (state.current === State.AttributeValueDoubleQuoted || state.current === State.AttributeValueSingleQuoted))
+                else if (value instanceof Signal && (state.current === State.AttributeValueDoubleQuoted || state.current === State.AttributeValueSingleQuoted || state.current === State.AttributeValueUnquoted))
                 {
                     html += `<$${value.id}>`
                     this.$_signals[value.id] = value
@@ -213,12 +213,7 @@ export class Template extends DocumentFragment
                 }
                 else if (state.current === State.AttributeValueUnquoted)
                 {
-                    if (value instanceof Signal)
-                    {
-                        this.$_signals[value.id] = value
-                        html += `"<$${value.id}>"`
-                    }
-                    else if (value instanceof Function)
+                    if (value instanceof Function)
                     {
                         // We use a random id to avoid collisions with fragments
                         const id = randomId()
@@ -284,11 +279,6 @@ export class Template extends DocumentFragment
             }
             else if (node instanceof Template)
             {
-                // This might be problematic if the template slot changes
-                // Maybe we shouldnt have slot for fragments in the first place
-                // Or maybe it just works
-                // Actually only signals changes the slot and signals have their own logic that this might just work without any issues
-                // TODO: Test this
                 const slot = node.querySelector('slot')
                 if (node.firstChild && slot)
                     slot.replaceWith(...Array.from(outlet.childNodes))
