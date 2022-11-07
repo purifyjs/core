@@ -174,9 +174,9 @@ export class Template extends DocumentFragment
             html += part
             if (i < values.length)
             {
-                const value = values[i]
+                const value: unknown = values[i]
 
-                if (state.current === State.TagInner && state.tag === 'x' && value instanceof MasterElement || value instanceof Template)
+                if (state.current === State.TagInner && state.tag === 'x' && (value instanceof MasterElement || value instanceof Template))
                 {
                     html += ` :outlet="${this.$_nodes.push(value) - 1}"`
                 }
@@ -189,7 +189,7 @@ export class Template extends DocumentFragment
                     }
                     else
                     {
-                        html += value.toString().replace(/"/g, '\\"')
+                        html += `${value}`.replace(/"/g, '\\"')
                     }
                 }
                 else if (state.current === State.AttributeValueUnquoted)
@@ -203,11 +203,11 @@ export class Template extends DocumentFragment
                     {
                         // We use a random id to avoid collisions with fragments
                         const id = randomId()
-                        this.$_listeners[id] = value
+                        this.$_listeners[id] = value as EventListener
                         html += `${id}`
                     }
                     else
-                        html += `"${value.toString().replaceAll('"', '\\"')}"`
+                        html += `"${`${value}`.replaceAll('"', '\\"')}"`
                 }
                 else 
                 {
@@ -275,6 +275,9 @@ export class Template extends DocumentFragment
                     slot.remove()
                 else
                     node.append(...Array.from(outlet.childNodes))
+                
+                outlet.removeAttribute(':outlet')
+                if (outlet.hasAttributes()) throw new Error('Template alone cannot have attributes. Use element instead via defineElement')
             }
             await node.$mount(outlet)
         }))
@@ -289,7 +292,7 @@ export class Template extends DocumentFragment
         this.$_nodes.forEach((node, index) =>
         {
             const outlet = this.querySelector(`x[\\:outlet="${index}"]`)
-            if (!outlet) throw new Error(`No outlet found for node ${index}`)
+            if (!outlet) return console.error(`Cannot find outlet ${index} for "${node.constructor.name}" node`)
             if (node instanceof Template || node instanceof MasterElement)
                 toMount.push({ mountable: node, outlet })
             else

@@ -27,9 +27,22 @@ export const App = defineElement('x-app', ({ self: $ }) =>
         <p>It's a work in progress.</p>
         <p>It's not ready for production.</p>
 
-        <x ${Counter({ number: someSignal })}>
-            Click me!! ${someSignal}
+        <x ${Counter({ number: someSignal })} class="hey" id="counter">
+            Click me!!
         </x>
+
+        ${html`
+            <p>Hey</p>
+        `}
+
+        ${2 + 2}
+        ${[123, 456, 789]}
+        ${{}}
+        ${new Date()}
+        ${new Error()}
+        ${null}
+        ${undefined}
+        ${new Promise(() => {})}
     </main>`
 })
 

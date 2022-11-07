@@ -138,12 +138,8 @@ export abstract class MasterElement<Props extends ElementProps = ElementProps> e
 
 export function defineElement<Props extends ElementProps>(tag: string, template: ElementTemplate<Props>)
 {
-    const Element = class extends MasterElement<Props>
-    {
-    }
-
+    const Element = class extends MasterElement<Props> { }
     customElements.define(tag, Element)
-
     return (props: Props) => new Element({ props, template })
 }
 
