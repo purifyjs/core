@@ -293,6 +293,7 @@ export class Template extends DocumentFragment
         this.$_nodes.forEach((node, index) =>
         {
             const outlet = this.querySelector(`x[\\:outlet="${index}"]`)
+            // We are not throwing an error here for debugging purposes
             if (!outlet) return console.error(`Cannot find outlet ${index} for "${node.constructor.name}" node`)
             if (node instanceof Template || node instanceof MasterElement)
                 toMount.push({ mountable: node, outlet })

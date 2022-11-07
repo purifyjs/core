@@ -25,7 +25,7 @@ export const App = defineElement('x-app', ({ self: $ }) =>
         <h1>Master</h1>
         <p>Master is a framework for building web apps.</p>
         <p>It's a work in progress.</p>
-        <${123}p>It's not ready for production.</p>
+        <p>It's not ready for production.</p>
 
         <x ${Counter({ number: someSignal })} class="hey" id="counter">
             Click me!!
