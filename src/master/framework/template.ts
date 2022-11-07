@@ -56,6 +56,7 @@ export class Template extends DocumentFragment
         for (let i = 0; i < parts.length; i++)
         {
             const part = parts[i]
+            const value: unknown = values[i]
 
             for (const char of part)
             {
@@ -227,10 +228,8 @@ export class Template extends DocumentFragment
             }
 
             html += part
-            if (i < values.length)
+            if (value !== undefined)
             {
-                const value: unknown = values[i]
-
                 if (state.current === State.TagInner && state.tag === 'x' && part.trimEnd().endsWith('<x') && (value instanceof MasterElement || value instanceof Template))
                 {
                     html += `:outlet="${this.$_nodes.push(value) - 1}"`
