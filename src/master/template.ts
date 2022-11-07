@@ -198,17 +198,18 @@ export class Template extends DocumentFragment
                 {
                     html += `:outlet="${this.$_nodes.push(value) - 1}"`
                 }
-                else if (state.current === State.AttributeValueDoubleQuoted || state.current === State.AttributeValueSingleQuoted)
+                else if (value instanceof Signal && (state.current === State.AttributeValueDoubleQuoted || state.current === State.AttributeValueSingleQuoted))
                 {
-                    if (value instanceof Signal)
-                    {
-                        html += `<$${value.id}>`
-                        this.$_signal_attributes[value.id] = { signal: value, attribute: state.attribute_name! }
-                    }
-                    else
-                    {
-                        html += State.AttributeValueDoubleQuoted ? `${value}`.replace(/"/g, '\\"') : `${value}`.replace(/'/g, "\\'")
-                    }
+                    html += `<$${value.id}>`
+                    this.$_signal_attributes[value.id] = { signal: value, attribute: state.attribute_name! }
+                }
+                else if (state.current === State.AttributeValueDoubleQuoted)
+                {
+                    html += `${value}`.replace(/"/g, "&quot;")
+                }
+                else if (state.current === State.AttributeValueSingleQuoted)
+                {
+                    html += `${value}`.replace(/'/g, "&#39;")
                 }
                 else if (state.current === State.AttributeValueUnquoted)
                 {
@@ -225,7 +226,7 @@ export class Template extends DocumentFragment
                         html += `${id}`
                     }
                     else
-                        html += `"${`${value}`.replace(/"/g, '\\"')}"`
+                        html += `"${`${value}`.replace(/"/g, "&quot;")}"`
                 }
                 else if (state.current === State.Outer)
                 {
@@ -294,7 +295,7 @@ export class Template extends DocumentFragment
                     slot.remove()
                 else
                     node.append(...Array.from(outlet.childNodes))
-                
+
                 outlet.removeAttribute(':outlet')
                 if (outlet.hasAttributes()) throw new Error('Template alone cannot have attributes. Use element instead via defineElement')
             }
@@ -357,29 +358,33 @@ export class Template extends DocumentFragment
 
         for (const id in this.$_signal_attributes)
         {
+            // TODO: Refactor this later to simplify things
             const { attribute } = this.$_signal_attributes[id]
-            const element = root.querySelector(`[${attribute}*="<$${id}>"]`)
-            if (!element) throw new Error(`Cannot find element with attribute ${attribute}="${id}"`)
-            const attributeSignalDerives = (element as any).$_attribute_signal_derives ?? ((element as any).$_attribute_signal_derives = {})
-            if (attributeSignalDerives[attribute]) continue
-
-            const original = element.getAttribute(attribute)!
-
-            const signalIds: string[] = /<\$([^>]+)>/g.exec(original)!.slice(1)
-
-            const update = () =>
+            const elements = root.querySelectorAll(`[${attribute}*="<$${id}>"]`)
+            if (elements.length === 0) throw new Error(`Cannot find elements with attribute "${attribute}" that contains signal ${id}`)
+            elements.forEach((element) =>
             {
-                let value = original
-                for (const id of signalIds)
+                const attributeSignalDerives = (element as any).$_attribute_signal_derives ?? ((element as any).$_attribute_signal_derives = {})
+                if (attributeSignalDerives[attribute]) return
+
+                const original = element.getAttribute(attribute)!
+
+                const signalIds: string[] = /<\$([^>]+)>/g.exec(original)!.slice(1)
+
+                const update = () =>
                 {
-                    const signal = this.$_signal_attributes[id].signal
-                    value = value.replaceAll(`<$${id}>`, signal.value.toString())
+                    let value = original
+                    for (const id of signalIds)
+                    {
+                        const signal = this.$_signal_attributes[id].signal
+                        value = value.replaceAll(`<$${id}>`, signal.value.toString())
+                    }
+                    return value
                 }
-                return value
-            }
-            const signal = attributeSignalDerives[attribute] = signalDerive(update, ...signalIds.map(id => this.$_signal_attributes[id].signal))
-            signal.subscribe((value) => element.setAttribute(attribute, value))
-            onNodeDestroy(element, () => signal.cleanup())
+                const signal = attributeSignalDerives[attribute] = signalDerive(update, ...signalIds.map(id => this.$_signal_attributes[id].signal))
+                signal.subscribe((value) => element.setAttribute(attribute, value))
+                onNodeDestroy(element, () => signal.cleanup())
+            })
         }
     }
 }

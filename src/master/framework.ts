@@ -3,6 +3,7 @@ import type { Template } from './template'
 import { randomId } from './utils/id'
 
 // This is bad but good enough for now for testing and development
+// TODO: Find a better way to do this
 export function onNodeDestroy(node: Node, callback: () => void)
 {
     (async () =>
