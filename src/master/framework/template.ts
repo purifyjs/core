@@ -22,7 +22,7 @@ export function html(parts: TemplateStringsArray, ...values: TemplateAccepts[])
 export class Template extends DocumentFragment
 {
     private $_nodes: Node[] = []
-    private $_listeners: Record<string, EventListener> = {}
+    private $_listeners: { event: string, id: string, callback: EventListener }[] = []
     private $_signals: Record<string, Signal<any>> = {}
     private $_signal_texts: Record<string, { startNode: Node, endNode: Node }> = {}
 
@@ -37,6 +37,7 @@ export class Template extends DocumentFragment
             TagName,
             TagClose,
             AttributeName,
+            AttributeKey,
             AttributeValueUnquoted,
             AttributeValueSingleQuoted,
             AttributeValueDoubleQuoted
@@ -46,6 +47,7 @@ export class Template extends DocumentFragment
             current: State.Outer,
             tag: null as string | null,
             attribute_name: null as string | null,
+            attribute_key: null as string | null,
             attribute_value: null as string | null
         }
 
@@ -118,9 +120,38 @@ export class Template extends DocumentFragment
                             state.current = State.AttributeValueUnquoted
                             state.attribute_value = ''
                         }
+                        else if (char === ':')
+                        {
+                            state.current = State.AttributeKey
+                            state.attribute_key = ''
+                        }
                         else
                         {
                             state.attribute_name += char
+                        }
+                        break
+                    case State.AttributeKey:
+                        if (char === '>')
+                        {
+                            state.current = State.Outer
+                            state.tag = null
+                            state.attribute_name = null
+                            state.attribute_key = null
+                        }
+                        else if (char === ' ')
+                        {
+                            state.current = State.TagInner
+                            state.attribute_name = null
+                            state.attribute_key = null
+                        }
+                        else if (char === '=')
+                        {
+                            state.current = State.AttributeValueUnquoted
+                            state.attribute_value = ''
+                        }
+                        else
+                        {
+                            state.attribute_key += char
                         }
                         break
                     case State.AttributeValueUnquoted:
@@ -130,12 +161,14 @@ export class Template extends DocumentFragment
                             state.tag = null
                             state.attribute_name = null
                             state.attribute_value = null
+                            state.attribute_key = null
                         }
                         else if (char === ' ')
                         {
                             state.current = State.TagInner
                             state.attribute_name = null
                             state.attribute_value = null
+                            state.attribute_key = null
                         }
                         else if (char === '"')
                         {
@@ -158,6 +191,7 @@ export class Template extends DocumentFragment
                             state.current = State.TagInner
                             state.attribute_name = null
                             state.attribute_value = null
+                            state.attribute_key = null
                         }
                         else
                         {
@@ -170,6 +204,7 @@ export class Template extends DocumentFragment
                             state.current = State.TagInner
                             state.attribute_name = null
                             state.attribute_value = null
+                            state.attribute_key = null
                         }
                         else
                         {
@@ -214,11 +249,11 @@ export class Template extends DocumentFragment
                 }
                 else if (state.current === State.AttributeValueUnquoted)
                 {
-                    if (value instanceof Function)
+                    if (state.attribute_name === 'on' && state.attribute_key && value instanceof Function)
                     {
                         // We use a random id to avoid collisions with fragments
                         const id = randomId()
-                        this.$_listeners[id] = value as EventListener
+                        this.$_listeners.push({ id, event: state.attribute_key, callback: value as EventListener })
                         html += `${id}`
                     }
                     else
@@ -319,20 +354,12 @@ export class Template extends DocumentFragment
 
     private $_listenToEvents(root: Element | ShadowRoot)
     {
-        root.querySelectorAll('*').forEach((node) =>
+        for (let listener = this.$_listeners.shift(); listener; listener = this.$_listeners.shift())
         {
-            Array.from(node.attributes).forEach((attribute) =>
-            {
-                if (attribute.name.startsWith('on:'))
-                {
-                    const listener = this.$_listeners[attribute.value]
-                    if (!listener) return
-                    const eventName = attribute.name.slice(3)
-                    console.log('registering event', eventName, node)
-                    node.addEventListener(eventName, listener)
-                }
-            })
-        })
+            const element = root.querySelector(`[on\\:${listener.event}="${listener.id}"]`)
+            if (!element) throw new Error(`Cannot find element with event listener ${listener.event}=${listener.id}`)
+            element.addEventListener(listener.event, listener.callback)
+        }
 
         this.$_listeners = null!
     }
