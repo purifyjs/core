@@ -49,7 +49,11 @@ export const App = defineElement('x-app', ({ self: $ }) =>
 
         <div wtf=${counterCount}></div>
 
-        <!-- TODO: Make this work -->
+        <style>
+            main:has(.hello-world) {
+                background: #000
+            }
+        </style>
         <div class:hello-world=${counterCount}>a</div>
 
 
