@@ -209,7 +209,7 @@ export class Template extends DocumentFragment
                     else
                         html += `"${`${value}`.replaceAll('"', '\\"')}"`
                 }
-                else 
+                else if (state.current === State.Outer)
                 {
                     if (value instanceof Signal)
                     {
@@ -231,6 +231,7 @@ export class Template extends DocumentFragment
                     }
                     html += `<x :outlet="${this.$_nodes.length - 1}"></x>`
                 }
+                else throw new Error(`Unexpected value at\n${html.slice(-256)}\${${value}}...`)
             }
         }
         const template = document.createElement('template')
