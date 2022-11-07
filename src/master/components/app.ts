@@ -4,7 +4,7 @@ import { Counter } from "./counter"
 
 export const App = defineElement('x-app', ({ self: $ }) => 
 {
-    const someSignal = $.$signal(0)
+    const counterCount = $.$signal(0)
 
     return html`
     <style>
@@ -27,7 +27,7 @@ export const App = defineElement('x-app', ({ self: $ }) =>
         <p>It's a work in progress.</p>
         <p>It's not ready for production.</p>
 
-        <x ${Counter({ number: someSignal })} class="hey" id="counter">
+        <x ${Counter({ number: counterCount })} class="hey" id="counter">
             Click me!!
         </x>
 
@@ -43,6 +43,16 @@ export const App = defineElement('x-app', ({ self: $ }) =>
         ${null}
         ${undefined}
         ${Promise.resolve()}
+        ${'abc'}
+        <span hey="${123} ${'aaa'} ${counterCount}"></span>
+
+
+        <p>Count: ${counterCount}</p>
+        <button on:click=${() => counterCount.signal((v) => v + 1)}>Increment</button>
+        <button on:click=${() => counterCount.signal((v) => v - 1)}>Decrement</button>
+        <button on:click=${() => counterCount.signal((v) => v * 2)}>Double</button>
+        <button on:click=${() => counterCount.signal((v) => v / 2)}>Half</button>
+        <button on:click=${() => counterCount.signal(0)}>Reset</button>
     </main>`
 })
 
