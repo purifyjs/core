@@ -37,7 +37,8 @@ export class Template extends DocumentFragment
             TagClose,
             AttributeName,
             AttributeValueUnquoted,
-            AttributeValueQuoted
+            AttributeValueSingleQuoted,
+            AttributeValueDoubleQuoted
         }
 
         const state = {
@@ -137,7 +138,12 @@ export class Template extends DocumentFragment
                         }
                         else if (char === '"')
                         {
-                            state.current = State.AttributeValueQuoted
+                            state.current = State.AttributeValueDoubleQuoted
+                            state.attribute_value = ''
+                        }
+                        else if (char === "'")
+                        {
+                            state.current = State.AttributeValueSingleQuoted
                             state.attribute_value = ''
                         }
                         else
@@ -145,7 +151,19 @@ export class Template extends DocumentFragment
                             state.attribute_value += char
                         }
                         break
-                    case State.AttributeValueQuoted:
+                    case State.AttributeValueSingleQuoted:
+                        if (char === "'")
+                        {
+                            state.current = State.TagInner
+                            state.attribute_name = null
+                            state.attribute_value = null
+                        }
+                        else
+                        {
+                            state.attribute_value += char
+                        }
+                        break
+                    case State.AttributeValueDoubleQuoted:
                         if (char === '"')
                         {
                             state.current = State.TagInner
@@ -180,7 +198,7 @@ export class Template extends DocumentFragment
                 {
                     html += `:outlet="${this.$_nodes.push(value) - 1}"`
                 }
-                else if (state.current === State.AttributeValueQuoted)
+                else if (state.current === State.AttributeValueDoubleQuoted || state.current === State.AttributeValueSingleQuoted)
                 {
                     if (value instanceof Signal)
                     {
@@ -189,7 +207,7 @@ export class Template extends DocumentFragment
                     }
                     else
                     {
-                        html += `${value}`.replace(/"/g, '\\"')
+                        html += State.AttributeValueDoubleQuoted ? `${value}`.replace(/"/g, '\\"') : `${value}`.replace(/'/g, "\\'")
                     }
                 }
                 else if (state.current === State.AttributeValueUnquoted)
@@ -207,7 +225,7 @@ export class Template extends DocumentFragment
                         html += `${id}`
                     }
                     else
-                        html += `"${`${value}`.replaceAll('"', '\\"')}"`
+                        html += `"${`${value}`.replace(/"/g, '\\"')}"`
                 }
                 else if (state.current === State.Outer)
                 {
@@ -360,7 +378,7 @@ export class Template extends DocumentFragment
                 return value
             }
             const signal = attributeSignalDerives[attribute] = signalDerive(update, ...signalIds.map(id => this.$_signal_attributes[id].signal))
-            signal.subscribe((value) => element.setAttribute(attribute, value.replace(/"/g, '\\"')))
+            signal.subscribe((value) => element.setAttribute(attribute, value))
             onNodeDestroy(element, () => signal.cleanup())
         }
     }
