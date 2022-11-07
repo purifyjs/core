@@ -28,7 +28,22 @@ export const App = defineElement('x-app', ({ self: $ }) =>
     </style>
     <main>
         <h1>Master.ts</h1>
-        ${If(counterCount, html`<p on:click=${() => alert('counting!!!')}>Counting...</p>`)}
+        
+        ${If(counterCount,
+        html`
+            <p on:click=${() => alert('counting!!!')}>Counting...</p>`,
+        html`
+            <p>Not Counting!</p>
+        `)}
+
+        ${$.$signalDerive(() => counterCount.value ?
+            html`
+            <p on:click=${() => alert('counting!!!')}>Counting...</p>` :
+            html`
+            <p>Not Counting!</p>`,
+            counterCount
+        )}
+
         <p>Master.ts is a framework for building web apps.</p>
         <p>It's a framework for building web apps.</p>
         <p>It's a work in progress.</p>

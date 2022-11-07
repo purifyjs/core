@@ -31,6 +31,8 @@ export abstract class MasterElement<Props extends MasterElementProps = MasterEle
         if (this.$_mounted) throw new Error('Cannot mount element that is already mounted')
         if (this.$_destroyed) throw new Error('Cannot mount destroyed element')
         this.$_mounted = true
+        
+        mountPoint?.replaceWith(this)
 
         for (const callback of this.$_mountCallbacks)
             await callback({ element: this })
@@ -39,7 +41,6 @@ export abstract class MasterElement<Props extends MasterElementProps = MasterEle
         const template = this.$_mountParams.elementTemplate({ props: this.$_mountParams.props, self: this })
         await template.$mount()
 
-        mountPoint?.replaceWith(this)
         const shadowRoot = this.attachShadow({ mode: 'open' })
         shadowRoot.append(...template)
 
