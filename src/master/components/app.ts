@@ -26,7 +26,6 @@ export const App = defineElement('x-app', ({ self: $ }) =>
         <p>Master is a framework for building web apps.</p>
         <p>It's a work in progress.</p>
         <p>It's not ready for production.</p>
-        <p>It's not ready for anything.</p>
 
         <x ${Counter({ number: someSignal })}>
             Click me!! ${someSignal}

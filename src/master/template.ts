@@ -178,7 +178,7 @@ export class Template extends DocumentFragment
 
                 if (state.current === State.TagInner && state.tag === 'x' && value instanceof MasterElement || value instanceof Template)
                 {
-                    html += ` x:outlet="${this.$_nodes.push(value) - 1}"`
+                    html += ` :outlet="${this.$_nodes.push(value) - 1}"`
                 }
                 else if (state.current === State.AttributeValueQuoted)
                 {
@@ -229,7 +229,7 @@ export class Template extends DocumentFragment
                     {
                         this.$_nodes.push(parseValue(value))
                     }
-                    html += `<x x:outlet="${this.$_nodes.length - 1}"></x>`
+                    html += `<x :outlet="${this.$_nodes.length - 1}"></x>`
                 }
             }
         }
@@ -239,23 +239,25 @@ export class Template extends DocumentFragment
         this.append(...Array.from(template.content.childNodes))
     }
 
-    async $mount(mountPoint: Element | ShadowRoot, append = false)
+    private $_mounted = false
+
+    async $mount(mountPoint: Node)
     {
-        const root = mountPoint instanceof ShadowRoot ? mountPoint : mountPoint.parentElement
-        if (!root) throw new Error('Cannot mount template to a node that is not attached to the DOM')
+        if (this.$_mounted) throw new Error('Template already mounted')
+        this.$_mounted = true
 
-        const toMount = this.insertNodes()
+        const rootForQuery = mountPoint.parentElement ?? (mountPoint.parentNode instanceof ShadowRoot ? mountPoint.parentNode : null)
+        if (!rootForQuery) throw new Error('Cannot mount template without a parent element or shadow root')
 
-        if (append) mountPoint.append(this)
-        else if (!mountPoint.parentNode) throw new Error('Cannot mount template to a node that is not attached to the DOM')
-        else mountPoint.parentNode.replaceChild(this, mountPoint)
+        const toMount = this.$_insertNodes()
+        rootForQuery.replaceChild(this, mountPoint)
 
-        await Promise.all(toMount.map(async ({ node, outlet }) => 
+        await Promise.all(toMount.map(async ({ mountable: node, outlet }) => 
         {
             if (node instanceof MasterElement)
             {
                 node.append(...Array.from(outlet.childNodes))
-                outlet.removeAttribute('x:outlet')
+                outlet.removeAttribute(':outlet')
                 for (const attribute of Array.from(outlet.attributes))
                     node.setAttribute(attribute.name, attribute.value)
             }
@@ -277,12 +279,45 @@ export class Template extends DocumentFragment
             await node.$mount(outlet)
         }))
 
-        this.listenToEvents(root)
-        this.subscribeToSignals(root)
-
+        this.$_listenToEvents(rootForQuery)
+        this.$_subscribeToSignals(rootForQuery)
     }
 
-    private subscribeToSignals(root: Element | ShadowRoot)
+    private $_insertNodes()
+    {
+        const toMount: { mountable: MasterElement | Template, outlet: Element }[] = []
+        this.$_nodes.forEach((node, index) =>
+        {
+            const outlet = this.querySelector(`x[\\:outlet="${index}"]`)
+            if (!outlet) throw new Error(`No outlet found for node ${index}`)
+            if (node instanceof Template || node instanceof MasterElement)
+                toMount.push({ mountable: node, outlet })
+            else
+                outlet.replaceWith(node)
+        })
+
+        return toMount
+    }
+
+    private $_listenToEvents(root: Element | ShadowRoot)
+    {
+        root.querySelectorAll('*').forEach((node) =>
+        {
+            Array.from(node.attributes).forEach((attribute) =>
+            {
+                if (attribute.name.startsWith('on:'))
+                {
+                    const listener = this.$_listeners[attribute.value]
+                    if (!listener) return
+                    const eventName = attribute.name.slice(3)
+                    console.log('registering event', eventName, node)
+                    node.addEventListener(eventName, listener)
+                }
+            })
+        })
+    }
+
+    private $_subscribeToSignals(root: Element | ShadowRoot)
     {
         for (const id in this.$_signal_texts)
         {
@@ -323,39 +358,5 @@ export class Template extends DocumentFragment
             signal.subscribe((value) => element.setAttribute(attribute, value.replace(/"/g, '\\"')))
             onNodeDestroy(element, () => signal.cleanup())
         }
-    }
-
-    private insertNodes()
-    {
-        const toMount: { node: MasterElement | Template, outlet: Element }[] = []
-        this.$_nodes.forEach((node, index) =>
-        {
-            const outlet = this.querySelector(`x[x\\:outlet="${index}"]`)
-            if (!outlet) throw new Error(`No outlet found for node ${index}`)
-            if (node instanceof Template || node instanceof MasterElement)
-                toMount.push({ node, outlet })
-            else
-                outlet.replaceWith(node)
-        })
-
-        return toMount
-    }
-
-    private listenToEvents(root: Element | ShadowRoot)
-    {
-        root.querySelectorAll('*').forEach((node) =>
-        {
-            Array.from(node.attributes).forEach((attribute) =>
-            {
-                if (attribute.name.startsWith('on:'))
-                {
-                    const listener = this.$_listeners[attribute.value]
-                    if (!listener) return
-                    const eventName = attribute.name.slice(3)
-                    console.log('registering event', eventName, node)
-                    node.addEventListener(eventName, listener)
-                }
-            })
-        })
     }
 }

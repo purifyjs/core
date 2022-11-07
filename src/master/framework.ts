@@ -36,7 +36,7 @@ export abstract class MasterElement<Props extends ElementProps = ElementProps> e
     private $_destroyed = false
 
     constructor(
-        protected _mountParams: { props: Props, template: ElementTemplate<Props> },
+        protected $_mountParams: { props: Props, template: ElementTemplate<Props> },
     )
     {
         super()
@@ -55,40 +55,44 @@ export abstract class MasterElement<Props extends ElementProps = ElementProps> e
 
         for (const callback of this.$_mountCallbacks)
             await callback({ element: this })
+        this.$_mountCallbacks = []
 
-        const template = this._mountParams.template({ props: this._mountParams.props, self: this })
+        const template = this.$_mountParams.template({ props: this.$_mountParams.props, self: this })
 
-        mountPoint.replaceWith(this)
-        const shadowRoot = this.attachShadow({ mode: 'open' })
         template.querySelectorAll('style[\\:global]').forEach((style) => 
         {
             this.$_destroyCallbacks.push(() => style.remove())
             document.head.append(style)
         })
-        await template.$mount(shadowRoot, true)
+
+        mountPoint.replaceWith(this)
+        const shadowRoot = this.attachShadow({ mode: 'open' })
+        const templateOutlet = document.createComment('template outlet')
+        shadowRoot.append(templateOutlet)
+        await template.$mount(templateOutlet)
 
         onNodeDestroy(this, () =>
         {
-            if (!this.$_mounted) throw new Error('Cannot destroy element that is not mounted')
-            if (this.$_destroyed) throw new Error('Cannot destroy element that is already destroyed')
             this.$_mounted = false
             this.$_destroyed = true
             for (const callback of this.$_destroyCallbacks)
                 callback({ element: this })
+            this.$_destroyCallbacks = []
         })
 
-        this._mountParams = null!
+        this.$_mountParams = null!
     }
 
     $onMount(callback: ElementMountCallback)
     {
-        this.$_mountCallbacks.push(callback)
         if (this.$_mounted) callback({ element: this })
+        else this.$_mountCallbacks.push(callback)
     }
 
     $onDestroy(callback: ElementDestroyCallback)
     {
-        this.$_destroyCallbacks.push(callback)
+        if (this.$_destroyed) callback({ element: this })
+        else this.$_destroyCallbacks.push(callback)
     }
 
     $text(parts: TemplateStringsArray, ...values: any[])
