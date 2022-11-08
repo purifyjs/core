@@ -5,12 +5,12 @@ import { Signal, signalDerive, SignalMode } from "./signal"
 
 export function html(parts: TemplateStringsArray, ...values: unknown[])
 {
-    return new MasterFragment(parts, ...values)
+    return new MasterTemplate(parts, ...values)
 }
 
 const EMPTY_NODE = document.createDocumentFragment()
 
-export class MasterFragment extends Array<Node>
+export class MasterTemplate extends Array<Node>
 {
     private $valueNode(value: any): Node
     {
@@ -18,7 +18,7 @@ export class MasterFragment extends Array<Node>
             return EMPTY_NODE
         else if (value instanceof Node)
             return value
-        else if (value instanceof MasterFragment)
+        else if (value instanceof MasterTemplate)
         {
             this.$toMount.push(...value.$toMount)
             const fragment = document.createDocumentFragment()

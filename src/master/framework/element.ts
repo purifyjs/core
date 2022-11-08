@@ -1,11 +1,11 @@
 import { onNodeDestroy } from "../utils/node"
 import { Signal, signal, signalDerive, SignalListener, textSignal } from "./signal"
-import type { MasterFragment } from "./fragment"
+import type { MasterTemplate } from "./template"
 
 export type MasterElementMountCallback = ({ element }: { element: HTMLElement }) => Promise<void> | void
 export type MasterElementDestroyCallback = ({ element }: { element: HTMLElement }) => void
 export type MasterElementProps = { [key: string]: any }
-export type MasterElementTemplate<Props extends MasterElementProps> = (params: { props: Props, self: MasterElement<Props> }) => MasterFragment
+export type MasterElementTemplate<Props extends MasterElementProps> = (params: { props: Props, self: MasterElement<Props> }) => MasterTemplate
 
 export abstract class MasterElement<Props extends MasterElementProps = MasterElementProps> extends HTMLElement
 {

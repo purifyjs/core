@@ -1,5 +1,5 @@
 import { defineElement } from "../framework/element"
-import { html } from "../framework/fragment"
+import { html } from "../framework/template"
 import { Block } from "./block"
 import { Counter } from "./counter"
 
