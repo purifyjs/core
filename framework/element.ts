@@ -3,7 +3,7 @@ import { onNodeUnmount } from "../utils/node"
 import { signal, Signal, SignalDerivation, signalDerive, SignalListener, signalText } from "./signal"
 import type { MasterTemplate } from "./template"
 
-export type MasterElementCallback = () => any
+export type MasterElementCallback = () => Promise<void> | void
 export type MasterElementProps = { [key: string]: any }
 export type MasterElementTemplate<Props extends MasterElementProps> = (params: { props: Props, self: MasterElement<Props> }) => MasterTemplate
 
@@ -88,13 +88,13 @@ export abstract class MasterElement<Props extends MasterElementProps = MasterEle
 
     async $onMount<T extends MasterElementCallback>(callback: T) 
     {
-        if (this.$_mounted) return new Promise(async (resolve) => this.$_emitCallbacks([() => resolve(callback())])) 
+        if (this.$_mounted) return await new Promise(async (resolve) => this.$_emitCallbacks([() => resolve(callback())])) 
         else return await new Promise((resolve) => this.$_mountCallbacks.push(() => resolve(callback())))
     }
 
     async $onUnmount(callback: MasterElementCallback)
     {
-        if (!this.$_mounted && this.$_initialized) return new Promise(async (resolve) => this.$_emitCallbacks([() => resolve(callback())])) 
+        if (!this.$_mounted && this.$_initialized) return await new Promise(async (resolve) => this.$_emitCallbacks([() => resolve(callback())])) 
         else return await new Promise((resolve) => this.$_unmountCallbacks.push(() => resolve(callback())))
     }
 
