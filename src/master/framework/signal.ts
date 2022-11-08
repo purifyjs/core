@@ -17,8 +17,10 @@ export class Signal<T = any>
     public readonly id = randomId()
     private _listeners: SignalListener<T>[] = []
     constructor(
-        public value: T
+        protected _value: T
     ) { }
+
+    get value() { return this._value }
 
     subscribe(listener: SignalListener<T>, options?: SignalOptions): SignalSubscription
     {
@@ -52,7 +54,7 @@ export class Signal<T = any>
     async signal(value: T | ((value: T) => T) | typeof Signal.Empty = Signal.Empty)
     {
         if (value === this.value && typeof value !== 'object') return
-        if (value !== Signal.Empty) this.value = value instanceof Function ? value(this.value) : value
+        if (value !== Signal.Empty) this._value = value instanceof Function ? value(this.value) : value
         await Promise.all(this._listeners.map((listener) => listener(this.value)))
     }
 }

@@ -10,6 +10,9 @@ export const App = defineElement('x-app', ({ self: $ }) =>
 
     $.$subscribe(counterCount, (count) => console.log('Counter count:', count))
 
+    const dateSignal = $.$signalDerive(() => new Date())
+    $.$interval(dateSignal.signal, 1000)
+
     const counting = Counter({ number: counterCount })
     const notCounting = Counter({ number: counterCount })
 
@@ -47,6 +50,7 @@ export const App = defineElement('x-app', ({ self: $ }) =>
         ${[123, 456, 789]}
         ${{}}
         ${new Date()}
+        ${dateSignal}
         ${new Error()}
         ${null}
         ${undefined}

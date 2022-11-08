@@ -1,13 +1,14 @@
 // This is bad but good enough for now for testing and development
 // TODO: Find a better way to do this
-export function onNodeUnmount(node: Node, callback: () => void)
+export function onNodeUnmount(node: Node, callback: () => any)
 {
     (async () =>
     {
         while (getRootNode(node) !== null)
             await new Promise((resolve) => requestAnimationFrame(resolve))
         console.log('Unmounting node', node)
-        callback()
+        try { await callback() }
+        catch (e) { console.error(e) }
     })()
 }
 

@@ -1,3 +1,4 @@
+import { randomId } from "../utils/id"
 import { onNodeUnmount } from "../utils/node"
 import { Signal, signal, SignalDerivation, signalDerive, SignalListener, textSignal } from "./signal"
 import type { MasterTemplate } from "./template"
@@ -8,6 +9,7 @@ export type MasterElementTemplate<Props extends MasterElementProps> = (params: {
 
 export abstract class MasterElement<Props extends MasterElementProps = MasterElementProps> extends HTMLElement
 {
+    private $_debugId: string = randomId()
     private $_mountCallbacks: MasterElementCallback[] = []
     private $_unmountCallbacks: MasterElementCallback[] = []
     private $_mounted = false
@@ -43,13 +45,8 @@ export abstract class MasterElement<Props extends MasterElementProps = MasterEle
     async $mount(mountPoint?: Element)
     {
         mountPoint?.replaceWith(this)
-        if (this.$_mounted)
-        {
-            if (mountPoint) console.warn('Element is already mounted', this, 'Only mounting to new mount point at', mountPoint)
-            else console.warn('Element is already mounted', this)
-            return
-        }
-        console.log('Mounting element', this, 'at', mountPoint)
+        if (this.$_mounted) return console.warn('Element is already mounted', this)
+        console.log('Mounting element', this, 'at', this.parentNode, this.$_debugId)
         this.$_mounted = true
 
         await this.$_emitCallbacks(this.$_mountCallbacks)
@@ -59,8 +56,8 @@ export abstract class MasterElement<Props extends MasterElementProps = MasterEle
 
         onNodeUnmount(this, async () =>
         {
-            console.log('Unmounting element', this)
-            if (!this.$_mounted) throw new Error('Cannot unmount element that is not mounted') 
+            if (!this.$_mounted) throw new Error('Cannot unmount element that is not mounted')
+            console.log('Unmounting element', this, this.$_debugId)
             this.$_mounted = false
             await this.$_emitCallbacks(this.$_unmountCallbacks)
             this.$_unmountCallbacks = []
@@ -72,7 +69,7 @@ export abstract class MasterElement<Props extends MasterElementProps = MasterEle
         if (this.$_initialized) throw new Error('Cannot initialize element twice')
         this.$_initialized = true
 
-        console.log('Initializing element', this)
+        console.log('Initializing element', this, this.$_debugId)
 
         const template = this.$_init_params.elementTemplate({ props: this.$_init_params.props, self: this })
         const templateFragment = await template.renderFragment()

@@ -21,27 +21,22 @@ export class MasterTemplate
         this.values = values
     }
 
-    private async valueToNode(value: any): Promise<Node>
-    {
-        if (value === null)
-            return EMPTY_NODE
-        else if (value instanceof MasterElement)
-        {
-            await value.$mount()
-            return value
-        }
-        else if (value instanceof MasterTemplate)
-        {
-            return await value.renderFragment()
-        }
-        else if (value instanceof Node)
-            return value
-        else
-            return document.createTextNode(`${value}`)
-    }
-
     async renderFragment(): Promise<DocumentFragment>
     {
+        async function valueToNode(value: any): Promise<Node>
+        {
+            if (value === null)
+                return EMPTY_NODE
+            else if (value instanceof MasterTemplate)
+            {
+                return await value.renderFragment()
+            }
+            else if (value instanceof Node)
+                return value
+            else
+                return document.createTextNode(`${value}`)
+        }
+
         console.log('Rendering template', this)
 
         const nodes: Node[] = []
@@ -304,7 +299,7 @@ export class MasterTemplate
                     }
                     else
                     {
-                        html += `<x :outlet="${nodes.push(await this.valueToNode(value)) - 1}"></x>`
+                        html += `<x :outlet="${nodes.push(await valueToNode(value)) - 1}"></x>`
                     }
                 }
                 else throw new Error(`Unexpected value at\n${html.slice(-256)}\${${value}}...`)
@@ -392,10 +387,15 @@ export class MasterTemplate
             {
                 while (startComment.nextSibling !== endComment)
                     startComment.nextSibling!.remove()
-                startComment.after(await this.valueToNode(value))
+                const node = await valueToNode(value)
+                startComment.after(node)
+                if (node instanceof MasterElement)
+                    await node.$mount()
             }, { mode: SignalMode.Immediate })
             onNodeUnmount(startComment, () => subscription.unsubscribe())
         })
+
+        
 
         return template.content
     }
