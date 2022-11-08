@@ -1,6 +1,6 @@
 {
   "type": "module",
-  "name": "master.ts",
+  "name": "master-ts",
   "version": "1.0.0",
   "description": "Master.ts is a framework for building SPA applications using TypeScript.",
   "repository": {
