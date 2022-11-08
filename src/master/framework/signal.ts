@@ -47,10 +47,11 @@ export class Signal<T = any>
         }
     }
 
-    public static readonly Empty = Symbol('empty')
+    protected static readonly Empty = Symbol('empty')
 
     async signal(value: T | ((value: T) => T) | typeof Signal.Empty = Signal.Empty)
     {
+        if (value === this.value && typeof value !== 'object') return
         if (value !== Signal.Empty) this.value = value instanceof Function ? value(this.value) : value
         await Promise.all(this._listeners.map((listener) => listener(this.value)))
     }
@@ -61,22 +62,19 @@ export function signal<T>(value: T)
     return new Signal(value)
 }
 
+export type SignalDerivation<T> = () => T
+
 export class SignalDerive<T> extends Signal<T>
 {
     private triggerSubs: SignalSubscription[]
 
-    constructor(private getter: () => T, ...triggerSignals: Signal[])
+    constructor(private getter: SignalDerivation<T>, ...triggerSignals: Signal[])
     {
         super(getter())
         this.triggerSubs = triggerSignals.map((signal) => 
         {
             if (!(signal instanceof Signal)) throw new Error(`SignalDerive can only be created from Signal instances. Got ${signal}`)
-            return signal.subscribe(() => 
-            {
-                const newValue = getter()
-                if (newValue !== this.value || typeof newValue === 'object') 
-                    super.signal(newValue)
-            })
+            return signal.subscribe(() => super.signal(getter()))
         })
     }
 

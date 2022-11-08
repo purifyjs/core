@@ -1,5 +1,5 @@
 import { randomId } from "../utils/id"
-import { onNodeDestroy } from "../utils/node"
+import { onNodeUnmount } from "../utils/node"
 import { MasterElement } from "./element"
 import { Signal, signalDerive, SignalMode } from "./signal"
 
@@ -10,41 +10,44 @@ export function html(parts: TemplateStringsArray, ...values: unknown[])
 
 const EMPTY_NODE = document.createDocumentFragment()
 
-export class MasterTemplate extends Array<Node>
+export class MasterTemplate
 {
-    private $valueNode(value: any): Node
+    private readonly parts: TemplateStringsArray
+    private readonly values: unknown[]
+
+    constructor(parts: TemplateStringsArray, ...values: unknown[]) 
+    {
+        this.parts = parts
+        this.values = values
+    }
+
+    private async valueToNode(value: any): Promise<Node>
     {
         if (value === null)
             return EMPTY_NODE
         else if (value instanceof Node)
             return value
+        else if (value instanceof MasterElement)
+        {
+            await value.$mount()
+            return value
+        }
         else if (value instanceof MasterTemplate)
         {
-            this.$toMount.push(...value.$toMount)
-            const fragment = document.createDocumentFragment()
-            fragment.append(...value)
-            return fragment
+            return await value.renderFragment()
         }
         else
             return document.createTextNode(`${value}`)
     }
 
-    private $toMount: MasterElement[] = []
-
-    async $mount()
+    async renderFragment(): Promise<DocumentFragment>
     {
-        for (const element of this.$toMount)
-            await element.$mount()
-        this.$toMount = []
-    }
+        console.log('Rendering template', this)
 
-    constructor(parts: TemplateStringsArray, ...values: unknown[]) 
-    {
         const nodes: Node[] = []
         const listeners: { event: string, id: string, callback: EventListener }[] = []
         const signals: Record<string, Signal<any>> = {}
         const signal_classes: { className: string, signal: Signal<boolean> }[] = []
-        super()
 
         const enum State
         {
@@ -68,10 +71,10 @@ export class MasterTemplate extends Array<Node>
         }
 
         let html = ''
-        for (let i = 0; i < parts.length; i++)
+        for (let i = 0; i < this.parts.length; i++)
         {
-            const part = parts[i]
-            const value = values[i]
+            const part = this.parts[i]
+            const value = this.values[i]
 
             for (const char of part)
             {
@@ -301,7 +304,7 @@ export class MasterTemplate extends Array<Node>
                     }
                     else
                     {
-                        html += `<x :outlet="${nodes.push(this.$valueNode(value)) - 1}"></x>`
+                        html += `<x :outlet="${nodes.push(await this.valueToNode(value)) - 1}"></x>`
                     }
                 }
                 else throw new Error(`Unexpected value at\n${html.slice(-256)}\${${value}}...`)
@@ -330,7 +333,7 @@ export class MasterTemplate extends Array<Node>
 
             outlet.replaceWith(node)
             if (node instanceof MasterElement)
-                this.$toMount.push(node)
+                await node.$mount()
         }
 
         for (const { id, event, callback } of listeners)
@@ -347,7 +350,7 @@ export class MasterTemplate extends Array<Node>
             if (!node) throw new Error(`Cannot find element with class ${className}=${signal.id}`)
             node.removeAttribute(`class:${className}`)
             const sub = signal.subscribe((value) => value ? node.classList.add(className) : node.classList.remove(className))
-            onNodeDestroy(node, () => sub.unsubscribe())
+            onNodeUnmount(node, () => sub.unsubscribe())
         }
 
         template.content.querySelectorAll('*').forEach((node) =>
@@ -370,7 +373,7 @@ export class MasterTemplate extends Array<Node>
                     })
                 )
                 signal.subscribe((value) => node.setAttribute(attribute.name, value), { mode: SignalMode.Immediate })
-                onNodeDestroy(node, () => signal.cleanup())
+                onNodeUnmount(node, () => signal.cleanup())
             })
         })
 
@@ -385,15 +388,17 @@ export class MasterTemplate extends Array<Node>
             fragment.append(startComment, endComment)
             element.replaceWith(fragment)
 
-            const subscription = signal.subscribe((value) => 
+            const subscription = signal.subscribe(async (value) => 
             {
                 while (startComment.nextSibling !== endComment)
                     startComment.nextSibling!.remove()
-                startComment.after(this.$valueNode(value))
+
+                const node = await this.valueToNode(value)
+                startComment.after(node)
             }, { mode: SignalMode.Immediate })
-            onNodeDestroy(startComment, () => subscription.unsubscribe())
+            onNodeUnmount(startComment, () => subscription.unsubscribe())
         })
 
-        this.push(...Array.from(template.content.childNodes))
+        return template.content
     }
 }

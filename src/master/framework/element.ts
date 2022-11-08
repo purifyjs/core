@@ -1,84 +1,105 @@
-import { onNodeDestroy } from "../utils/node"
-import { Signal, signal, signalDerive, SignalListener, textSignal } from "./signal"
+import { onNodeUnmount } from "../utils/node"
+import { Signal, signal, SignalDerivation, signalDerive, SignalListener, textSignal } from "./signal"
 import type { MasterTemplate } from "./template"
 
-export type MasterElementMountCallback = ({ element }: { element: HTMLElement }) => Promise<void> | void
-export type MasterElementDestroyCallback = ({ element }: { element: HTMLElement }) => void
+export type MasterElementCallback = () => any
 export type MasterElementProps = { [key: string]: any }
 export type MasterElementTemplate<Props extends MasterElementProps> = (params: { props: Props, self: MasterElement<Props> }) => MasterTemplate
 
 export abstract class MasterElement<Props extends MasterElementProps = MasterElementProps> extends HTMLElement
 {
-    private $_mountCallbacks: MasterElementMountCallback[] = []
-    private $_destroyCallbacks: MasterElementDestroyCallback[] = []
+    private $_mountCallbacks: MasterElementCallback[] = []
+    private $_unmountCallbacks: MasterElementCallback[] = []
     private $_mounted = false
-    private $_destroyed = false
+    private $_initialized = false
 
     constructor(
-        protected $_mountParams: { props: Props, elementTemplate: MasterElementTemplate<Props> },
+        protected $_init_params: { props: Props, elementTemplate: MasterElementTemplate<Props> },
     )
     {
         super()
     }
 
-    get $mounted() { return this.$_mounted }
-    get $destroyed() { return this.$_destroyed }
+    private $_callbackQueue: MasterElementCallback[] = []
+    private $_callbackQueueRunning = false
+    private async $_emitCallbacks(callbacks: MasterElementCallback[])
+    {
+        this.$_callbackQueue.push(...callbacks)
+        if (this.$_callbackQueueRunning) return
+        this.$_callbackQueueRunning = true
+        while (this.$_callbackQueue.length > 0)
+        {
+            const callback = this.$_callbackQueue.shift()!
+            await callback()
+        }
+        this.$_callbackQueueRunning = false
+    }
 
+    get $mounted() { return this.$_mounted }
+
+    // I made it as safe as possible to but I might have missed something
+    // Somewhere around here there might be a race condition about mounting and unmounting
+    // TODO: Fix this if it becomes a problem
     async $mount(mountPoint?: Element)
     {
-        console.log('mounting', this)
-
-        if (this.$_mounted) throw new Error('Cannot mount element that is already mounted')
-        if (this.$_destroyed) throw new Error('Cannot mount destroyed element')
-        this.$_mounted = true
-        
         mountPoint?.replaceWith(this)
+        if (this.$_mounted)
+        {
+            if (mountPoint) console.warn('Element is already mounted', this, 'Only mounting to new mount point at', mountPoint)
+            else console.warn('Element is already mounted', this)
+            return
+        }
+        console.log('Mounting element', this, 'at', mountPoint)
+        this.$_mounted = true
 
-        for (const callback of this.$_mountCallbacks)
-            await callback({ element: this })
+        await this.$_emitCallbacks(this.$_mountCallbacks)
         this.$_mountCallbacks = []
 
-        const template = this.$_mountParams.elementTemplate({ props: this.$_mountParams.props, self: this })
-        await template.$mount()
+        if (!this.$_initialized) await this.$_init()
+
+        onNodeUnmount(this, async () =>
+        {
+            console.log('Unmounting element', this)
+            if (!this.$_mounted) throw new Error('Cannot unmount element that is not mounted') 
+            this.$_mounted = false
+            await this.$_emitCallbacks(this.$_unmountCallbacks)
+            this.$_unmountCallbacks = []
+        })
+    }
+
+    private async $_init()
+    {
+        if (this.$_initialized) throw new Error('Cannot initialize element twice')
+        this.$_initialized = true
+
+        console.log('Initializing element', this)
+
+        const template = this.$_init_params.elementTemplate({ props: this.$_init_params.props, self: this })
+        const templateFragment = await template.renderFragment()
 
         const shadowRoot = this.attachShadow({ mode: 'open' })
-        shadowRoot.append(...template)
+        shadowRoot.append(templateFragment)
 
         shadowRoot.querySelectorAll('style[\\:global]').forEach((style) => 
         {
-            this.$_destroyCallbacks.push(() => style.remove())
-            document.head.append(style)
+            console.log(style)
+            this.$onMount(() => document.head.append(style))
+            this.$onUnmount(() => style.remove())
         })
 
-        onNodeDestroy(this, () =>
-        {
-            this.$_mounted = false
-            this.$_destroyed = true
-            for (const callback of this.$_destroyCallbacks)
-                callback({ element: this })
-            this.$_destroyCallbacks = []
-        })
-
-        this.$_mountParams = null!
+        this.$_init_params = null!
     }
 
-    $onMount(callback: MasterElementMountCallback)
+    async $onMount<T extends MasterElementCallback>(callback: T) 
     {
-        if (this.$_mounted) callback({ element: this })
-        else this.$_mountCallbacks.push(callback)
+        if (this.$_mounted) return new Promise(async (resolve) => this.$_emitCallbacks([() => resolve(callback())])) 
+        else return await new Promise((resolve) => this.$_mountCallbacks.push(() => resolve(callback())))
     }
 
-    $onDestroy(callback: MasterElementDestroyCallback)
+    async $onUnmount(callback: MasterElementCallback)
     {
-        if (this.$_destroyed) callback({ element: this })
-        else this.$_destroyCallbacks.push(callback)
-    }
-
-    $text(parts: TemplateStringsArray, ...values: any[])
-    {
-        const signal = textSignal(parts, ...values)
-        this.$onDestroy(() => signal.cleanup())
-        return signal
+        if (!this.$_mounted && this.$_initialized) return new Promise(async (resolve) => this.$_emitCallbacks([() => resolve(callback())])) 
+        else return await new Promise((resolve) => this.$_unmountCallbacks.push(() => resolve(callback())))
     }
 
     $signal<T>(value: T)
@@ -88,30 +109,42 @@ export abstract class MasterElement<Props extends MasterElementProps = MasterEle
 
     $subscribe<T>(signal: Signal<T>, callback: SignalListener<T>)
     {
-        const subscription = signal.subscribe(callback)
-        this.$onDestroy(() => subscription.unsubscribe())
+        let subscription = signal.subscribe(callback)
+        this.$onUnmount(() => subscription.unsubscribe())
         return subscription
     }
 
-    $signalDerive<T>(getter: () => T, ...triggerSignals: Signal[])
+    $signalDerive<T>(getter: SignalDerivation<T>, ...triggerSignals: Signal[])
     {
-        const signal = signalDerive(getter, ...triggerSignals)
-        this.$onDestroy(() => signal.cleanup())
+        let signal = signalDerive(getter, ...triggerSignals)
+        this.$onUnmount(() => signal.cleanup())
+        return signal
+    }
+
+    $derive<T, U>(signal: Signal<T>, getter: (value: T) => U)
+    {
+        return this.$signalDerive(() => getter(signal.value), signal)
+    }
+
+    $text(parts: TemplateStringsArray, ...values: any[])
+    {
+        let signal = textSignal(parts, ...values)
+        this.$onUnmount(() => signal.cleanup())
         return signal
     }
 
     $interval(callback: () => void, interval: number)
     {
-        const id = setInterval(() => callback(), interval)
-        this.$onDestroy(() => clearInterval(interval))
-        return id
+        let intervalId = window.setInterval(callback, interval)
+        this.$onUnmount(() => window.clearInterval(intervalId))
+        return intervalId
     }
 
     $timeout(callback: () => void, timeout: number)
     {
-        const id = setTimeout(() => callback(), timeout)
-        this.$onDestroy(() => clearTimeout(id))
-        return id
+        let timeoutId = window.setTimeout(callback, timeout)
+        this.$onUnmount(() => window.clearTimeout(timeoutId))
+        return timeoutId
     }
 }
 

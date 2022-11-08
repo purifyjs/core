@@ -10,6 +10,11 @@ export const App = defineElement('x-app', ({ self: $ }) =>
 
     $.$subscribe(counterCount, (count) => console.log('Counter count:', count))
 
+    const counting = html`<p on:click=${() => alert()}>Counting...${counterCount} ${Counter({ number: counterCount })}</p>`
+    const notCounting = html`<p>Not Counting! ${Counter({ number: counterCount })}</p>`
+
+    const isCounting = $.$derive(counterCount, (count) => !!count)
+
     return html`
     <style>
         h1 + p, main:has(h1)  {
@@ -28,10 +33,7 @@ export const App = defineElement('x-app', ({ self: $ }) =>
     <main>
         <h1>Master.ts</h1>
 
-        ${$.$signalDerive(() => counterCount.value ?
-        html`<p>Counting...</p>` :
-        html`<p>Not Counting!</p>`,
-        counterCount)}
+        ${$.$derive(isCounting, (value) => value ? counting : notCounting)}
 
         <!-- TODO: If Else Syntax -->
         ${/* $
