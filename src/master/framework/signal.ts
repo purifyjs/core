@@ -100,8 +100,6 @@ export class SignalValue<T = any> extends Signal<T>
     }
 }
 
-
-
 export class SignalDerive<T> extends Signal<T>
 {
     private triggerSubs: SignalSubscription[]
