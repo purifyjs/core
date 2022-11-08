@@ -85,7 +85,7 @@ export class Signal<T = any>
     }
 }
 
-export class SignalValue<T = any> extends Signal<T>
+export class SignalValue<T> extends Signal<T>
 {
     async set(value: T | typeof SignalValue.Empty = SignalValue.Empty)
     {
