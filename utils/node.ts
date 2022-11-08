@@ -14,9 +14,9 @@ export function onNodeUnmount(node: Node, callback: () => any)
 
 export function getRootNode(node: Node): Node | null
 {
+    if (node.parentNode) return getRootNode(node.parentNode)
     if (node === document) return node
     if (node instanceof DocumentFragment) return node
     if (node instanceof ShadowRoot) return getRootNode(node.host)
-    if (node.parentNode) return getRootNode(node.parentNode)
     return null
 }

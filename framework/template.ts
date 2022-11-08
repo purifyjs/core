@@ -247,11 +247,6 @@ export class MasterTemplate
                 {
                     html += `:outlet="${nodes.push(value) - 1}"`
                 }
-                else if (state.current === State.TagInner && state.tag === ':if' && (value instanceof Signal))
-                {
-                    html = html.slice(0, html.lastIndexOf(`<:if`))
-                    html += `<!--if--`
-                }
                 else if (value instanceof Signal && (state.current === State.AttributeValueDoubleQuoted || state.current === State.AttributeValueSingleQuoted))
                 {
                     html += `<$${value.id}>`
