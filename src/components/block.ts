@@ -1,5 +1,5 @@
-import { defineElement } from "../framework/element"
-import { html } from "../framework/template"
+import { defineElement } from "../master/framework/element"
+import { html } from "../master/framework/template"
 
 export const Block = defineElement<{}>('my-block', () =>
     html`

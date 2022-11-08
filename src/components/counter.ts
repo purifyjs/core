@@ -1,6 +1,6 @@
-import { defineElement } from "../framework/element"
-import type { SignalValue } from "../framework/signal"
-import { html } from "../framework/template"
+import { defineElement } from "../master/framework/element"
+import type { SignalValue } from "../master/framework/signal"
+import { html } from "../master/framework/template"
 
 interface Props
 {
