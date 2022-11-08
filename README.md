@@ -1,4 +1,4 @@
-<h1>Master.ts</h1>
+<h1>MASTER.TS</h1>
 <p>Master.ts is a framework for building SPA applications using TypeScript.</p>   
 
 <h2>Warning</h2>
