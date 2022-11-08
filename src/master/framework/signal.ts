@@ -121,9 +121,11 @@ export class SignalDerive<T> extends Signal<T>
         this.triggerSubs.forEach((sub) => sub.unsubscribe())
     }
 
-    signal()
+    async signal()
     {
-        this._value = this.derivation()
-        return super.signal()
+        const value = this.derivation()
+        if (value === this.value && typeof value !== 'object') return
+        this._value = value
+        await super.signal()
     }
 }
