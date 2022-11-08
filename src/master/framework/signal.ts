@@ -22,9 +22,9 @@ export function signal<T>(value: T)
     return new SignalValue(value)
 }
 
-export function signalDerive<T>(derivation: () => T, ...triggerSignals: Signal[])
+export function signalDerive<T>(derivation: () => T, ...derivers: Signal[])
 {
-    return new SignalDerive(derivation, ...triggerSignals)
+    return new SignalDerive(derivation, ...derivers)
 }
 
 export function signalText(parts: TemplateStringsArray, ...values: any[])
@@ -102,14 +102,14 @@ export class SignalValue<T> extends Signal<T>
 
 export class SignalDerive<T> extends Signal<T>
 {
-    private triggerSubs: SignalSubscription[]
+    private deriverSubscriptions: SignalSubscription[]
     protected derivation: SignalDerivation<T>
 
-    constructor(derivation: SignalDerivation<T>, ...triggerSignals: Signal[])
+    constructor(derivation: SignalDerivation<T>, ...derivers: Signal[])
     {
         super(derivation())
         this.derivation = derivation
-        this.triggerSubs = triggerSignals.map((signal) => 
+        this.deriverSubscriptions = derivers.map((signal) => 
         {
             if (!(signal instanceof Signal)) throw new Error(`SignalDerive can only be created from Signal instances. Got ${signal}`)
             return signal.subscribe(async () => await this.signal())
@@ -118,7 +118,7 @@ export class SignalDerive<T> extends Signal<T>
 
     cleanup()
     {
-        this.triggerSubs.forEach((sub) => sub.unsubscribe())
+        this.deriverSubscriptions.forEach((sub) => sub.unsubscribe())
     }
 
     async signal()
