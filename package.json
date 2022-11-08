@@ -1,25 +1,14 @@
 {
-  "name": "master.ts",
-  "private": true,
-  "version": "0.0.0",
   "type": "module",
-  "scripts": {
-    "dev": "export NODE_ENV=dev && node server",
-    "build": "vite build --outDir dist",
-    "serve": "node server"
+  "name": "master.ts",
+  "version": "1.0.0",
+  "description": "Master.ts is a framework for building SPA applications using TypeScript.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DeepDoge/master.ts.git"
   },
-  "devDependencies": {
-    "@types/node": "^18.11.3",
-    "chalk": "^5.1.2",
-    "express": "^4.18.2",
-    "html-parse-stringify": "^3.0.1",
-    "htmlparser2": "^8.0.1",
-    "parse5": "^7.1.1",
-    "parse5-htmlparser2-tree-adapter": "^7.0.0",
-    "tsx": "^3.10.4",
-    "typescript": "^4.6.4",
-    "typescript-util-tools": "github:DeepDoge/typescript-util-tools",
-    "typescript-util-types": "github:DeepDoge/typescript-util-types",
-    "vite": "^3.1.0"
-  }
+  "bugs": {
+    "url": "https://github.com/DeepDoge/master.ts/issues"
+  },
+  "homepage": "https://github.com/DeepDoge/master.ts#readme"
 }
