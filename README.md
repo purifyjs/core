@@ -3,7 +3,9 @@
 
 <h2>Warning</h2>
 <p>This is a work in progress prototype, and is not ready for production use.</p>
-<p>It's not even a package yet</p>
+
+<h2>Example</h2>
+https://github.com/DeepDoge/master.ts-vite-template
 
 <h2>Motivation</h2>
 <p>
