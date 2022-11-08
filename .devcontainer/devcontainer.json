@@ -19,6 +19,7 @@
 	"extensions": [
 		"bierner.lit-html",
 		"bierner.folder-source-actions",
-		"jbockle.jbockle-format-files"
+		"jbockle.jbockle-format-files",
+		"Gruntfuggly.todo-tree"
 	]
 }
