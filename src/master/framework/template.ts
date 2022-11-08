@@ -25,8 +25,6 @@ export class MasterTemplate
     {
         if (value === null)
             return EMPTY_NODE
-        else if (value instanceof Node)
-            return value
         else if (value instanceof MasterElement)
         {
             await value.$mount()
@@ -36,6 +34,8 @@ export class MasterTemplate
         {
             return await value.renderFragment()
         }
+        else if (value instanceof Node)
+            return value
         else
             return document.createTextNode(`${value}`)
     }
@@ -392,9 +392,7 @@ export class MasterTemplate
             {
                 while (startComment.nextSibling !== endComment)
                     startComment.nextSibling!.remove()
-
-                const node = await this.valueToNode(value)
-                startComment.after(node)
+                startComment.after(await this.valueToNode(value))
             }, { mode: SignalMode.Immediate })
             onNodeUnmount(startComment, () => subscription.unsubscribe())
         })

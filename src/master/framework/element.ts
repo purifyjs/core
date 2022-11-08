@@ -82,7 +82,6 @@ export abstract class MasterElement<Props extends MasterElementProps = MasterEle
 
         shadowRoot.querySelectorAll('style[\\:global]').forEach((style) => 
         {
-            console.log(style)
             this.$onMount(() => document.head.append(style))
             this.$onUnmount(() => style.remove())
         })
