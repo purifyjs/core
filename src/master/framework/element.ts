@@ -1,6 +1,6 @@
 import { randomId } from "../utils/id"
 import { onNodeUnmount } from "../utils/node"
-import { Signal, signal, SignalDerivation, signalDerive, SignalListener, textSignal } from "./signal"
+import { signal, Signal, SignalDerivation, signalDerive, SignalListener, signalText } from "./signal"
 import type { MasterTemplate } from "./template"
 
 export type MasterElementCallback = () => any
@@ -124,7 +124,7 @@ export abstract class MasterElement<Props extends MasterElementProps = MasterEle
 
     $text(parts: TemplateStringsArray, ...values: any[])
     {
-        let signal = textSignal(parts, ...values)
+        let signal = signalText(parts, ...values)
         this.$onUnmount(() => signal.cleanup())
         return signal
     }

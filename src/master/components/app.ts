@@ -11,7 +11,8 @@ export const App = defineElement('x-app', ({ self: $ }) =>
     $.$subscribe(counterCount, (count) => console.log('Counter count:', count))
 
     const dateSignal = $.$signalDerive(() => new Date())
-    $.$interval(dateSignal.signal, 1000)
+    dateSignal.value
+    $.$interval(() => dateSignal.signal(), 1000)
 
     const counting = Counter({ number: counterCount })
     const notCounting = Counter({ number: counterCount })
@@ -88,11 +89,11 @@ export const App = defineElement('x-app', ({ self: $ }) =>
         </x>
 
         <p>Count: ${counterCount}</p>
-        <button on:click=${() => counterCount.signal((v) => v + 1)}>Increment</button>
-        <button on:click=${() => counterCount.signal((v) => v - 1)}>Decrement</button>
-        <button on:click=${() => counterCount.signal((v) => v * 2)}>Double</button>
-        <button on:click=${() => counterCount.signal((v) => v / 2)}>Half</button>
-        <button on:click=${() => counterCount.signal(0)}>Reset</button>
+        <button on:click=${() => counterCount.update((v) => v + 1)}>Increment</button>
+        <button on:click=${() => counterCount.update((v) => v - 1)}>Decrement</button>
+        <button on:click=${() => counterCount.update((v) => v * 2)}>Double</button>
+        <button on:click=${() => counterCount.update((v) => v / 2)}>Half</button>
+        <button on:click=${() => counterCount.set(0)}>Reset</button>
     </main>`
 })
 

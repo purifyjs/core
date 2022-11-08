@@ -2,23 +2,50 @@ import { randomId } from "../utils/id"
 
 export type SignalListener<T> = (value: T) => Promise<void> | void
 export type SignalSubscription = { unsubscribe: () => void }
+export type SignalUpdater<T> = (value: T) => T
+export type SignalDerivation<T> = () => T
+
 export const enum SignalMode
 {
     Normal,
     Immediate,
     Once
 }
+
 export interface SignalOptions
 {
     mode: SignalMode
 }
+
+export function signal<T>(value: T)
+{
+    return new SignalValue(value)
+}
+
+export function signalDerive<T>(derivation: () => T, ...triggerSignals: Signal[])
+{
+    return new SignalDerive(derivation, ...triggerSignals)
+}
+
+export function signalText(parts: TemplateStringsArray, ...values: any[])
+{
+    function update()
+    {
+        return parts.map((part, index) =>
+        {
+            const value = values[index]
+            if (!value) return part
+            return `${part}${value instanceof Signal ? value.value : value}`
+        }).join('')
+    }
+    return signalDerive(update, ...values.filter((value) => value instanceof Signal))
+}
+
 export class Signal<T = any>
 {
     public readonly id = randomId()
     private _listeners: SignalListener<T>[] = []
-    constructor(
-        protected _value: T
-    ) { }
+    constructor(protected _value: T) { }
 
     get value() { return this._value }
 
@@ -27,7 +54,8 @@ export class Signal<T = any>
         switch (options?.mode)
         {
             case SignalMode.Once:
-                const onceCallback = () => {
+                const onceCallback = () =>
+                {
                     listener(this.value)
                     this._listeners = this._listeners.filter(l => l !== onceCallback)
                 }
@@ -51,32 +79,42 @@ export class Signal<T = any>
 
     protected static readonly Empty = Symbol('empty')
 
-    async signal(value: T | ((value: T) => T) | typeof Signal.Empty = Signal.Empty)
+    async signal()
     {
-        if (value === this.value && typeof value !== 'object') return
-        if (value !== Signal.Empty) this._value = value instanceof Function ? value(this.value) : value
         await Promise.all(this._listeners.map((listener) => listener(this.value)))
     }
 }
 
-export function signal<T>(value: T)
+export class SignalValue<T = any> extends Signal<T>
 {
-    return new Signal(value)
+    async set(value: T | typeof SignalValue.Empty = SignalValue.Empty)
+    {
+        if (value === this.value && typeof value !== 'object') return
+        if (value !== SignalValue.Empty) this._value = value
+        await this.signal()
+    }
+
+    async update(updater: SignalUpdater<T>)
+    {
+        await this.set(updater(this.value))
+    }
 }
 
-export type SignalDerivation<T> = () => T
+
 
 export class SignalDerive<T> extends Signal<T>
 {
     private triggerSubs: SignalSubscription[]
+    protected derivation: SignalDerivation<T>
 
-    constructor(private getter: SignalDerivation<T>, ...triggerSignals: Signal[])
+    constructor(derivation: SignalDerivation<T>, ...triggerSignals: Signal[])
     {
-        super(getter())
+        super(derivation())
+        this.derivation = derivation
         this.triggerSubs = triggerSignals.map((signal) => 
         {
             if (!(signal instanceof Signal)) throw new Error(`SignalDerive can only be created from Signal instances. Got ${signal}`)
-            return signal.subscribe(() => super.signal(getter()))
+            return signal.subscribe(async () => await this.signal())
         })
     }
 
@@ -85,28 +123,9 @@ export class SignalDerive<T> extends Signal<T>
         this.triggerSubs.forEach((sub) => sub.unsubscribe())
     }
 
-    signal: () => Promise<void> = (async (value: any = Signal.Empty) =>
+    signal()
     {
-        if (value !== Signal.Empty) throw new Error('Cannot set value of derived signal')
-        await super.signal(this.getter())
-    }) as any
-}
-
-export function signalDerive<T>(getter: () => T, ...triggerSignals: Signal[])
-{
-    return new SignalDerive(getter, ...triggerSignals)
-}
-
-export function textSignal(parts: TemplateStringsArray, ...values: any[])
-{
-    function update()
-    {
-        return parts.map((part, index) =>
-        {
-            const value = values[index]
-            if (!value) return part
-            return `${part}${value instanceof Signal ? value.value : value}`
-        }).join('')
+        this._value = this.derivation()
+        return super.signal()
     }
-    return signalDerive(update, ...values.filter((value) => value instanceof Signal))
 }
