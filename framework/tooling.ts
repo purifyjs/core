@@ -65,8 +65,8 @@ export class MasterTooling
         this._mounted = null
         this._node.$tooling = this
 
-        this.onMount(() => console.log('mounted', this._node, this._node.nodeValue))
-        this.onUnmount(() => console.log('unmounted', this._node, this._node.nodeValue))
+        this.onMount(() => console.log('%cmounted', 'color:red;font-weight:bold;font-size:12px', (this._node as Element).tagName || this._node.nodeValue || this._node.nodeName))
+        this.onUnmount(() => console.log('%cunmounted', 'color:blue;font-weight:bold;font-size:12px', (this._node as Element).tagName || this._node.nodeValue || this._node.nodeName))
     }
 
     public emitMount()
