@@ -133,7 +133,7 @@ export class MasterTooling
         return signal
     }
 
-    await<T, P>(then: Promise<T>, placeholder: P): Signal<T | P>
+    await<T, P>(then: Promise<T>, placeholder: P)
     {
         let signal = this.signal<T | P>(placeholder)
         then.then(value => signal.set(value))
