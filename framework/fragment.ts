@@ -12,6 +12,21 @@ export function html(parts: TemplateStringsArray, ...values: unknown[])
         {
             return value
         }
+        else if (value instanceof Signal)
+        {
+            const fragment = document.createDocumentFragment()
+            const startComment = document.createComment(`signal ${value.id}`)
+            const endComment = document.createComment(`/signal ${value.id}`)
+            fragment.append(startComment, endComment)
+
+            masterTooling(startComment).subscribe(value, (value) => 
+            {
+                while (startComment.nextSibling !== endComment) startComment.nextSibling!.remove()
+                startComment.after(valueToNode(value))
+            }, { mode: SignalMode.Immediate })
+
+            return fragment
+        }
         else if (value instanceof Array)
         {
             const fragment = document.createDocumentFragment()
@@ -272,15 +287,7 @@ export function html(parts: TemplateStringsArray, ...values: unknown[])
             }
             else if (state.current === State.Outer)
             {
-                if (value instanceof Signal)
-                {
-                    signals[value.id] = value
-                    html += `<x :signal="${value.id}"></x>`
-                }
-                else
-                {
-                    html += `<x :outlet="${nodes.push(valueToNode(value)) - 1}"></x>`
-                }
+                html += `<x :outlet="${nodes.push(valueToNode(value)) - 1}"></x>`
             }
             else throw new Error(`Unexpected value at\n${html.slice(-256)}\${${value}}...`)
         }
@@ -346,24 +353,6 @@ export function html(parts: TemplateStringsArray, ...values: unknown[])
             )
             masterTooling(node).subscribe(signal, value => node.setAttribute(attribute.name, value), { mode: SignalMode.Immediate })
         })
-    })
-
-    Array.from(template.content.querySelectorAll(`x[\\:signal]`)).forEach((element: Element) =>
-    {
-        const signal = signals[element.getAttribute(':signal')!]
-        if (!signal) throw new Error(`No signal for element ${element}`)
-
-        const fragment = document.createDocumentFragment()
-        const startComment = document.createComment(`signal ${signal.id}`)
-        const endComment = document.createComment(`/signal ${signal.id}`)
-        fragment.append(startComment, endComment)
-        element.replaceWith(fragment)
-
-        masterTooling(startComment).subscribe(signal, (value) => 
-        {
-            while (startComment.nextSibling !== endComment) startComment.nextSibling!.remove()
-            startComment.after(valueToNode(value))
-        }, { mode: SignalMode.Immediate })
     })
 
     return template.content

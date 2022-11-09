@@ -133,6 +133,13 @@ export class MasterTooling
         return signal
     }
 
+    await<T, P>(wait: Promise<T>, placeholder: P): Signal<T | P>
+    {
+        let signal = this.signal<T | P>(placeholder)
+        wait.then(value => signal.set(value))
+        return signal
+    }
+
     interval(callback: () => void, interval: number)
     {
         let intervalId: number

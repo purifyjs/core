@@ -13,7 +13,8 @@ export function masterElement<Props extends MasterElementProps>(tag: string, ele
         constructor(props: Props) { super(elementTemplate, props) }
     }
     customElements.define(tag, Element)
-    return (props: Props) => new Element(props)
+    const r = (props: Props) => new Element(props)
+    return r as typeof r & { PROPS_TYPE: Props }
 }
 
 export abstract class MasterElement<Props extends MasterElementProps = MasterElementProps> extends HTMLElement
