@@ -75,7 +75,7 @@ export abstract class MasterElement<Props extends MasterElementProps = MasterEle
         const templateFragment = await template.renderFragment()
 
         const shadowRoot = this.attachShadow({ mode: 'open' })
-        if (MasterElement.globalFragment) shadowRoot.append(MasterElement.globalFragment.cloneNode(true))
+        shadowRoot.append(MasterElement.globalFragment.cloneNode(true))
         shadowRoot.append(templateFragment)
 
         this.$ = null!
