@@ -3,7 +3,7 @@ import { masterTooling, MasterTooling } from "./tooling"
 export interface MasterElementProps { [key: string]: any }
 export interface MasterElementTemplate<Props extends MasterElementProps>
 {
-    (params: { props: Props, self: Element, $: MasterTooling }): DocumentFragment   
+    (params: { props: Props, self: Element, $: MasterTooling }): DocumentFragment | Promise<DocumentFragment>
 }
 
 export function masterElement<Props extends MasterElementProps>(tag: string, elementTemplate: MasterElementTemplate<Props>)
@@ -23,7 +23,9 @@ export abstract class MasterElement<Props extends MasterElementProps = MasterEle
     {
         super()
         const shadowRoot = this.attachShadow({ mode: 'open' })
-        const fragment = elementTemplate({ props, self: this, $: masterTooling(this) })
-        shadowRoot.append(fragment)
+        const $ = masterTooling(this)
+        const fragment = elementTemplate({ props, self: this, $ })
+        if (fragment instanceof Promise) fragment.then(fragment => shadowRoot.appendChild(fragment))
+        else shadowRoot.appendChild(fragment)
     }
 }
