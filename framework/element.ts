@@ -9,15 +9,15 @@ export type MasterElementTemplate<Props extends MasterElementProps> = (params: {
 
 export abstract class MasterElement<Props extends MasterElementProps = MasterElementProps> extends HTMLElement
 {
+    public static globalFragmentPrototype: DocumentFragment | null = null
+
     private $_debugId: string = randomId()
     private $_mountCallbacks: MasterElementCallback[] = []
     private $_unmountCallbacks: MasterElementCallback[] = []
     private $_mounted = false
     private $_initialized = false
 
-    constructor(
-        protected $_init_params: { props: Props, elementTemplate: MasterElementTemplate<Props> },
-    )
+    constructor(protected $: { props: Props, elementTemplate: MasterElementTemplate<Props> })
     {
         super()
     }
@@ -71,19 +71,14 @@ export abstract class MasterElement<Props extends MasterElementProps = MasterEle
 
         console.log('Initializing element', this, this.$_debugId)
 
-        const template = this.$_init_params.elementTemplate({ props: this.$_init_params.props, self: this })
+        const template = this.$.elementTemplate({ props: this.$.props, self: this })
         const templateFragment = await template.renderFragment()
 
         const shadowRoot = this.attachShadow({ mode: 'open' })
+        if (MasterElement.globalFragmentPrototype) shadowRoot.append(MasterElement.globalFragmentPrototype.cloneNode(true))
         shadowRoot.append(templateFragment)
 
-        shadowRoot.querySelectorAll('style[\\:global]').forEach((style) => 
-        {
-            this.$onMount(() => document.head.append(style))
-            this.$onUnmount(() => style.remove())
-        })
-
-        this.$_init_params = null!
+        this.$ = null!
     }
 
     async $onMount<T extends MasterElementCallback>(callback: T) 
