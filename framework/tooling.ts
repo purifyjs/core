@@ -1,73 +1,103 @@
 import { signal, Signal, SignalDerivation, signalDerive, SignalListener, SignalOptions, SignalSubscription, signalText } from "./signal"
 
-export type MasterToolingCallback = () => void
-
-export function masterNodeTooling(node: Node)
+const mountUnmountObserver =  new MutationObserver((mutations) => 
 {
-    return new MasterNodeTooling(node)
+    for (const mutation of mutations)
+    {
+        mutation.removedNodes.forEach(removedNode)
+        mutation.addedNodes.forEach(addedNode)
+    }
+})
+mountUnmountObserver.observe(document, { childList: true, subtree: true })
+const originalAttachShadow = Element.prototype.attachShadow
+Element.prototype.attachShadow = function (options: ShadowRootInit)
+{
+    const shadowRoot = originalAttachShadow.call(this, options)
+    if (options.mode === 'open') mountUnmountObserver.observe(shadowRoot, { childList: true, subtree: true })
+    return shadowRoot
 }
 
-export class MasterNodeTooling
+function addedNode(node: MasterToolingNode)
 {
-    protected readonly _node: Node
+    if (getRootNode(node) !== document) return
+    node.$tooling?.emitMount()
+    node.childNodes.forEach(addedNode)
+    if (node instanceof Element) node.shadowRoot?.childNodes.forEach(addedNode)
+}
+
+function removedNode(node: MasterToolingNode)
+{
+    node.$tooling?.emitUnmount()
+    node.childNodes.forEach(removedNode)
+    if (node instanceof Element) node.shadowRoot?.childNodes.forEach(removedNode)
+}
+
+function getRootNode(node: Node): null | Node
+{
+    if (node === document) return node
+    if (node instanceof ShadowRoot) return getRootNode(node.host)
+    if (node.parentNode) return getRootNode(node.parentNode)
+    return null
+}
+
+export interface MasterToolingListener
+{
+    (): void
+}
+export interface MasterToolingNode extends Node
+{
+    $tooling?: MasterTooling
+}
+export function masterTooling(node: Node)
+{
+    return new MasterTooling(node)
+}
+
+export class MasterTooling
+{
+    protected readonly _node: MasterToolingNode
     protected _mounted: boolean | null
 
-    constructor(node: Node)
+    constructor(node: MasterToolingNode)
     {
+        if (node.$tooling) throw new Error('Node already has tooling')
         this._node = node
         this._mounted = null
-        node = null!
-        this._listenForMount()
+        this._node.$tooling = this
 
-        this.onMount(() => console.log('mounted', this._node))
-        this.onUnmount(() => console.log('unmounted', this._node))
+        this.onMount(() => console.log('mounted', this._node, this._node.nodeValue))
+        this.onUnmount(() => console.log('unmounted', this._node, this._node.nodeValue))
     }
 
-    private async _listenForMount()
+    public emitMount()
     {
-        while (true)
-        {
-            const isMounted = MasterNodeTooling._getRootNode(this._node) !== null
-            
-            if (isMounted && !this._mounted)
-            {
-                this._mounted = true
-                for (const callback of this._onMountCallbacks) callback()
-            }
-            else if (!isMounted && this._mounted)
-            {
-                this._mounted = false
-                for (const callback of this._onUnmountCallbacks) callback()
-                break
-            }
-           
-            await new Promise((resolve) => requestAnimationFrame(resolve))
-        }
+        if (this._mounted) return
+        this._mounted = true
+        this._mountListeners.forEach(listener => listener())
     }
 
-    protected static _getRootNode(node: Node): null | Node
+    public emitUnmount()
     {
-        if (node === document) return node
-        if (node instanceof ShadowRoot) return this._getRootNode(node.host)
-        if (node.parentNode) return this._getRootNode(node.parentNode)
-        return null
+        if (!this._mounted) return
+        this._mounted = false
+        this._unmountListeners.forEach(listener => listener())
     }
 
     get mounted() { return !!this._mounted }
     get node() { return this._node }
 
-    protected readonly _onMountCallbacks: MasterToolingCallback[] = []
-    onMount<T extends MasterToolingCallback>(callback: T)
+    protected readonly _mountListeners: MasterToolingListener[] = []
+    onMount<T extends MasterToolingListener>(callback: T)
     {
         if (this._mounted) callback()
-        else this._onMountCallbacks.push(callback)
+        else this._mountListeners.push(callback)
     }
 
-    protected readonly _onUnmountCallbacks: MasterToolingCallback[] = []
-    onUnmount(callback: MasterToolingCallback)
+    protected readonly _unmountListeners: MasterToolingListener[] = []
+    onUnmount(callback: MasterToolingListener)
     {
         if (!this._mounted === false) callback()
-        else this._onUnmountCallbacks.push(callback)
+        else this._unmountListeners.push(callback)
     }
 
     signal<T>(value: T)

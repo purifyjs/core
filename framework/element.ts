@@ -1,7 +1,10 @@
-import { masterNodeTooling, MasterNodeTooling } from "./tooling"
+import { masterTooling, MasterTooling } from "./tooling"
 
-export type MasterElementProps = { [key: string]: any }
-export type MasterElementTemplate<Props extends MasterElementProps> = (params: { props: Props, self: Element, $: MasterNodeTooling }) => DocumentFragment
+export interface MasterElementProps { [key: string]: any }
+export interface MasterElementTemplate<Props extends MasterElementProps>
+{
+    (params: { props: Props, self: Element, $: MasterTooling }): DocumentFragment   
+}
 
 export function masterElement<Props extends MasterElementProps>(tag: string, elementTemplate: MasterElementTemplate<Props>)
 {
@@ -18,8 +21,8 @@ export abstract class MasterElement<Props extends MasterElementProps = MasterEle
     constructor(elementTemplate: MasterElementTemplate<Props>, props: Props)
     {
         super()
-        const shadowDOM = this.attachShadow({ mode: 'open' })
-        const fragment = elementTemplate({ props, self: this, $: masterNodeTooling(this) })
-        shadowDOM.appendChild(fragment)
+        const shadowRoot = this.attachShadow({ mode: 'open' })
+        const fragment = elementTemplate({ props, self: this, $: masterTooling(this) })
+        shadowRoot.append(fragment)
     }
 }

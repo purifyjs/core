@@ -1,9 +1,12 @@
 import { randomId } from "../utils/id"
 
-export type SignalListener<T> = (value: T) => Promise<void> | void
-export type SignalSubscription = { unsubscribe: () => void }
-export type SignalUpdater<T> = (value: T) => T
-export type SignalDerivation<T> = () => T
+export interface SignalListener<T>
+{
+    (value: T): Promise<void> | void
+}
+export interface SignalSubscription { unsubscribe(): void }
+export interface SignalUpdater<T> { (value: T): T }
+export interface SignalDerivation<T>{ (): T }
 
 export const enum SignalMode
 {
