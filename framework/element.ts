@@ -40,8 +40,8 @@ export abstract class MasterElement<Props extends MasterElementProps = MasterEle
     get $mounted() { return this.$_mounted }
 
     // I made it as safe as possible to but I might have missed something
-    // Somewhere around here there might be a race condition about mounting and unmounting
-    // TODO: Fix this if it becomes a problem
+    // Somewhere around here there might be a race condition about mounting and unmountin
+    // FIXME:if it becomes a problem
     async $mount(mountPoint?: Element)
     {
         mountPoint?.replaceWith(this)
