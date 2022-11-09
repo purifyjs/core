@@ -9,7 +9,7 @@ export type MasterElementTemplate<Props extends MasterElementProps> = (params: {
 
 export abstract class MasterElement<Props extends MasterElementProps = MasterElementProps> extends HTMLElement
 {
-    public static globalFragmentPrototype: DocumentFragment | null = null
+    public static readonly globalFragment: DocumentFragment = document.createDocumentFragment()
 
     private $_debugId: string = randomId()
     private $_mountCallbacks: MasterElementCallback[] = []
@@ -75,7 +75,7 @@ export abstract class MasterElement<Props extends MasterElementProps = MasterEle
         const templateFragment = await template.renderFragment()
 
         const shadowRoot = this.attachShadow({ mode: 'open' })
-        if (MasterElement.globalFragmentPrototype) shadowRoot.append(MasterElement.globalFragmentPrototype.cloneNode(true))
+        if (MasterElement.globalFragment) shadowRoot.append(MasterElement.globalFragment.cloneNode(true))
         shadowRoot.append(templateFragment)
 
         this.$ = null!
