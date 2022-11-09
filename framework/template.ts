@@ -8,8 +8,6 @@ export function html(parts: TemplateStringsArray, ...values: unknown[])
     return new MasterTemplate(parts, ...values)
 }
 
-const EMPTY_NODE = document.createDocumentFragment()
-
 export class MasterTemplate
 {
     private readonly parts: TemplateStringsArray
@@ -25,9 +23,7 @@ export class MasterTemplate
     {
         async function valueToNode(value: any): Promise<Node>
         {
-            if (value === null)
-                return EMPTY_NODE
-            else if (value instanceof MasterTemplate)
+            if (value instanceof MasterTemplate)
             {
                 return await value.renderFragment()
             }
@@ -241,9 +237,9 @@ export class MasterTemplate
             }
 
             html += part
-            if (value !== undefined)
+            if (value !== undefined && value !== null)
             {
-                if (state.current === State.TagInner && state.tag === 'x' && part.trimEnd().endsWith('<x') && (value instanceof Node))
+                if (state.current === State.TagInner && state.tag === 'x' && part.trimEnd().endsWith('<x') && value instanceof Element)
                 {
                     html += `:outlet="${nodes.push(value) - 1}"`
                 }
