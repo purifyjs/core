@@ -2,11 +2,11 @@ import { randomId } from "../utils/id"
 
 export interface SignalListener<T>
 {
-    (value: T): Promise<void> | void
+    (value: T): Promise<any> | any
 }
 export interface SignalSubscription { unsubscribe(): void }
 export interface SignalUpdater<T> { (value: T): T }
-export interface SignalDerivation<T>{ (): T }
+export interface SignalCompute<T> { (): T }
 
 export const enum SignalMode
 {
@@ -25,9 +25,14 @@ export function signal<T>(value: T)
     return new SignalValue(value)
 }
 
-export function signalDerive<T>(derivation: () => T, ...derivers: Signal[])
+export function signalComputed<T>(compute: () => T, ...updaters: Signal[])
 {
-    return new SignalDerive(derivation, ...derivers)
+    return new SignalComputed(compute, ...updaters)
+}
+
+export function signalDerived<T, U>(signal: Signal<T>, derive: (value: T) => U)
+{
+    return new SignalComputed(() => derive(signal.value), signal)
 }
 
 export function signalText(parts: TemplateStringsArray, ...values: any[])
@@ -41,7 +46,14 @@ export function signalText(parts: TemplateStringsArray, ...values: any[])
             return `${part}${value instanceof Signal ? value.value : value}`
         }).join('')
     }
-    return signalDerive(update, ...values.filter((value) => value instanceof Signal))
+    return signalComputed(update, ...values.filter((value) => value instanceof Signal))
+}
+
+export function signalPromise<T, P>(then: Promise<T>, placeholder: P)
+{
+    let n = signal<T | P>(placeholder)
+    then.then(value => n.set(value))
+    return n
 }
 
 export class Signal<T = any>
@@ -103,41 +115,41 @@ export class SignalValue<T> extends Signal<T>
     }
 }
 
-export class SignalDerive<T> extends Signal<T>
+export class SignalComputed<T> extends Signal<T>
 {
-    private deriverSubscriptions: SignalSubscription[]
-    private derivers: Signal[]
-    protected derivation: SignalDerivation<T>
+    private updaterSubscriptions: SignalSubscription[]
+    private updaters: Signal[]
+    protected compute: SignalCompute<T>
 
-    constructor(derivation: SignalDerivation<T>, ...derivers: Signal[])
+    constructor(compute: SignalCompute<T>, ...updaters: Signal[])
     {
-        super(derivation())
-        this.derivation = derivation
-        this.derivers = derivers
-        this.deriverSubscriptions = []
+        super(compute())
+        this.compute = compute
+        this.updaters = updaters
+        this.updaterSubscriptions = []
         this.activate()
     }
 
     activate()
     {
-        if (this.deriverSubscriptions.length) return
-        this.deriverSubscriptions = this.derivers.map((signal) => 
+        if (this.updaterSubscriptions.length) return
+        this.updaterSubscriptions = this.updaters.map((signal) => 
         {
-            if (!(signal instanceof Signal)) throw new Error(`SignalDerive can only be created from Signal instances. Got ${signal}`)
+            if (!(signal instanceof Signal)) throw new Error(`SignalComputed can only be created from Signal instances. Got ${signal}`)
             return signal.subscribe(async () => await this.signal())
         })
     }
-    
+
     deactivate()
     {
-        if (!this.deriverSubscriptions.length) return
-        this.deriverSubscriptions.forEach((subscription) => subscription.unsubscribe())
-        this.deriverSubscriptions = []
+        if (!this.updaterSubscriptions.length) return
+        this.updaterSubscriptions.forEach((subscription) => subscription.unsubscribe())
+        this.updaterSubscriptions = []
     }
 
     async signal()
     {
-        const value = this.derivation()
+        const value = this.compute()
         if (value === this.value && typeof value !== 'object') return
         this._value = value
         await super.signal()

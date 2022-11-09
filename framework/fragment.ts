@@ -1,5 +1,5 @@
 import { randomId } from "../utils/id"
-import { Signal, signalDerive, SignalMode } from "./signal"
+import { Signal, signalComputed, SignalMode } from "./signal"
 import { masterTooling } from "./tooling"
 
 export const EMPTY_NODE = document.createDocumentFragment()
@@ -329,7 +329,7 @@ export function html(parts: TemplateStringsArray, ...values: unknown[])
         const node = template.content.querySelector(`[class\\:${className}="${signal.id}"]`)
         if (!node) throw new Error(`Cannot find element with class ${className}=${signal.id}`)
         node.removeAttribute(`class:${className}`)
-        masterTooling(node).subscribe(signal, value => { node.classList.toggle(className, value) })
+        masterTooling(node).subscribe(signal, value => node.classList.toggle(className, value))
     }
 
     template.content.querySelectorAll('*').forEach((node) =>
@@ -342,7 +342,7 @@ export function html(parts: TemplateStringsArray, ...values: unknown[])
             const valueTemplate: (Signal | string)[] = attribute.value.split(/<\$([^>]+)>/g)
                 .map((value, index) => index % 2 === 0 ? value : signals[value])
 
-            const signal = signalDerive(
+            const signal = signalComputed(
                 () => valueTemplate.map((value) => value instanceof Signal ? value.value : value).join(''),
                 ...signalIds.map(id => 
                 {

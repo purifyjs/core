@@ -1,4 +1,4 @@
-import { signal, Signal, SignalDerivation, signalDerive, SignalListener, SignalOptions, SignalSubscription, signalText } from "./signal"
+import { signal, Signal, SignalCompute, signalComputed, signalDerived, SignalListener, SignalOptions, SignalSubscription, signalText } from "./signal"
 
 const mountUnmountObserver =  new MutationObserver((mutations) => 
 {
@@ -112,25 +112,28 @@ export class MasterTooling
         this.onUnmount(() => subscription.unsubscribe())
     }
 
-    signalDerive<T>(getter: SignalDerivation<T>, ...triggerSignals: Signal[])
+    compute<T>(compute: SignalCompute<T>, ...updaters: Signal[])
     {
-        let signal = signalDerive(getter, ...triggerSignals)
-        this.onMount(() => signal.activate())
-        this.onUnmount(() => signal.deactivate())
-        return signal
+        const computed = signalComputed(compute, ...updaters)
+        this.onMount(() => computed.activate())
+        this.onUnmount(() => computed.deactivate())
+        return computed
     }
 
-    derive<T, U>(signal: Signal<T>, getter: (value: T) => U)
+    derive<T, U>(signal: Signal<T>, derive: (value: T) => U)
     {
-        return this.signalDerive(() => getter(signal.value), signal)
+        const derived = signalDerived(signal, derive)
+        this.onMount(() => derived.activate())
+        this.onUnmount(() => derived.deactivate())
+        return derived
     }
 
     text(parts: TemplateStringsArray, ...values: any[])
     {
-        let signal = signalText(parts, ...values)
-        this.onMount(() => signal.activate())
-        this.onUnmount(() => signal.deactivate())
-        return signal
+        const text = signalText(parts, ...values)
+        this.onMount(() => text.activate())
+        this.onUnmount(() => text.deactivate())
+        return text
     }
 
     await<T, P>(then: Promise<T>, placeholder: P)
