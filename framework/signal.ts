@@ -103,22 +103,33 @@ export class SignalValue<T> extends Signal<T>
 export class SignalDerive<T> extends Signal<T>
 {
     private deriverSubscriptions: SignalSubscription[]
+    private derivers: Signal[]
     protected derivation: SignalDerivation<T>
 
     constructor(derivation: SignalDerivation<T>, ...derivers: Signal[])
     {
         super(derivation())
         this.derivation = derivation
-        this.deriverSubscriptions = derivers.map((signal) => 
+        this.derivers = derivers
+        this.deriverSubscriptions = []
+        this.activate()
+    }
+
+    activate()
+    {
+        if (this.deriverSubscriptions.length) return
+        this.deriverSubscriptions = this.derivers.map((signal) => 
         {
             if (!(signal instanceof Signal)) throw new Error(`SignalDerive can only be created from Signal instances. Got ${signal}`)
             return signal.subscribe(async () => await this.signal())
         })
     }
-
-    cleanup()
+    
+    deactivate()
     {
-        this.deriverSubscriptions.forEach((sub) => sub.unsubscribe())
+        if (!this.deriverSubscriptions.length) return
+        this.deriverSubscriptions.forEach((subscription) => subscription.unsubscribe())
+        this.deriverSubscriptions = []
     }
 
     async signal()

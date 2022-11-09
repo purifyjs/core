@@ -1,34 +1,19 @@
 import { randomId } from "../utils/id"
-import { onNodeUnmount } from "../utils/node"
-import { MasterElement } from "./element"
 import { Signal, signalDerive, SignalMode } from "./signal"
+import { masterNodeTooling } from "./tooling"
 
 export function html(parts: TemplateStringsArray, ...values: unknown[])
 {
-    return new MasterTemplate(parts, ...values)
-}
-
-export class MasterTemplate
-{
-    private readonly parts: TemplateStringsArray
-    private readonly values: unknown[]
-
-    constructor(parts: TemplateStringsArray, ...values: unknown[]) 
-    {
-        this.parts = parts
-        this.values = values
-    }
-
-    async renderFragment(): Promise<DocumentFragment>
-    {
-        async function valueToNode(value: any): Promise<Node>
+    function valueToNode(value: any): Node
         {
-            if (value instanceof MasterTemplate)
-            {
-                return await value.renderFragment()
-            }
-            else if (value instanceof Node)
+            if (value instanceof Node)
                 return value
+            else if (value instanceof Array)
+            {
+                const fragment = document.createDocumentFragment()
+                for (const item of value) fragment.append(valueToNode(item))
+                return fragment
+            }
             else
                 return document.createTextNode(`${value}`)
         }
@@ -60,10 +45,10 @@ export class MasterTemplate
         }
 
         let html = ''
-        for (let i = 0; i < this.parts.length; i++)
+        for (let i = 0; i < parts.length; i++)
         {
-            const part = this.parts[i]
-            const value = this.values[i]
+            const part = parts[i]
+            const value = values[i]
 
             for (const char of part)
             {
@@ -288,7 +273,7 @@ export class MasterTemplate
                     }
                     else
                     {
-                        html += `<x :outlet="${nodes.push(await valueToNode(value)) - 1}"></x>`
+                        html += `<x :outlet="${nodes.push(valueToNode(value)) - 1}"></x>`
                     }
                 }
                 else throw new Error(`Unexpected value at\n${html.slice(-256)}\${${value}}...`)
@@ -316,8 +301,6 @@ export class MasterTemplate
             }
 
             outlet.replaceWith(node)
-            if (node instanceof MasterElement)
-                await node.$mount()
         }
 
         for (const { id, event, callback } of listeners)
@@ -333,8 +316,7 @@ export class MasterTemplate
             const node = template.content.querySelector(`[class\\:${className}="${signal.id}"]`)
             if (!node) throw new Error(`Cannot find element with class ${className}=${signal.id}`)
             node.removeAttribute(`class:${className}`)
-            const sub = signal.subscribe((value) => value ? node.classList.add(className) : node.classList.remove(className))
-            onNodeUnmount(node, () => sub.unsubscribe())
+            masterNodeTooling(node).subscribe(signal, value => { node.classList.toggle(className, value) })
         }
 
         template.content.querySelectorAll('*').forEach((node) =>
@@ -356,8 +338,7 @@ export class MasterTemplate
                         return signal
                     })
                 )
-                signal.subscribe((value) => node.setAttribute(attribute.name, value), { mode: SignalMode.Immediate })
-                onNodeUnmount(node, () => signal.cleanup())
+                masterNodeTooling(node).subscribe(signal, value => node.setAttribute(attribute.name, value), { mode: SignalMode.Immediate })
             })
         })
 
@@ -371,20 +352,15 @@ export class MasterTemplate
             const endComment = document.createComment(`/signal ${signal.id}`)
             fragment.append(startComment, endComment)
             element.replaceWith(fragment)
-
-            const subscription = signal.subscribe(async (value) => 
+            
+            masterNodeTooling(startComment).subscribe(signal, async (value) => 
             {
                 while (startComment.nextSibling !== endComment)
                     startComment.nextSibling!.remove()
                 const node = await valueToNode(value)
                 startComment.after(node)
-                if (node instanceof MasterElement) await node.$mount()
             }, { mode: SignalMode.Immediate })
-            onNodeUnmount(startComment, () => subscription.unsubscribe())
         })
 
-        
-
         return template.content
-    }
 }
