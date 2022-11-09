@@ -33,8 +33,6 @@ export class MasterTemplate
                 return document.createTextNode(`${value}`)
         }
 
-        console.log('Rendering template', this)
-
         const nodes: Node[] = []
         const listeners: { event: string, id: string, callback: EventListener }[] = []
         const signals: Record<string, Signal<any>> = {}

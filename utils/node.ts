@@ -6,7 +6,7 @@ export function onNodeUnmount(node: Node, callback: () => any)
     {
         while (getRootNode(node) !== null)
             await new Promise((resolve) => requestAnimationFrame(resolve))
-        console.log('Unmounting node', node)
+        console.log('Node unmounted', node)
         try { await callback() }
         catch (e) { console.error(e) }
     })()
