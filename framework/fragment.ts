@@ -248,7 +248,7 @@ export function html(parts: TemplateStringsArray, ...values: unknown[])
             html += char
         }
 
-        // ok dont here we should never add html
+        // TODO: ok dont here we should never add html
         // similar to how we use outlet for nodes
         // we should use outlets for attributes as well
         // and compute and set everything for real at the bottom
