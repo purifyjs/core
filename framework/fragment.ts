@@ -349,9 +349,19 @@ export function html(parts: TemplateStringsArray, ...values: unknown[])
         const element = template.content.querySelector(`[\\:\\:ref="${ref}"]`)
         if (!element) throw new Error(`No node ${ref} for signal class ${className}`)
         if (active instanceof Signal)
-            masterTooling(element).subscribe(active, value => element.classList.toggle(className, value))
+            masterTooling(element).subscribe(active, value => element.classList.toggle(className, value), { mode: SignalSubscriptionMode.Immediate })
         else
             element.classList.toggle(className, active)
+    }
+
+    for (const { ref, styleName, value } of outlets.styles)
+    {
+        const element = template.content.querySelector(`[\\:\\:ref="${ref}"]`) as HTMLElement
+        if (!element) throw new Error(`No node ${ref} for signal style ${styleName}`)
+        if (value instanceof Signal)
+            masterTooling(element).subscribe(value, value => element.style.setProperty(styleName, value), { mode: SignalSubscriptionMode.Immediate })
+        else
+            element.style.setProperty(styleName, value)
     }
 
     outlets.attributesWithSignals.forEach((attributeNames, ref) =>
@@ -390,7 +400,10 @@ export function html(parts: TemplateStringsArray, ...values: unknown[])
         nodeSignal.set(element)
     }
 
-    template.content.querySelectorAll('[\\:\\:ref]').forEach((node) => node.removeAttribute('::ref'))
+    // I don't think it's necessary to remove the ::ref attributes, thought it might be a good idea to clean up the template
+    // I don't really have to remove it and cause another O(n) operation
+    // So I'll leave it as commented out for now. Also it might be useful for debugging
+    // template.content.querySelectorAll('[\\:\\:ref]').forEach((node) => node.removeAttribute('::ref'))
 
     return template.content
 }
