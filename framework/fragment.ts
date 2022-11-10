@@ -41,11 +41,13 @@ export function html(parts: TemplateStringsArray, ...values: unknown[])
     }
 
     const nodes: Node[] = []
-    const listeners: { event: string, id: string, callback: EventListener }[] = []
-    const signals: Record<string, Signal<any>> = {}
-    const signal_classes: { className: string, signal: Signal<boolean> }[] = []
-    const signal_attribute_element_refs: Set<string> = new Set()
-    const referances: { ref: string, signal: SignalValue<Element> }[] = []
+    const outlets = {
+        signals: {} as Record<string, Signal<any>>,
+        eventListeners: [] as { ref: string, eventName: string, listener: EventListener }[],
+        elementRefs: [] as { ref: string, nodeSignal: SignalValue<Element> }[],
+        attributesWithSignals: [] as { ref: string, attributeName: string }[],
+        signalClasses: [] as { ref: string, className: string, activeSignal: Signal<boolean> }[],
+    }
 
     const enum State
     {
@@ -62,14 +64,14 @@ export function html(parts: TemplateStringsArray, ...values: unknown[])
 
     const state = {
         current: State.Outer,
-        tag: null as string | null,
-        attribute_name: null as string | null,
-        attribute_key: null as string | null,
-        attribute_value: null as string | null
+        tag: '',
+        tag_ref: '',
+        attribute_name: '',
+        attribute_key: '',
+        attribute_value: ''
     }
 
     let html = ''
-    let ref: string | null = null
     for (let i = 0; i < parts.length; i++)
     {
         const part = parts[i]
@@ -84,7 +86,7 @@ export function html(parts: TemplateStringsArray, ...values: unknown[])
                     {
                         state.current = State.TagName
                         state.tag = ''
-                        ref = randomId()
+                        state.tag_ref = randomId()
                     }
                     break
                 case State.TagName:
@@ -96,13 +98,12 @@ export function html(parts: TemplateStringsArray, ...values: unknown[])
                     else if (char === '>')
                     {
                         state.current = State.Outer
-                        state.tag = null
                         /* html += ` ::ref="${ref}"` */
                     }
                     else if (char === ' ')
                     {
                         state.current = State.TagInner
-                        html += ` ::ref="${ref}"`
+                        html += ` ::ref="${state.tag_ref}"`
                     }
                     else
                     {
@@ -113,7 +114,6 @@ export function html(parts: TemplateStringsArray, ...values: unknown[])
                     if (char === '>')
                     {
                         state.current = State.Outer
-                        state.tag = null
                     }
                     else if (char === ' ')
                     {
@@ -129,13 +129,10 @@ export function html(parts: TemplateStringsArray, ...values: unknown[])
                     if (char === '>')
                     {
                         state.current = State.Outer
-                        state.tag = null
-                        state.attribute_name = null
                     }
                     else if (char === ' ')
                     {
                         state.current = State.TagInner
-                        state.attribute_name = null
                     }
                     else if (char === '=')
                     {
@@ -156,15 +153,10 @@ export function html(parts: TemplateStringsArray, ...values: unknown[])
                     if (char === '>')
                     {
                         state.current = State.Outer
-                        state.tag = null
-                        state.attribute_name = null
-                        state.attribute_key = null
                     }
                     else if (char === ' ')
                     {
                         state.current = State.TagInner
-                        state.attribute_name = null
-                        state.attribute_key = null
                     }
                     else if (char === '=')
                     {
@@ -180,17 +172,10 @@ export function html(parts: TemplateStringsArray, ...values: unknown[])
                     if (char === '>')
                     {
                         state.current = State.Outer
-                        state.tag = null
-                        state.attribute_name = null
-                        state.attribute_value = null
-                        state.attribute_key = null
                     }
                     else if (char === ' ')
                     {
                         state.current = State.TagInner
-                        state.attribute_name = null
-                        state.attribute_value = null
-                        state.attribute_key = null
                     }
                     else if (char === '"')
                     {
@@ -211,9 +196,6 @@ export function html(parts: TemplateStringsArray, ...values: unknown[])
                     if (char === "'")
                     {
                         state.current = State.TagInner
-                        state.attribute_name = null
-                        state.attribute_value = null
-                        state.attribute_key = null
                     }
                     else
                     {
@@ -224,9 +206,6 @@ export function html(parts: TemplateStringsArray, ...values: unknown[])
                     if (char === '"')
                     {
                         state.current = State.TagInner
-                        state.attribute_name = null
-                        state.attribute_value = null
-                        state.attribute_key = null
                     }
                     else
                     {
@@ -237,7 +216,6 @@ export function html(parts: TemplateStringsArray, ...values: unknown[])
                     if (char === '>')
                     {
                         state.current = State.Outer
-                        state.tag = null
                     }
                     else
                     {
@@ -245,14 +223,11 @@ export function html(parts: TemplateStringsArray, ...values: unknown[])
                     }
                     break
             }
+            if (state.current >= State.AttributeName && state.current <= State.AttributeValueDoubleQuoted && 
+                state.attribute_name.startsWith(':')) continue
             html += char
         }
 
-        // TODO: ok dont here we should never add html
-        // similar to how we use outlet for nodes
-        // we should use outlets for attributes as well
-        // and compute and set everything for real at the bottom
-        // its not too complex we have two things, node outlets and attribute outlets
         if (value !== undefined && value !== null)
         {
             if (state.current === State.TagInner && state.tag === 'x' && part.trimEnd().endsWith('<x') && value instanceof Element)
@@ -261,32 +236,38 @@ export function html(parts: TemplateStringsArray, ...values: unknown[])
             }
             else if (value instanceof Signal && (state.current === State.AttributeValueDoubleQuoted || state.current === State.AttributeValueSingleQuoted))
             {
-                if (!ref) throw new Error('ref is null')
                 html += `<$${value.id}>`
-                signals[value.id] = value
-                signal_attribute_element_refs.add(ref)
+                outlets.signals[value.id] = value
+                outlets.attributesWithSignals.push({
+                    ref: state.tag_ref,
+                    attributeName: state.attribute_name
+                })
             }
             else if (value instanceof Signal && state.current === State.AttributeValueUnquoted)
             {
-                if (!ref) throw new Error('ref is null')
-                if (state.attribute_name === 'class' && state.attribute_key)
+                if (state.attribute_name === ':class' && state.attribute_key)
                 {
-                    html += `"${value.id}"`
-                    signals[value.id] = value
-                    signal_classes.push({ className: state.attribute_key, signal: value })
+                    outlets.signalClasses.push({
+                        ref: state.tag_ref,
+                        className: state.attribute_key,
+                        activeSignal: value
+                    })
                 }
                 else if (state.attribute_name === ':ref' && value instanceof SignalValue<Element>)
                 {
-                    // dont need to remove that but
-                    // i wanted to ignore like :ref because all elements with attributes already has ::ref
-                    html = html.slice(0, -(state.attribute_name.length + (state.attribute_key?.length ?? 0) + 1))
-                    referances.push({ ref, signal: value })
+                    outlets.elementRefs.push({
+                        ref: state.tag_ref,
+                        nodeSignal: value
+                    })
                 }
                 else
                 {
                     html += `"<$${value.id}>"`
-                    signals[value.id] = value
-                    signal_attribute_element_refs.add(ref)
+                    outlets.signals[value.id] = value
+                    outlets.attributesWithSignals.push({
+                        ref: state.tag_ref,
+                        attributeName: state.attribute_name
+                    })
                 }
             }
             else if (state.current === State.AttributeValueDoubleQuoted)
@@ -299,12 +280,13 @@ export function html(parts: TemplateStringsArray, ...values: unknown[])
             }
             else if (state.current === State.AttributeValueUnquoted)
             {
-                if (state.attribute_name === 'on' && state.attribute_key && value instanceof Function)
+                if (state.attribute_name === ':on' && state.attribute_key && value instanceof Function)
                 {
-                    // We use a random id to avoid collisions with fragments
-                    const id = randomId()
-                    listeners.push({ id, event: state.attribute_key, callback: value as EventListener })
-                    html += `${id}`
+                    outlets.eventListeners.push({
+                        ref: state.tag_ref,
+                        eventName: state.attribute_key,
+                        listener: value as EventListener
+                    })
                 }
                 else html += `"${`${value}`.replace(/"/g, "&quot;")}"`
             }
@@ -339,50 +321,53 @@ export function html(parts: TemplateStringsArray, ...values: unknown[])
         outlet.replaceWith(node)
     }
 
-    for (const { id, event, callback } of listeners)
+    for (const { ref, eventName, listener } of outlets.eventListeners)
     {
-        const element = template.content.querySelector(`[on\\:${event}="${id}"]`)
-        if (!element) throw new Error(`No element for listener ${id}`)
-        element.removeAttribute(`on:${event}`)
-        element.addEventListener(event, callback)
+        const element = template.content.querySelector(`[\\:\\:ref="${ref}"]`)
+        if (!element) throw new Error(`No element ${ref} for event listener ${eventName}`)
+        element.addEventListener(eventName, listener)
     }
 
-    for (const { className, signal } of signal_classes)
+    for (const { ref, className, activeSignal } of outlets.signalClasses)
     {
-        const node = template.content.querySelector(`[class\\:${className}="${signal.id}"]`)
-        if (!node) throw new Error(`Cannot find element with class ${className}=${signal.id}`)
-        node.removeAttribute(`class:${className}`)
-        masterTooling(node).subscribe(signal, value => node.classList.toggle(className, value))
+        const node = template.content.querySelector(`[\\:\\:ref="${ref}"]`)
+        if (!node) throw new Error(`No node ${ref} for signal class ${className}`)
+        masterTooling(node).subscribe(activeSignal, value => node.classList.toggle(className, value))
     }
 
-    signal_attribute_element_refs.forEach((ref) =>
+    outlets.attributesWithSignals.forEach(({ ref, attributeName }) =>
     {
         const node = template.content.querySelector(`[\\:\\:ref="${ref}"]`)
         if (!node) throw new Error(`Cannot find element with ref ${ref}`)
-        Array.from(node.attributes).forEach((attribute) =>
-        {
-            const signalIds: string[] = /<\$([^>]+)>/g.exec(attribute.value)?.slice(1) ?? []
-            if (signalIds.length === 0) return
+        const attributeValue = node.getAttribute(attributeName)
+        if (!attributeValue) throw new Error(`Cannot find attribute ${attributeName} on element with ref ${ref}`)
 
-            const valueTemplate: (Signal | string)[] = attribute.value.split(/<\$([^>]+)>/g)
-                .map((value, index) => index % 2 === 0 ? value : signals[value]).filter(value => value)
+        const signalIds: string[] = /<\$([^>]+)>/g.exec(attributeValue)?.slice(1) ?? []
+        if (signalIds.length === 0) return
 
-            const $ = masterTooling(node)
+        const valueTemplate: (Signal | string)[] = attributeValue.split(/<\$([^>]+)>/g)
+            .map((value, index) => index % 2 === 0 ? value : outlets.signals[value]).filter(value => value)
 
-            const signal = $.compute(() => valueTemplate.map((value) => value instanceof Signal ? value.value : value).join(''),
-                ...signalIds.map(id => 
-                {
-                    const signal = signals[id]
-                    if (!signal) throw new Error(`Cannot find signal ${id}`)
-                    return signal
-                })
-            )
-            $.subscribe(signal, (value) => node.setAttribute(attribute.name, value), { mode: SignalSubscriptionMode.Immediate })
-        })
+        const $ = masterTooling(node)
+
+        const signal = $.compute(() => valueTemplate.map((value) => value instanceof Signal ? value.value : value).join(''),
+            ...signalIds.map(id => 
+            {
+                const signal = outlets.signals[id]
+                if (!signal) throw new Error(`Cannot find signal ${id}`)
+                return signal
+            })
+        )
+        $.subscribe(signal, (value) => node.setAttribute(attributeName, value), { mode: SignalSubscriptionMode.Immediate })
     })
 
-    referances.forEach(({ ref, signal }) => signal.set(template.content.querySelector(`[\\:\\:ref="${ref}"]`) as Element))
- 
+    for (const { ref, nodeSignal } of outlets.elementRefs)
+    {
+        const node = template.content.querySelector(`[\\:\\:ref="${ref}"]`)
+        if (!node) throw new Error(`Cannot find element with ref ${ref}`)
+        nodeSignal.set(node)
+    }
+
     template.content.querySelectorAll('[\\:\\:ref]').forEach((node) => node.removeAttribute('::ref'))
 
     return template.content
