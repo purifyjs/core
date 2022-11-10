@@ -389,7 +389,7 @@ export function html(parts: TemplateStringsArray, ...values: unknown[])
                     return signal
                 })
             )
-            $.subscribe(signal, (value) => element.setAttribute(attributeName, value),  { mode: SignalSubscriptionMode.Immediate })
+            $.subscribe(signal, (value) => element.setAttribute(attributeName, value), { mode: SignalSubscriptionMode.Immediate })
         }
     })
 

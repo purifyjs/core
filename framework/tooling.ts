@@ -1,10 +1,8 @@
 import { signal, signalComputed, signalDerived, signalText } from "./signal"
 import type { Signal, SignalListener, SignalSubscription, SignalSubscriptionOptions } from "./signal/base"
 import type { SignalCompute } from "./signal/compute"
-import type { PickMatch } from "typescript-util-types"
-import { MasterElement } from "./element"
 
-const mountUnmountObserver =  new MutationObserver((mutations) => 
+const mountUnmountObserver = new MutationObserver((mutations) => 
 {
     for (const mutation of mutations)
     {
@@ -160,14 +158,5 @@ export class MasterTooling
         let timeoutId: number
         this.onMount(() => timeoutId = setTimeout(callback, timeout))
         this.onUnmount(() => clearTimeout(timeoutId))
-    }
-
-    async importAsync<T extends object>(modulePromise: Promise<T>, key: keyof PickMatch<T, MasterElement>)
-    {
-        const module = await modulePromise
-        const element = module[key]
-        if (!element) throw new Error(`Module does not contain element with key ${key.toString()}`)
-        if (!(element instanceof MasterElement)) throw new Error(`Module element with key ${key.toString()} is not a MasterElement`)
-        return element
     }
 }
