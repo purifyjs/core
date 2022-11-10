@@ -53,14 +53,25 @@ export function html(parts: TemplateStringsArray, ...values: unknown[])
     const enum State
     {
         Outer,
+
+        TAG_START,
         TagInner,
         TagName,
         TagClose,
+        TAG_END,
+
+        ATTR_START,
         AttributeName,
         AttributeKey,
+        ATTR_VALUE_START,
         AttributeValueUnquoted,
+
+        ATTR_VALUE_QUOTED_START,
         AttributeValueSingleQuoted,
-        AttributeValueDoubleQuoted
+        AttributeValueDoubleQuoted,
+        ATTR_VALUE_QUOTED_END,
+        ATTR_VALUE_END,
+        ATTR_END
     }
 
     const state = {
@@ -224,8 +235,7 @@ export function html(parts: TemplateStringsArray, ...values: unknown[])
                     }
                     break
             }
-            if (state.current >= State.AttributeName && state.current <= State.AttributeValueDoubleQuoted &&
-                state.attribute_name.startsWith(':')) continue
+            if (state.current > State.ATTR_START && state.current < State.ATTR_END && state.attribute_name.startsWith(':')) continue
             html += char
         }
 
@@ -239,11 +249,11 @@ export function html(parts: TemplateStringsArray, ...values: unknown[])
             {
                 html += `::outlet="${nodes.push(valueToNode(value)) - 1}"`
             }
-            else if (state.current >= State.AttributeValueSingleQuoted && state.current <= State.AttributeValueDoubleQuoted)
+            else if (state.current > State.ATTR_VALUE_QUOTED_START && state.current < State.ATTR_VALUE_QUOTED_END)
             {
                 if (value instanceof Signal)
                 {
-                    html += `<$${value.id}>`;
+                    html += `<$${value.id}>`
                     outlets.signals[value.id] = value
                     if (!outlets.attributesWithSignals.has(state.tag_ref))
                         outlets.attributesWithSignals.set(state.tag_ref, new Set())
@@ -289,7 +299,7 @@ export function html(parts: TemplateStringsArray, ...values: unknown[])
                 }
                 else if (value instanceof Signal)
                 {
-                    html += `"<$${value.id}>"`;
+                    html += `"<$${value.id}>"`
                     outlets.signals[value.id] = value
                     if (!outlets.attributesWithSignals.has(state.tag_ref))
                         outlets.attributesWithSignals.set(state.tag_ref, new Set())
@@ -338,9 +348,9 @@ export function html(parts: TemplateStringsArray, ...values: unknown[])
     {
         const node = template.content.querySelector(`[\\:\\:ref="${ref}"]`)
         if (!node) throw new Error(`No node ${ref} for signal class ${className}`)
-        if (active instanceof Signal) 
+        if (active instanceof Signal)
             masterTooling(node).subscribe(active, value => node.classList.toggle(className, value))
-        else 
+        else
             node.classList.toggle(className, active)
     }
 
@@ -351,26 +361,26 @@ export function html(parts: TemplateStringsArray, ...values: unknown[])
         for (const attributeName of attributeNames)
         {
             const attributeValue = node.getAttribute(attributeName)
-        if (!attributeValue) throw new Error(`Cannot find attribute ${attributeName} on element with ref ${ref}`)
+            if (!attributeValue) throw new Error(`Cannot find attribute ${attributeName} on element with ref ${ref}`)
 
-        const signalIds: string[] = /<\$([^>]+)>/g.exec(attributeValue)?.slice(1) ?? []
-        if (signalIds.length === 0) return
+            const signalIds: string[] = /<\$([^>]+)>/g.exec(attributeValue)?.slice(1) ?? []
+            if (signalIds.length === 0) return
 
-        const valueTemplate: (Signal | string)[] = attributeValue.split(/<\$([^>]+)>/g)
-            .map((value, index) => index % 2 === 0 ? value : outlets.signals[value]).filter(value => value)
+            const valueTemplate: (Signal | string)[] = attributeValue.split(/<\$([^>]+)>/g)
+                .map((value, index) => index % 2 === 0 ? value : outlets.signals[value]).filter(value => value)
 
-        const $ = masterTooling(node)
+            const $ = masterTooling(node)
 
-        const signal = $.compute(() => valueTemplate.map((value) => value instanceof Signal ? value.value : value).join(''),
-            ...signalIds.map(id => 
-            {
-                const signal = outlets.signals[id]
-                if (!signal) throw new Error(`Cannot find signal ${id}`)
-                return signal
-            })
-        )
-        $.subscribe(signal, (value) => node.setAttribute(attributeName, value), { mode: SignalSubscriptionMode.Immediate })
-    
+            const signal = $.compute(() => valueTemplate.map((value) => value instanceof Signal ? value.value : value).join(''),
+                ...signalIds.map(id => 
+                {
+                    const signal = outlets.signals[id]
+                    if (!signal) throw new Error(`Cannot find signal ${id}`)
+                    return signal
+                })
+            )
+            $.subscribe(signal, (value) => node.setAttribute(attributeName, value), { mode: SignalSubscriptionMode.Immediate })
+
         }
     })
 
