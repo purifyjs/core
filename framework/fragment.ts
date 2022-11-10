@@ -1,5 +1,5 @@
 import { randomId } from "../utils/id"
-import { Signal, signalComputed, SignalMode } from "./signal"
+import { Signal, SignalMode } from "./signal"
 import { masterTooling } from "./tooling"
 
 export const EMPTY_NODE = document.createDocumentFragment()
@@ -43,6 +43,7 @@ export function html(parts: TemplateStringsArray, ...values: unknown[])
     const listeners: { event: string, id: string, callback: EventListener }[] = []
     const signals: Record<string, Signal<any>> = {}
     const signal_classes: { className: string, signal: Signal<boolean> }[] = []
+    const signal_attribute_element_refs: Set<string> = new Set()
 
     const enum State
     {
@@ -66,6 +67,7 @@ export function html(parts: TemplateStringsArray, ...values: unknown[])
     }
 
     let html = ''
+    let ref: string | null = null
     for (let i = 0; i < parts.length; i++)
     {
         const part = parts[i]
@@ -80,6 +82,7 @@ export function html(parts: TemplateStringsArray, ...values: unknown[])
                     {
                         state.current = State.TagName
                         state.tag = ''
+                        ref = randomId()
                     }
                     break
                 case State.TagName:
@@ -92,10 +95,12 @@ export function html(parts: TemplateStringsArray, ...values: unknown[])
                     {
                         state.current = State.Outer
                         state.tag = null
+                        html += ` ::ref="${ref}"`
                     }
                     else if (char === ' ')
                     {
                         state.current = State.TagInner
+                        html += ` ::ref="${ref}"`
                     }
                     else
                     {
@@ -238,19 +243,21 @@ export function html(parts: TemplateStringsArray, ...values: unknown[])
                     }
                     break
             }
+            html += char
         }
 
-        html += part
         if (value !== undefined && value !== null)
         {
             if (state.current === State.TagInner && state.tag === 'x' && part.trimEnd().endsWith('<x') && value instanceof Element)
             {
-                html += `:outlet="${nodes.push(valueToNode(value)) - 1}"`
+                html += `::outlet="${nodes.push(valueToNode(value)) - 1}"`
             }
             else if (value instanceof Signal && (state.current === State.AttributeValueDoubleQuoted || state.current === State.AttributeValueSingleQuoted))
             {
+                if (!ref) throw new Error('ref is null')
                 html += `<$${value.id}>`
                 signals[value.id] = value
+                signal_attribute_element_refs.add(ref)
             }
             else if (value instanceof Signal && state.current === State.AttributeValueUnquoted)
             {
@@ -259,11 +266,18 @@ export function html(parts: TemplateStringsArray, ...values: unknown[])
                     html += `"${value.id}"`
                     signals[value.id] = value
                     signal_classes.push({ className: state.attribute_key, signal: value })
-                }
+                }/* 
+                else if (state.attribute_name === 'ref' && state.attribute_key === 'element' && value instanceof Reference)
+                {
+
+                    html += `"${value.id}"`
+                } */
                 else
                 {
+                    if (!ref) throw new Error('ref is null')
                     html += `"<$${value.id}>"`
                     signals[value.id] = value
+                    signal_attribute_element_refs.add(ref)
                 }
             }
             else if (state.current === State.AttributeValueDoubleQuoted)
@@ -287,7 +301,7 @@ export function html(parts: TemplateStringsArray, ...values: unknown[])
             }
             else if (state.current === State.Outer)
             {
-                html += `<x :outlet="${nodes.push(valueToNode(value)) - 1}"></x>`
+                html += `<x ::outlet="${nodes.push(valueToNode(value)) - 1}"></x>`
             }
             else throw new Error(`Unexpected value at\n${html.slice(-256)}\${${value}}...`)
         }
@@ -299,13 +313,13 @@ export function html(parts: TemplateStringsArray, ...values: unknown[])
     for (const index in nodes)
     {
         const node = nodes[index]
-        const outlet = template.content.querySelector(`x[\\:outlet="${index}"]`)
+        const outlet = template.content.querySelector(`x[\\:\\:outlet="${index}"]`)
         if (!outlet) throw new Error(`No outlet for node ${index}`)
 
         if (node instanceof Element)
         {
             node.append(...Array.from(outlet.childNodes))
-            outlet.removeAttribute(':outlet')
+            outlet.removeAttribute('::outlet')
             for (const attribute of Array.from(outlet.attributes))
             {
                 outlet.removeAttribute(attribute.name)
@@ -332,18 +346,21 @@ export function html(parts: TemplateStringsArray, ...values: unknown[])
         masterTooling(node).subscribe(signal, value => node.classList.toggle(className, value))
     }
 
-    template.content.querySelectorAll('*').forEach((node) =>
+    signal_attribute_element_refs.forEach((ref) =>
     {
+        const node = template.content.querySelector(`[\\:\\:ref="${ref}"]`)
+        if (!node) throw new Error(`Cannot find element with ref ${ref}`)
         Array.from(node.attributes).forEach((attribute) =>
         {
             const signalIds: string[] = /<\$([^>]+)>/g.exec(attribute.value)?.slice(1) ?? []
             if (signalIds.length === 0) return
 
             const valueTemplate: (Signal | string)[] = attribute.value.split(/<\$([^>]+)>/g)
-                .map((value, index) => index % 2 === 0 ? value : signals[value])
+                .map((value, index) => index % 2 === 0 ? value : signals[value]).filter(value => value)
 
-            const signal = signalComputed(
-                () => valueTemplate.map((value) => value instanceof Signal ? value.value : value).join(''),
+            const $ = masterTooling(node)
+
+            const signal = $.compute(() => valueTemplate.map((value) => value instanceof Signal ? value.value : value).join(''),
                 ...signalIds.map(id => 
                 {
                     const signal = signals[id]
@@ -351,9 +368,11 @@ export function html(parts: TemplateStringsArray, ...values: unknown[])
                     return signal
                 })
             )
-            masterTooling(node).subscribe(signal, value => node.setAttribute(attribute.name, value), { mode: SignalMode.Immediate })
+            $.subscribe(signal, (value) => node.setAttribute(attribute.name, value), { mode: SignalMode.Immediate })
         })
     })
+ 
+    template.content.querySelectorAll('[\\:\\:ref]').forEach((node) => node.removeAttribute('::ref'))
 
     return template.content
 }

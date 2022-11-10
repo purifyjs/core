@@ -2,7 +2,7 @@ import { randomId } from "../utils/id"
 
 export interface SignalListener<T>
 {
-    (value: T): Promise<any> | any
+    (value: T): any
 }
 export interface SignalSubscription { unsubscribe(): void }
 export interface SignalUpdater<T> { (value: T): T }

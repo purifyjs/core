@@ -48,9 +48,10 @@ export interface MasterToolingNode extends Node
 {
     $tooling?: MasterTooling
 }
-export function masterTooling(node: Node)
+export function masterTooling(node: MasterToolingNode)
 {
-    return new MasterTooling(node)
+    if (!node.$tooling) node.$tooling = new MasterTooling(node)
+    return node.$tooling
 }
 
 export class MasterTooling
@@ -96,7 +97,7 @@ export class MasterTooling
     protected readonly _unmountListeners: MasterToolingListener[] = []
     onUnmount(callback: MasterToolingListener)
     {
-        if (!this._mounted === false) callback()
+        if (this._mounted === false) callback()
         else this._unmountListeners.push(callback)
     }
 
