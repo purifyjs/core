@@ -1,5 +1,6 @@
 import { randomId } from "../utils/id"
 import { Signal, SignalSubscriptionMode } from "./signal/base"
+import { SignalValue } from "./signal/value"
 import { masterTooling } from "./tooling"
 
 export const EMPTY_NODE = document.createDocumentFragment()
@@ -44,6 +45,7 @@ export function html(parts: TemplateStringsArray, ...values: unknown[])
     const signals: Record<string, Signal<any>> = {}
     const signal_classes: { className: string, signal: Signal<boolean> }[] = []
     const signal_attribute_element_refs: Set<string> = new Set()
+    const referances: { ref: string, signal: SignalValue<Element> }[] = []
 
     const enum State
     {
@@ -95,7 +97,7 @@ export function html(parts: TemplateStringsArray, ...values: unknown[])
                     {
                         state.current = State.Outer
                         state.tag = null
-                        html += ` ::ref="${ref}"`
+                        /* html += ` ::ref="${ref}"` */
                     }
                     else if (char === ' ')
                     {
@@ -246,6 +248,11 @@ export function html(parts: TemplateStringsArray, ...values: unknown[])
             html += char
         }
 
+        // ok dont here we should never add html
+        // similar to how we use outlet for nodes
+        // we should use outlets for attributes as well
+        // and compute and set everything for real at the bottom
+        // its not too complex we have two things, node outlets and attribute outlets
         if (value !== undefined && value !== null)
         {
             if (state.current === State.TagInner && state.tag === 'x' && part.trimEnd().endsWith('<x') && value instanceof Element)
@@ -261,20 +268,22 @@ export function html(parts: TemplateStringsArray, ...values: unknown[])
             }
             else if (value instanceof Signal && state.current === State.AttributeValueUnquoted)
             {
+                if (!ref) throw new Error('ref is null')
                 if (state.attribute_name === 'class' && state.attribute_key)
                 {
                     html += `"${value.id}"`
                     signals[value.id] = value
                     signal_classes.push({ className: state.attribute_key, signal: value })
-                }/* 
-                else if (state.attribute_name === 'ref' && state.attribute_key === 'element' && value instanceof Reference)
+                }
+                else if (state.attribute_name === ':ref' && value instanceof SignalValue<Element>)
                 {
-
-                    html += `"${value.id}"`
-                } */
+                    // dont need to remove that but
+                    // i wanted to ignore like :ref because all elements with attributes already has ::ref
+                    html = html.slice(0, -(state.attribute_name.length + (state.attribute_key?.length ?? 0) + 1))
+                    referances.push({ ref, signal: value })
+                }
                 else
                 {
-                    if (!ref) throw new Error('ref is null')
                     html += `"<$${value.id}>"`
                     signals[value.id] = value
                     signal_attribute_element_refs.add(ref)
@@ -371,6 +380,8 @@ export function html(parts: TemplateStringsArray, ...values: unknown[])
             $.subscribe(signal, (value) => node.setAttribute(attribute.name, value), { mode: SignalSubscriptionMode.Immediate })
         })
     })
+
+    referances.forEach(({ ref, signal }) => signal.set(template.content.querySelector(`[\\:\\:ref="${ref}"]`) as Element))
  
     template.content.querySelectorAll('[\\:\\:ref]').forEach((node) => node.removeAttribute('::ref'))
 
