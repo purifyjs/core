@@ -45,8 +45,9 @@ export function html(parts: TemplateStringsArray, ...values: unknown[])
         signals: {} as Record<string, Signal<any>>,
         eventListeners: [] as { ref: string, eventName: string, listener: EventListener }[],
         elementRefs: [] as { ref: string, nodeSignal: SignalValue<Element> }[],
-        attributesWithSignals: [] as { ref: string, attributeName: string }[],
-        signalClasses: [] as { ref: string, className: string, activeSignal: Signal<boolean> }[],
+        attributesWithSignals: new Map<string, Set<string>>(),
+        classes: [] as { ref: string, className: string, active: Signal<boolean> | boolean }[],
+        styles: [] as { ref: string, styleName: string, value: Signal<string> | string }[],
     }
 
     const enum State
@@ -223,60 +224,35 @@ export function html(parts: TemplateStringsArray, ...values: unknown[])
                     }
                     break
             }
-            if (state.current >= State.AttributeName && state.current <= State.AttributeValueDoubleQuoted && 
+            if (state.current >= State.AttributeName && state.current <= State.AttributeValueDoubleQuoted &&
                 state.attribute_name.startsWith(':')) continue
             html += char
         }
 
         if (value !== undefined && value !== null)
         {
-            if (state.current === State.TagInner && state.tag === 'x' && part.trimEnd().endsWith('<x') && value instanceof Element)
+            if (state.current === State.Outer)
+            {
+                html += `<x ::outlet="${nodes.push(valueToNode(value)) - 1}"></x>`
+            }
+            else if (state.current === State.TagInner && state.tag === 'x' && part.trimEnd().endsWith('<x') && value instanceof Element)
             {
                 html += `::outlet="${nodes.push(valueToNode(value)) - 1}"`
             }
-            else if (value instanceof Signal && (state.current === State.AttributeValueDoubleQuoted || state.current === State.AttributeValueSingleQuoted))
+            else if (state.current >= State.AttributeValueSingleQuoted && state.current <= State.AttributeValueDoubleQuoted)
             {
-                html += `<$${value.id}>`
-                outlets.signals[value.id] = value
-                outlets.attributesWithSignals.push({
-                    ref: state.tag_ref,
-                    attributeName: state.attribute_name
-                })
-            }
-            else if (value instanceof Signal && state.current === State.AttributeValueUnquoted)
-            {
-                if (state.attribute_name === ':class' && state.attribute_key)
+                if (value instanceof Signal)
                 {
-                    outlets.signalClasses.push({
-                        ref: state.tag_ref,
-                        className: state.attribute_key,
-                        activeSignal: value
-                    })
-                }
-                else if (state.attribute_name === ':ref' && value instanceof SignalValue<Element>)
-                {
-                    outlets.elementRefs.push({
-                        ref: state.tag_ref,
-                        nodeSignal: value
-                    })
+                    html += `<$${value.id}>`;
+                    outlets.signals[value.id] = value
+                    if (!outlets.attributesWithSignals.has(state.tag_ref))
+                        outlets.attributesWithSignals.set(state.tag_ref, new Set())
+                    outlets.attributesWithSignals.get(state.tag_ref)!.add(state.attribute_name)
                 }
                 else
                 {
-                    html += `"<$${value.id}>"`
-                    outlets.signals[value.id] = value
-                    outlets.attributesWithSignals.push({
-                        ref: state.tag_ref,
-                        attributeName: state.attribute_name
-                    })
+                    html += value.toString().replace(/"/g, '&quot;').replace(/'/g, '&apos;')
                 }
-            }
-            else if (state.current === State.AttributeValueDoubleQuoted)
-            {
-                html += `${value}`.replace(/"/g, "&quot;")
-            }
-            else if (state.current === State.AttributeValueSingleQuoted)
-            {
-                html += `${value}`.replace(/'/g, "&#39;")
             }
             else if (state.current === State.AttributeValueUnquoted)
             {
@@ -288,11 +264,41 @@ export function html(parts: TemplateStringsArray, ...values: unknown[])
                         listener: value as EventListener
                     })
                 }
-                else html += `"${`${value}`.replace(/"/g, "&quot;")}"`
-            }
-            else if (state.current === State.Outer)
-            {
-                html += `<x ::outlet="${nodes.push(valueToNode(value)) - 1}"></x>`
+                else if (state.attribute_name === ':ref' && value instanceof SignalValue<Element>)
+                {
+                    outlets.elementRefs.push({
+                        ref: state.tag_ref,
+                        nodeSignal: value
+                    })
+                }
+                else if (state.attribute_name === ':class' && state.attribute_key)
+                {
+                    outlets.classes.push({
+                        ref: state.tag_ref,
+                        className: state.attribute_key,
+                        active: value instanceof Signal ? value : !!value
+                    })
+                }
+                else if (state.attribute_name === ':style' && state.attribute_key && (value instanceof Signal || typeof value === 'string'))
+                {
+                    outlets.styles.push({
+                        ref: state.tag_ref,
+                        styleName: state.attribute_key,
+                        value: value instanceof Signal ? value : value
+                    })
+                }
+                else if (value instanceof Signal)
+                {
+                    html += `"<$${value.id}>"`;
+                    outlets.signals[value.id] = value
+                    if (!outlets.attributesWithSignals.has(state.tag_ref))
+                        outlets.attributesWithSignals.set(state.tag_ref, new Set())
+                    outlets.attributesWithSignals.get(state.tag_ref)!.add(state.attribute_name)
+                }
+                else
+                {
+                    html += `"${value.toString().replace(/"/g, '&quot;').replace(/'/g, '&apos;')}"`
+                }
             }
             else throw new Error(`Unexpected value at\n${html.slice(-256)}\${${value}}...`)
         }
@@ -328,18 +334,23 @@ export function html(parts: TemplateStringsArray, ...values: unknown[])
         element.addEventListener(eventName, listener)
     }
 
-    for (const { ref, className, activeSignal } of outlets.signalClasses)
+    for (const { ref, className, active } of outlets.classes)
     {
         const node = template.content.querySelector(`[\\:\\:ref="${ref}"]`)
         if (!node) throw new Error(`No node ${ref} for signal class ${className}`)
-        masterTooling(node).subscribe(activeSignal, value => node.classList.toggle(className, value))
+        if (active instanceof Signal) 
+            masterTooling(node).subscribe(active, value => node.classList.toggle(className, value))
+        else 
+            node.classList.toggle(className, active)
     }
 
-    outlets.attributesWithSignals.forEach(({ ref, attributeName }) =>
+    outlets.attributesWithSignals.forEach((attributeNames, ref) =>
     {
         const node = template.content.querySelector(`[\\:\\:ref="${ref}"]`)
-        if (!node) throw new Error(`Cannot find element with ref ${ref}`)
-        const attributeValue = node.getAttribute(attributeName)
+        if (!node) throw new Error(`No node ${ref} for signal attributes ${attributeNames}`)
+        for (const attributeName of attributeNames)
+        {
+            const attributeValue = node.getAttribute(attributeName)
         if (!attributeValue) throw new Error(`Cannot find attribute ${attributeName} on element with ref ${ref}`)
 
         const signalIds: string[] = /<\$([^>]+)>/g.exec(attributeValue)?.slice(1) ?? []
@@ -359,6 +370,8 @@ export function html(parts: TemplateStringsArray, ...values: unknown[])
             })
         )
         $.subscribe(signal, (value) => node.setAttribute(attributeName, value), { mode: SignalSubscriptionMode.Immediate })
+    
+        }
     })
 
     for (const { ref, nodeSignal } of outlets.elementRefs)
