@@ -1,5 +1,5 @@
 import { randomId } from "../utils/id"
-import { Signal, SignalMode } from "./signal"
+import { Signal, SignalSubscriptionMode } from "./signal/base"
 import { masterTooling } from "./tooling"
 
 export const EMPTY_NODE = document.createDocumentFragment()
@@ -23,7 +23,7 @@ export function html(parts: TemplateStringsArray, ...values: unknown[])
             {
                 while (startComment.nextSibling !== endComment) startComment.nextSibling!.remove()
                 startComment.after(valueToNode(value))
-            }, { mode: SignalMode.Immediate })
+            }, { mode: SignalSubscriptionMode.Immediate })
 
             return fragment
         }
@@ -368,7 +368,7 @@ export function html(parts: TemplateStringsArray, ...values: unknown[])
                     return signal
                 })
             )
-            $.subscribe(signal, (value) => node.setAttribute(attribute.name, value), { mode: SignalMode.Immediate })
+            $.subscribe(signal, (value) => node.setAttribute(attribute.name, value), { mode: SignalSubscriptionMode.Immediate })
         })
     })
  

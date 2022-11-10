@@ -1,4 +1,8 @@
-import { signal, Signal, SignalCompute, signalComputed, signalDerived, SignalListener, SignalOptions, SignalSubscription, signalText } from "./signal"
+import { signal, signalComputed, signalDerived, signalText } from "./signal"
+import type { Signal, SignalListener, SignalSubscription, SignalSubscriptionOptions } from "./signal/base"
+import type { SignalCompute } from "./signal/compute"
+import type { PickMatch } from "typescript-util-types"
+import { MasterElement } from "./element"
 
 const mountUnmountObserver =  new MutationObserver((mutations) => 
 {
@@ -106,7 +110,7 @@ export class MasterTooling
         return signal(value)
     }
 
-    subscribe<T>(signal: Signal<T>, callback: SignalListener<T>, options?: SignalOptions)
+    subscribe<T>(signal: Signal<T>, callback: SignalListener<T>, options?: SignalSubscriptionOptions)
     {
         let subscription: SignalSubscription
         this.onMount(() => subscription = signal.subscribe(callback, options))
@@ -156,5 +160,14 @@ export class MasterTooling
         let timeoutId: number
         this.onMount(() => timeoutId = setTimeout(callback, timeout))
         this.onUnmount(() => clearTimeout(timeoutId))
+    }
+
+    async importAsync<T extends object>(modulePromise: Promise<T>, key: keyof PickMatch<T, MasterElement>)
+    {
+        const module = await modulePromise
+        const element = module[key]
+        if (!element) throw new Error(`Module does not contain element with key ${key.toString()}`)
+        if (!(element instanceof MasterElement)) throw new Error(`Module element with key ${key.toString()} is not a MasterElement`)
+        return element
     }
 }
