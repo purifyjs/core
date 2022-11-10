@@ -5,8 +5,9 @@ import { masterTooling } from "./tooling"
 
 export const EMPTY_NODE = document.createDocumentFragment()
 
-export function html(parts: TemplateStringsArray, ...values: unknown[])
+export async function html(parts: TemplateStringsArray, ...values: unknown[])
 {
+    values = await Promise.all(values)
     function valueToNode(value: any): Node
     {
         if (value instanceof Node)

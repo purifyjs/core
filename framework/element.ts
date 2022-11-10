@@ -13,7 +13,7 @@ export interface MasterElementFactory<Props extends MasterElementProps> extends 
     (props: MasterElementProps): MasterElement<Props>
 }
 
-export function masterElement<Props extends MasterElementProps>(tag: string, elementTemplate: MasterElementTemplate<Props>): MasterElementFactory<Props>
+export function masterElementFactory<Props extends MasterElementProps>(tag: string, elementTemplate: MasterElementTemplate<Props>): MasterElementFactory<Props>
 {
     const Element = class extends MasterElement<Props>
     {
@@ -24,9 +24,9 @@ export function masterElement<Props extends MasterElementProps>(tag: string, ele
     return r as any
 }
 
-export function importMasterElementFactoryAsync<T extends Record<string, any>, K extends keyof PickMatch<T, MasterElementFactory<any>>>(modulePromise: Promise<T>, key: K)
+export function importMasterElementFactoryAsAsync<T extends Record<string, any>, K extends keyof PickMatch<T, MasterElementFactory<any>>>(modulePromise: Promise<T>, key: K)
 {
-    const factory = async (props: T[K]['PROPS_TYPE']) => (await modulePromise)[key](props)
+    const factory = async (props: T[K]['PROPS_TYPE']) => (await modulePromise)[key](props) as MasterElement<T[K]['PROPS_TYPE']>
     return { [key]: factory } as { [k in K]: typeof factory }
 }
 
