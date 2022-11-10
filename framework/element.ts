@@ -19,12 +19,14 @@ export function masterElement<Props extends MasterElementProps>(tag: string, ele
 
 export abstract class MasterElement<Props extends MasterElementProps = MasterElementProps> extends HTMLElement
 {
+    public readonly globalFragment = document.createDocumentFragment()
     constructor(elementTemplate: MasterElementTemplate<Props>, props: Props)
     {
         super()
         const shadowRoot = this.attachShadow({ mode: 'open' })
         const $ = masterTooling(this)
         const fragment = elementTemplate({ props, self: this, $ })
+        shadowRoot.append(this.globalFragment.cloneNode(true))
         if (fragment instanceof Promise) fragment.then(fragment => shadowRoot.appendChild(fragment))
         else shadowRoot.appendChild(fragment)
     }
