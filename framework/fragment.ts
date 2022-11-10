@@ -44,7 +44,7 @@ export function html(parts: TemplateStringsArray, ...values: unknown[])
     const outlets = {
         signals: {} as Record<string, Signal<any>>,
         eventListeners: [] as { ref: string, eventName: string, listener: EventListener }[],
-        elementRefs: [] as { ref: string, nodeSignal: SignalValue<Element> }[],
+        elementRefs: [] as { ref: string, elementSignal: SignalValue<Element> }[],
         attributesWithSignals: new Map<string, Set<string>>(),
         classes: [] as { ref: string, className: string, active: Signal<boolean> | boolean }[],
         styles: [] as { ref: string, styleName: string, value: Signal<string> | string }[],
@@ -278,7 +278,7 @@ export function html(parts: TemplateStringsArray, ...values: unknown[])
                 {
                     outlets.elementRefs.push({
                         ref: state.tag_ref,
-                        nodeSignal: value
+                        elementSignal: value
                     })
                 }
                 else if (state.attribute_name === ':class' && state.attribute_key)
@@ -346,21 +346,21 @@ export function html(parts: TemplateStringsArray, ...values: unknown[])
 
     for (const { ref, className, active } of outlets.classes)
     {
-        const node = template.content.querySelector(`[\\:\\:ref="${ref}"]`)
-        if (!node) throw new Error(`No node ${ref} for signal class ${className}`)
+        const element = template.content.querySelector(`[\\:\\:ref="${ref}"]`)
+        if (!element) throw new Error(`No node ${ref} for signal class ${className}`)
         if (active instanceof Signal)
-            masterTooling(node).subscribe(active, value => node.classList.toggle(className, value))
+            masterTooling(element).subscribe(active, value => element.classList.toggle(className, value))
         else
-            node.classList.toggle(className, active)
+            element.classList.toggle(className, active)
     }
 
     outlets.attributesWithSignals.forEach((attributeNames, ref) =>
     {
-        const node = template.content.querySelector(`[\\:\\:ref="${ref}"]`)
-        if (!node) throw new Error(`No node ${ref} for signal attributes ${attributeNames}`)
+        const element = template.content.querySelector(`[\\:\\:ref="${ref}"]`)
+        if (!element) throw new Error(`No node ${ref} for signal attributes ${attributeNames}`)
         for (const attributeName of attributeNames)
         {
-            const attributeValue = node.getAttribute(attributeName)
+            const attributeValue = element.getAttribute(attributeName)
             if (!attributeValue) throw new Error(`Cannot find attribute ${attributeName} on element with ref ${ref}`)
 
             const signalIds: string[] = /<\$([^>]+)>/g.exec(attributeValue)?.slice(1) ?? []
@@ -369,7 +369,7 @@ export function html(parts: TemplateStringsArray, ...values: unknown[])
             const valueTemplate: (Signal | string)[] = attributeValue.split(/<\$([^>]+)>/g)
                 .map((value, index) => index % 2 === 0 ? value : outlets.signals[value]).filter(value => value)
 
-            const $ = masterTooling(node)
+            const $ = masterTooling(element)
 
             const signal = $.compute(() => valueTemplate.map((value) => value instanceof Signal ? value.value : value).join(''),
                 ...signalIds.map(id => 
@@ -379,16 +379,15 @@ export function html(parts: TemplateStringsArray, ...values: unknown[])
                     return signal
                 })
             )
-            $.subscribe(signal, (value) => node.setAttribute(attributeName, value), { mode: SignalSubscriptionMode.Immediate })
-
+            $.subscribe(signal, (value) => element.setAttribute(attributeName, value),  { mode: SignalSubscriptionMode.Immediate })
         }
     })
 
-    for (const { ref, nodeSignal } of outlets.elementRefs)
+    for (const { ref, elementSignal: nodeSignal } of outlets.elementRefs)
     {
-        const node = template.content.querySelector(`[\\:\\:ref="${ref}"]`)
-        if (!node) throw new Error(`Cannot find element with ref ${ref}`)
-        nodeSignal.set(node)
+        const element = template.content.querySelector(`[\\:\\:ref="${ref}"]`)
+        if (!element) throw new Error(`Cannot find element with ref ${ref}`)
+        nodeSignal.set(element)
     }
 
     template.content.querySelectorAll('[\\:\\:ref]').forEach((node) => node.removeAttribute('::ref'))
