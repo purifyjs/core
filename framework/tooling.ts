@@ -6,8 +6,8 @@ const mountUnmountObserver = new MutationObserver((mutations) =>
 {
     for (const mutation of mutations)
     {
-        mutation.removedNodes.forEach(removedNode)
-        mutation.addedNodes.forEach(addedNode)
+        Array.from(mutation.removedNodes).forEach(removedNode)
+        Array.from(mutation.addedNodes).forEach(addedNode)
     }
 })
 mountUnmountObserver.observe(document, { childList: true, subtree: true })
@@ -23,15 +23,15 @@ function addedNode(node: MasterToolingNode)
 {
     if (getRootNode(node) !== document) return
     node.$tooling?.emitMount()
-    node.childNodes.forEach(addedNode)
-    if (node instanceof HTMLElement) node.shadowRoot?.childNodes.forEach(addedNode)
+    Array.from(node.childNodes).forEach(addedNode)
+    if (node instanceof HTMLElement) Array.from(node.shadowRoot?.childNodes ?? []).forEach(addedNode)
 }
 
 function removedNode(node: MasterToolingNode)
 {
     node.$tooling?.emitUnmount()
-    node.childNodes.forEach(removedNode)
-    if (node instanceof HTMLElement) node.shadowRoot?.childNodes.forEach(removedNode)
+    Array.from(node.childNodes).forEach(removedNode)
+    if (node instanceof HTMLElement) Array.from(node.shadowRoot?.childNodes ?? []).forEach(removedNode)
 }
 
 function getRootNode(node: Node): null | Node

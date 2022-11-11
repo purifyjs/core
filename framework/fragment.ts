@@ -411,7 +411,7 @@ export function html<T extends unknown[]>(parts: TemplateStringsArray, ...values
         // I don't think it's necessary to remove the ::ref attributes, thought it might be a good idea to clean up the template
         // I don't really have to remove it and cause another O(n) operation
         // So I'll leave it as commented out for now. Also it might be useful for debugging
-        // template.content.querySelectorAll('[\\:\\:ref]').forEach((node) => node.removeAttribute('::ref'))
+        // Array.from(template.content.querySelectorAll('[\\:\\:ref]')).forEach((node) => node.removeAttribute('::ref'))
 
         return result = template.content
     })()
