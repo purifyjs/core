@@ -1,46 +1,37 @@
-import type { PickMatch } from "typescript-util-types"
-import { masterTooling, MasterTooling } from "./tooling"
+import { html } from "./fragment"
+import { MasterTooling } from "./tooling"
 
-export interface MasterElementProps { [key: string]: any }
-export interface MasterElementTemplate<Props extends MasterElementProps>
+export function defineElement(tagName: string)
 {
-    (params: { props: Props, self: Element, $: MasterTooling }): DocumentFragment | Promise<DocumentFragment>
+    const CustomElement = class extends MasterElement { }
+    customElements.define(tagName, CustomElement)
+    return (...params: ConstructorParameters<typeof CustomElement>) => new CustomElement(...params)
 }
 
-interface _<Props extends MasterElementProps> { PROPS_TYPE: Props }
-export interface MasterElementFactory<Props extends MasterElementProps> extends _<Props>
+export abstract class MasterElement extends HTMLElement
 {
-    (props: MasterElementProps): MasterElement<Props>
-}
+    public static readonly globalFragment = document.createDocumentFragment()
 
-export function masterElementFactory<Props extends MasterElementProps>(tag: string, elementTemplate: MasterElementTemplate<Props>): MasterElementFactory<Props>
-{
-    const Element = class extends MasterElement<Props>
-    {
-        constructor(props: Props) { super(elementTemplate, props) }
-    }
-    customElements.define(tag, Element)
-    const r = (props: Props) => new Element(props)
-    return r as any
-}
+    public readonly $: MasterTooling
+    public readonly shadowRoot: ShadowRoot
 
-export function importMasterElementFactoryAsAsync<T extends Record<string, any>, K extends keyof PickMatch<T, MasterElementFactory<any>>>(modulePromise: Promise<T>, key: K)
-{
-    const factory = async (props: T[K]['PROPS_TYPE']) => (await modulePromise)[key](props) as MasterElement<T[K]['PROPS_TYPE']>
-    return { [key]: factory } as { [k in K]: typeof factory }
-}
-
-export abstract class MasterElement<Props extends MasterElementProps = MasterElementProps> extends HTMLElement
-{
-    public readonly globalFragment = document.createDocumentFragment()
-    constructor(elementTemplate: MasterElementTemplate<Props>, props: Props)
+    constructor()
     {
         super()
-        const shadowRoot = this.attachShadow({ mode: 'open' })
-        const $ = masterTooling(this)
-        const fragment = elementTemplate({ props, self: this, $ })
-        shadowRoot.append(this.globalFragment.cloneNode(true))
-        if (fragment instanceof Promise) fragment.then(fragment => shadowRoot.appendChild(fragment))
-        else shadowRoot.appendChild(fragment)
+        this.shadowRoot = this.attachShadow({ mode: 'open' })
+        this.shadowRoot.append(MasterElement.globalFragment.cloneNode(true))
+        this.$ = new MasterTooling(this)
+    }
+
+    html<T extends unknown[]>(parts: TemplateStringsArray, ...values: T): Promise<any> extends T[number] ? Promise<typeof this> : typeof this
+    {
+        const fragment = html(parts, ...values)
+        if (fragment instanceof Promise) return fragment.then(fragment => 
+        {
+            this.shadowRoot.append(fragment)
+            return this
+        }) as any
+        this.shadowRoot.append(fragment)
+        return this as any
     }
 }

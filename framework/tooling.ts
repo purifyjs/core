@@ -24,14 +24,14 @@ function addedNode(node: MasterToolingNode)
     if (getRootNode(node) !== document) return
     node.$tooling?.emitMount()
     node.childNodes.forEach(addedNode)
-    if (node instanceof Element) node.shadowRoot?.childNodes.forEach(addedNode)
+    if (node instanceof HTMLElement) node.shadowRoot?.childNodes.forEach(addedNode)
 }
 
 function removedNode(node: MasterToolingNode)
 {
     node.$tooling?.emitUnmount()
     node.childNodes.forEach(removedNode)
-    if (node instanceof Element) node.shadowRoot?.childNodes.forEach(removedNode)
+    if (node instanceof HTMLElement) node.shadowRoot?.childNodes.forEach(removedNode)
 }
 
 function getRootNode(node: Node): null | Node
@@ -50,26 +50,23 @@ export interface MasterToolingNode extends Node
 {
     $tooling?: MasterTooling
 }
+
 export function masterTooling(node: MasterToolingNode)
 {
-    if (!node.$tooling) node.$tooling = new MasterTooling(node)
-    return node.$tooling
+    return node.$tooling ?? new MasterTooling(node)
 }
 
 export class MasterTooling
 {
-    protected readonly _node: MasterToolingNode
-    protected _mounted: boolean | null
+    protected _mounted: boolean | null = null
 
     constructor(node: MasterToolingNode)
     {
         if (node.$tooling) throw new Error('Node already has tooling')
-        this._node = node
-        this._mounted = null
-        this._node.$tooling = this
+        node.$tooling = this
 
-        this.onMount(() => console.log('%cmounted', 'color:red;font-weight:bold;font-size:12px', (this._node as Element).tagName || this._node.nodeValue || this._node.nodeName))
-        this.onUnmount(() => console.log('%cunmounted', 'color:blue;font-weight:bold;font-size:12px', (this._node as Element).tagName || this._node.nodeValue || this._node.nodeName))
+        this.onMount(() => console.log('%cmounted', 'color:red;font-weight:bold;font-size:12px', (node as Element).tagName || node.nodeValue || node.nodeName))
+        this.onUnmount(() => console.log('%cunmounted', 'color:blue;font-weight:bold;font-size:12px', (node as Element).tagName || node.nodeValue || node.nodeName))
     }
 
     public emitMount()
@@ -87,7 +84,6 @@ export class MasterTooling
     }
 
     get mounted() { return !!this._mounted }
-    get node() { return this._node }
 
     protected readonly _mountListeners: MasterToolingListener[] = []
     onMount<T extends MasterToolingListener>(callback: T)
