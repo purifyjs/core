@@ -23,10 +23,19 @@ export function html<T extends unknown[]>(parts: TemplateStringsArray, ...values
                 const endComment = document.createComment(`/signal ${value.id}`)
                 fragment.append(startComment, endComment)
 
-                new MasterTooling(startComment).subscribe(value, (value) => 
+                let updateId = 0
+                new MasterTooling(startComment).subscribe(value, async (value) => 
                 {
+                    const currentUpdateId = ++updateId
+                    if (value instanceof Promise) value = await value
+
+                    // Signal might have been changed while we were waiting for previous value.
+                    // If so, we kill this update.
+                    if (currentUpdateId !== updateId) return
+
                     while (startComment.nextSibling !== endComment) startComment.nextSibling!.remove()
-                    startComment.after(valueToNode(value))
+                    endComment.before(valueToNode(value))
+
                 }, { mode: SignalSubscriptionMode.Immediate })
 
                 return fragment

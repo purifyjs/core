@@ -4,6 +4,8 @@ export interface SignalChanger<T> { (value: T): void }
 
 export class SignalValue<T> extends Signal<T>
 {
+    protected static readonly Empty = Symbol('empty')
+
     async set(value: T | typeof SignalValue.Empty = SignalValue.Empty)
     {
         if (value === this.value && typeof value !== 'object') return

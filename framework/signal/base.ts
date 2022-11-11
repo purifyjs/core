@@ -49,8 +49,6 @@ export class Signal<T = any>
         }
     }
 
-    protected static readonly Empty = Symbol('empty')
-
     async signal()
     {
         await Promise.all(this._listeners.map((listener) => listener(this.value)))
