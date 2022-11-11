@@ -23,5 +23,8 @@
     "importsNotUsedAsValues": "error",
     "preserveConstEnums": true
   },
-  "include": [ "framework", "utils" ]
+  "include": [
+    "framework",
+    "utils"
+  ]
 }

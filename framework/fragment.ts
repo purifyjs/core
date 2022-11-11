@@ -1,7 +1,7 @@
 import { randomId } from "../utils/id"
+import { master$, Master$ } from "./$"
 import { Signal, SignalSubscriptionMode } from "./signal/base"
 import { SignalValue } from "./signal/value"
-import { masterTooling, MasterTooling } from "./tooling"
 
 export const EMPTY_NODE = document.createDocumentFragment()
 
@@ -24,7 +24,7 @@ export function html<T extends unknown[]>(parts: TemplateStringsArray, ...values
                 fragment.append(startComment, endComment)
 
                 let updateId = 0
-                new MasterTooling(startComment).subscribe(value, async (value) => 
+                new Master$(startComment).subscribe(value, async (value) => 
                 {
                     const currentUpdateId = ++updateId
                     if (value instanceof Promise) value = await value
@@ -99,7 +99,7 @@ export function html<T extends unknown[]>(parts: TemplateStringsArray, ...values
         for (let i = 0; i < parts.length; i++)
         {
             const part = parts[i]
-            
+
             // IMPORTANT: This should be the only await in the whole function
             // if there is no await, the function will return a DocumentFragment
             // if there is an await, the function will return a Promise<DocumentFragment>
@@ -366,7 +366,7 @@ export function html<T extends unknown[]>(parts: TemplateStringsArray, ...values
             const element = template.content.querySelector(`[\\:\\:ref="${ref}"]`)
             if (!element) throw new Error(`No node ${ref} for signal class ${className}`)
             if (active instanceof Signal)
-                masterTooling(element).subscribe(active, value => element.classList.toggle(className, value), { mode: SignalSubscriptionMode.Immediate })
+                master$(element).subscribe(active, value => element.classList.toggle(className, value), { mode: SignalSubscriptionMode.Immediate })
             else
                 element.classList.toggle(className, active)
         }
@@ -376,7 +376,7 @@ export function html<T extends unknown[]>(parts: TemplateStringsArray, ...values
             const element = template.content.querySelector(`[\\:\\:ref="${ref}"]`) as HTMLElement | null
             if (!element) throw new Error(`No node ${ref} for signal style ${styleName}`)
             if (value instanceof Signal)
-                masterTooling(element).subscribe(value, value => element.style.setProperty(styleName, value), { mode: SignalSubscriptionMode.Immediate })
+                master$(element).subscribe(value, value => element.style.setProperty(styleName, value), { mode: SignalSubscriptionMode.Immediate })
             else
                 element.style.setProperty(styleName, value)
         }
@@ -396,7 +396,7 @@ export function html<T extends unknown[]>(parts: TemplateStringsArray, ...values
                 const valueTemplate: (Signal | string)[] = attributeValue.split(/<\$([^>]+)>/g)
                     .map((value, index) => index % 2 === 0 ? value : outlets.signals[value]).filter(value => value)
 
-                const $ = masterTooling(element)
+                const $ = master$(element)
 
                 const signal = $.compute(() => valueTemplate.map((value) => value instanceof Signal ? value.value.toString() : value).join(''),
                     ...signalIds.map(id => 

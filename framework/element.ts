@@ -1,18 +1,18 @@
+import { Master$ } from "./$"
 import { html } from "./fragment"
-import { MasterTooling } from "./tooling"
 
-export function defineElement(tagName: string)
+export function defineMasterElement(tagName: string)
 {
-    const CustomElement = class extends MasterElement { }
-    customElements.define(tagName, CustomElement)
-    return (...params: ConstructorParameters<typeof CustomElement>) => new CustomElement(...params)
+    const CustomMasterElement = class extends MasterElement { }
+    customElements.define(tagName, CustomMasterElement)
+    return (...params: ConstructorParameters<typeof CustomMasterElement>) => new CustomMasterElement(...params)
 }
 
 export abstract class MasterElement extends HTMLElement
 {
     public static readonly globalFragment = document.createDocumentFragment()
 
-    public readonly $: MasterTooling
+    public readonly $: Master$
     public readonly shadowRoot: ShadowRoot
 
     constructor()
@@ -20,7 +20,7 @@ export abstract class MasterElement extends HTMLElement
         super()
         this.shadowRoot = this.attachShadow({ mode: 'open' })
         this.shadowRoot.append(MasterElement.globalFragment.cloneNode(true))
-        this.$ = new MasterTooling(this)
+        this.$ = new Master$(this)
     }
 
     html<T extends unknown[]>(parts: TemplateStringsArray, ...values: T): Promise<any> extends T[number] ? Promise<typeof this> : typeof this
