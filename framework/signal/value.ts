@@ -1,5 +1,6 @@
 import { Signal } from "./base"
 export interface SignalUpdater<T> { (value: T): T }
+export interface SignalChanger<T> { (value: T): void }
 
 export class SignalValue<T> extends Signal<T>
 {
@@ -7,6 +8,12 @@ export class SignalValue<T> extends Signal<T>
     {
         if (value === this.value && typeof value !== 'object') return
         if (value !== SignalValue.Empty) this._value = value
+        await this.signal()
+    }
+
+    async change(changer: SignalChanger<T>)
+    {
+        changer(this.value)
         await this.signal()
     }
 
