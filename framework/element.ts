@@ -1,4 +1,4 @@
-import { Master$ } from "./$"
+import { MasterAPI } from "./api"
 import { html } from "./fragment"
 
 export function defineMasterElement(tagName: string)
@@ -12,7 +12,7 @@ export abstract class MasterElement extends HTMLElement
 {
     public static readonly globalFragment = document.createDocumentFragment()
 
-    public readonly $: Master$
+    public readonly $: MasterAPI
     public readonly shadowRoot: ShadowRoot
 
     constructor()
@@ -20,7 +20,7 @@ export abstract class MasterElement extends HTMLElement
         super()
         this.shadowRoot = this.attachShadow({ mode: 'open' })
         this.shadowRoot.append(MasterElement.globalFragment.cloneNode(true))
-        this.$ = new Master$(this)
+        this.$ = new MasterAPI(this)
     }
 
     html<T extends unknown[]>(parts: TemplateStringsArray, ...values: T): Promise<any> extends T[number] ? Promise<typeof this> : typeof this

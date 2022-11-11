@@ -1,5 +1,5 @@
 import { randomId } from "../utils/id"
-import { master$, Master$ } from "./$"
+import { injectOrGetMasterAPI, MasterAPI } from "./api"
 import { Signal, SignalSubscriptionMode } from "./signal/base"
 import { SignalValue } from "./signal/value"
 
@@ -24,7 +24,7 @@ export function html<T extends unknown[]>(parts: TemplateStringsArray, ...values
                 fragment.append(startComment, endComment)
 
                 let updateId = 0
-                new Master$(startComment).subscribe(value, async (value) => 
+                new MasterAPI(startComment).subscribe(value, async (value) => 
                 {
                     const currentUpdateId = ++updateId
                     if (value instanceof Promise) value = await value
@@ -366,7 +366,7 @@ export function html<T extends unknown[]>(parts: TemplateStringsArray, ...values
             const element = template.content.querySelector(`[\\:\\:ref="${ref}"]`)
             if (!element) throw new Error(`No node ${ref} for signal class ${className}`)
             if (active instanceof Signal)
-                master$(element).subscribe(active, value => element.classList.toggle(className, value), { mode: SignalSubscriptionMode.Immediate })
+                injectOrGetMasterAPI(element).subscribe(active, value => element.classList.toggle(className, value), { mode: SignalSubscriptionMode.Immediate })
             else
                 element.classList.toggle(className, active)
         }
@@ -376,7 +376,7 @@ export function html<T extends unknown[]>(parts: TemplateStringsArray, ...values
             const element = template.content.querySelector(`[\\:\\:ref="${ref}"]`) as HTMLElement | null
             if (!element) throw new Error(`No node ${ref} for signal style ${styleName}`)
             if (value instanceof Signal)
-                master$(element).subscribe(value, value => element.style.setProperty(styleName, value), { mode: SignalSubscriptionMode.Immediate })
+                injectOrGetMasterAPI(element).subscribe(value, value => element.style.setProperty(styleName, value), { mode: SignalSubscriptionMode.Immediate })
             else
                 element.style.setProperty(styleName, value)
         }
@@ -396,7 +396,7 @@ export function html<T extends unknown[]>(parts: TemplateStringsArray, ...values
                 const valueTemplate: (Signal | string)[] = attributeValue.split(/<\$([^>]+)>/g)
                     .map((value, index) => index % 2 === 0 ? value : outlets.signals[value]).filter(value => value)
 
-                const $ = master$(element)
+                const $ = injectOrGetMasterAPI(element)
 
                 const signal = $.compute(() => valueTemplate.map((value) => value instanceof Signal ? value.value.toString() : value).join(''),
                     ...signalIds.map(id => 

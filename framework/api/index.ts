@@ -1,69 +1,29 @@
-import { signal, signalComputed, signalDerived, signalText } from "./signal"
-import type { Signal, SignalListener, SignalSubscription, SignalSubscriptionOptions } from "./signal/base"
-import type { SignalCompute } from "./signal/compute"
+import { signal, signalComputed, signalDerived, signalText } from "../signal"
+import type { Signal, SignalListener, SignalSubscription, SignalSubscriptionOptions } from "../signal/base"
+import type { SignalCompute } from "../signal/compute"
+import "./mutationObserver"
 
-const mountUnmountObserver = new MutationObserver((mutations) => 
+export interface NodeWithMasterAPI extends Node
 {
-    for (const mutation of mutations)
-    {
-        Array.from(mutation.removedNodes).forEach(removedNode)
-        Array.from(mutation.addedNodes).forEach(addedNode)
-    }
-})
-mountUnmountObserver.observe(document, { childList: true, subtree: true })
-const originalAttachShadow = Element.prototype.attachShadow
-Element.prototype.attachShadow = function (options: ShadowRootInit)
-{
-    const shadowRoot = originalAttachShadow.call(this, options)
-    if (options.mode === 'open') mountUnmountObserver.observe(shadowRoot, { childList: true, subtree: true })
-    return shadowRoot
+    $masterNodeAPI?: MasterAPI
 }
 
-function addedNode(node: Master$Node)
+export function injectOrGetMasterAPI(node: NodeWithMasterAPI)
 {
-    if (getRootNode(node) !== document) return
-    node.$?.emitMount()
-    Array.from(node.childNodes).forEach(addedNode)
-    if (node instanceof HTMLElement) Array.from(node.shadowRoot?.childNodes ?? []).forEach(addedNode)
+    return node.$masterNodeAPI ?? new MasterAPI(node)
 }
 
-function removedNode(node: Master$Node)
-{
-    node.$?.emitUnmount()
-    Array.from(node.childNodes).forEach(removedNode)
-    if (node instanceof HTMLElement) Array.from(node.shadowRoot?.childNodes ?? []).forEach(removedNode)
-}
-
-function getRootNode(node: Node): null | Node
-{
-    if (node === document) return node
-    if (node instanceof ShadowRoot) return getRootNode(node.host)
-    if (node.parentNode) return getRootNode(node.parentNode)
-    return null
-}
-
-export interface $$Listener
-{
-    (): void
-}
-export interface Master$Node extends Node
-{
-    $?: Master$
-}
-
-export function master$(node: Master$Node)
-{
-    return node.$ ?? new Master$(node)
-}
-
-export class Master$
+export class MasterAPI
 {
     protected _mounted: boolean | null = null
+    protected _node: NodeWithMasterAPI
+    get node() { return this._node }
 
-    constructor(node: Master$Node)
+    constructor(node: NodeWithMasterAPI)
     {
-        if (node.$) throw new Error('Node already has tooling')
-        node.$ = this
+        if (node.$masterNodeAPI) throw new Error('Node already has ')
+        this._node = node
+        node.$masterNodeAPI = this
 
         this.onMount(() => console.log('%cmounted', 'color:red;font-weight:bold;font-size:12px', (node as Element).tagName || node.nodeValue || node.nodeName))
         this.onUnmount(() => console.log('%cunmounted', 'color:blue;font-weight:bold;font-size:12px', (node as Element).tagName || node.nodeValue || node.nodeName))
@@ -85,15 +45,15 @@ export class Master$
 
     get mounted() { return !!this._mounted }
 
-    protected readonly _mountListeners: $$Listener[] = []
-    onMount<T extends $$Listener>(callback: T)
+    protected readonly _mountListeners: Function[] = []
+    onMount<T extends Function>(callback: T)
     {
         if (this._mounted) callback()
         else this._mountListeners.push(callback)
     }
 
-    protected readonly _unmountListeners: $$Listener[] = []
-    onUnmount(callback: $$Listener)
+    protected readonly _unmountListeners: Function[] = []
+    onUnmount(callback: Function)
     {
         if (this._mounted === false) callback()
         else this._unmountListeners.push(callback)
