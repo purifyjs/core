@@ -1,4 +1,5 @@
 import { randomId } from "../../utils/id"
+import type { SignalComputed } from "./computed"
 
 export interface SignalSubscription { unsubscribe(): void }
 export interface SignalListener<T> { (value: T): any }
@@ -13,13 +14,27 @@ export const enum SignalSubscriptionMode
     Once
 }
 
+// TODO: try to make signals work with compute without providing updaters manually
+// use static on going compute value or something like that that can support nesting and stuff
+// Ok did it but it might have race problems maybe idk, haven't tried it much yet and looked into it that much 
+
 export class Signal<T = any>
 {
-    public readonly id = randomId()
-    private _listeners: SignalListener<T>[] = []
-    constructor(protected _value: T) { }
+    protected static CurrentComputed: SignalComputed<any> | null = null
 
-    get value() { return this._value }
+    public readonly id
+    private _listeners: SignalListener<T>[]
+    constructor(protected _value: T) 
+    { 
+        this.id = randomId()
+        this._listeners = []
+    }
+
+    get() 
+    {
+        Signal.CurrentComputed?.addUpdater(this) 
+        return this._value 
+    }
 
     subscribe(listener: SignalListener<T>, options?: SignalSubscriptionOptions): SignalSubscription
     {
@@ -28,13 +43,13 @@ export class Signal<T = any>
             case SignalSubscriptionMode.Once:
                 const onceCallback = () =>
                 {
-                    listener(this.value)
+                    listener(this._value)
                     this._listeners = this._listeners.filter(l => l !== onceCallback)
                 }
                 this._listeners.push(onceCallback)
                 break
             case SignalSubscriptionMode.Immediate:
-                listener(this.value)
+                listener(this._value)
             case SignalSubscriptionMode.Normal:
             default:
                 this._listeners.push(listener)
@@ -49,8 +64,10 @@ export class Signal<T = any>
         }
     }
 
+    // NOTE: This is async but it doesn't need to be awaited. if you await you await for the async listeners to finish thats all.
+    // but if you dont await you only wait for the sync listeners to finish.
     async signal()
     {
-        await Promise.all(this._listeners.map((listener) => listener(this.value)))
+        await Promise.all(this._listeners.map((listener) => listener(this._value)))
     }
 }
