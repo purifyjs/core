@@ -119,7 +119,7 @@ export function html<T extends unknown[]>(parts: TemplateStringsArray, ...values
                         }
                         break
                     case State.TagName:
-                        if (!state.tag && char === '/')
+                        if (state.tag === '' && char === '/')
                         {
                             state.current = State.TagClose
                             state.tag = ''
@@ -152,6 +152,17 @@ export function html<T extends unknown[]>(parts: TemplateStringsArray, ...values
                         {
                             state.current = State.AttributeName
                             state.attribute_name = char
+                        }
+                        break
+                    case State.TagClose:
+                        if (char === '>')
+                        {
+                            state.current = State.Outer
+                            state.tag = ''
+                        }
+                        else
+                        {
+                            state.tag += char
                         }
                         break
                     case State.AttributeName:
@@ -241,16 +252,6 @@ export function html<T extends unknown[]>(parts: TemplateStringsArray, ...values
                             state.attribute_value += char
                         }
                         break
-                    case State.TagClose:
-                        if (char === '>')
-                        {
-                            state.current = State.Outer
-                        }
-                        else
-                        {
-                            state.tag += char
-                        }
-                        break
                 }
                 if (state.current > State.ATTR_START && state.current < State.ATTR_END && state.attribute_name.startsWith(':')) continue
                 html += char
@@ -268,7 +269,23 @@ export function html<T extends unknown[]>(parts: TemplateStringsArray, ...values
                 }
                 else if (state.current > State.ATTR_VALUE_QUOTED_START && state.current < State.ATTR_VALUE_QUOTED_END)
                 {
-                    if (value instanceof Signal)
+                    // TODO since styles are strings, they are not really different than normal attributes with signals or without signals
+                    // So i need a way to combine them together somehow
+                    // like if an attribute, this, can be :class :ref and others too as signals those should be handled first
+                    // then we handle should handle things like :class :style or :ref or even :on
+                    // most of them gonna throw error anyway because they werent expecting a string
+                    // all hidden attributes starts with : so we can put them in an array and process them seperately later probably not here
+                    // in a way that value can be a signal or a value
+                    // so seperate processing of the attributes and what to do with them 
+                    if (state.attribute_name === ':style' && state.attribute_key)
+                    {
+                        outlets.styles.push({
+                            ref: state.tag_ref,
+                            styleName: state.attribute_key,
+                            value: value.toString()
+                        })
+                    }
+                    else if (value instanceof Signal)
                     {
                         html += `<$${value.id}>`
                         outlets.signals[value.id] = value
@@ -410,11 +427,11 @@ export function html<T extends unknown[]>(parts: TemplateStringsArray, ...values
             }
         })
 
-        for (const { ref, elementSignal: nodeSignal } of outlets.elementRefs)
+        for (const { ref, elementSignal } of outlets.elementRefs)
         {
             const element = template.content.querySelector(`[\\:\\:ref="${ref}"]`) as HTMLElement | null
             if (!element) throw new Error(`Cannot find element with ref ${ref}`)
-            nodeSignal.set(element)
+            elementSignal.set(element)
         }
 
         // I don't think it's necessary to remove the ::ref attributes, thought it might be a good idea to clean up the template
