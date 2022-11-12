@@ -1,39 +1,39 @@
 import { Signal, SignalSubscription } from "./base"
 
-export interface SignalCompute<T> { (): T }
-export class SignalComputed<T> extends Signal<T>
+export interface SignalDerive<T> { (): T }
+export class SignalDerived<T> extends Signal<T>
 {
-    protected updaterSubscriptions: SignalSubscription[]
-    protected updaters: Set<Signal>
-    protected compute: SignalCompute<T>
+    protected dependencySubscriptions: SignalSubscription[]
+    protected dependencies: Set<Signal>
+    protected compute: SignalDerive<T>
 
-    constructor(compute: SignalCompute<T>)
+    constructor(compute: SignalDerive<T>)
     {
         super(null!)
         this.compute = compute
-        this.updaters = new Set()
-        this.updaterSubscriptions = []
+        this.dependencies = new Set()
+        this.dependencySubscriptions = []
         this.activate()
     }
 
     addUpdater(updater: Signal)
     {
-        if (this.updaters.has(updater)) return
+        if (this.dependencies.has(updater)) return
         console.log('%cadded updater', 'color:green', updater.id, 'to', this.id)
-        this.updaters.add(updater)
-        this.updaterSubscriptions.push(updater.subscribe(async () => await this.signal()))
+        this.dependencies.add(updater)
+        this.dependencySubscriptions.push(updater.subscribe(async () => await this.signal()))
     }
 
     activate()
     {
         this.signal()
-        this.updaters.forEach(updater => this.updaterSubscriptions.push(updater.subscribe(async () => await this.signal())))
+        this.dependencies.forEach(updater => this.dependencySubscriptions.push(updater.subscribe(async () => await this.signal())))
     }
     deactivate()
     {
-        if (!this.updaterSubscriptions.length) return
-        this.updaterSubscriptions.forEach((subscription) => subscription.unsubscribe())
-        this.updaterSubscriptions = []
+        if (!this.dependencySubscriptions.length) return
+        this.dependencySubscriptions.forEach((subscription) => subscription.unsubscribe())
+        this.dependencySubscriptions = []
     }
 
     async signal()

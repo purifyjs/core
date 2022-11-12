@@ -1,19 +1,19 @@
-import { SignalCompute, SignalComputed } from "./computed"
+import { SignalDerive, SignalDerived } from "./computed"
 import { SignalValue } from "./value"
 
-export function signal<T>(value: T)
+export function createSignal<T>(value: T)
 {
     return new SignalValue(value)
 }
 
-export function signalComputed<T>(compute: SignalCompute<T>)
+export function createSignalDerive<T>(compute: SignalDerive<T>)
 {
-    return new SignalComputed(compute)
+    return new SignalDerived(compute)
 }
 
 export function signalPromise<T, P>(then: Promise<T>, placeholder: P)
 {
-    let n = signal<T | P>(placeholder)
+    let n = createSignal<T | P>(placeholder)
     then.then(value => n.set(value))
     return n
 }

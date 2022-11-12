@@ -415,7 +415,7 @@ export function html<T extends unknown[]>(parts: TemplateStringsArray, ...values
 
                 const $ = injectOrGetMasterAPI(element)
 
-                const signal = $.compute(() => valueTemplate.map((value) => value instanceof Signal ? value.value.toString() : value).join(''),
+                const signal = $.derive(() => valueTemplate.map((value) => value instanceof Signal ? value.value.toString() : value).join(''),
                     ...signalIds.map(id => 
                     {
                         const signal = outlets.signals[id]

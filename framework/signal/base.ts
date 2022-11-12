@@ -1,5 +1,5 @@
 import { randomId } from "../../utils/id"
-import type { SignalComputed } from "./computed"
+import type { SignalDerived } from "./computed"
 
 export interface SignalSubscription { unsubscribe(): void }
 export interface SignalListener<T> { (value: T): any }
@@ -20,7 +20,7 @@ export const enum SignalSubscriptionMode
 
 export class Signal<T = any>
 {
-    protected static CurrentComputed: SignalComputed<any> | null = null
+    protected static CurrentComputed: SignalDerived<any> | null = null
 
     public readonly id
     private _listeners: SignalListener<T>[]
