@@ -4,13 +4,7 @@ export interface SignalSubscription { unsubscribe(): void }
 export interface SignalListener<T> { (value: T): any }
 export interface SignalSubscriptionOptions
 {
-    mode: SignalSubscriptionMode
-}
-export const enum SignalSubscriptionMode
-{
-    Normal,
-    Immediate,
-    Once
+    mode: 'normal' | 'once' | 'immediate'
 }
 
 export interface SignalTickContext
@@ -45,7 +39,7 @@ export class Signal<T = any>
     {
         switch (options?.mode)
         {
-            case SignalSubscriptionMode.Once:
+            case 'once':
                 const onceCallback = () =>
                 {
                     listener(this._value)
@@ -53,9 +47,9 @@ export class Signal<T = any>
                 }
                 this._listeners.push(onceCallback)
                 break
-            case SignalSubscriptionMode.Immediate:
+            case 'immediate':
                 listener(this._value)
-            case SignalSubscriptionMode.Normal:
+            case 'normal':
             default:
                 this._listeners.push(listener)
                 break
