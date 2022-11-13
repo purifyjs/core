@@ -1,9 +1,9 @@
-import { SignalDerive, SignalDerived } from "./computed"
-import { SignalValue } from "./value"
+import { SignalDerive, SignalDerived } from "./derived"
+import { SignalSettable } from "./settable"
 
 export function createSignal<T>(value: T)
 {
-    return new SignalValue(value)
+    return new SignalSettable(value)
 }
 
 export function createSignalDerive<T>(compute: SignalDerive<T>)

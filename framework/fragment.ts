@@ -1,7 +1,7 @@
 import { randomId } from "../utils/id"
 import { injectOrGetMasterAPI, MasterAPI } from "./api"
 import { Signal, SignalSubscriptionMode } from "./signal/base"
-import { SignalValue } from "./signal/value"
+import { SignalSettable } from "./signal/settable"
 
 export const EMPTY_NODE = document.createDocumentFragment()
 
@@ -56,7 +56,7 @@ export function html<T extends unknown[]>(parts: TemplateStringsArray, ...values
         const outlets = {
             signals: {} as Record<string, Signal<any>>,
             eventListeners: [] as { ref: string, eventName: string, listener: EventListener }[],
-            elementRefs: [] as { ref: string, elementSignal: SignalValue<HTMLElement> }[],
+            elementRefs: [] as { ref: string, elementSignal: SignalSettable<HTMLElement> }[],
             attributesWithSignals: new Map<string, Set<string>>(),
             classes: [] as { ref: string, className: string, active: Signal<boolean> | boolean }[],
             styles: [] as { ref: string, styleName: string, value: Signal<string> | string }[],
@@ -308,7 +308,7 @@ export function html<T extends unknown[]>(parts: TemplateStringsArray, ...values
                             listener: value as EventListener
                         })
                     }
-                    else if (state.attribute_name === ':ref' && value instanceof SignalValue<HTMLElement>)
+                    else if (state.attribute_name === ':ref' && value instanceof SignalSettable<HTMLElement>)
                     {
                         outlets.elementRefs.push({
                             ref: state.tag_ref,
@@ -415,13 +415,7 @@ export function html<T extends unknown[]>(parts: TemplateStringsArray, ...values
 
                 const $ = injectOrGetMasterAPI(element)
 
-                const signal = $.derive(() => valueTemplate.map((value) => value instanceof Signal ? value.value.toString() : value).join(''),
-                    ...signalIds.map(id => 
-                    {
-                        const signal = outlets.signals[id]
-                        if (!signal) throw new Error(`Cannot find signal ${id}`)
-                        return signal
-                    })
+                const signal = $.derive(() => valueTemplate.map((value) => value instanceof Signal ? value.value.toString() : value).join('')
                 )
                 $.subscribe(signal, (value) => element.setAttribute(attributeName, value), { mode: SignalSubscriptionMode.Immediate })
             }

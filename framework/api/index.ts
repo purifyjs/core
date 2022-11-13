@@ -1,6 +1,6 @@
 import { createSignal, createSignalDerive } from "../signal"
 import type { Signal, SignalListener, SignalSubscription, SignalSubscriptionOptions } from "../signal/base"
-import type { SignalDerive } from "../signal/computed"
+import type { SignalDerive } from "../signal/derived"
 import "./mutationObserver"
 
 export interface NodeWithMasterAPI extends Node

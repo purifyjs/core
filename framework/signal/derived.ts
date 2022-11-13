@@ -1,25 +1,25 @@
-import { Signal, SignalSubscription } from "./base"
+import { Signal, SignalSubscription, SignalTickContext } from "./base"
 
 export interface SignalDerive<T> { (): T }
-export class SignalDerived<T> extends Signal<T>
+export class SignalDerived<T> extends Signal<T> implements SignalTickContext
 {
     protected dependencySubscriptions: SignalSubscription[]
     protected dependencies: Set<Signal>
-    protected compute: SignalDerive<T>
+    protected derive: SignalDerive<T>
 
-    constructor(compute: SignalDerive<T>)
+    constructor(derive: SignalDerive<T>)
     {
         super(null!)
-        this.compute = compute
+        this.derive = derive
         this.dependencies = new Set()
         this.dependencySubscriptions = []
         this.activate()
     }
 
-    addUpdater(updater: Signal)
+    addDependency(updater: Signal)
     {
         if (this.dependencies.has(updater)) return
-        console.log('%cadded updater', 'color:green', updater.id, 'to', this.id)
+        console.log('%cadded dependency', 'color:green', updater.id, 'to', this.id)
         this.dependencies.add(updater)
         this.dependencySubscriptions.push(updater.subscribe(async () => await this.signal()))
     }
@@ -38,10 +38,10 @@ export class SignalDerived<T> extends Signal<T>
 
     async signal()
     {
-        const CurrentComputeCache = Signal.CurrentComputed
-        Signal.CurrentComputed = this
-        const value = this.compute()
-        Signal.CurrentComputed = CurrentComputeCache
+        const CurrentComputeCache = Signal.Context
+        Signal.Context = this
+        const value = this.derive()
+        Signal.Context = CurrentComputeCache
 
         if (value === this._value && typeof value !== 'object') return
         this._value = value
