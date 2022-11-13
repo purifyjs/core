@@ -40,7 +40,6 @@ export interface TemplatePart
 
 export function parseTemplateParts(arr: TemplateStringsArray)
 {
-    console.log('hey')
     const templateParts: TemplatePart[] = []
 
     const state: TemplateState = {
