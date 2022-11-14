@@ -81,6 +81,7 @@ function processChar(char: string, html: string, state: TemplateState)
                 state.attribute_name = ''
                 state.attribute_value = ''
             }
+            else if (/w/.test(html[html.length - 1]) && /w/.test(char)) return html
             break
         case TemplateStateType.TagName:
             if (state.tag === '' && char === '/')
