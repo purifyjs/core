@@ -12,9 +12,6 @@ export interface SignalTickContext
     addDependency(signal: Signal): void
 }
 
-// TODO: try to make signals work with compute without providing updaters manually
-// use static on going compute value or something like that that can support nesting and stuff
-// Ok did it but it might have race problems maybe idk, haven't tried it much yet and looked into it that much 
 export class Signal<T = any>
 {
     protected static Context: SignalTickContext| null = null
