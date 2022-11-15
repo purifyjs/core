@@ -1,5 +1,6 @@
 import { injectOrGetMasterAPI } from "../api"
 import { Signal } from "../signal/base"
+import type { SignalDerive } from "../signal/derived"
 import { SignalSettable } from "../signal/settable"
 import { valueToNode } from "./node"
 import { parseTemplateParts, TemplatePart, TemplateStateType } from "./parts"
@@ -110,7 +111,6 @@ export function template<T extends unknown[]>(parts: TemplateStringsArray, value
                         .map((value, index) => index % 2 === 0 ? value : outlets.signals[value]).filter(value => value)
 
                     const $ = injectOrGetMasterAPI(element)
-
                     const signal = $.derive(() => valueTemplate.map((value) => value instanceof Signal ? value.value.toString() : value).join(''))
                     value = signal
                 }
@@ -121,11 +121,13 @@ export function template<T extends unknown[]>(parts: TemplateStringsArray, value
                 {
                     case 'class':
                         if (!key) throw new Error(`Invalid attribute name ${attributeName}`)
+                        if (value instanceof Function) value = injectOrGetMasterAPI(element).derive(value as SignalDerive<unknown>)
                         if (value instanceof Signal) value.subscribe(active => element.classList.toggle(key, !!active))
                         else element.classList.toggle(key, !!value)
                         break
                     case 'style':
                         if (!key) throw new Error(`Invalid attribute name ${attributeName}`)
+                        if (value instanceof Function) value = injectOrGetMasterAPI(element).derive(value as SignalDerive<unknown>)
                         if (value instanceof Signal) value.subscribe(value => element.style.setProperty(key, value))
                         else element.style.setProperty(key, `${value}`)
                         break
@@ -139,6 +141,7 @@ export function template<T extends unknown[]>(parts: TemplateStringsArray, value
                         element.addEventListener(key, value as EventListener)
                         break
                     default:
+                        if (value instanceof Function) value = injectOrGetMasterAPI(element).derive(value as SignalDerive<unknown>)
                         if (value instanceof Signal) value.subscribe(value => element.setAttribute(name, value))
                         else element.setAttribute(attributeName, `${value}`)
                         break
