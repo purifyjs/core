@@ -64,6 +64,8 @@ export class Signal<T = any>
     // but if you dont await you only wait for the sync listeners to finish.
     async signal()
     {
-        await Promise.all(this._listeners.map((listener) => listener(this._value)))
+        const returns = this._listeners.map((listener) => listener(this._value))
+        const promises = returns.filter(r => r instanceof Promise) as Promise<any>[]
+        if (promises.length) await Promise.all(promises)
     }
 }

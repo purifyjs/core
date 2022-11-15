@@ -15,8 +15,10 @@ export function valueToNode(value: unknown): Node
         const endComment = document.createComment(``)
         fragment.append(startComment, endComment)
 
+        const $ = injectOrGetMasterAPI(startComment)
+
         if (value instanceof Function)
-            value = injectOrGetMasterAPI(startComment).derive(value as SignalDerive<unknown>)
+            value = $.derive(value as SignalDerive<unknown>)
 
         if (!(value instanceof Signal)) throw new Error(`Expected value to be a Signal but got ${value}. This is not supposed to happen, ever.`)
 
@@ -24,7 +26,7 @@ export function valueToNode(value: unknown): Node
         endComment.nodeValue = `/signal ${value.id}`
 
         let updateId = 0
-        injectOrGetMasterAPI(startComment).subscribe(value, async (value) => 
+        $.subscribe(value, async (value) => 
         {
             const currentUpdateId = ++updateId
             if (value instanceof Promise) value = await value
