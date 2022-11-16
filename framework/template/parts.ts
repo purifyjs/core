@@ -1,4 +1,4 @@
-import { randomId } from "../../utils/id"
+import { randomId } from "../utils/id"
 
 export const enum TemplateStateType
 {

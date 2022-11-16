@@ -25,6 +25,6 @@
   },
   "include": [
     "framework",
-    "utils"
+    "framework/utils"
   ]
 }

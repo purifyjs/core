@@ -1,4 +1,4 @@
-import { randomId } from "../../utils/id"
+import { randomId } from "../utils/id"
 
 export interface SignalSubscription { unsubscribe(): void }
 export interface SignalListener<T> { (value: T): any }
