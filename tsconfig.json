@@ -9,7 +9,6 @@
     ],
     "moduleResolution": "Node",
     "strict": true,
-    "sourceMap": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
     "esModuleInterop": true,
@@ -21,7 +20,9 @@
     "removeComments": false,
     "useUnknownInCatchVariables": true,
     "importsNotUsedAsValues": "error",
-    "preserveConstEnums": true
+    "preserveConstEnums": true,
+    "noUncheckedIndexedAccess": true,
+    "sourceMap": true
   },
   "include": [
     "framework",
