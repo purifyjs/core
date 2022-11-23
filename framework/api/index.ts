@@ -71,9 +71,9 @@ export class MasterAPI
         this.onUnmount(() => subscription.unsubscribe())
     }
 
-    derive<T>(derive: SignalDerive<T>)
+    derive<T>(derive: SignalDerive<T>, ...dependencies: Signal[])
     {
-        const computed = new SignalDerived(derive)
+        const computed = new SignalDerived(derive, ...dependencies)
         this.onMount(() => computed.activate())
         this.onUnmount(() => computed.deactivate())
         return computed

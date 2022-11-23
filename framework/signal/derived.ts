@@ -6,12 +6,14 @@ export class SignalDerived<T> extends Signal<T> implements SignalTickContext
     protected dependencySubscriptions: SignalSubscription[]
     protected dependencies: Set<Signal>
     protected derive: SignalDerive<T>
+    protected constantDependencies: boolean
 
-    constructor(derive: SignalDerive<T>)
+    constructor(derive: SignalDerive<T>, ...dependencies: Signal[])
     {
         super(null!)
         this.derive = derive
-        this.dependencies = new Set()
+        this.constantDependencies = !!dependencies.length
+        this.dependencies = new Set(dependencies)
         this.dependencySubscriptions = []
         this.activate()
     }
@@ -38,10 +40,17 @@ export class SignalDerived<T> extends Signal<T> implements SignalTickContext
 
     async signal()
     {
-        const CurrentComputeCache = Signal.Context
-        Signal.Context = this
-        const value = this.derive()
-        Signal.Context = CurrentComputeCache
+        if (this.constantDependencies)
+        {
+            const CurrentComputeCache = Signal.Context
+            Signal.Context = this
+            var value = this.derive()
+            Signal.Context = CurrentComputeCache
+        }
+        else
+        {
+            var value = this.derive()
+        }
 
         if (value === this._value && typeof value !== 'object') return
         this._value = value
