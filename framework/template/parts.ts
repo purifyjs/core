@@ -52,7 +52,7 @@ export function parseTemplateParts(arr: TemplateStringsArray)
 
     for (let i = 0; i < arr.length; i++)
     {
-        const part = arr[i]
+        const part = arr[i]!
         let html = ''
 
         for (const char of part)
@@ -81,7 +81,7 @@ function processChar(char: string, html: string, state: TemplateState)
                 state.attribute_name = ''
                 state.attribute_value = ''
             }
-            else if (/w/.test(html[html.length - 1]) && /w/.test(char)) return html
+            else if (/w/.test(html[html.length - 1]!) && /w/.test(char)) return html
             break
         case TemplateStateType.TagName:
             if (state.tag === '' && char === '/')
@@ -92,12 +92,12 @@ function processChar(char: string, html: string, state: TemplateState)
             else if (char === '>')
             {
                 state.type = TemplateStateType.Outer
-                /* html += ` ::ref="${ref}"` */
+                /* html += ` :ref="${ref}"` */
             }
             else if (char === ' ')
             {
                 state.type = TemplateStateType.TagInner
-                html += ` ::ref="${state.tag_ref}"`
+                html += ` :ref="${state.tag_ref}"`
             }
             else state.tag += char
             break

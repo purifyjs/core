@@ -38,7 +38,7 @@ export function template<T extends unknown[]>(parts: TemplateStringsArray, value
         let html = ''
         for (const index in templateParts)
         {
-            const { html: partHtml, state } = templateParts[index]
+            const { html: partHtml, state } = templateParts[index]!
             const value = values[index] instanceof Promise ? await values[index] : values[index]
 
             html += partHtml
@@ -46,12 +46,12 @@ export function template<T extends unknown[]>(parts: TemplateStringsArray, value
             {
                 if (state.type === TemplateStateType.Outer)
                 {
-                    html += `<x ::outlet="${nodes.push(valueToNode(value)) - 1}"></x>`
+                    html += `<x :outlet="${nodes.push(valueToNode(value)) - 1}"></x>`
                 }
                 else if (state.type === TemplateStateType.TagInner && state.tag === 'x' && !state.attribute_name && value instanceof HTMLElement)
                 {
-                    state.attribute_name = '::outlet'
-                    html += `::outlet="${nodes.push(valueToNode(value)) - 1}"`
+                    state.attribute_name = ':outlet'
+                    html += `:outlet="${nodes.push(valueToNode(value)) - 1}"`
                 }
                 else if (state.type > TemplateStateType.ATTR_VALUE_START && state.type < TemplateStateType.ATTR_VALUE_END)
                 {
@@ -75,14 +75,14 @@ export function template<T extends unknown[]>(parts: TemplateStringsArray, value
 
         for (const index in nodes)
         {
-            const node = nodes[index]
-            const outlet = template.content.querySelector(`x[\\:\\:outlet="${index}"]`)
+            const node = nodes[index]!
+            const outlet = template.content.querySelector(`x[\\:outlet="${index}"]`)
             if (!outlet) throw new Error(`No outlet for node ${index}`)
 
             if (node instanceof HTMLElement)
             {
                 node.append(...Array.from(outlet.childNodes))
-                outlet.removeAttribute('::outlet')
+                outlet.removeAttribute(':outlet')
                 for (const attribute of Array.from(outlet.attributes))
                 {
                     outlet.removeAttribute(attribute.name)
@@ -97,7 +97,7 @@ export function template<T extends unknown[]>(parts: TemplateStringsArray, value
         {
             for (let [attributeName, value] of nameMap)
             {
-                const element = template.content.querySelector<HTMLElement>(`[\\:\\:ref="${ref}"]`)
+                const element = template.content.querySelector<HTMLElement>(`[\\:ref="${ref}"]`)
                 if (!element) throw new Error(`No element for ref ${ref} with attribute ${attributeName}`)
                 if (value === SIGNAL_TEXT)
                 {
@@ -108,15 +108,15 @@ export function template<T extends unknown[]>(parts: TemplateStringsArray, value
                     if (signalIds.length === 0) return
 
                     const valueTemplate: (Signal | string)[] = attributeValue.split(/<\$([^>]+)>/g)
-                        .map((value, index) => index % 2 === 0 ? value : outlets.signals[value]).filter(value => value)
+                        .map((value, index) => index % 2 === 0 ? value : outlets.signals[value]!).filter(value => value)
 
                     const $ = injectOrGetMasterAPI(element)
                     const signal = $.derive(() => valueTemplate.map((value) => value instanceof Signal ? value.value.toString() : value).join(''))
                     value = signal
                 }
 
-                const split = attributeName.split(':')
-                const [name, key] = split.length === 1 ? [split[0], ''] : [split[1], split[2]]
+                const [name, key] = attributeName.split(':')
+
                 switch (name)
                 {
                     case 'class':
@@ -141,12 +141,13 @@ export function template<T extends unknown[]>(parts: TemplateStringsArray, value
                         element.addEventListener(key, value as EventListener)
                         break
                     default:
+                        if (!name) throw new Error(`Invalid attribute name ${attributeName}`)
                         if (value instanceof Function) value = injectOrGetMasterAPI(element).derive(value as SignalDerive<unknown>)
                         if (value instanceof Signal) value.subscribe(value => element.setAttribute(name, value))
                         else element.setAttribute(attributeName, `${value}`)
                         break
                 }
-                if (attributeName.startsWith(':')) element.removeAttribute(attributeName)
+                if (key) element.removeAttribute(attributeName)
             }
         }
 
