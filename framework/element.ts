@@ -34,12 +34,19 @@ export abstract class MasterElement extends HTMLElement
     {
         super()
         this.shadowRoot = this.attachShadow({ mode: 'open' })
-        this.shadowRoot.append(MasterElement.globalFragment.cloneNode(true))
         this.$ = new MasterAPI(this)
+        this.clear()
+    }
+
+    clear()
+    {
+        this.shadowRoot.innerHTML = ''
+        this.shadowRoot.append(MasterElement.globalFragment.cloneNode(true))
     }
 
     html<T extends unknown[]>(parts: TemplateStringsArray, ...values: T): Promise<any> extends T[number] ? Promise<typeof this> : typeof this
     {
+        this.clear()
         const fragment = html(parts, ...values)
         if (fragment instanceof Promise) return fragment.then(fragment => 
         {
