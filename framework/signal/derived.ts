@@ -16,12 +16,12 @@ export class SignalDerived<T> extends Signal<T> implements SignalTickContext
         this.activate()
     }
 
-    addDependency(updater: Signal)
+    addDependency(dependency: Signal)
     {
-        if (this.dependencies.has(updater)) return
-        console.log('%cadded dependency', 'color:green', updater.id, 'to', this.id)
-        this.dependencies.add(updater)
-        this.dependencySubscriptions.push(updater.subscribe(async () => await this.signal()))
+        if (this.dependencies.has(dependency)) return
+        console.log('%cadded dependency', 'color:green', dependency.id, 'to', this.id)
+        this.dependencies.add(dependency)
+        this.dependencySubscriptions.push(dependency.subscribe(async () => await this.signal()))
     }
 
     activate()

@@ -1,6 +1,6 @@
-import { createSignal, createSignalDerive } from "../signal"
 import type { Signal, SignalListener, SignalSubscription, SignalSubscriptionOptions } from "../signal/base"
-import type { SignalDerive } from "../signal/derived"
+import { SignalDerive, SignalDerived } from "../signal/derived"
+import { SignalSettable } from "../signal/settable"
 import "./mutationObserver"
 
 export interface NodeWithMasterAPI extends Node
@@ -61,7 +61,7 @@ export class MasterAPI
 
     signal<T>(value: T)
     {
-        return createSignal(value)
+        return new SignalSettable(value)
     }
 
     subscribe<T>(signal: Signal<T>, callback: SignalListener<T>, options?: SignalSubscriptionOptions)
@@ -73,7 +73,7 @@ export class MasterAPI
 
     derive<T>(derive: SignalDerive<T>)
     {
-        const computed = createSignalDerive(derive)
+        const computed = new SignalDerived(derive)
         this.onMount(() => computed.activate())
         this.onUnmount(() => computed.deactivate())
         return computed
