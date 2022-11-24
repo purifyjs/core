@@ -32,10 +32,9 @@ function removedNode(node: NodeWithMasterAPI)
     if (node instanceof HTMLElement) Array.from(node.shadowRoot?.childNodes ?? []).forEach(removedNode)
 }
 
-function getRootNode(node: Node): null | Node
+function getRootNode(node: Node): Node
 {
-    if (node === document) return node
     if (node instanceof ShadowRoot) return getRootNode(node.host)
     if (node.parentNode) return getRootNode(node.parentNode)
-    return null
+    return node
 }
