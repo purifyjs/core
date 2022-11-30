@@ -1,5 +1,5 @@
 # MASTER.TS
-Master.ts is a framework for building SPA applications using TypeScript.   
+Master.ts is a framework (tbh its just a library) for building SPA applications using TypeScript.   
 
 ## Warning
 This is a work in progress prototype, and is not ready for production use.
