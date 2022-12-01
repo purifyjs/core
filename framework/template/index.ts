@@ -122,13 +122,13 @@ export function template<T extends unknown[]>(parts: TemplateStringsArray, value
                     case 'class':
                         if (!key) throw new Error(`Invalid attribute name ${attributeName}`)
                         if (value instanceof Function) value = injectOrGetMasterAPI(element).derive(value as SignalDerive<unknown>)
-                        if (value instanceof Signal) value.subscribe(active => element.classList.toggle(key, !!active))
+                        if (value instanceof Signal) injectOrGetMasterAPI(element).subscribe(value, active => element.classList.toggle(key, !!active))
                         else element.classList.toggle(key, !!value)
                         break
                     case 'style':
                         if (!key) throw new Error(`Invalid attribute name ${attributeName}`)
                         if (value instanceof Function) value = injectOrGetMasterAPI(element).derive(value as SignalDerive<unknown>)
-                        if (value instanceof Signal) value.subscribe(value => element.style.setProperty(key, value))
+                        if (value instanceof Signal) injectOrGetMasterAPI(element).subscribe(value, value => element.style.setProperty(key, value))
                         else element.style.setProperty(key, `${value}`)
                         break
                     case 'ref':
@@ -143,7 +143,7 @@ export function template<T extends unknown[]>(parts: TemplateStringsArray, value
                     default:
                         if (!name) throw new Error(`Invalid attribute name ${attributeName}`)
                         if (value instanceof Function) value = injectOrGetMasterAPI(element).derive(value as SignalDerive<unknown>)
-                        if (value instanceof Signal) value.subscribe(value => element.setAttribute(name, value))
+                        if (value instanceof Signal) injectOrGetMasterAPI(element).subscribe(value, value => element.setAttribute(name, value))
                         else element.setAttribute(attributeName, `${value}`)
                         break
                 }
