@@ -20,14 +20,14 @@ Element.prototype.attachShadow = function (options: ShadowRootInit)
 function addedNode(node: NodeWithMasterAPI)
 {
     if (getRootNode(node) !== document) return
-    node.$masterNodeAPI?.emitMount()
+    node.$masterAPI?.emitMount()
     Array.from(node.childNodes).forEach(addedNode)
     if (node instanceof HTMLElement) Array.from(node.shadowRoot?.childNodes ?? []).forEach(addedNode)
 }
 
 function removedNode(node: NodeWithMasterAPI)
 {
-    node.$masterNodeAPI?.emitUnmount()
+    node.$masterAPI?.emitUnmount()
     Array.from(node.childNodes).forEach(removedNode)
     if (node instanceof HTMLElement) Array.from(node.shadowRoot?.childNodes ?? []).forEach(removedNode)
 }

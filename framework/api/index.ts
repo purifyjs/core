@@ -5,12 +5,12 @@ import "./mutationObserver"
 
 export interface NodeWithMasterAPI extends Node
 {
-    $masterNodeAPI?: MasterAPI
+    $masterAPI?: MasterAPI
 }
 
 export function injectOrGetMasterAPI(node: NodeWithMasterAPI)
 {
-    return node.$masterNodeAPI ?? new MasterAPI(node)
+    return node.$masterAPI ?? new MasterAPI(node)
 }
 
 export class MasterAPI
@@ -21,9 +21,9 @@ export class MasterAPI
 
     constructor(node: NodeWithMasterAPI)
     {
-        if (node.$masterNodeAPI) throw new Error('Node already has ')
+        if (node.$masterAPI) throw new Error('Node already has ')
         this._node = node
-        node.$masterNodeAPI = this
+        node.$masterAPI = this
 
         this.onMount(() => console.log('%cmounted', 'color:red;font-weight:bold;font-size:12px', (node as Element).tagName || node.nodeValue || node.nodeName))
         this.onUnmount(() => console.log('%cunmounted', 'color:blue;font-weight:bold;font-size:12px', (node as Element).tagName || node.nodeValue || node.nodeName))
