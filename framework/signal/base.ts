@@ -7,15 +7,8 @@ export interface SignalSubscriptionOptions
     mode: 'normal' | 'once' | 'immediate'
 }
 
-export interface SignalTickContext
-{
-    addDependency(signal: Signal): void
-}
-
 export class Signal<T = any>
 {
-    protected static Context: SignalTickContext| null = null
-
     public readonly id
     private _listeners: SignalListener<T>[]
     constructor(protected _value: T) 
@@ -26,7 +19,6 @@ export class Signal<T = any>
 
     get() 
     {
-        (Signal.Context as any)?.addDependency(this) 
         return this._value 
     }
 

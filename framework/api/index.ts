@@ -1,5 +1,5 @@
 import type { Signal, SignalListener, SignalSubscription, SignalSubscriptionOptions } from "../signal/base"
-import { SignalDerive, SignalDerived } from "../signal/derived"
+import { SignalDerived } from "../signal/derived"
 import { SignalSettable } from "../signal/settable"
 import "./mutationObserver"
 
@@ -59,9 +59,9 @@ export class MasterAPI
         else this._unmountListeners.push(callback)
     }
 
-    signal<T>(value: T)
+    signal<T>(...params: ConstructorParameters<typeof SignalSettable<T>>)
     {
-        return new SignalSettable(value)
+        return new SignalSettable(...params)
     }
 
     subscribe<T>(signal: Signal<T>, callback: SignalListener<T>, options?: SignalSubscriptionOptions)
@@ -71,9 +71,9 @@ export class MasterAPI
         this.onUnmount(() => subscription.unsubscribe())
     }
 
-    derive<T>(derive: SignalDerive<T>, ...dependencies: Signal[])
+    derive<T>(...params: ConstructorParameters<typeof SignalDerived<T>>)
     {
-        const computed = new SignalDerived(derive, ...dependencies)
+        const computed = new SignalDerived(...params)
         this.onMount(() => computed.activate())
         this.onUnmount(() => computed.deactivate())
         return computed
