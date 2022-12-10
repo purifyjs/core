@@ -1,5 +1,5 @@
 # MASTER.TS
-Master.ts is a framework (tbh its just a library) for building SPA applications using TypeScript.   
+Master.ts is a frontend component library for making SPA, that is utilizing the Web Components, and is written in Typescript.
 
 ## Warning
 This is a work in progress prototype, and is not ready for production use.
@@ -12,11 +12,12 @@ If you wanna work on this project, it is recommended to use https://github.com/D
 https://github.com/DeepDoge/master-ts-vite-template
 
 ## Motivation
-There are many frameworks out there, and many use their own file types, and require their own build tools.
-Most of the time it is hard to understand what is happening under the hood of the framework.
+There are many frontend frameworks and libraries out there and many of them are using a lot of dependencies and not really transparent about what they are doing and how they are doing it. <br/>
+Master.ts is a library so it can be used with any framework or without any framework. <br/>
+It also has no external dependencies, so it is very lightweight. <br/>
 
-Master.ts is aims to be as simple as possible, and as transparent as possible, while not sacrificing code readability.
-Also, it aims to have parts that are reusable and portable. 
+The main goal of this project is to make a library that is very lightweight and has a very small footprint. <br/>
+It also aims be very easy to use and also transparent about what it is doing and how it is doing it. So no magic. <br/>
 
 ## Note
 I was first trying to make something that has Resumable SSR, similar to Qwik.<br/>
