@@ -40,14 +40,26 @@ export function template<T extends unknown[]>(parts: TemplateStringsArray, value
 
         if (values.length === 0 || i >= values.length) continue
 
+        let unexpected = true
+
         if (state.type === TemplateStateType.Outer)
         {
-            html += `<x :outlet="${nodes.push(valueToNode(value)) - 1}"></x>`
+            const node = valueToNode(value)
+            if (node) 
+            {
+                html += `<x :outlet="${nodes.push(node) - 1}"></x>`
+                unexpected = false
+            }
         }
         else if (state.type === TemplateStateType.TagInner && state.tag === 'x' && !state.attribute_name && value instanceof HTMLElement)
         {
-            state.attribute_name = ':outlet'
-            html += `:outlet="${nodes.push(valueToNode(value)) - 1}"`
+            const node = valueToNode(value)
+            if (node)
+            {
+                state.attribute_name = ':outlet'
+                html += `:outlet="${nodes.push(node) - 1}"`
+                unexpected = false
+            }
         }
         else if (state.type > TemplateStateType.ATTR_VALUE_START && state.type < TemplateStateType.ATTR_VALUE_END)
         {
@@ -61,8 +73,11 @@ export function template<T extends unknown[]>(parts: TemplateStringsArray, value
             const attributeMap = refMap.get(state.tag_ref) ?? refMap.set(state.tag_ref, new Map()).get(state.tag_ref)!
             if (!attributeMap.has(state.attribute_name))
                 attributeMap.set(state.attribute_name, isSignal ? SIGNAL_TEXT : value)
+
+            unexpected = false
         }
-        else throw new Error(`Unexpected value at\n${html.slice(-256)}\${${value}}...`)
+
+        if (unexpected) throw new Error(`Unexpected value at\n${html.slice(-256)}\${${value}}...`)
     }
 
     const template = document.createElement('template')

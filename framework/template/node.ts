@@ -1,19 +1,13 @@
 import { EMPTY_NODE } from "."
 import { injectOrGetMasterAPI } from "../api"
 import { Signal } from "../signal/base"
-import type { SignalDerive } from "../signal/derived"
 
-export function valueToNode(value: unknown): Node
+export function valueToNode(value: unknown): Node | null
 {
-    if (value === null)
-    {
-        return EMPTY_NODE
-    }
-    else if (value instanceof Node)
-    {
-        return value
-    }
-    else if (value instanceof Signal || value instanceof Function)
+    if (value === null) return EMPTY_NODE
+    if (value instanceof Node) return value
+
+    if (value instanceof Signal)
     {
         const fragment = document.createDocumentFragment()
         const startComment = document.createComment(``)
@@ -21,9 +15,6 @@ export function valueToNode(value: unknown): Node
         fragment.append(startComment, endComment)
 
         const $ = injectOrGetMasterAPI(startComment)
-
-        if (value instanceof Function)
-            value = $.derive(value as SignalDerive<unknown>)
 
         if (!(value instanceof Signal)) throw new Error(`Expected value to be a Signal but got ${value}. This is not supposed to happen, ever.`)
 
@@ -41,20 +32,35 @@ export function valueToNode(value: unknown): Node
             if (currentUpdateId !== updateId) return
 
             while (startComment.nextSibling !== endComment) startComment.nextSibling!.remove()
-            endComment.before(valueToNode(value))
+            endComment.before(valueToNode(value) ?? EMPTY_NODE)
 
         }, { mode: 'immediate' })
 
         return fragment
     }
-    else if (value instanceof Array)
+
+    if (value instanceof Array)
     {
         const fragment = document.createDocumentFragment()
-        for (const item of value) fragment.append(valueToNode(item))
+        for (const item of value) fragment.append(valueToNode(item) ?? EMPTY_NODE)
         return fragment
     }
-    else
+    
+    try 
     {
-        return document.createTextNode(`${value}`)
+        assertStringfyable(value)
+        return document.createTextNode(value.toString())
     }
+    catch (error) 
+    {
+        return null
+    }
+
+}
+
+const obj = {}
+function assertStringfyable(value: unknown): asserts value is { toString(): string }
+{
+    if (!(value as any).toString || (value as any).toString === (obj as any).toString) 
+        throw new Error(`Value ${value} is not stringfyable.`)
 }
