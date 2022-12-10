@@ -7,16 +7,11 @@ export function defineMasterElement(tagName: string)
     {
         private static readonly templateCache = createTemplateCache()
 
-        htmlCached<T extends unknown[]>(parts: TemplateStringsArray, ...values: T): Promise<any> extends T[number] ? Promise<typeof this> : typeof this
+        htmlCached<T extends unknown[]>(parts: TemplateStringsArray, ...values: T): typeof this
         {
             const fragment = CustomMasterElement.templateCache.html(parts, ...values)
-            if (fragment instanceof Promise) return fragment.then(fragment => 
-            {
-                this.shadowRoot.append(fragment)
-                return this
-            }) as any
             this.shadowRoot.append(fragment)
-            return this as any
+            return this
         }
     }
     customElements.define(tagName, CustomMasterElement)
@@ -44,16 +39,11 @@ export abstract class MasterElement extends HTMLElement
         this.shadowRoot.append(MasterElement.globalFragment.cloneNode(true))
     }
 
-    html<T extends unknown[]>(parts: TemplateStringsArray, ...values: T): Promise<any> extends T[number] ? Promise<typeof this> : typeof this
+    html<T extends unknown[]>(parts: TemplateStringsArray, ...values: T): typeof this
     {
         this.clear()
         const fragment = html(parts, ...values)
-        if (fragment instanceof Promise) return fragment.then(fragment => 
-        {
-            this.shadowRoot.append(fragment)
-            return this
-        }) as any
         this.shadowRoot.append(fragment)
-        return this as any
+        return this
     }
 }

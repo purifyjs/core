@@ -1,10 +1,15 @@
+import { EMPTY_NODE } from "."
 import { injectOrGetMasterAPI } from "../api"
 import { Signal } from "../signal/base"
 import type { SignalDerive } from "../signal/derived"
 
 export function valueToNode(value: unknown): Node
 {
-    if (value instanceof Node)
+    if (value === null)
+    {
+        return EMPTY_NODE
+    }
+    else if (value instanceof Node)
     {
         return value
     }
