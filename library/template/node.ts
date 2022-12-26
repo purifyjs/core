@@ -16,23 +16,21 @@ export function valueToNode(value: unknown): Node | null
 
         const $ = injectOrGetMasterAPI(startComment)
 
-        if (!(value instanceof Signal)) throw new Error(`Expected value to be a Signal but got ${value}. This is not supposed to happen, ever.`)
-
         startComment.nodeValue = `signal ${value.id}`
         endComment.nodeValue = `/signal ${value.id}`
 
         let updateId = 0
-        $.subscribe(value, async (value) => 
+        $.subscribe(value, async (signalValue) => 
         {
             const currentUpdateId = ++updateId
-            if (value instanceof Promise) value = await value
+            if (signalValue instanceof Promise) signalValue = await signalValue
 
             // Signal might have been changed while we were waiting for previous value.
             // If so, we kill this update.
             if (currentUpdateId !== updateId) return
 
             while (startComment.nextSibling !== endComment) startComment.nextSibling!.remove()
-            endComment.before(valueToNode(value) ?? EMPTY_NODE)
+            endComment.before(valueToNode(signalValue) ?? EMPTY_NODE)
 
         }, { mode: 'immediate' })
 
