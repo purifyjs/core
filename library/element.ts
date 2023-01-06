@@ -10,7 +10,7 @@ export function defineMasterElement(tagName: string)
         htmlCached<T extends unknown[]>(parts: TemplateStringsArray, ...values: T): typeof this
         {
             const fragment = CustomMasterElement.templateCache.html(parts, ...values)
-            this.shadowRoot.append(fragment)
+            this.shadowRoot!.append(fragment)
             return this
         }
     }
@@ -23,27 +23,26 @@ export abstract class MasterElement extends HTMLElement
     public static readonly globalFragment = document.createDocumentFragment()
 
     public readonly $: MasterAPI
-    public readonly shadowRoot: ShadowRoot
 
     constructor()
     {
         super()
-        this.shadowRoot = this.attachShadow({ mode: 'open' })
+        this.attachShadow({ mode: 'open' })
         this.$ = new MasterAPI(this)
         this.clear()
     }
 
     clear()
     {
-        this.shadowRoot.innerHTML = ''
-        this.shadowRoot.append(MasterElement.globalFragment.cloneNode(true))
+        this.shadowRoot!.innerHTML = ''
+        this.shadowRoot!.append(MasterElement.globalFragment.cloneNode(true))
     }
 
     html<T extends unknown[]>(parts: TemplateStringsArray, ...values: T): typeof this
     {
         this.clear()
         const fragment = html(parts, ...values)
-        this.shadowRoot.append(fragment)
+        this.shadowRoot!.append(fragment)
         return this
     }
 }
