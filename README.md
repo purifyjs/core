@@ -1,6 +1,11 @@
 # MASTER.TS
 Master.ts is a frontend library for building single-page applications (SPAs) using Web Components and TypeScript. It is designed to be lightweight and easy to use, with a focus on transparency and simplicity.
 
+# Install
+```bash
+npm i https://github.com/DeepDoge/master-ts.git -D
+```
+
 ## Warning
 Please note that Master.ts is currently a work in progress prototype and is not ready for production use.
 
