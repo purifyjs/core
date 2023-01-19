@@ -5,17 +5,26 @@ export function defineMasterElement(tagName: string)
 {
     const CustomMasterElement = class extends MasterElement 
     {
+    }
+    customElements.define(tagName, CustomMasterElement)
+    return (...params: ConstructorParameters<typeof CustomMasterElement>) => new CustomMasterElement(...params)
+}
+
+export function defineMasterElementCached(...[tagName]: Parameters<typeof defineMasterElement>)
+{
+    const CustomMasterElementCached = class extends MasterElement 
+    {
         private static readonly templateCache = createTemplateCache()
 
-        htmlCached<T extends unknown[]>(parts: TemplateStringsArray, ...values: T): typeof this
+        html<T extends unknown[]>(parts: TemplateStringsArray, ...values: T)
         {
-            const fragment = CustomMasterElement.templateCache.html(parts, ...values)
+            const fragment = CustomMasterElementCached.templateCache.html(parts, ...values)
             this.shadowRoot!.append(fragment)
             return this
         }
     }
-    customElements.define(tagName, CustomMasterElement)
-    return (...params: ConstructorParameters<typeof CustomMasterElement>) => new CustomMasterElement(...params)
+    customElements.define(tagName, CustomMasterElementCached)
+    return (...params: ConstructorParameters<typeof CustomMasterElementCached>) => new CustomMasterElementCached(...params)
 }
 
 export abstract class MasterElement extends HTMLElement
@@ -38,7 +47,7 @@ export abstract class MasterElement extends HTMLElement
         this.shadowRoot!.append(MasterElement.globalFragment.cloneNode(true))
     }
 
-    html<T extends unknown[]>(parts: TemplateStringsArray, ...values: T): typeof this
+    html<T extends unknown[]>(parts: TemplateStringsArray, ...values: T): InstanceType<typeof MasterElement>
     {
         this.clear()
         const fragment = html(parts, ...values)
