@@ -44,13 +44,13 @@ export function valueToNode(value: unknown): Node
         return fragment
     }
 
-    assertStringfyable(value)
+    assertStringifyable(value)
     return document.createTextNode(value.toString())
 }
 
 const obj = {}
-function assertStringfyable(value: unknown): asserts value is { toString(): string }
+function assertStringifyable(value: unknown): asserts value is { toString(): string }
 {
     if (!((value as any).toString instanceof Function) || (value as any).toString === (obj as any).toString)
-        throw new Error(`Value ${value} is not stringfyable.`)
+        throw new Error(`Value ${value} is not stringifyable.`)
 }
