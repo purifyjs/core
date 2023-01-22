@@ -2,7 +2,7 @@ import { EMPTY_NODE } from "."
 import { injectOrGetMasterAPI } from "../api"
 import { Signal } from "../signal/base"
 
-export function valueToNode(value: unknown): Node | null
+export function valueToNode(value: unknown): Node
 {
     if (value === null) return EMPTY_NODE
     if (value instanceof Node) return value
@@ -30,7 +30,7 @@ export function valueToNode(value: unknown): Node | null
             if (currentUpdateId !== updateId) return
 
             while (startComment.nextSibling !== endComment) startComment.nextSibling!.remove()
-            endComment.before(valueToNode(signalValue) ?? EMPTY_NODE)
+            endComment.before(valueToNode(signalValue))
 
         }, { mode: 'immediate' })
 
@@ -40,25 +40,17 @@ export function valueToNode(value: unknown): Node | null
     if (value instanceof Array)
     {
         const fragment = document.createDocumentFragment()
-        for (const item of value) fragment.append(valueToNode(item) ?? EMPTY_NODE)
+        for (const item of value) fragment.append(valueToNode(item))
         return fragment
     }
-    
-    try 
-    {
-        assertStringfyable(value)
-        return document.createTextNode(value.toString())
-    }
-    catch (error) 
-    {
-        return null
-    }
 
+    assertStringfyable(value)
+    return document.createTextNode(value.toString())
 }
 
 const obj = {}
 function assertStringfyable(value: unknown): asserts value is { toString(): string }
 {
-    if (!(value as any).toString || (value as any).toString === (obj as any).toString) 
+    if (!(value as any).toString || (value as any).toString === (obj as any).toString)
         throw new Error(`Value ${value} is not stringfyable.`)
 }
