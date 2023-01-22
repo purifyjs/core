@@ -1,4 +1,4 @@
-# MASTER.TS
+# Master-TS a breath of fresh air
 Master.ts is a frontend library for building single-page applications (SPAs) using Web Components and TypeScript. It is designed to be lightweight and easy to use, with a focus on transparency and simplicity.
 
 # Install
