@@ -51,6 +51,6 @@ export function valueToNode(value: unknown): Node
 const obj = {}
 function assertStringfyable(value: unknown): asserts value is { toString(): string }
 {
-    if (!(value as any).toString || (value as any).toString === (obj as any).toString)
+    if (!((value as any).toString instanceof Function) || (value as any).toString === (obj as any).toString)
         throw new Error(`Value ${value} is not stringfyable.`)
 }
