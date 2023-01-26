@@ -5,11 +5,12 @@ import { SignalSettable } from "../signal/settable"
 import { valueToNode } from "./node"
 import { parseTemplateParts, TemplatePart, TemplateStateType } from "./parts"
 
-export const EMPTY_NODE = document.createDocumentFragment()
+export type TemplateValue = string | number | boolean | null | undefined | Node | Signal<any> | SignalDerive<any> | EventListener | TemplateValue[]
 
+export const EMPTY_NODE = document.createDocumentFragment()
 const SIGNAL_TEXT = Symbol('signal_text')
 
-export function html<T extends unknown[]>(parts: TemplateStringsArray, ...values: T)
+export function html<T extends TemplateValue[]>(parts: TemplateStringsArray, ...values: T)
 {
     return template(parts, values)
 }

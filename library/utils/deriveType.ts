@@ -1,6 +1,3 @@
-import type { SignalDependencyAdder } from "../signal/derived"
+import type { SignalDerive } from "../signal/derived"
 
-export function $<T extends ($: SignalDependencyAdder) => any>(derive: T): T
-{
-    return derive
-}
+export const $ = <T>($: SignalDerive<T>) => $
