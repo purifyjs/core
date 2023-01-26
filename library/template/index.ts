@@ -161,7 +161,7 @@ export function template<S extends TemplateHtmlArray, T extends TemplateValueArr
                     break
                 default:
                     if (value instanceof Function) value = injectOrGetMasterAPI(element).deriveFromFunction(value as SignalDerive<unknown>)
-                    if (value instanceof Signal) injectOrGetMasterAPI(element).subscribe(value, (value) => element.setAttribute(key, value), { mode: 'immediate' })
+                    if (value instanceof Signal) injectOrGetMasterAPI(element).subscribe(value, (value) => element.setAttribute(key, `${value}`), { mode: 'immediate' })
                     else element.setAttribute(attributeName, `${value}`)
                     break
             }
