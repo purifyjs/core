@@ -1,11 +1,17 @@
 import type { NodeWithMasterAPI } from "."
 
+const enum NodePlace
+{
+    InDOM,
+    Unknown
+}
+
 const mountUnmountObserver = new MutationObserver((mutations) => 
 {
     for (const mutation of mutations)
     {
         Array.from(mutation.removedNodes).forEach(removedNode)
-        Array.from(mutation.addedNodes).forEach(addedNode)
+        Array.from(mutation.addedNodes).forEach((node) => addedNode(node, NodePlace.Unknown))
     }
 })
 mountUnmountObserver.observe(document, { childList: true, subtree: true })
@@ -17,12 +23,12 @@ Element.prototype.attachShadow = function (options: ShadowRootInit)
     return shadowRoot
 }
 
-function addedNode(node: NodeWithMasterAPI)
+function addedNode(node: NodeWithMasterAPI, place: NodePlace)
 {
-    if (getRootNode(node) !== document) return
+    if (place === NodePlace.Unknown && getRootNode(node) !== document) return
     node.$masterAPI?.emitMount()
-    Array.from(node.childNodes).forEach(addedNode)
-    if (node instanceof HTMLElement) Array.from(node.shadowRoot?.childNodes ?? []).forEach(addedNode)
+    Array.from(node.childNodes).forEach((node) => addedNode(node, NodePlace.InDOM))
+    if (node instanceof HTMLElement) Array.from(node.shadowRoot?.childNodes ?? []).forEach((node) => addedNode(node, NodePlace.InDOM))
 }
 
 function removedNode(node: NodeWithMasterAPI)
