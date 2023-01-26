@@ -14,13 +14,20 @@ export function defineMasterElementCached(...[tagName]: Parameters<typeof define
 {
     const CustomMasterElementCached = class extends MasterElement 
     {
-        private static readonly templateCache = createTemplateCache()
+        protected static readonly templateCache = createTemplateCache()
+        clear()
+        {
+            if (this.htmlBuilt) throw new Error('Cannot clear cached element')
+            super.clear()
+        }
 
+        protected htmlBuilt = false
         html<S extends TemplateHtmlArray, T extends TemplateValueArrayFromHtmlArray<S>>(parts: S, ...values: T)
         {
-            this.clear()
+            if (this.htmlBuilt) throw new Error('Cannot build html twice on cached element')
             const fragment = CustomMasterElementCached.templateCache.html(parts, ...values)
             this.shadowRoot!.append(...fragment)
+            this.htmlBuilt = true
             return this
         }
     }

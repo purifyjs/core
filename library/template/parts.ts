@@ -50,7 +50,7 @@ export function parseTemplateParts(arr: TemplateHtmlArray)
         attribute_name: '',
         attribute_value: ''
     }
-    console.log(arr)
+    
     for (let i = 0; i < arr.length; i++)
     {
         const part = arr[i]!
