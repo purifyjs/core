@@ -11,13 +11,15 @@ export class SignalDerived<T> extends Signal<T>
     protected dependencies: Set<Signal>
     protected derive: SignalDerive<T>
 
+    protected active: boolean = false
+
     constructor(derive: SignalDerive<T>, ...dependencies: Signal[])
     {
         super(null!)
         this.derive = derive
         this.dependencies = new Set(dependencies)
         this.dependencySubscriptions = []
-        this.activate()
+        console.log('%cnew derived signal', 'color:purple', this.id)
     }
 
     addDependency: SignalDependencyAdder = (dependency) =>
@@ -33,12 +35,19 @@ export class SignalDerived<T> extends Signal<T>
 
     activate()
     {
-        this.signal()
+        if (this.active === true) return
+        console.log('%cactivating', 'color:blue', this.id)
+
+        this.active = true
         this.dependencies.forEach(updater => this.dependencySubscriptions.push(updater.subscribe(async () => await this.signal())))
+        this.signal()
     }
     deactivate()
     {
-        if (!this.dependencySubscriptions.length) return
+        if (this.active === false) return
+        console.log('%cdeactivating', 'color:blue', this.id)
+
+        this.active = false
         this.dependencySubscriptions.forEach((subscription) => subscription.unsubscribe())
         this.dependencySubscriptions = []
     }
@@ -46,6 +55,7 @@ export class SignalDerived<T> extends Signal<T>
     async signal()
     {
         const value = this.derive(this.addDependency.bind(this))
+        console.log('%csignaling', 'color:orange', this.id, 'with', value, this.derive)
         if (value === this._value && typeof value !== 'object') return
         this._value = value
         await super.signal()

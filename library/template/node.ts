@@ -5,6 +5,14 @@ import { Signal } from "../signal/base"
 export function valueToNode(value: unknown): Node
 {
     if (value === null) return EMPTY_NODE
+
+    if (value instanceof Array)
+    {
+        const fragment = document.createDocumentFragment()
+        for (const item of value) fragment.append(valueToNode(item))
+        value = fragment
+    }
+
     if (value instanceof Node) return value
 
     if (value instanceof Signal)
@@ -34,13 +42,6 @@ export function valueToNode(value: unknown): Node
 
         }, { mode: 'immediate' })
 
-        return fragment
-    }
-
-    if (value instanceof Array)
-    {
-        const fragment = document.createDocumentFragment()
-        for (const item of value) fragment.append(valueToNode(item))
         return fragment
     }
 

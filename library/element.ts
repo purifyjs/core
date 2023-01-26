@@ -19,7 +19,7 @@ export function defineMasterElementCached(...[tagName]: Parameters<typeof define
         html<T extends unknown[]>(parts: TemplateStringsArray, ...values: T)
         {
             const fragment = CustomMasterElementCached.templateCache.html(parts, ...values)
-            this.shadowRoot!.append(fragment)
+            this.shadowRoot!.append(...fragment)
             return this
         }
     }
@@ -51,7 +51,7 @@ export abstract class MasterElement extends HTMLElement
     {
         this.clear()
         const fragment = html(parts, ...values)
-        this.shadowRoot!.append(fragment)
+        this.shadowRoot!.append(...fragment)
         return this
     }
 }

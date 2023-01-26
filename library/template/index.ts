@@ -22,7 +22,7 @@ export function createTemplateCache()
     }
 }
 
-export function template<T extends unknown[]>(parts: TemplateStringsArray, values: T, templateParts = parseTemplateParts(parts)): DocumentFragment
+export function template<T extends unknown[]>(parts: TemplateStringsArray, values: T, templateParts = parseTemplateParts(parts)): Node[]
 {
     const nodes: Node[] = []
     const outlets = {
@@ -63,8 +63,7 @@ export function template<T extends unknown[]>(parts: TemplateStringsArray, value
         }
         else if (state.type > TemplateStateType.ATTR_VALUE_START && state.type < TemplateStateType.ATTR_VALUE_END)
         {
-            const isSignal = value instanceof Signal
-            if (isSignal)
+            if (value instanceof Signal)
             {
                 html += state.type === TemplateStateType.AttributeValueUnquoted ? `"<$${value.id}>"` : `<$${value.id}>`
                 outlets.signals[value.id] = value
@@ -72,7 +71,7 @@ export function template<T extends unknown[]>(parts: TemplateStringsArray, value
             const refMap = outlets.attributes
             const attributeMap = refMap.get(state.tag_ref) ?? refMap.set(state.tag_ref, new Map()).get(state.tag_ref)!
             if (!attributeMap.has(state.attribute_name))
-                attributeMap.set(state.attribute_name, isSignal ? SIGNAL_TEXT : value)
+                attributeMap.set(state.attribute_name, state.type === TemplateStateType.AttributeValueUnquoted ? value : SIGNAL_TEXT)
 
             unexpected = false
         }
@@ -131,14 +130,12 @@ export function template<T extends unknown[]>(parts: TemplateStringsArray, value
             {
                 case 'class':
                     if (!key) throw new Error(`Invalid attribute name ${attributeName}`)
-                    if (value instanceof Function) value = injectOrGetMasterAPI(element).derive(value as SignalDerive<unknown>)
-                    if (value instanceof Signal) injectOrGetMasterAPI(element).subscribe(value, active => element.classList.toggle(key, !!active))
+                    if (value instanceof Signal) injectOrGetMasterAPI(element).subscribe(value, (active) => element.classList.toggle(key, !!active), { mode: 'immediate' })
                     else element.classList.toggle(key, !!value)
                     break
                 case 'style':
                     if (!key) throw new Error(`Invalid attribute name ${attributeName}`)
-                    if (value instanceof Function) value = injectOrGetMasterAPI(element).derive(value as SignalDerive<unknown>)
-                    if (value instanceof Signal) injectOrGetMasterAPI(element).subscribe(value, value => element.style.setProperty(key, value))
+                    if (value instanceof Signal) injectOrGetMasterAPI(element).subscribe(value, (value) => element.style.setProperty(key, `${value}`), { mode: 'immediate' })
                     else element.style.setProperty(key, `${value}`)
                     break
                 case 'ref':
@@ -161,5 +158,5 @@ export function template<T extends unknown[]>(parts: TemplateStringsArray, value
         }
     }
 
-    return template.content
+    return Array.from(template.content.childNodes)
 }
