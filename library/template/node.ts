@@ -23,17 +23,17 @@ export function valueToNode(value: unknown): Node
         const endComment = document.createComment(``)
         fragment.append(startComment, endComment)
 
-        const $ = injectOrGetMasterAPI(startComment)
+        const m = injectOrGetMasterAPI(startComment)
 
         let signal: Signal
-        if (value instanceof Function) signal = $.derive(value as SignalDerive<unknown>)
+        if (value instanceof Function) signal = m.deriveFromFunction(value as SignalDerive<unknown>)
         else signal = value
 
         startComment.nodeValue = `signal ${signal.id}`
         endComment.nodeValue = `/signal ${signal.id}`
 
         let updateId = 0
-        $.subscribe(signal, async (signalValue) => 
+        m.subscribe(signal, async (signalValue) => 
         {
             const currentUpdateId = ++updateId
             if (signalValue instanceof Promise) signalValue = await signalValue

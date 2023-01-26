@@ -10,11 +10,13 @@ export interface SignalSubscriptionOptions
 export class Signal<T = any>
 {
     public readonly id
-    private _listeners: SignalListener<T>[]
-    constructor(protected _value: T) 
-    { 
+    protected _value: T
+    protected _listeners: SignalListener<T>[]
+    constructor(value: T) 
+    {
         this.id = randomId()
         this._listeners = []
+        this._value = value
     }
 
     get() 

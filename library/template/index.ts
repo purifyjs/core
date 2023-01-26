@@ -123,8 +123,8 @@ export function template<S extends TemplateHtmlArray, T extends TemplateValueArr
                 const valueTemplate: (Signal | string)[] = attributeValue.split(/<\$([^>]+)>/g)
                     .map((value, index) => index % 2 === 0 ? value : outlets.signals[value]!).filter(value => value)
 
-                const $ = injectOrGetMasterAPI(element)
-                const signal = $.derive(() => valueTemplate.map((value) => value instanceof Signal ? value.value.toString() : value).join(''))
+                const m = injectOrGetMasterAPI(element)
+                const signal = m.derive(() => valueTemplate.map((value) => value instanceof Signal ? value.value.toString() : value).join(''))
                 value = signal
             }
 
@@ -134,13 +134,13 @@ export function template<S extends TemplateHtmlArray, T extends TemplateValueArr
             {
                 case 'class':
                     if (!key) throw new Error(`Invalid attribute name ${attributeName}`)
-                    if (value instanceof Function) value = injectOrGetMasterAPI(element).derive(value as SignalDerive<unknown>)
+                    if (value instanceof Function) value = injectOrGetMasterAPI(element).deriveFromFunction(value as SignalDerive<unknown>)
                     if (value instanceof Signal) injectOrGetMasterAPI(element).subscribe(value, (active) => element.classList.toggle(key, !!active), { mode: 'immediate' })
                     else element.classList.toggle(key, !!value)
                     break
                 case 'style':
                     if (!key) throw new Error(`Invalid attribute name ${attributeName}`)
-                    if (value instanceof Function) value = injectOrGetMasterAPI(element).derive(value as SignalDerive<unknown>)
+                    if (value instanceof Function) value = injectOrGetMasterAPI(element).deriveFromFunction(value as SignalDerive<unknown>)
                     if (value instanceof Signal) injectOrGetMasterAPI(element).subscribe(value, (value) => element.style.setProperty(key, `${value}`), { mode: 'immediate' })
                     else element.style.setProperty(key, `${value}`)
                     break
@@ -155,7 +155,7 @@ export function template<S extends TemplateHtmlArray, T extends TemplateValueArr
                     break
                 default:
                     if (!name) throw new Error(`Invalid attribute name ${attributeName}`)
-                    if (value instanceof Function) value = injectOrGetMasterAPI(element).derive(value as SignalDerive<unknown>)
+                    if (value instanceof Function) value = injectOrGetMasterAPI(element).deriveFromFunction(value as SignalDerive<unknown>)
                     if (value instanceof Signal) injectOrGetMasterAPI(element).subscribe(value, value => element.setAttribute(name, value))
                     else element.setAttribute(attributeName, `${value}`)
                     break
