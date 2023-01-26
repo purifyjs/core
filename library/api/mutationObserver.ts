@@ -25,7 +25,7 @@ Element.prototype.attachShadow = function (options: ShadowRootInit)
 
 function addedNode(node: NodeWithMasterAPI, place: NodePlace)
 {
-    if (place !== NodePlace.InDOM && getRootNode(node) !== document) return
+    if (place === NodePlace.Unknown && getRootNode(node) !== document) return
     node.$masterAPI?.emitMount()
     Array.from(node.childNodes).forEach((node) => addedNode(node, NodePlace.InDOM))
     if (node instanceof HTMLElement) Array.from(node.shadowRoot?.childNodes ?? []).forEach((node) => addedNode(node, NodePlace.InDOM))
