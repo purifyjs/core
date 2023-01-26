@@ -31,13 +31,13 @@ export abstract class MasterElement extends HTMLElement
 {
     public static readonly globalFragment = document.createDocumentFragment()
 
-    public readonly $: MasterAPI
+    public readonly m: MasterAPI
 
     constructor()
     {
         super()
         this.attachShadow({ mode: 'open' })
-        this.$ = new MasterAPI(this)
+        this.m = new MasterAPI(this)
         this.clear()
     }
 
