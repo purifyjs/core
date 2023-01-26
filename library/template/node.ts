@@ -1,6 +1,7 @@
 import { EMPTY_NODE } from "."
 import { injectOrGetMasterAPI } from "../api"
 import { Signal } from "../signal/base"
+import type { SignalDerive } from "../signal/derived"
 
 export function valueToNode(value: unknown): Node
 {
@@ -15,7 +16,7 @@ export function valueToNode(value: unknown): Node
 
     if (value instanceof Node) return value
 
-    if (value instanceof Signal)
+    if (value instanceof Signal || value instanceof Function)
     {
         const fragment = document.createDocumentFragment()
         const startComment = document.createComment(``)
@@ -24,11 +25,15 @@ export function valueToNode(value: unknown): Node
 
         const $ = injectOrGetMasterAPI(startComment)
 
-        startComment.nodeValue = `signal ${value.id}`
-        endComment.nodeValue = `/signal ${value.id}`
+        let signal: Signal
+        if (value instanceof Function) signal = $.derive(value as SignalDerive<unknown>)
+        else signal = value
+
+        startComment.nodeValue = `signal ${signal.id}`
+        endComment.nodeValue = `/signal ${signal.id}`
 
         let updateId = 0
-        $.subscribe(value, async (signalValue) => 
+        $.subscribe(signal, async (signalValue) => 
         {
             const currentUpdateId = ++updateId
             if (signalValue instanceof Promise) signalValue = await signalValue
