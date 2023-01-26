@@ -48,7 +48,9 @@ export class MasterAPI
 
     /**
      * Whether the node is mounted.
+     * 
      * This is set to true when the node is mounted and false when the node is unmounted.
+     * 
      * This is null when the node is never mounted.
     **/
     get mounted() { return this._mounted }
@@ -91,6 +93,7 @@ export class MasterAPI
 
     /**
      * Subscribes to a signal.
+     * 
      * Which is automatically unsubscribed when the node is unmounted and subscribed when the node is mounted again.
      * @param signal The signal to subscribe to.
      * @param callback The callback to call when the signal is signaled.
@@ -107,6 +110,7 @@ export class MasterAPI
 
     /**
      * Derives a signal from a function.
+     * 
      * Which is automatically activated and deactivated when the node is mounted and unmounted.
      * @param derive The function that derives the value of the signal.
      * @param dependencies The dependencies of the signal. When dependencies are signaled, derive is called again.
@@ -127,15 +131,18 @@ export class MasterAPI
     protected _deriveFromFunctionCache = new WeakMap<SignalDerive<any>, SignalDerived<any>>()
     /**
      * Same as derive, but specialized for functions.
+     * 
      * Derives a signal from a function.
+     * 
      * Cache is used to ensure that the same signal is returned for the same function.
+     * 
      * Used internally to convert functions in html to derived signals.
      * @param func The function that derives the value of the signal.
      * @returns The signal that is derived from the function.
      * @example
      * const double = m.deriveFromFunction(($) => $(foo).value * 2)
     **/
-    deriveFromFunction<T>(func: SignalDerive<T>)
+    deriveFromFunction<T>(func: SignalDerive<T>): SignalDerived<T>
     {
         if (this._deriveFromFunctionCache.has(func)) return this._deriveFromFunctionCache.get(func)!
         const computed = new SignalDerived(func)
@@ -147,6 +154,7 @@ export class MasterAPI
 
     /**
      * Derives a signal from a promise.
+     * 
      * When the promise is resolved, the signal is set to the resolved value.
      * @param then The promise to derive the signal from.
      * @param placeholder The value to set the signal to while the promise is pending.
@@ -163,6 +171,7 @@ export class MasterAPI
 
     /**
      * Same as setInterval, but automatically cleared when the node is unmounted and set again when the node is mounted again.
+     * 
      * If node is never mounted, the interval is never set.
      * @param callback The callback to call every interval.
      * @param interval The interval in milliseconds.
@@ -179,7 +188,9 @@ export class MasterAPI
 
     /**
      * Same as setTimeout, but automatically cleared when the node is unmounted.
+     * 
      * Sets a new timeout when the node is mounted again.
+     * 
      * If node is never mounted, the timeout is never set.
      * @param callback The callback to call after the timeout.
      * @param timeout The timeout in milliseconds.
