@@ -1,6 +1,11 @@
 import { Signal } from "./base"
 export interface SignalChanger<T> { (value: T): void }
 
+export function createSignal<T>(...params: ConstructorParameters<typeof SignalSettable<T>>)
+{
+    return new SignalSettable<T>(...params)
+}
+
 export class SignalSettable<T> extends Signal<T>
 {
     protected static readonly Empty = Symbol('empty')

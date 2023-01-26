@@ -32,19 +32,10 @@ export function valueToNode(value: unknown): Node
         startComment.nodeValue = `signal ${signal.id}`
         endComment.nodeValue = `/signal ${signal.id}`
 
-        let updateId = 0
-        m.subscribe(signal, async (signalValue) => 
+        m.subscribe(signal, (signalValue) => 
         {
-            const currentUpdateId = ++updateId
-            if (signalValue instanceof Promise) signalValue = await signalValue
-
-            // Signal might have been changed while we were waiting for previous value.
-            // If so, we kill this update.
-            if (currentUpdateId !== updateId) return
-
             while (startComment.nextSibling !== endComment) startComment.nextSibling!.remove()
             endComment.before(valueToNode(signalValue))
-
         }, { mode: 'immediate' })
 
         return fragment

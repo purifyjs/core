@@ -7,6 +7,11 @@ export interface SignalSubscriptionOptions
     mode: 'normal' | 'once' | 'immediate'
 }
 
+export function createStaticSignal<T>(...params: ConstructorParameters<typeof Signal<T>>)
+{
+    return new Signal<T>(...params)
+}
+
 export class Signal<T = any>
 {
     public readonly id

@@ -1,6 +1,7 @@
+import { createAwaitSignal } from "../signal/await"
 import type { Signal, SignalListener, SignalSubscription, SignalSubscriptionOptions } from "../signal/base"
-import { SignalDerive, SignalDerived } from "../signal/derived"
-import { SignalSettable } from "../signal/settable"
+import { createDerivedSignal, SignalDerive, SignalDerived } from "../signal/derived"
+import { createSignal } from "../signal/settable"
 import "./mutationObserver"
 
 export interface NodeWithMasterAPI extends Node
@@ -86,9 +87,9 @@ export class MasterAPI
      * @example
      * const fooSignal = m.signal(0)
     **/
-    signal<T>(...params: ConstructorParameters<typeof SignalSettable<T>>)
+    signal<T>(...params: Parameters<typeof createSignal<T>>)
     {
-        return new SignalSettable(...params)
+        return createSignal(...params)
     }
 
     /**
@@ -120,10 +121,9 @@ export class MasterAPI
      * @example
      * const double = m.derive(() => foo.value * 2, [foo])
     **/
-    derive<T>(...params: ConstructorParameters<typeof SignalDerived<T>>)
+    derive<T>(...params: Parameters<typeof createDerivedSignal<T>>)
     {
-        const computed = new SignalDerived(...params)
-        computed.deactivate()
+        const computed = createDerivedSignal(...params)
         this.onMount(() => computed.activate())
         this.onUnmount(() => computed.deactivate())
         return computed
@@ -161,11 +161,9 @@ export class MasterAPI
      * @example
      * const signal = m.await(AsyncFooComponent(), 'loading') 
     **/
-    await<T, P>(then: Promise<T>, placeholder: P)
+    await<T, P, E>(...params: Parameters<typeof createAwaitSignal<T, P, E>>)
     {
-        const signal = new SignalSettable<T | P>(placeholder)
-        then.then(value => signal.set(value))
-        return signal
+        return createAwaitSignal(...params)
     }
 
     /**
@@ -191,6 +189,10 @@ export class MasterAPI
      * Sets a new timeout when the node is mounted again.
      * 
      * If node is never mounted, the timeout is never set.
+     * 
+     * **BEAWARE: Once this function is called, callback will be called on every mount.**
+     * 
+     * **So it's ideal to run this only once**
      * @param callback The callback to call after the timeout.
      * @param timeout The timeout in milliseconds.
      * @returns The timeout id.

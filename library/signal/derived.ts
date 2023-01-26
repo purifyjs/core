@@ -5,6 +5,12 @@ export interface SignalDependencyAdder
     <T extends Signal>(signal: T): T
 }
 export interface SignalDerive<T> { (addDependency: SignalDependencyAdder): T }
+
+export function createDerivedSignal<T>(...params: ConstructorParameters<typeof SignalDerived<T>>)
+{
+    return new SignalDerived<T>(...params)
+}
+
 export class SignalDerived<T> extends Signal<T>
 {
     protected dependencySubscriptions: SignalSubscription[]
@@ -19,7 +25,6 @@ export class SignalDerived<T> extends Signal<T>
         this.derive = derive
         this.dependencies = new Set(dependencies)
         this.dependencySubscriptions = []
-        this.activate()
         console.log('%cnew derived signal', 'color:purple', this.id)
     }
 
@@ -53,12 +58,9 @@ export class SignalDerived<T> extends Signal<T>
         this.dependencySubscriptions = []
     }
 
-    protected version = 0
     async signal()
     {
-        const versionCache = ++this.version
-        const value = await this.derive(this.addDependency.bind(this))
-        if (versionCache !== this.version) return
+        const value = this.derive(this.addDependency.bind(this))
         if (value === this._value && typeof value !== 'object') return
         this._value = value
 
