@@ -5,12 +5,55 @@ import { SignalSettable } from "../signal/settable"
 import { valueToNode } from "./node"
 import { parseTemplateParts, TemplatePart, TemplateStateType } from "./parts"
 
-export type TemplateValue = string | number | boolean | null | undefined | Node | Signal<any> | SignalDerive<any> | EventListener | TemplateValue[]
+type Join<T extends string[]> = T extends [infer A, ...infer B] ? A extends string ? B extends string[] ? B[0] extends string ? `${A} ${Join<B>}`: A : A : '' : ''
+type ReadonlyArrayToLiteral<T extends readonly any[]> = T extends readonly [...infer B, infer U] ? U extends any ? B extends readonly any[] ? [...ReadonlyArrayToLiteral<B>, U] : [U] : [] : []
+type Split<T extends string, D extends string> = T extends '' ? [] : T extends `${infer A}${D}${infer B}` ? [A, ...Split<B, D>] : [T]
+
+
+export type TemplateValue = string | number | boolean | null | undefined | Node | Signal<any> | SignalDerive<any> | TemplateValue[]
+export type TemplateHtmlArray = readonly string[]
+
+type Letters = '-' | 'a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'g' | 'h' | 'i' | 'j' | 'k' | 'l' | 'm' | 'n' | 'o' | 'p' | 'q' | 'r' | 's' | 't' | 'u' | 'v' | 'w' | 'x' | 'y' | 'z' | 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G' | 'H' | 'I' | 'J' | 'K' | 'L' | 'M' | 'N' | 'O' | 'P' | 'Q' | 'R' | 'S' | 'T' | 'U' | 'V' | 'W' | 'X' | 'Y' | 'Z'
+type Digits = '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9'
+type Alphanumeric = Letters | Digits
+type Unicode = Alphanumeric | ' ' | '!' | '"' | '#' | '$' | '%' | '&' | "'" | '(' | ')' | '*' | '+' | ',' | '-' | '.' | '/' | ':' | ';' | '<' | '=' | '>' | '?' | '@' | '[' | '\\' | ']' | '^' | '_' | '`' | '{' | '|' | '}' | '~'
+
+type ExpectedValueFromHtml<S extends string> = 
+    Split<S, ''> extends ['<', ...Chars[], 'o', 'n', ':', ...Alphanumeric, '=']
+    ? EventListener : 
+    Split<S, ''> extends ['<', ...Chars, ...Alphanumeric, ':', ...Alphanumeric, '=']
+    ? Signal<any> | SignalDerive<any> : 
+    TemplateValue
+
+export type TemplateValueArrayFromHtmlArray<T extends readonly string[]> =
+    string[] extends T
+    ? (TemplateValue | Function)[]
+    : ReadonlyArrayToLiteral<T> extends [...infer B, infer U]
+        ? U extends string
+            ? B extends string[]
+                ? [...TemplateValueArrayFromHtmlArray<B>, ExpectedValueFromHtml<Join<[...B, U]>> | void]
+                : [ExpectedValueFromHtml<U>]
+            : []
+        : []
+
 
 export const EMPTY_NODE = document.createDocumentFragment()
 const SIGNAL_TEXT = Symbol('signal_text')
 
-export function html<T extends TemplateValue[]>(parts: TemplateStringsArray, ...values: T)
+export function html2<S extends TemplateHtmlArray, T extends TemplateValueArrayFromHtmlArray<S>>(parts: S, ...values: T)
+{
+    return { parts, values }
+}
+
+const c = ['<', 'd', 'i', 'v', ' ', 'o', 'n', ':', 'c', 'l', 'i', 'c', 'k', '='] satisfies [
+    '<', ...Unicode[], ' ', 'o', 'n', ':', ...Alphanumeric[], '=']
+
+const d = '<div on:click=' satisfies `<${string} on:${string}=`
+
+const test = html2(['<div on:click=', ' classtoggle=', '>', '</div>'] as const)
+type Test = typeof test
+
+export function html<S extends TemplateHtmlArray, T extends TemplateValueArrayFromHtmlArray<S>>(parts: S, ...values: T)
 {
     return template(parts, values)
 }
@@ -19,11 +62,11 @@ export function createTemplateCache()
 {
     let cache: TemplatePart[] | null = null
     return {
-        html: <T extends unknown[]>(parts: TemplateStringsArray, ...values: T) => template(parts, values, cache ?? (cache = parseTemplateParts(parts)))
-    }
+        html: (parts, ...values) => template(parts, values, cache ?? (cache = parseTemplateParts(parts)))
+    } satisfies { html: typeof html }
 }
 
-export function template<T extends unknown[]>(parts: TemplateStringsArray, values: T, templateParts = parseTemplateParts(parts)): Node[]
+export function template<S extends TemplateHtmlArray, T extends TemplateValueArrayFromHtmlArray<S>>(parts: S, values: T, templateParts = parseTemplateParts(parts)): Node[]
 {
     const nodes: Node[] = []
     const outlets = {
@@ -35,7 +78,7 @@ export function template<T extends unknown[]>(parts: TemplateStringsArray, value
     for (let i = 0; i < templateParts.length; i++)
     {
         const { html: partHtml, state } = templateParts[i]!
-        const value = values[i]
+        const value: any = values[i]
 
         html += partHtml
 

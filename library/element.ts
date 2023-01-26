@@ -1,5 +1,5 @@
 import { MasterAPI } from "./api"
-import { createTemplateCache, html, TemplateValue } from "./template"
+import { createTemplateCache, html, TemplateHtmlArray, TemplateValueArrayFromHtmlArray } from "./template"
 
 export function defineMasterElement(tagName: string)
 {
@@ -16,8 +16,9 @@ export function defineMasterElementCached(...[tagName]: Parameters<typeof define
     {
         private static readonly templateCache = createTemplateCache()
 
-        html<T extends TemplateValue[]>(parts: TemplateStringsArray, ...values: T)
+        html<S extends TemplateHtmlArray, T extends TemplateValueArrayFromHtmlArray<S>>(parts: S, ...values: T)
         {
+            this.clear()
             const fragment = CustomMasterElementCached.templateCache.html(parts, ...values)
             this.shadowRoot!.append(...fragment)
             return this
@@ -47,7 +48,7 @@ export abstract class MasterElement extends HTMLElement
         this.shadowRoot!.append(MasterElement.globalFragment.cloneNode(true))
     }
 
-    html<T extends TemplateValue[]>(parts: TemplateStringsArray, ...values: T): InstanceType<typeof MasterElement>
+    html<S extends TemplateHtmlArray, T extends TemplateValueArrayFromHtmlArray<S>>(parts: S, ...values: T)
     {
         this.clear()
         const fragment = html(parts, ...values)
