@@ -50,15 +50,25 @@ export function parseTemplateParts(arr: TemplateHtmlArray)
         attribute_name: '',
         attribute_value: ''
     }
-    
+
     for (let i = 0; i < arr.length; i++)
     {
         const part = arr[i]!
         let html = ''
 
-        for (const char of part)
+        for (let i = 0; i < part.length; i++)
         {
-            html = processChar(char, html, state)
+            const char = part[i]!
+            try
+            {
+                html = processChar(char, html, state)
+            }
+            catch (e)
+            {
+                const errorHtml = '\n' + `${templateParts.map((part) => part.html).join('')}${html}{{{${char}}}}${part.slice(i + 1)}`.trim() + '\n'
+                if (e instanceof Error) throw new Error(`Parsing error:${e.message}\nAt:\n${errorHtml}`)
+                throw new Error(`Unknown parsing error\nAt:\n${errorHtml}`)
+            }
         }
 
         templateParts.push({
@@ -82,7 +92,7 @@ function processChar(char: string, html: string, state: TemplateState)
                 state.attribute_name = ''
                 state.attribute_value = ''
             }
-            else if (/w/.test(html[html.length - 1]!) && /w/.test(char)) return html
+            else if (/\s/.test(html[html.length - 1]!) && /\s/.test(char)) return html
             break
         case TemplateStateType.TagName:
             if (state.tag === '' && char === '/')
@@ -95,7 +105,7 @@ function processChar(char: string, html: string, state: TemplateState)
                 state.type = TemplateStateType.Outer
                 /* html += ` :ref="${ref}"` */
             }
-            else if (char === ' ')
+            else if (/\s/.test(char))
             {
                 state.type = TemplateStateType.TagInner
                 html += ` :ref="${state.tag_ref}"`
@@ -104,7 +114,7 @@ function processChar(char: string, html: string, state: TemplateState)
             break
         case TemplateStateType.TagInner:
             if (char === '>') state.type = TemplateStateType.Outer
-            else if (char === ' ') state.type = TemplateStateType.TagInner
+            else if (/\s/.test(char)) state.type = TemplateStateType.TagInner
             else
             {
                 state.type = TemplateStateType.AttributeName
@@ -121,7 +131,7 @@ function processChar(char: string, html: string, state: TemplateState)
             break
         case TemplateStateType.AttributeName:
             if (char === '>') state.type = TemplateStateType.Outer
-            else if (char === ' ') state.type = TemplateStateType.TagInner
+            else if (/\s/.test(char)) state.type = TemplateStateType.TagInner
             else if (char === '=')
             {
                 state.type = TemplateStateType.AttributeValueUnquoted
@@ -131,7 +141,7 @@ function processChar(char: string, html: string, state: TemplateState)
             break
         case TemplateStateType.AttributeValueUnquoted:
             if (char === '>') state.type = TemplateStateType.Outer
-            else if (char === ' ') state.type = TemplateStateType.TagInner
+            else if (/\s/.test(char)) state.type = TemplateStateType.TagInner
             else if (char === '"')
             {
                 state.type = TemplateStateType.AttributeValueDoubleQuoted
@@ -142,7 +152,11 @@ function processChar(char: string, html: string, state: TemplateState)
                 state.type = TemplateStateType.AttributeValueSingleQuoted
                 state.attribute_value = ''
             }
-            else state.attribute_value += char
+            else 
+            {
+                throw new Error(`Unexpected character '${char}' in attribute value`)
+                // state.attribute_value += char Not needed, causes complexity in parsing. Might be fixed later.
+            }
             break
         case TemplateStateType.AttributeValueSingleQuoted:
             if (char === "'") state.type = TemplateStateType.TagInner

@@ -37,16 +37,16 @@ export function template<S extends TemplateHtmlArray, T extends TemplateValueArr
     let html = ''
     for (let i = 0; i < templateParts.length; i++)
     {
-        const { html: partHtml, state } = templateParts[i]!
+        const part = templateParts[i]!
         const value: any = values[i]
 
-        html += partHtml
+        html += part.html
 
         if (values.length === 0 || i >= values.length) continue
 
         let unexpected = true
 
-        if (state.type === TemplateStateType.Outer)
+        if (part.state.type === TemplateStateType.Outer)
         {
             const node = valueToNode(value)
             if (node) 
@@ -55,27 +55,31 @@ export function template<S extends TemplateHtmlArray, T extends TemplateValueArr
                 unexpected = false
             }
         }
-        else if (state.type === TemplateStateType.TagInner && state.tag === 'x' && !state.attribute_name && value instanceof HTMLElement)
+        else if (part.state.type === TemplateStateType.TagInner && part.state.tag === 'x' && !part.state.attribute_name && value instanceof HTMLElement)
         {
             const node = valueToNode(value)
             if (node)
             {
-                state.attribute_name = ':outlet'
+                part.state.attribute_name = ':outlet'
                 html += `:outlet="${nodes.push(node) - 1}"`
                 unexpected = false
             }
         }
-        else if (state.type > TemplateStateType.ATTR_VALUE_START && state.type < TemplateStateType.ATTR_VALUE_END)
+        else if (part.state.type > TemplateStateType.ATTR_VALUE_START && part.state.type < TemplateStateType.ATTR_VALUE_END)
         {
             if (value instanceof Signal)
             {
-                html += state.type === TemplateStateType.AttributeValueUnquoted ? `"<$${value.id}>"` : `<$${value.id}>`
+                html += part.state.type === TemplateStateType.AttributeValueUnquoted ? `"<$${value.id}>"` : `<$${value.id}>`
                 outlets.signals[value.id] = value
             }
+            else
+            {
+                html += part.state.type === TemplateStateType.AttributeValueUnquoted ? `""` : ``
+            }
             const refMap = outlets.attributes
-            const attributeMap = refMap.get(state.tag_ref) ?? refMap.set(state.tag_ref, new Map()).get(state.tag_ref)!
-            if (!attributeMap.has(state.attribute_name))
-                attributeMap.set(state.attribute_name, state.type === TemplateStateType.AttributeValueUnquoted ? value : SIGNAL_TEXT)
+            const attributeMap = refMap.get(part.state.tag_ref) ?? refMap.set(part.state.tag_ref, new Map()).get(part.state.tag_ref)!
+            if (!attributeMap.has(part.state.attribute_name))
+                attributeMap.set(part.state.attribute_name, part.state.type === TemplateStateType.AttributeValueUnquoted ? value : SIGNAL_TEXT)
 
             unexpected = false
         }
@@ -128,9 +132,11 @@ export function template<S extends TemplateHtmlArray, T extends TemplateValueArr
                 value = signal
             }
 
-            const [name, key] = attributeName.split(':')
+            const splitedAttributeName = attributeName.split(':') as [string] | [string, string]
+            const type: string | null = splitedAttributeName.length === 2 ? splitedAttributeName[0] : null
+            const key: string = splitedAttributeName.length === 2 ? splitedAttributeName[1] : splitedAttributeName[0]
 
-            switch (name)
+            switch (type)
             {
                 case 'class':
                     if (!key) throw new Error(`Invalid attribute name ${attributeName}`)
@@ -154,13 +160,12 @@ export function template<S extends TemplateHtmlArray, T extends TemplateValueArr
                     element.addEventListener(key, value as EventListener)
                     break
                 default:
-                    if (!name) throw new Error(`Invalid attribute name ${attributeName}`)
                     if (value instanceof Function) value = injectOrGetMasterAPI(element).deriveFromFunction(value as SignalDerive<unknown>)
-                    if (value instanceof Signal) injectOrGetMasterAPI(element).subscribe(value, value => element.setAttribute(name, value))
+                    if (value instanceof Signal) injectOrGetMasterAPI(element).subscribe(value, (value) => element.setAttribute(key, value), { mode: 'immediate' })
                     else element.setAttribute(attributeName, `${value}`)
                     break
             }
-            if (key) element.removeAttribute(attributeName)
+            // if (type) element.removeAttribute(attributeName) Gonna keep it for now for debugging
         }
     }
 
