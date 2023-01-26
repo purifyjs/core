@@ -152,14 +152,14 @@ export class MasterAPI
     }
 
     /**
-     * Derives a signal from a promise.
-     * 
-     * When the promise is resolved, the signal is set to the resolved value.
-     * @param then The promise to derive the signal from.
-     * @param placeholder The value to set the signal to while the promise is pending.
-     * @returns The signal that is derived from the promise.
-     * @example
-     * const signal = m.await(AsyncFooComponent(), 'loading') 
+      * Derives a signal from a promise.
+      * 
+      * When the promise is resolved, the signal is set to the resolved value.
+      * @param then The promise to derive the signal from.
+      * @param placeholder The value to set the signal to while the promise is pending.
+      * @returns The signal that is derived from the promise.
+      * @example
+      * const signal = m.await(AsyncFooComponent(), 'loading') 
     **/
     await<T, P, E>(...params: Parameters<typeof createAwaitSignal<T, P, E>>)
     {
