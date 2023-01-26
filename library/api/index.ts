@@ -123,6 +123,7 @@ export class MasterAPI
     derive<T>(...params: ConstructorParameters<typeof SignalDerived<T>>)
     {
         const computed = new SignalDerived(...params)
+        computed.deactivate()
         this.onMount(() => computed.activate())
         this.onUnmount(() => computed.deactivate())
         return computed
@@ -145,9 +146,7 @@ export class MasterAPI
     deriveFromFunction<T>(func: SignalDerive<T>): SignalDerived<T>
     {
         if (this._deriveFromFunctionCache.has(func)) return this._deriveFromFunctionCache.get(func)!
-        const computed = new SignalDerived(func)
-        this.onMount(() => computed.activate())
-        this.onUnmount(() => computed.deactivate())
+        const computed = this.derive(func)
         this._deriveFromFunctionCache.set(func, computed)
         return computed
     }
@@ -164,7 +163,7 @@ export class MasterAPI
     **/
     await<T, P>(then: Promise<T>, placeholder: P)
     {
-        const signal = this.signal<T | P>(placeholder)
+        const signal = new SignalSettable<T | P>(placeholder)
         then.then(value => signal.set(value))
         return signal
     }
