@@ -11,7 +11,7 @@ export function valueToNode(value: unknown): Node
     {
         const fragment = document.createDocumentFragment()
         for (const item of value) fragment.append(valueToNode(item))
-        value = fragment
+        return fragment
     }
 
     if (value instanceof Node) return value

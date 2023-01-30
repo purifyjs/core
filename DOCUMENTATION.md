@@ -1,396 +1,443 @@
-# WORK IN PROGRESS - NOT FINISHED
-This is not the best documentaion ever, might rewrite it.
-I'm not good at this, and its not even finished yet.
-
 # Table of Contents
-- [Signals](#signals)
-- [HTML Elements and Nodes](#html-elements-and-nodes)
+- [Quick Start](#quick-start)
+  * [Counter](#counter)
+  * [Todo](#todo)
+- [Documentation](#documentation)
+  * [Signals](#signals)
+    + [Static Signal](#static-signal)
+      - [Creating Static Signals](#creating-static-signals)
+      - [Signal Methods](#signal-methods)
+        * [Signal Subscription](#signal-subscription)
+          + [Signaling a Signal](#signaling-a-signal)
+        * [Getting the Value of a Signal](#getting-the-value-of-a-signal)
+    + [Settable Signal](#settable-signal)
+      - [Creating Settable Signals](#creating-settable-signals)
+      - [Settable Signal Methods](#settable-signal-methods)
+        * [Setting the Value of a Signal](#setting-the-value-of-a-signal)
+    + [Derived Signal](#derived-signal)
+      - [Creating Derived Signals](#creating-derived-signals)
+      - [Derived Signal Methods](#derived-signal-methods)
+        * [Activating/Deactivating Derived Signals](#activating-deactivating-derived-signals)
+    + [Await Signal](#await-signal)
+      - [Creating Await Signals](#creating-await-signals)
+    + [Each Signal](#each-signal)
+  * [MasterAPI](#masterapi)
+    + [Creating MasterAPI](#creating-masterapi)
+    + [Mount/Unmount](#mount-unmount)
+    + [Signals in MasterAPI](#signals-in-masterapi)
+      - ["Settable" Signal in MasterAPI](#settable-signal-in-masterapi)
+      - ["Derived" Signal in MasterAPI](#derived-signal-in-masterapi)
+      - ["Await" Signal in MasterAPI](#await-signal-in-masterapi)
+      - ["Each" Signal in MasterAPI](#each-signal-in-masterapi)
+    + [Signal Subscription in MasterAPI](#signal-subscription-in-masterapi)
+    + [Timeout and Interval in MasterAPI](#timeout-and-interval-in-masterapi)
+      - [Timeout in MasterAPI](#timeout-in-masterapi)
+      - [Interval in MasterAPI](#interval-in-masterapi)
+  * [Templates and Fragments](#templates-and-fragments)
+    + [Template Syntax](#template-syntax)
+      - [Element directives](#element-directives)
+        * [on:](#on)
+        * [class:](#class)
+        * [style:](#style)
+        * [ref:](#ref)
+      - [Accepted template values](#accepted-template-values)
+  * [Components](#components)
+    + [Creating Components](#creating-components)
+    + [Props](#props)
+    + [Slots](#slots)
+    + [Attributes and Props](#attributes-and-props)
+    + [Global Style](#global-style)
+- [Advanced Tips](#advanced-tips)
+  * [Binding props](#binding-props)
+  * [Advanced Signal Usage](#advanced-signal-usage)
+  * [Caching Templates](#caching-templates)
+    + [Caching Fragments](#caching-fragments)
+    + [Caching Components](#caching-components)
 
-# Signals
-Signals are corner stone of the Master.ts. Signals are a way to create reactive data.<br/>
-Different from other reactive libraries or frameworks, Master.ts does not require you to create a `signal` in a reactive context. You can create a signal anywhere in the code and use it anywhere in the code.
+# Quick Start
+Quick start guide for using Master.ts using the best recommended practices.
+## Counter
+Counters are a great way to get started with Master.ts. They are simple enough to be easy to understand.
 
-In Master.ts, there are 3 types of signals:
-- [Static signals](#static-signals)
-- [Settable signals](#settable-signals)
-- [Derived signals](#derived-signals)
-
-## Static signals
-Static signals are the base of all signals. They are a way to create reactive data that cannot be changed.<br/>
-Unlike other reactive libraries or frameworks, signals here doesn't require a value change in order to trigger subscribers.<br/>
-So you can trigger subscribers by calling `signal` method any time you want.
-
+*couter.ts*
 ```ts
-const signal = new Signal<number>(0); // 0 is the initial value
-const signal = createStaticSignal<number>(0) // same as above
+import { defineMasterElementCached } from "master-ts/library/element"
+import type { SignalSettable } from "master-ts/library/signal/settable"
 
-signal.get(); // returns 0
+const Element = defineMasterElementCached()
+export function Counter(count: SignalSettable<number>)
+{
+    const element = Element()
+    const { m } = element
 
-const subscribtion = signal.subscribe((value) => {
-    console.log(value); // will print 0
-});
-
-signal.signal(); // trigger subscribers
-subscription.unsubscribe(); // unsubscribe from the signal to prevent memory leaks
-```
-### Signal method
-`signal()` method is a way to trigger subscribers. It is useful when you want to trigger subscribers without changing the value of the signal.<br/>
-`signal()` is also an async function, so you can use `await` keyword to wait for subscribers to finish.<br/>
-**Important** to note here is that you don't have to await `signal()` method. If you don't await it, it will only wait for sync subscribers to finish and then continue execution. If you await it, it will wait for all subscribers to finish including async ones.
-```ts
-signal.subscribe(async (value) => {
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    console.log("async"); // will print 0 after 1 second
-});
-signal.subscribe((value) => {
-    console.log("sync"); // will print 0 immediately
-});
-
-signal.signal(); // will print "sync" and continue execution
-await signal.signal(); // will print "sync" and "async" after 1 second then continue execution
-```
-
-### Subscribtion mode
-There are 3 modes:
-- `immediate`: Subscriber will be triggered immediately when it is added to the signal.
-- `once`: Subscriber will be triggered only once then it will be removed from the signal.
-- `normal`: Subscriber will be triggered only when the signal is triggered.
-
-```ts
-signal.subscribe((value) => {
-    console.log(value);
-}, { mode: 'immediate' });
-```
-
-## Settable signals
-Settable signals are equivalent of what you know as reactive value in other frameworks or libraries.<br/> 
-They are a way to create reactive data that can be changed.
-
-```ts
-const signal = new SignalSettable<number>(0); // 0 is the initial value
-const signal = createSignal<number>(0) // same as above
-
-signal.set(1); // set the value to 1
-signal.set(2); // set the value to 2
-
-signal.get(); // returns 2
-
-signal.value++; // value is now 3
-signal.value; // returns 3
-
-signal.update((value) => value + 1); // value is now 4
-```
-As you can see, there are two ways to get and set the value of the signal. The first one is using `get`, `set` and `update` methods. The second one is using `value` property. There is no difference between them. They are just different ways to do the same thing.<br/>
-Using `value` property is more convenient.
-
-But this has one caveat. Since `set()` and `update()` methods are calling `signal()` method after changing the value, they are an async function.<br/> 
-So you can use `await` keyword to wait for async subscribers to finish. But you can't do that with `value` property. <br/>
-So if you want to wait for async subscribers to finish, you have to use `set()` or `update()` methods. See [Signal method](#signal-method) for more information.
-
-## Derived signals
-Derived signals are a way to create reactive data that is derived from other signals.<br/>
-Derived signal gets other signals as dependencies. When any of the dependencies changes, the derived signal will be triggered.<br/>
-
-```ts
-const signal1 = createSignal<number>(1);
-const signal2 = createSignal<number>(2);
-
-const derivedSignal = new SignalDerived<number>(() => `${signal1.value} and ${signal2.value}`, [signal1, signal2]); // addition of signal1 and signal2
-const derivedSignal = createDerivedSignal<number>(() => `${signal1.value} and ${signal2.value}`, [signal1, signal2]); // same as above
-const derivedSignal = createDerivedSignal<number>(($) => `${$(signal1)} and ${$(signal2)}`); // same as above
-
-derivedSignal.get(); // returns "1 and 2"
-derivedSignal.subscribe((value) => {
-    console.log(value); // will print "1 and 2" then "3 and 2"
-}, { mode: 'immediate' });
-
-signal1.value = 3; // derivedSignal will be triggered
-```
-You can see there are two ways to add dependencies to derived signal. You can either pass them as an array to the constructor or you can use `$(signal)` function inside the callback function.<br/>
-With both ways, you can have control over what dependencies you want to add to the derived signal.<br/>
-The second way is more convenient and recommended.
-
-### Activating/deactivating derived signals
-You can active or deactivate derived signals.<br/>
-When a derived signal is deactivated, it will unsubscribe from all its dependencies.<br/>
-When a derived signal is activated, it will subscribe to all its dependencies.<br/>
-This is useful when you want to temporarily stop a derived signal from being triggered.<br/>
-Don't forget deactive a derived signal when you don't need it anymore to prevent memory leaks.<br/>
-By default, derived signals are activated.
-
-```ts
-someDerivedSignal.deactivate();
-someDerivedSignal.activate();
-```
-
-# Html Elements and Nodes
-Unlike many other frameworks or libraries, in Master.ts every UI part is either an element or a node.<br/>
-Meaning that there is no difference between a div element or a custom element(component).<br/>
-
-In Master.ts, there are 2 ways to create html:
-- [Fragments without a root element](#fragments)
-- [And Custom Elements aka Components](#custom-elements)
-
-## Custom Elements
-Custom Elements are based Web Components and Shadow DOM.<br/>
-
-Creating a custom element:
-```ts
-const Element = defineMasterElement()
-function myElement() {
-    const element = Element();
-    
     return element.html`
-        <div>hello</div>
+        <button part="button" on:click=${($) => $(count).value-}>-</button>
+        <span><slot/> ${count}</span>
+        <button part="button" on:click=${($) => $(count).value++}>+</button>
+    `
+}
+```
+
+*app.ts* 
+```ts
+const Element = defineMasterElementCached()
+export function App()
+{
+    const element = Element()
+    const { m } = element
+    const count = m.signal(0)
+    const isOdd = m.derive(($) => $(count).value % 2 === 0 ? false : true)
+
+    return element.html`
+        <x ${Counter(count)} class="my-counter">
+            Counter:
+        </x>
+
+        <div class:is-odd=${isOdd}>
+            Number is ${($) => $(isOdd).value ? 'odd' : 'even'}
+        </div>
+
+        <div>Double is ${($) => $(count).value * 2}</div>
+
         <style>
-            div {
+            .my-counter::part(button) {
+                background: red;
+            }
+
+            .is-odd {
                 color: red;
             }
         </style>
-    `;
+    `
 }
-```
-Here we first define a custom element using `defineMasterElement` method.<br/>
-Inside the function, we create an instance of the custom element using `Element` method.<br/>
-Then we use `html` method to create html for the element.<br/>
-and finally we return the element.
 
-Since all custom elements are based on Shadow DOM, styles are scoped to the element.<br/>
-So you don't have to worry about styles conflicting with other elements.<br/>
-
-### Event listeners
-You can add event listeners to elements.<br/>
-```ts
-const Element = defineMasterElement()
-function myElement() {
-    const element = Element();
-    
-    return element.html`
-        <div on:click=${() => alert('clicked')}>hello</div>
-    `;
-}
+document.body.appendChild(App())
 ```
 
-### Mount and unmount
-You can use `onMount` and `onUnmount` methods to run code when the element is mounted and unmounted.<br/>
-Don't forget that a node or element can be mounted and unmounted multiple times.<br/>
-Mounting means that the node or element is in the DOM.<br/>
-Unmounting means that the node or element is not in the DOM.<br/>
-```ts
-const Element = defineMasterElement()
-function myElement() {
-    const element = Element();
-    const { m } = element // MasterApi for managing the node, element
-    
-    m.onMount(() => {
-        console.log('mounted');
-    });
-    
-    m.onUnmount(() => {
-        console.log('unmounted');
-    });
-    
-    return element.html`
-        <div>hello</div>
-    `;
-}
-```
 
-### Using signals in elements
-You can use signals in elements.<br/>
-```ts
-const Element = defineMasterElement()
-function myElement() {
-    const element = Element();
-    const counter = createSignal<number>(0);
-    
-    return element.html`
-        <div>hello ${counter}</div>
-    `;
-}
-```
-In the example above, whenever the value of in `counter` signal changes, that exact part of the html will be updated.<br/>
-This is because the value of `counter` signal is a reactive data.<br/>
-The html template there will automatically subscribe and unsubscribe to the signal.<br/>
+## Todo
+Todo is another great way to get started with Master.ts. It is easy to understand, but complex enough to show off some of the more advanced features of Master.ts.
 
-But, what if we wanna create a derived signal?<br/>
-First thing that comes to mind is doing something like this:
+*todo.ts*
 ```ts
-const Element = defineMasterElement()
-function myElement() {
-    const element = Element();
-    const { m } = element; // MasterApi for managing the node, element
-    const counter = createSignal<number>(0);
-    const derivedCounter = createDerivedSignal<number>(() => counter.value * 2);
+import { defineMasterElementCached } from "master-ts/library/element"
+import { html } from "master-ts/library/template"
 
-    m.onMount(() => derivedCounter.activate());
-    m.onUnmount(() => derivedCounter.deactivate());
+const Element = defineMasterElementCached()
+export function Todo()
+{
+    const element = Element()
+    const { m } = element
+    const todos = m.signal(['Buy milk', 'Buy eggs'])
+    const newTodo = m.signal('')
+
+    function addTodo(todo: string)
+    {
+        todos.change((todos) => todos.push(todo))
+    }
+
+    function removeTodoAt(index: number)
+    {
+        todos.change((todos) => todos.splice(index, 1))
+    }
 
     return element.html`
-        <div>hello ${derivedCounter}</div>
-    `;
+        <div>
+            <input type="text" value=${newTodo} on:input=${(event: InputEvent)=> newTodo.value = (event.target as
+            HTMLInputElement).value} />
+            <button on:click=${()=> addTodo(newTodo.value)}>Add</button>
+        </div>
+        <ul>
+            ${($) => $(todos).value.map((todo, index) => html`
+            <li>
+                ${todo}
+                <button on:click=${()=> removeTodoAt(index)}>Remove</button>
+            </li>
+            `)}
+        </ul>
+    `
 }
 ```
-While this works and is a valid solution, it's not the best solution.<br/>
-The problem with this solution is that we have to manually activate and deactivate the derived signal.<br/>
-This is not a big deal in this example, but in a real world application, you will have a lot of derived signals and you will have to manually activate and deactivate them.<br/>
-This is where `m.derived` method comes in.<br/>
-Remember that `m` is an instance of `MasterApi` and it has a lot more methods than just `onMount` and `onUnmount`.<br/>
-`m.derived` method is a shortcut for creating derived signals and automatically activating and deactivating them.<br/>
+
+*app.ts*
 ```ts
-const Element = defineMasterElement()
-function myElement() {
-    const element = Element();
-    const { m } = element; // MasterApi for managing the node, element
-    const counter = m.signal<number>(0); // yes, you can use m.signal instead of createSignal
-    const derivedCounter = m.derived(() => counter.value * 2); // automatically activated and deactivated
+const Element = defineMasterElementCached()
+export function App()
+{
+    const element = Element()
+    const { m } = element
 
     return element.html`
-        <div>hello ${derivedCounter}</div>
-    `;
+        <x ${Todo()} class="my-todo" />
+    `
 }
+
+document.body.appendChild(App())
 ```
 
+
+# Documentation
+
+## Signals
+Signals are the core of Master.ts. They are used to store data and to update the DOM when the data changes.<br/>
+Master.ts does not use the concept of a "state". Instead, Master.ts uses signals to store reactive data. This allows for more flexibility and control over the data.<br/>
+There are three types of signals:
+- [Static Signal](#static-signal)
+- [Settable Signal](#settable-signal)
+- [Derived Signal](#derived-signal)] 
+
+And two additional types of utility signals:
+- [Await Signal](#await-signal)
+- [Each Signal](#each-signal)
+
+### Static Signal
+Static signals are the simplest type of signal. They are used to store static data that will never change.<br/>
+Unlike other frameworks and libraries, signals in Master.ts doesn't require value to change in order to trigger the subscribers.<br/>
+This allows for more flexibility and control over the reactivity of the data.
+
+#### Creating Static Signals
+```ts
+const foo = createStaticSignal<string>('foo')
+const foo = new Signal<string>('foo')
+```
+
+#### Signal Methods
+Common methods for all signals:
+##### Signal Subscription
+Unlike other frameworks and libraries, signals in Master.ts doesn't require value to change in order to trigger the subscribers.<br/>
+when you use the `signal()` method, it will trigger the subscribers of the signal, no matter if the value has changed or not.<br/>
+This allows for more flexibility and control over the reactivity of the data.
+
+Signals subscriptions has three different modes:
+- `immediate` - will trigger the subscriber immediately with the current value of the signal.
+- `once` - will trigger the subscriber only once, when the signal is first subscribed to.
+- `normal` - will trigger the subscriber only when the value of the signal changes.
+
+```ts
+const foo = createStaticSignal<string>('foo')
+const subscription = foo.subscribe((value) => console.log(value), { immediate: true }) // will log 'foo' twice
+foo.signal() // triggers the subscribers
+subscription.unsubscribe() // Unsubscribe from the signal in order to prevent memory leaks
+```
+Don't forget to unsubscribe from the signal in order to prevent memory leaks.
+
+Also see [Signal Subscription in MasterAPI](#signal-subscription-in-masterapi)
+
+###### Signaling a Signal
+`signal()` is a method that is common to all signals.<br/>
+It will trigger the subscribers of the signal, no matter if the value has changed or not.<br/>
+**Important** thing to note is that `signal()` is an async method, but you don't need to `await` for it to finish.<br/>
+If you await for it, you will also wait for async subscribers to finish.<br/>
+If you don't await for it, you will only wait for sync subscribers to finish.
+```ts
+const foo = createStaticSignal<string>('foo')
+foo.signal() // triggers the subscribers
+```
+
+
+##### Getting the Value of a Signal
+There are two ways to get the value of a signal:
+```ts
+const foo = createStaticSignal<string>('foo')
+const value = foo.get() // returns 'foo'
+const value = foo.value // returns 'foo'
+```
+Both of these methods are equivalent.
+
+### Settable Signal
+Settable signals are equivalent of what you know as reactive variables in other frameworks and libraries.<br/>
+Settable signal as the name suggests, can be set to a new value. This will trigger the subscribers of the signal.
+
+#### Creating Settable Signals
+```ts
+const foo = createSettableSignal<string>('foo')
+const foo = new SignalSettable<string>('foo')
+```
+Also see [Settable Signal in MasterAPI](#settable-signal-in-masterapi)
+
+#### Settable Signal Methods
+While settable signals are inheriting all the methods of [Signal Methods](#signal-methods), they also have their own methods:
+
+##### Setting the Value of a Signal
+There are three ways to set the value of a signal:
+```ts
+const foo = createSettableSignal({ value: 'foo' })
+foo.change(v => v.value = 'bar') // sets the value of foo to 'bar'
+foo.set({ value: 'bar' }) // sets the value of foo to 'bar'
+foo.value = { value: 'bar' } // sets the value of foo to 'bar'
+```
+You can also trigger the `signal()` method manually after setting the value of the signal:
+```ts
+foo.value.value = 'bar'
+foo.signal()
+```
+- `change()` method provides a callback that will be called with the current value of the signal. After running the callback it will just run the `signal()` method to trigger the subscribers. It doesn't doesn't expecting the callback to return a value.
+- `set()` method will set the value of the signal and then run the `signal()` method to trigger the subscribers.
+- `value` will just run the `set()` method with the value that you are setting it to.
+
+**Important** thing to note is that since `set()` and `change()` are calling `signal()` method,
+so they are async methods, but you don't need to `await` for them to finish. See [Signaling a Signal](#signaling-a-signal) for more info.
+
+
+
+### Derived Signal
+Derived signals are equivalent of computed properties in other frameworks and libraries.<br/>
+Derived signals are signals that are derived from other signals. This means that the value of the derived signal is dependent on the value of the other signals.<br/>
+
+#### Creating Derived Signals
+```ts
+const foo = createSettableSignal<string>('foo')
+const bar = createSettableSignal<string>('bar')
+
+const foobar = createDerivedSignal<string>($ => `${$(foo).value} ${$(bar).value}`) // foobar will be 'foo bar'
+```
+Also see [Derived Signal in MasterAPI](#derived-signal-in-masterapi)
+
+#### Derived Signal Methods
+While derived signals are inheriting all the methods of [Signal Methods](#signal-methods), they also have their own methods:
+
+##### Activating/Deactivating Derived Signals
+Derived signals are activated by default, but you can deactivate them by calling the `deactivate()` method.<br/>
+When a derived signal is deactivated, it will unsubscribe from all of its dependencies.<br/>
+When a derived signal is activated, it will subscribe to all of its dependencies.<br/>
+This is useful when you want to prevent a derived signal from being triggered when you are setting the value of one of its dependencies.<br/>
+```ts
+const foo = createSettableSignal<string>('foo')
+const bar = createSettableSignal<string>('bar')
+
+const foobar = createDerivedSignal<string>($ => `${$(foo).value} ${$(bar).value}`) // foobar will be 'foo bar'
+foobar.deactivate() // foobar will not be triggered when foo or bar changes
+```
+Don't forget to deactivate the derived signal when you are done with it, in order to prevent memory leaks.
+
+Also see [Derived Signal in MasterAPI](#derived-signal-in-masterapi)
+
+### Await Signal
+Await signals are created around [Settable Signals](#settable-signal). They let you await for a value with a placeholder.<br/>
+
+#### Creating Await Signals
+```ts
+const foo = createAwaitSignal(fetch('./hello.txt').then(res => res.text()), 'Loading...')
+foo.subscribe((value) => console.log(value), { mode: 'immediate' }) // 'Loading...' -> 'Hello World!'
+```
+Also see [Await Signal in MasterAPI](#await-signal-in-masterapi)
+
+### Each Signal
+NOT IMPLEMENTED YET
+Also see [Each Signal in MasterAPI](#each-signal-in-masterapi)
+
+## MasterAPI
+MasterAPI is a set of functions useful functions that are connected to a HTML Node.<br/>
+
+### Creating MasterAPI
+```ts
+const foo = document.createComment('foo')
+const api = injectOrGetMasterAPI(foo)
+```
+
+### Mount/Unmount
+MasterAPI can track if a HTML Node is mounted or not to the DOM.<br/>
+A node can be mounted and unmounted multiple times.<br/>
+Mounted means that the node is connected to the DOM.<br/>
+Unmounted means that the node is disconnected from the DOM.<br/>
+
+```ts
+const foo = document.createElement('div')
+const api = injectOrGetMasterAPI(foo)
+api.onMount(() => console.log('mounted'))
+api.onUnmount(() => console.log('unmounted'))
+
+document.body.appendChild(foo) // this will trigger the 'mounted' callback
+document.body.removeChild(foo) // this will trigger the 'unmounted' callback
+document.body.appendChild(foo) // this will trigger the 'mounted' callback again
+```
+
+### Signals in MasterAPI
+Since MasterAPI is connected to a HTML Node and keeps track of the mounted state of the node, 
+it can be used to create signals that are disposed/cleared when the node is unmounted.<br/>
+
+#### "Settable" Signal in MasterAPI
+Wrapper around `createSignal()`
+
+```ts
+const foo = document.createElement('div')
+const api = injectOrGetMasterAPI(foo)
+const bar = api.settableSignal('bar')
+```
+Also see [Settable Signal](#settable-signal)
+
+#### "Derived" Signal in MasterAPI
+Wrapper around `createDerivedSignal()` that will automatically get deactived when the node is unmounted 
+and reactivated when the node is mounted again.
+
+```ts
+const foo = document.createElement('div')
+const api = injectOrGetMasterAPI(foo)
+const bar = api.settableSignal('bar')
+const foobar = api.derive($ => `${$(bar).value} baz`)
+```
+
+#### "Await" Signal in MasterAPI
+Wrapper around `createAwaitSignal()`
+```ts
+const foo = document.createElement('div')
+const api = injectOrGetMasterAPI(foo)
+const bar = api.await(fetch('./hello.txt').then(res => res.text()), 'Loading...')
+```
+
+#### "Each" Signal in MasterAPI
+NOT IMPLEMENTED YET
+Also see [Each Signal](#each-signal)
+
+### Signal Subscription in MasterAPI
+Wrapper around `signal.subscribe()` that will automatically unsubscribe when the node is unmounted
+and resubscribe when the node is mounted again.
+```ts
+const foo = document.createElement('div')
+const api = injectOrGetMasterAPI(foo)
+const bar = api.settableSignal('bar')
+const foobar = api.derive($ => `${$(bar).value} baz`)
+api.subscribe(foobar, (value) => console.log(value), { mode: 'immediate' }) // 'bar baz'
+```
+
+### Timeout and Interval in MasterAPI
+#### Timeout in MasterAPI
+Wrapper around `setTimeout()` that will automatically clear the timeout when the node is unmounted
+and set the timeout again when the node is mounted again.
+```ts
+const foo = document.createElement('div')
+const api = injectOrGetMasterAPI(foo)
+api.timeout(() => console.log('Hello World!'), 1000) // 'Hello World!' after 1 second
+```
+
+#### Interval in MasterAPI
+Wrapper around `setInterval()` that will automatically clear the interval when the node is unmounted
+and set the interval again when the node is mounted again.
+```ts
+const foo = document.createElement('div')
+const api = injectOrGetMasterAPI(foo)
+api.interval(() => console.log('Hello World!'), 1000) // 'Hello World!' every 1 second
+```
+
+
+## Templates and Fragments
+### Template Syntax
+#### Element directives
+##### on:
+##### class:
+##### style:
+##### ref:
+#### Accepted template values
+## Components
+### Creating Components
+### Props
 ### Slots
-Slots are a way to pass html to a custom element.<br/>
-You can pass html to a custom element using `slot` method.<br/>
-```ts
-const Element = defineMasterElement()
-function myElement() {
-    const element = Element();
-    
-    return element.html`
-        <div>hello <slot/></div>
-    `;
-}
+### Attributes and Props
+### Global Style
 
-const App = defineMasterElement()
-function myApp() {
-    const element = App();
-    
-    return element.html`
-        <x ${myElement()}>
-            world
-        </x>
-    `;
-}
-```
-Which gives us:
-```html
-<x-fewoifjw> This is the root of myApp
-    <x-cjoeiew> This is the root of myElement
-        <div>hello world</div>
-    </x-cjoeiew>
-</x-fewoifjw>
-```
-
-Notice that in the above example while we were using `<x ${myElement()}>`, we have a clear separation between props/arguments and attributes.<br/>
-Because there is no such thing as `props`, what ever you pass to the function is the props.<br/>
-So we can just use `class`, `id` `style` or any other attribute naturally.<br/>
-```ts
-const Element = defineMasterElement()
-function myElement() {
-    const element = Element();
-    
-    return element.html`
-        <div>hello <slot/></div>
-    `;
-}
-
-const App = defineMasterElement()
-function myApp() {
-    const element = App();
-    
-    return element.html`
-        <x ${myElement()} class="my-class" id="my-id" style="color: red;">
-            world
-        </x>
-    `;
-}
-```
-Which gives us:
-```html
-<x-fewoifjw> This is the root of myApp
-    <x-cjoeiew class="my-class" id="my-id" style="color: red;"> This is the root of myElement
-        <div>hello world</div>
-    </x-cjoeiew>
-</x-fewoifjw>
-```
-
-You can also do this:
-```ts
-const Element = defineMasterElement()
-function myElement() {
-    const element = Element();
-    
-    return element.html`
-        <div>hello <slot/></div>
-    `;
-}
-
-const App = defineMasterElement()
-function myApp() {
-    const element = App();
-    const { m } = element;
-    const toggle = m.signal(true);
-    const someStyleVar = m.signal('red');
-    
-    return element.html`
-        <x ${myElement()} 
-            class:my-class=${toggle} 
-            class:my-other-class=${true} 
-            style:--my-var=${someStyleVar} 
-            style:--my-other-var=${'blue'}
-        >
-            world
-        </x>
-        <button on:click=${() => toggle.value = !toggle.value}>toggle my-class</button>
-    `;
-}
-```
-
-
-
-## Fragments
-Fragments are similar to Svelte Components, so they don't have a root element.<br/>
-Fragments are useful when you want to create a reusable piece of html that doesn't have a root element.<br/>
-
-You can create a fragment by using `html` method anywhere in your code.<br/>
-```ts
-const fragment = html`
-    <div>hello</div>`;
-const fragment2 = html`
-    ${fragment}
-    <div>world</div>`;
-
-// You can also do this
-const element = document.createElement('div');
-element.textContent = 'hello';
-const fragment = html`
-    ${element}
-    <div>world</div>`;
-```
-Note that `html` method here is not returning `DocumentFragment`, it is returning `Node[]`.<br/>
-Reason for that is so we can mount and move fragments multiple times.
-
-It's recommended to use `html` method within a function so you can pass arguments to it and create multiple clones of the same fragment.<br/>
-```ts
-function myFragment(name: string) 
-{
-    return html`
-        <div>hello ${name}</div>`;
-}
-```
-
-### Using signals in fragments
-You can use signals in fragments.<br/>
-```ts
-const time = createDerivedSignal(() => Date.now());
-setInterval(() => time.signal(), 1000);
-
-function myTime()
-{
-    return html`
-        <div>time: ${time}</div>`;
-}
-```
+# Advanced Tips
+## Binding props
+## Advanced Signal Usage
+## Caching Templates
+### Caching Fragments
+### Caching Components

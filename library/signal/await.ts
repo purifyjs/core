@@ -1,4 +1,5 @@
-import { createSignal, SignalSettable } from "./settable"
+import type { Signal } from "./base"
+import { createSignal } from "./settable"
 
 /**
  * Derives a signal from a promise.
@@ -13,11 +14,11 @@ import { createSignal, SignalSettable } from "./settable"
 export function createAwaitSignal<T, P, E>(then: Promise<T>, placeholder?: P, onError?: <T extends Error>(error: T) => E):
     P extends undefined
     ? E extends undefined
-    ? SignalSettable<T | null>
-    : SignalSettable<T | E | null>
+    ? Signal<T | null>
+    : Signal<T | E | null>
     : E extends undefined
-    ? SignalSettable<T | P>
-    : SignalSettable<T | P | E>
+    ? Signal<T | P>
+    : Signal<T | P | E>
 {
     if (placeholder !== undefined && onError instanceof Function)
     {
