@@ -1,7 +1,8 @@
 import { MasterAPI } from "./api"
 import { createTemplateCache, html, TemplateHtmlArray, TemplateValueArrayFromHtmlArray } from "./template"
+import { randomId } from "./utils/id"
 
-export function defineMasterElement(tagName: string)
+export function defineMasterElement(tagName = `x-${randomId()}`)
 {
     const CustomMasterElement = class extends MasterElement 
     {
@@ -10,7 +11,7 @@ export function defineMasterElement(tagName: string)
     return (...params: ConstructorParameters<typeof CustomMasterElement>) => new CustomMasterElement(...params)
 }
 
-export function defineMasterElementCached(...[tagName]: Parameters<typeof defineMasterElement>)
+export function defineMasterElementCached(tagName = `x-${randomId()}`)
 {
     const CustomMasterElementCached = class extends MasterElement 
     {
