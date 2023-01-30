@@ -70,10 +70,11 @@ Todo is another great way to get started with Master.ts. It is easy to understan
 ```ts
 import { defineMasterElementCached } from "master-ts/library/element"
 import { html } from "master-ts/library/template"
+import { randomId } from "master-ts/library/utils/id"
 
 interface Todo
 {
-    id: number
+    id: string
     text: string
 }
 
@@ -87,7 +88,7 @@ export function Todo()
 
     function addTodo(todo: string)
     {
-        todos.change((todos) => todos.push({ id: Math.random(), text: todo }))
+        todos.change((todos) => todos.push({ id: randomId(), text: todo }))
     }
 
     function removeTodoAt(index: number)
@@ -101,15 +102,15 @@ export function Todo()
 
     return element.html`
         <div>
-            <input type="text" value=${newTodo} on:input=${(event: InputEvent)=> newTodo.value = (event.target as
+            <input type="text" value=${newTodo} on:input=${(event: InputEvent) => newTodo.value = (event.target as
             HTMLInputElement).value} />
-            <button on:click=${()=> addTodo(newTodo.value)}>Add</button>
+            <button on:click=${() => addTodo(newTodo.value)}>Add</button>
         </div>
         <ul>
             ${m.each(todos, (todo, index) => html`
             <li>
                 ${todo.text}
-                <button on:click=${()=> removeTodoAt(index)}>Remove</button>
+                <button on:click=${() => removeTodoAt(index.value)}>Remove</button>
             </li>`, (todo) => todo.id)}
         </ul>
     `
