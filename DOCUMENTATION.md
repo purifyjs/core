@@ -15,7 +15,7 @@ export function Counter(count: SignalSettable<number>)
     const { m } = element
 
     return element.html`
-        <button part="button" on:click=${($) => $(count).value-}>-</button>
+        <button part="button" on:click=${($) => $(count).value--}>-</button>
         <span><slot/> ${count}</span>
         <button part="button" on:click=${($) => $(count).value++}>+</button>
     `
