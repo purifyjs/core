@@ -1,4 +1,6 @@
 # WORK IN PROGRESS - NOT FINISHED
+This is not the best documentaion ever, might rewrite it.
+I'm not good at this, and its not even finished yet.
 
 # Table of Contents
 - [Signals](#signals)
