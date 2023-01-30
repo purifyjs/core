@@ -383,12 +383,12 @@ function myFragment(name: string)
 ### Using signals in fragments
 You can use signals in fragments.<br/>
 ```ts
-const time = createSignal<number>(Date.now());
-setInterval(() => time.value = Date.now(), 1000);
+const time = createDerivedSignal(() => Date.now());
+setInterval(() => time.signal(), 1000);
 
 function myTime()
 {
     return html`
-        <div>reactive time: ${time}</div>`;
+        <div>time: ${time}</div>`;
 }
 ```
