@@ -11,19 +11,23 @@ import type { SignalSettable } from "master-ts/library/signal/settable"
 const Element = defineMasterElementCached()
 export function Counter(count: SignalSettable<number>)
 {
-    const element = Element()
-    const { m } = element
+  const element = Element()
+  const { m } = element
 
-    return element.html`
-        <button part="button" on:click=${($) => $(count).value--}>-</button>
-        <span><slot/> ${count}</span>
-        <button part="button" on:click=${($) => $(count).value++}>+</button>
+  return element.html`
+        <button part="button" on:click=${()=> count.value--}>-</button>
+        <slot></slot>
+        <span> ${count}</span>
+        <button part="button" on:click=${()=> count.value++}>+</button>
     `
 }
 ```
 
 *app.ts* 
 ```ts
+import { defineMasterElementCached } from "master-ts/library/element"
+import { Counter } from "./counter"
+
 const Element = defineMasterElementCached()
 export function App()
 {
