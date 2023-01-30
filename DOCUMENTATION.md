@@ -1,65 +1,9 @@
-# Table of Contents
-- [Quick Start](#quick-start)
-  * [Counter](#counter)
-  * [Todo](#todo)
-- [Documentation](#documentation)
-  * [Signals](#signals)
-    + [Static Signal](#static-signal)
-      - [Creating Static Signals](#creating-static-signals)
-      - [Signal Methods](#signal-methods)
-        * [Signal Subscription](#signal-subscription)
-          + [Signaling a Signal](#signaling-a-signal)
-        * [Getting the Value of a Signal](#getting-the-value-of-a-signal)
-    + [Settable Signal](#settable-signal)
-      - [Creating Settable Signals](#creating-settable-signals)
-      - [Settable Signal Methods](#settable-signal-methods)
-        * [Setting the Value of a Signal](#setting-the-value-of-a-signal)
-    + [Derived Signal](#derived-signal)
-      - [Creating Derived Signals](#creating-derived-signals)
-      - [Derived Signal Methods](#derived-signal-methods)
-        * [Activating/Deactivating Derived Signals](#activating-deactivating-derived-signals)
-    + [Await Signal](#await-signal)
-      - [Creating Await Signals](#creating-await-signals)
-    + [Each Signal](#each-signal)
-  * [MasterAPI](#masterapi)
-    + [Creating MasterAPI](#creating-masterapi)
-    + [Mount/Unmount](#mount-unmount)
-    + [Signals in MasterAPI](#signals-in-masterapi)
-      - ["Settable" Signal in MasterAPI](#settable-signal-in-masterapi)
-      - ["Derived" Signal in MasterAPI](#derived-signal-in-masterapi)
-      - ["Await" Signal in MasterAPI](#await-signal-in-masterapi)
-      - ["Each" Signal in MasterAPI](#each-signal-in-masterapi)
-    + [Signal Subscription in MasterAPI](#signal-subscription-in-masterapi)
-    + [Timeout and Interval in MasterAPI](#timeout-and-interval-in-masterapi)
-      - [Timeout in MasterAPI](#timeout-in-masterapi)
-      - [Interval in MasterAPI](#interval-in-masterapi)
-  * [Templates and Fragments](#templates-and-fragments)
-    + [Template Syntax](#template-syntax)
-      - [Element directives](#element-directives)
-        * [on:](#on)
-        * [class:](#class)
-        * [style:](#style)
-        * [ref:](#ref)
-      - [Accepted template values](#accepted-template-values)
-  * [Components](#components)
-    + [Creating Components](#creating-components)
-    + [Props](#props)
-    + [Slots](#slots)
-    + [Attributes and Props](#attributes-and-props)
-    + [Global Style](#global-style)
-- [Advanced Tips](#advanced-tips)
-  * [Binding props](#binding-props)
-  * [Advanced Signal Usage](#advanced-signal-usage)
-  * [Caching Templates](#caching-templates)
-    + [Caching Fragments](#caching-fragments)
-    + [Caching Components](#caching-components)
-
 # Quick Start
 Quick start guide for using Master.ts using the best recommended practices.
 ## Counter
 Counters are a great way to get started with Master.ts. They are simple enough to be easy to understand.
 
-*couter.ts*
+*counter.ts*
 ```ts
 import { defineMasterElementCached } from "master-ts/library/element"
 import type { SignalSettable } from "master-ts/library/signal/settable"
