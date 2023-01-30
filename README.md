@@ -22,7 +22,7 @@ Master.ts is designed to be simple and easy to use, with a focus on transparency
 - Master.ts uses TS files which allows for a more natural and intuitive development experience.
 - Master.ts can work with any other libraries and frameworks.
 - It's lightweight and has no dependencies.
-- It uses the syntax that is already available in TS and HTML. So it doesn't require you to learn a new syntax or use an extension on your IDE.
+- It uses the syntax that is already available in TS and HTML.
 - It's reactive like Svelte so it only updates the changing parts of the DOM, which is more efficient than other libraries.
 - It's also fast and efficient because its built on top of native Shadow DOM and Web Components API.
 - It uses Template Literals to create HTML elements which let's you write HTML in a more natural way with in a TS file.
