@@ -135,6 +135,7 @@ document.body.appendChild(App())
 
 
 # Documentation
+Explaning everything about Master.ts one by one starting from the core concepts.
 
 ## Signals
 Signals are the core of Master.ts. They are used to store data and to update the DOM when the data changes.<br/>
