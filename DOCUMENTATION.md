@@ -71,23 +71,33 @@ Todo is another great way to get started with Master.ts. It is easy to understan
 import { defineMasterElementCached } from "master-ts/library/element"
 import { html } from "master-ts/library/template"
 
+interface Todo
+{
+    id: number
+    text: string
+}
+
 const Element = defineMasterElementCached()
 export function Todo()
 {
     const element = Element()
     const { m } = element
-    const todos = m.signal(['Buy milk', 'Buy eggs'])
+    const todos = m.signal<Todo[]>([])
     const newTodo = m.signal('')
 
     function addTodo(todo: string)
     {
-        todos.change((todos) => todos.push(todo))
+        todos.change((todos) => todos.push({ id: Math.random(), text: todo }))
     }
 
     function removeTodoAt(index: number)
     {
         todos.change((todos) => todos.splice(index, 1))
     }
+
+    addTodo('Buy milk')
+    addTodo('Buy eggs')
+    addTodo('Buy bread')
 
     return element.html`
         <div>
@@ -96,12 +106,11 @@ export function Todo()
             <button on:click=${()=> addTodo(newTodo.value)}>Add</button>
         </div>
         <ul>
-            ${($) => $(todos).value.map((todo, index) => html`
+            ${m.each(todos, (todo, index) => html`
             <li>
-                ${todo}
+                ${todo.text}
                 <button on:click=${()=> removeTodoAt(index)}>Remove</button>
-            </li>
-            `)}
+            </li>`, (todo) => todo.id)}
         </ul>
     `
 }
@@ -271,7 +280,14 @@ foo.subscribe((value) => console.log(value), { mode: 'immediate' }) // 'Loading.
 Also see [Await Signal in MasterAPI](#await-signal-in-masterapi)
 
 ### Each Signal
-NOT IMPLEMENTED YET
+Each signals are created around [Derived Signals](#derived-signal). They let you iterate over an array or signal array.<br/>
+Different from using map on an array, each signal will keep track of the key for each item in the array.<br/>
+That way when the array gets updated, only the items that changed will be updated and re-rendered.<br/>
+```ts
+const foo = createSettableSignal<string[]>(['foo', 'bar'])
+const foos = createEachSignal(foo, (item) => item.toUpperCase(), (item) => item)
+``` 
+Also see [Todo Example](#todo) for a more practical example.
 Also see [Each Signal in MasterAPI](#each-signal-in-masterapi)
 
 ## MasterAPI
@@ -334,7 +350,15 @@ const bar = api.await(fetch('./hello.txt').then(res => res.text()), 'Loading...'
 ```
 
 #### "Each" Signal in MasterAPI
-NOT IMPLEMENTED YET
+Wrapper around `createEachSignal()` that will automatically get deactived when the node is unmounted
+and reactivated when the node is mounted again.
+```ts
+const foo = document.createElement('div')
+const api = injectOrGetMasterAPI(foo)
+const bar = api.signal<string[]>(['foo', 'bar'])
+const foos = api.each(bar, (item) => item.toUpperCase(), (item) => item)
+```
+Also see [Todo Example](#todo) for a more practical example.
 Also see [Each Signal](#each-signal)
 
 ### Signal Subscription in MasterAPI

@@ -1,6 +1,7 @@
 import { createAwaitSignal } from "../signal/await"
 import type { Signal, SignalListener, SignalSubscription, SignalSubscriptionOptions } from "../signal/base"
 import { createDerivedSignal, SignalDerive, SignalDerived } from "../signal/derived"
+import { createEachSignal } from "../signal/each"
 import { createSignal } from "../signal/settable"
 import "./mutationObserver"
 
@@ -128,6 +129,15 @@ export class MasterAPI
         this.onUnmount(() => computed.deactivate())
         return computed
     }
+
+    each<T extends any[], R>(...params: Parameters<typeof createEachSignal<T, R>>)
+    {
+        const computed = createEachSignal(...params)
+        this.onMount(() => computed.activate())
+        this.onUnmount(() => computed.deactivate())
+        return computed
+    }
+
 
     protected _deriveFromFunctionCache = new WeakMap<SignalDerive<any>, SignalDerived<any>>()
     /**
