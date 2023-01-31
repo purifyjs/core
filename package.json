@@ -12,6 +12,5 @@
   },
   "homepage": "https://github.com/DeepDoge/master-ts#readme",
   "devDependencies": {
-    "typescript-util-types": "github:DeepDoge/typescript-util-types"
   }
 }
