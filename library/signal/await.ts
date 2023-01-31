@@ -11,7 +11,7 @@ import { createSignal } from "./settable"
  * @example
  * const signal = m.await(AsyncFooComponent(), 'loading') 
 **/
-export function createAwaitSignal<T, P, E>(then: Promise<T>, placeholder?: P, onError?: <T extends Error>(error: T) => E):
+export function createAwait<T, P, E>(then: Promise<T>, placeholder?: P, onError?: <T extends Error>(error: T) => E):
     P extends undefined
     ? E extends undefined
     ? Signal<T | null>

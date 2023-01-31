@@ -1,7 +1,7 @@
 import { EMPTY_NODE } from "."
 import { injectOrGetMasterAPI } from "../api"
 import { Signal } from "../signal/base"
-import type { SignalDerive } from "../signal/derived"
+import { createDeriveFromFunction, SignalDeriver } from "../signal/derived"
 
 export function valueToNode(value: unknown): Node
 {
@@ -26,7 +26,7 @@ export function valueToNode(value: unknown): Node
         const m = injectOrGetMasterAPI(startComment)
 
         let signal: Signal
-        if (value instanceof Function) signal = m.deriveFromFunction(value as SignalDerive<unknown>)
+        if (value instanceof Function) signal = createDeriveFromFunction(value as SignalDeriver<unknown>)
         else signal = value
 
         startComment.nodeValue = `signal ${signal.id}`

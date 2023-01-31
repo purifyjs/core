@@ -1,7 +1,7 @@
 import { randomId } from "../utils/id"
 
 export interface SignalSubscription { unsubscribe(): void }
-export interface SignalListener<T> { (value: T): any }
+export interface SignalSubscriberCallback<T> { (value: T): any }
 export interface SignalSubscriptionOptions
 {
     mode: 'normal' | 'once' | 'immediate'
@@ -16,55 +16,55 @@ export class Signal<T = any>
 {
     public readonly id
     protected _value: T
-    protected _listeners: SignalListener<T>[]
+    protected _subscribersCallbacks: SignalSubscriberCallback<T>[]
+
     constructor(value: T) 
     {
         this.id = randomId()
-        this._listeners = []
+        this._subscribersCallbacks = []
         this._value = value
     }
 
-    get() 
+    public get() 
     {
         return this._value 
     }
 
-    get value() { return this.get() }
+    public get value() { return this.get() }
 
-    subscribe(listener: SignalListener<T>, options?: SignalSubscriptionOptions): SignalSubscription
+    public subscribe(listener: SignalSubscriberCallback<T>, options?: SignalSubscriptionOptions): SignalSubscription
     {
+        console.log('%csubscribed', 'color:orange', listener.name, 'to', this.id)
         switch (options?.mode)
         {
             case 'once':
                 const onceCallback = () =>
                 {
                     listener(this._value)
-                    this._listeners = this._listeners.filter(l => l !== onceCallback)
+                    this._subscribersCallbacks = this._subscribersCallbacks.filter(l => l !== onceCallback)
                 }
-                this._listeners.push(onceCallback)
+                this._subscribersCallbacks.push(onceCallback)
                 break
             case 'immediate':
                 listener(this._value)
             case 'normal':
             default:
-                this._listeners.push(listener)
+                this._subscribersCallbacks.push(listener)
                 break
         }
         return {
             unsubscribe: () =>
             {
-                const index = this._listeners.indexOf(listener)
-                if (index !== -1) this._listeners.splice(index, 1)
+                console.log('%cunsubscribed', 'color:orange', listener.name, 'from', this.id)
+                const index = this._subscribersCallbacks.indexOf(listener)
+                if (index !== -1) this._subscribersCallbacks.splice(index, 1)
             }
         }
     }
 
-    // NOTE: This is async but it doesn't need to be awaited. if you await you await for the async listeners to finish thats all.
-    // but if you dont await you only wait for the sync listeners to finish.
-    async signal()
+    public signal()
     {
-        const returns = this._listeners.map((listener) => listener(this._value))
-        const promises = returns.filter(r => r instanceof Promise) as Promise<any>[]
-        if (promises.length) await Promise.all(promises)
+        console.log('%csignaling', 'color:yellow', this.id, this._value)
+        for (const listener of this._subscribersCallbacks) listener(this._value)
     }
 }

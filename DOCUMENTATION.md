@@ -1,3 +1,9 @@
+# IGNORE THIS FILE
+This project is way to early in development to have any documentation. <br/>
+Things are kept changing and the documentation is not up to date.<br/>
+You can instead check http://github.com/DeepDoge/master-ts-vite-template it's always up to date with the latest version of Master.ts.
+
+
 # Quick Start
 Quick start guide for using Master.ts using the best recommended practices.
 ## Counter

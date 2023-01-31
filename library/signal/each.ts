@@ -1,11 +1,11 @@
 import { Signal } from "./base"
-import { createDerivedSignal } from "./derived"
+import { createDerive } from "./derived"
 import { createSignal, SignalSettable } from "./settable"
 
-export function createEachSignal<T extends unknown[], R>(each: Signal<T> | T, as: (item: T[number], index: Signal<number>) => R, key?: (item: T[number]) => string | number)
+export function createEach<T extends unknown[], R>(each: Signal<T> | T, as: (item: T[number], index: Signal<number>) => R, key?: (item: T[number]) => string | number)
 {
     let caches: Record<string, { index: SignalSettable<number>, value: R }> = {}
-    const derived = createDerivedSignal(($) => {
+    const derived = createDerive(($) => {
         const newCaches: typeof caches = {}
         const collection = each instanceof Signal ? $(each).value : each
         const results = collection.map((item, index) => {

@@ -1,8 +1,4 @@
-import { createAwaitSignal } from "../signal/await"
-import type { Signal, SignalListener, SignalSubscription, SignalSubscriptionOptions } from "../signal/base"
-import { createDerivedSignal, SignalDerive, SignalDerived } from "../signal/derived"
-import { createEachSignal } from "../signal/each"
-import { createSignal } from "../signal/settable"
+import type { Signal, SignalSubscriberCallback, SignalSubscription, SignalSubscriptionOptions } from "../signal/base"
 import "./mutationObserver"
 
 export interface NodeWithMasterAPI extends Node
@@ -82,18 +78,6 @@ export class MasterAPI
     }
 
     /**
-     * Creates a settable signal.
-     * @param value The initial value of the signal.
-     * @returns The settable signal.
-     * @example
-     * const fooSignal = m.signal(0)
-    **/
-    signal<T>(...params: Parameters<typeof createSignal<T>>)
-    {
-        return createSignal(...params)
-    }
-
-    /**
      * Subscribes to a signal.
      * 
      * Which is automatically unsubscribed when the node is unmounted and subscribed when the node is mounted again.
@@ -103,77 +87,11 @@ export class MasterAPI
      * @example
      * m.subscribe(fooSignal, () => console.log('foo signaled'))
     **/
-    subscribe<T>(signal: Signal<T>, callback: SignalListener<T>, options?: SignalSubscriptionOptions)
+    subscribe<T>(signal: Signal<T>, callback: SignalSubscriberCallback<T>, options?: SignalSubscriptionOptions)
     {
         let subscription: SignalSubscription
         this.onMount(() => subscription = signal.subscribe(callback, options))
         this.onUnmount(() => subscription.unsubscribe())
-    }
-
-    /**
-     * Derives a signal from a function.
-     * 
-     * Which is automatically activated and deactivated when the node is mounted and unmounted.
-     * @param derive The function that derives the value of the signal.
-     * @param dependencies The dependencies of the signal. When dependencies are signaled, derive is called again.
-     * @returns The signal that is derived from the function.
-     * @example
-     * const double = m.derive(($) => $(foo).value * 2)
-     * @example
-     * const double = m.derive(() => foo.value * 2, [foo])
-    **/
-    derive<T>(...params: Parameters<typeof createDerivedSignal<T>>)
-    {
-        const computed = createDerivedSignal(...params)
-        this.onMount(() => computed.activate())
-        this.onUnmount(() => computed.deactivate())
-        return computed
-    }
-
-    each<T extends any[], R>(...params: Parameters<typeof createEachSignal<T, R>>)
-    {
-        const computed = createEachSignal(...params)
-        this.onMount(() => computed.activate())
-        this.onUnmount(() => computed.deactivate())
-        return computed
-    }
-
-
-    protected _deriveFromFunctionCache = new WeakMap<SignalDerive<any>, SignalDerived<any>>()
-    /**
-     * Same as derive, but specialized for functions.
-     * 
-     * Derives a signal from a function.
-     * 
-     * Cache is used to ensure that the same signal is returned for the same function.
-     * 
-     * Used internally to convert functions in html to derived signals.
-     * @param func The function that derives the value of the signal.
-     * @returns The signal that is derived from the function.
-     * @example
-     * const double = m.deriveFromFunction(($) => $(foo).value * 2)
-    **/
-    deriveFromFunction<T>(func: SignalDerive<T>): SignalDerived<T>
-    {
-        if (this._deriveFromFunctionCache.has(func)) return this._deriveFromFunctionCache.get(func)!
-        const computed = this.derive(func)
-        this._deriveFromFunctionCache.set(func, computed)
-        return computed
-    }
-
-    /**
-      * Derives a signal from a promise.
-      * 
-      * When the promise is resolved, the signal is set to the resolved value.
-      * @param then The promise to derive the signal from.
-      * @param placeholder The value to set the signal to while the promise is pending.
-      * @returns The signal that is derived from the promise.
-      * @example
-      * const signal = m.await(AsyncFooComponent(), 'loading') 
-    **/
-    await<T, P, E>(...params: Parameters<typeof createAwaitSignal<T, P, E>>)
-    {
-        return createAwaitSignal(...params)
     }
 
     /**

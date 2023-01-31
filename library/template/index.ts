@@ -1,11 +1,11 @@
 import { injectOrGetMasterAPI } from "../api"
 import { Signal } from "../signal/base"
-import type { SignalDerive } from "../signal/derived"
+import { createDerive, createDeriveFromFunction, SignalDeriver } from "../signal/derived"
 import { SignalSettable } from "../signal/settable"
 import { valueToNode } from "./node"
 import { parseTemplateParts, TemplatePart, TemplateStateType } from "./parts"
 
-export type TemplateValue = string | number | boolean | null | undefined | Node | Signal<any> | SignalDerive<any> | Function | TemplateValue[]
+export type TemplateValue = string | number | boolean | null | undefined | Node | Signal<any> | SignalDeriver<any> | Function | TemplateValue[]
 export type TemplateHtmlArray = readonly string[]
 
 export type TemplateValueArrayFromHtmlArray<_T extends readonly string[]> = TemplateValue[]
@@ -127,8 +127,7 @@ export function template<S extends TemplateHtmlArray, T extends TemplateValueArr
                 const valueTemplate: (Signal | string)[] = attributeValue.split(/<\$([^>]+)>/g)
                     .map((value, index) => index % 2 === 0 ? value : outlets.signals[value]!).filter(value => value)
 
-                const m = injectOrGetMasterAPI(element)
-                const signal = m.derive(() => valueTemplate.map((value) => value instanceof Signal ? value.value.toString() : value).join(''))
+                const signal = createDerive(() => valueTemplate.map((value) => value instanceof Signal ? value.value.toString() : value).join(''))
                 value = signal
             }
 
@@ -140,13 +139,13 @@ export function template<S extends TemplateHtmlArray, T extends TemplateValueArr
             {
                 case 'class':
                     if (!key) throw new Error(`Invalid attribute name ${attributeName}`)
-                    if (value instanceof Function) value = injectOrGetMasterAPI(element).deriveFromFunction(value as SignalDerive<unknown>)
+                    if (value instanceof Function) value = createDeriveFromFunction(value as SignalDeriver<unknown>)
                     if (value instanceof Signal) injectOrGetMasterAPI(element).subscribe(value, (active) => element.classList.toggle(key, !!active), { mode: 'immediate' })
                     else element.classList.toggle(key, !!value)
                     break
                 case 'style':
                     if (!key) throw new Error(`Invalid attribute name ${attributeName}`)
-                    if (value instanceof Function) value = injectOrGetMasterAPI(element).deriveFromFunction(value as SignalDerive<unknown>)
+                    if (value instanceof Function) value = createDeriveFromFunction(value as SignalDeriver<unknown>)
                     if (value instanceof Signal) injectOrGetMasterAPI(element).subscribe(value, (value) => element.style.setProperty(key, `${value}`), { mode: 'immediate' })
                     else element.style.setProperty(key, `${value}`)
                     break
@@ -160,7 +159,7 @@ export function template<S extends TemplateHtmlArray, T extends TemplateValueArr
                     element.addEventListener(key, value as EventListener)
                     break
                 default:
-                    if (value instanceof Function) value = injectOrGetMasterAPI(element).deriveFromFunction(value as SignalDerive<unknown>)
+                    if (value instanceof Function) value = createDeriveFromFunction(value as SignalDeriver<unknown>)
                     if (value instanceof Signal) injectOrGetMasterAPI(element).subscribe(value, (value) => element.setAttribute(key, `${value}`), { mode: 'immediate' })
                     else element.setAttribute(attributeName, `${value}`)
                     break
