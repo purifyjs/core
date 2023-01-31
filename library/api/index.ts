@@ -1,4 +1,4 @@
-import type { Signal, SignalSubscriberCallback, SignalSubscription, SignalSubscriptionOptions } from "../signal/base"
+import type { Signal, SignalSubscriptionListender, SignalSubscription, SignalSubscriptionOptions } from "../signal/base"
 import "./mutationObserver"
 
 export interface NodeWithMasterAPI extends Node
@@ -87,7 +87,7 @@ export class MasterAPI
      * @example
      * m.subscribe(fooSignal, () => console.log('foo signaled'))
     **/
-    subscribe<T>(signal: Signal<T>, callback: SignalSubscriberCallback<T>, options?: SignalSubscriptionOptions)
+    subscribe<T>(signal: Signal<T>, callback: SignalSubscriptionListender<T>, options?: SignalSubscriptionOptions)
     {
         let subscription: SignalSubscription
         this.onMount(() => subscription = signal.subscribe(callback, options))

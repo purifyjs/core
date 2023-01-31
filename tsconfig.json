@@ -22,7 +22,8 @@
     "importsNotUsedAsValues": "error",
     "preserveConstEnums": true,
     "noUncheckedIndexedAccess": true,
-    "sourceMap": true
+    "sourceMap": true,
+    "noImplicitOverride": true
   },
   "include": [
     "library",

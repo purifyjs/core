@@ -16,14 +16,14 @@ export function defineMasterElementCached(tagName = `x-${randomId()}`)
     const CustomMasterElementCached = class extends MasterElement 
     {
         protected static readonly templateCache = createTemplateCache()
-        clear()
+        public override clear()
         {
             if (this.htmlBuilt) throw new Error('Cannot clear cached element')
             super.clear()
         }
 
         protected htmlBuilt = false
-        html<S extends TemplateHtmlArray, T extends TemplateValueArrayFromHtmlArray<S>>(parts: S, ...values: T)
+        public override html<S extends TemplateHtmlArray, T extends TemplateValueArrayFromHtmlArray<S>>(parts: S, ...values: T)
         {
             if (this.htmlBuilt) throw new Error('Cannot build html twice on cached element')
             const fragment = CustomMasterElementCached.templateCache.html(parts, ...values)

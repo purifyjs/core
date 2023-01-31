@@ -10,8 +10,8 @@ export class SignalSettable<T> extends Signal<T>
 {
     protected static readonly Empty = Symbol('empty')
 
-    public get value() { return super.value }
-    public set value(value: T) { this.set(value) }
+    public override get value() { return super.value }
+    public override set value(value: T) { this.set(value) }
 
     public set(value: T | typeof SignalSettable.Empty = SignalSettable.Empty)
     {

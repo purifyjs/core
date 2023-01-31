@@ -11,7 +11,7 @@ export function createDerive<T>(...params: ConstructorParameters<typeof SignalDe
     return new SignalDerive<T>(...params)
 }
 
-const deriveFromFunctionCache = new WeakMap<SignalDeriver<any>, SignalDerive<any>>()
+const deriveOfFunctionCache = new WeakMap<SignalDeriver<any>, SignalDerive<any>>()
 /**
  * Same as derive, but specialized for functions.
  * 
@@ -25,11 +25,11 @@ const deriveFromFunctionCache = new WeakMap<SignalDeriver<any>, SignalDerive<any
  * @example
  * const double = m.deriveFromFunction(($) => $(foo).value * 2)
 **/
-export function createDeriveFromFunction<T>(func: SignalDeriver<T>): SignalDerive<T>
+export function createOrGetDeriveOfFunction<T>(func: SignalDeriver<T>): SignalDerive<T>
 {
-    if (deriveFromFunctionCache.has(func)) return deriveFromFunctionCache.get(func)!
+    if (deriveOfFunctionCache.has(func)) return deriveOfFunctionCache.get(func)!
     const computed = createDerive(func)
-    deriveFromFunctionCache.set(func, computed)
+    deriveOfFunctionCache.set(func, computed)
     return computed
 }
 
@@ -60,6 +60,7 @@ export class SignalDerive<T> extends Signal<T>
         this.dependencies.forEach(updater => this.dependencySubscriptions.push(updater.subscribe(() => this.signal())))
         this.signal()
     }
+
     protected deactivate()
     {
         if (this.active === false) return
@@ -70,12 +71,11 @@ export class SignalDerive<T> extends Signal<T>
         this.dependencySubscriptions = []
     }
 
-    public get() 
+    public override get() 
     {
         if (this.active === false) this.signal()
         return super.get()
     }
-    public get value() { return this.get() }
 
     protected addDependency: SignalDependencyAdder = (dependency) =>
     {
@@ -88,20 +88,22 @@ export class SignalDerive<T> extends Signal<T>
         return dependency
     }
 
-    public subscribe(...params: Parameters<Signal<T>['subscribe']>): ReturnType<Signal<T>['subscribe']>
+    public override subscribe(...params: Parameters<Signal<T>['subscribe']>): ReturnType<Signal<T>['subscribe']>
     {
         this.activate()
         const subscription = super.subscribe(...params)
+
         const superUnsubscribe = subscription.unsubscribe
         subscription.unsubscribe = () =>
         {
             superUnsubscribe()
-            if (this._subscribersCallbacks.length === 0) this.deactivate()
+            if (this._listeners.size === 0) this.deactivate()
         }
+
         return subscription
     }
 
-    public signal()
+    public override signal()
     {
         const value = this.deriver(this.addDependency.bind(this))
         if (value === this._value && typeof value !== 'object') return
