@@ -27,7 +27,7 @@ export class Signal<T = any>
 
     public get() 
     {
-        return this._value 
+        return this._value
     }
 
     public get value() { return this.get() }

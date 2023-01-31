@@ -1,5 +1,5 @@
 import { Signal } from "./base"
-import { createDerive } from "./derived"
+import { createDerive } from "./derive"
 import { createSignal, SignalSettable } from "./settable"
 
 export function createEach<T extends unknown[], R>(each: Signal<T> | T, as: (item: T[number], index: Signal<number>) => R, key?: (item: T[number]) => string | number)

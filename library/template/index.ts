@@ -1,6 +1,6 @@
 import { injectOrGetMasterAPI } from "../api"
 import { Signal } from "../signal/base"
-import { createDerive, createDeriveFromFunction, SignalDeriver } from "../signal/derived"
+import { createDerive, createDeriveFromFunction, SignalDeriver } from "../signal/derive"
 import { SignalSettable } from "../signal/settable"
 import { valueToNode } from "./node"
 import { parseTemplateParts, TemplatePart, TemplateStateType } from "./parts"

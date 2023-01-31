@@ -1,7 +1,7 @@
 import { EMPTY_NODE } from "."
 import { injectOrGetMasterAPI } from "../api"
 import { Signal } from "../signal/base"
-import { createDeriveFromFunction, SignalDeriver } from "../signal/derived"
+import { createDeriveFromFunction, SignalDeriver } from "../signal/derive"
 
 export function valueToNode(value: unknown): Node
 {
