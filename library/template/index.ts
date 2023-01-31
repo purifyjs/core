@@ -55,14 +55,20 @@ export function template<S extends TemplateHtmlArray, T extends TemplateValueArr
                 unexpected = false
             }
         }
-        else if (part.state.type === TemplateStateType.TagInner && part.state.tag === 'x' && !part.state.attribute_name && value instanceof HTMLElement)
+        else if (part.state.type === TemplateStateType.TagInner && !part.state.attribute_name)
         {
-            const node = valueToNode(value)
-            if (node)
+            if (part.state.tag === 'x')
             {
-                part.state.attribute_name = ':outlet'
-                html += `:outlet="${nodes.push(node) - 1}"`
-                unexpected = false
+                if (value instanceof HTMLElement)
+                {
+                    const node = valueToNode(value)
+                    if (node)
+                    {
+                        part.state.attribute_name = ':outlet'
+                        html += `:outlet="${nodes.push(node) - 1}"`
+                        unexpected = false
+                    }
+                }
             }
         }
         else if (part.state.type > TemplateStateType.ATTR_VALUE_START && part.state.type < TemplateStateType.ATTR_VALUE_END)
@@ -156,8 +162,29 @@ export function template<S extends TemplateHtmlArray, T extends TemplateValueArr
                 case 'on':
                     if (!key) throw new Error(`Invalid attribute name ${attributeName}`)
                     if (!(value instanceof Function)) throw new Error(`:on attribute must be a function`)
-                    element.addEventListener(key, value as EventListener)
+                    const m = injectOrGetMasterAPI(element)
+                    m.onMount(() => element.addEventListener(key, value as EventListener))
+                    m.onUnmount(() => element.removeEventListener(key, value as EventListener))
                     break
+                case 'bind':
+                    if (!key) throw new Error(`Invalid attribute name ${attributeName}`)
+                    if (!(value instanceof SignalSettable<unknown>)) throw new Error(`:bind attribute must be a SignalSettable`)
+                    const signal = value as SignalSettable<unknown>
+                    switch (key)
+                    {
+                        case 'value':
+                            if (!(
+                                element instanceof HTMLInputElement || 
+                                element instanceof HTMLTextAreaElement || 
+                                element instanceof HTMLSelectElement
+                            )) throw new Error(`:bind:value attribute must be on an input element`)
+                            const listener = () => signal.value = element.value
+                            const m = injectOrGetMasterAPI(element)
+                            m.onMount(() => element.addEventListener('input', listener))
+                            m.onUnmount(() => element.removeEventListener('input', listener))
+                            m.subscribe(signal, (value) => element.value = `${value}`, { mode: 'immediate' })
+                            break
+                    }
                 default:
                     if (value instanceof Function) value = createOrGetDeriveOfFunction(value as SignalDeriver<unknown>)
                     if (value instanceof Signal) injectOrGetMasterAPI(element).subscribe(value, (value) => element.setAttribute(key, `${value}`), { mode: 'immediate' })
