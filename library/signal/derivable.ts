@@ -1,17 +1,17 @@
-import { Signal, SignalSubscription } from "./base"
+import { SignalReadable, SignalSubscription } from "./readable"
 
 export interface SignalDependencyAdder
 {
-    <T extends Signal>(signal: T): T
+    <T extends SignalReadable>(signal: T): T
 }
 export interface SignalDeriver<T> { (addDependency: SignalDependencyAdder): T }
 
-export function createDerive<T>(...params: ConstructorParameters<typeof SignalDerive<T>>)
+export function createDerive<T>(...params: ConstructorParameters<typeof SignalDerivable<T>>)
 {
-    return new SignalDerive<T>(...params)
+    return new SignalDerivable<T>(...params)
 }
 
-const deriveOfFunctionCache = new WeakMap<SignalDeriver<any>, SignalDerive<any>>()
+const deriveOfFunctionCache = new WeakMap<SignalDeriver<any>, SignalDerivable<any>>()
 /**
  * Same as derive, but specialized for functions.
  * 
@@ -25,7 +25,7 @@ const deriveOfFunctionCache = new WeakMap<SignalDeriver<any>, SignalDerive<any>>
  * @example
  * const double = m.deriveFromFunction(($) => $(foo).value * 2)
 **/
-export function createOrGetDeriveOfFunction<T>(func: SignalDeriver<T>): SignalDerive<T>
+export function createOrGetDeriveOfFunction<T>(func: SignalDeriver<T>): SignalDerivable<T>
 {
     if (deriveOfFunctionCache.has(func)) return deriveOfFunctionCache.get(func)!
     const computed = createDerive(func)
@@ -33,15 +33,15 @@ export function createOrGetDeriveOfFunction<T>(func: SignalDeriver<T>): SignalDe
     return computed
 }
 
-export class SignalDerive<T> extends Signal<T>
+export class SignalDerivable<T> extends SignalReadable<T>
 {
     protected dependencySubscriptions: SignalSubscription[]
-    protected dependencies: Set<Signal>
+    protected dependencies: Set<SignalReadable>
     protected deriver: SignalDeriver<T>
 
     protected active: boolean = false
 
-    constructor(deriver: SignalDeriver<T>, ...dependencies: Signal[])
+    constructor(deriver: SignalDeriver<T>, ...dependencies: SignalReadable[])
     {
         super(null!)
         this.deriver = deriver
@@ -88,7 +88,7 @@ export class SignalDerive<T> extends Signal<T>
         return dependency
     }
 
-    public override subscribe(...params: Parameters<Signal<T>['subscribe']>): ReturnType<Signal<T>['subscribe']>
+    public override subscribe(...params: Parameters<SignalReadable<T>['subscribe']>): ReturnType<SignalReadable<T>['subscribe']>
     {
         this.activate()
         const subscription = super.subscribe(...params)

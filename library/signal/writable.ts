@@ -1,22 +1,23 @@
-import { Signal } from "./base"
+import { SignalReadable } from "./readable"
 export interface SignalChanger<T> { (value: T): void }
 
-export function createSignal<T>(...params: ConstructorParameters<typeof SignalSettable<T>>)
+export function createWritable<T>(...params: ConstructorParameters<typeof SignalWritable<T>>)
 {
-    return new SignalSettable<T>(...params)
+    return new SignalWritable<T>(...params)
 }
 
-export class SignalSettable<T> extends Signal<T>
+
+export class SignalWritable<T> extends SignalReadable<T>
 {
     protected static readonly Empty = Symbol('empty')
 
     public override get value() { return super.value }
     public override set value(value: T) { this.set(value) }
 
-    public set(value: T | typeof SignalSettable.Empty = SignalSettable.Empty)
+    public set(value: T | typeof SignalWritable.Empty = SignalWritable.Empty)
     {
         if (value === this._value && typeof value !== 'object') return
-        if (value !== SignalSettable.Empty) this._value = value
+        if (value !== SignalWritable.Empty) this._value = value
         this.signal()
     }
 

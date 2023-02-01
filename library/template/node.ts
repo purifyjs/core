@@ -1,7 +1,7 @@
 import { EMPTY_NODE } from "."
 import { injectOrGetMasterAPI } from "../api"
-import { Signal } from "../signal/base"
-import { createOrGetDeriveOfFunction, SignalDeriver } from "../signal/derive"
+import { SignalReadable } from "../signal/readable"
+import { createOrGetDeriveOfFunction, SignalDeriver } from "../signal/derivable"
 
 export function valueToNode(value: unknown): Node
 {
@@ -16,7 +16,7 @@ export function valueToNode(value: unknown): Node
 
     if (value instanceof Node) return value
 
-    if (value instanceof Signal || value instanceof Function)
+    if (value instanceof SignalReadable || value instanceof Function)
     {
         const fragment = document.createDocumentFragment()
         const startComment = document.createComment(``)
@@ -25,7 +25,7 @@ export function valueToNode(value: unknown): Node
 
         const m = injectOrGetMasterAPI(startComment)
 
-        let signal: Signal
+        let signal: SignalReadable
         if (value instanceof Function) signal = createOrGetDeriveOfFunction(value as SignalDeriver<unknown>)
         else signal = value
 

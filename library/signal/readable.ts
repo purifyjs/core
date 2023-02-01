@@ -7,12 +7,12 @@ export interface SignalSubscriptionOptions
     mode: 'normal' | 'once' | 'immediate'
 }
 
-export function createStaticSignal<T>(...params: ConstructorParameters<typeof Signal<T>>)
+export function createReadable<T>(...params: ConstructorParameters<typeof SignalReadable<T>>)
 {
-    return new Signal<T>(...params)
+    return new SignalReadable<T>(...params)
 }
 
-export class Signal<T = any>
+export class SignalReadable<T = any>
 {
     public readonly id
     protected readonly _listeners: Set<SignalSubscriptionListender<any>>

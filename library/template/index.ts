@@ -1,11 +1,11 @@
 import { injectOrGetMasterAPI } from "../api"
-import { Signal } from "../signal/base"
-import { createDerive, createOrGetDeriveOfFunction, SignalDeriver } from "../signal/derive"
-import { SignalSettable } from "../signal/settable"
+import { SignalReadable } from "../signal/readable"
+import { createDerive, createOrGetDeriveOfFunction, SignalDeriver } from "../signal/derivable"
+import { SignalWritable } from "../signal/writable"
 import { valueToNode } from "./node"
 import { parseTemplateParts, TemplatePart, TemplateStateType } from "./parts"
 
-export type TemplateValue = string | number | boolean | null | undefined | Node | Signal<any> | SignalDeriver<any> | Function | TemplateValue[]
+export type TemplateValue = string | number | boolean | null | undefined | Node | SignalReadable<any> | SignalDeriver<any> | Function | TemplateValue[]
 export type TemplateHtmlArray = readonly string[]
 
 export type TemplateValueArrayFromHtmlArray<_T extends readonly string[]> = TemplateValue[]
@@ -30,7 +30,7 @@ export function template<S extends TemplateHtmlArray, T extends TemplateValueArr
 {
     const nodes: Node[] = []
     const outlets = {
-        signals: {} as Record<string, Signal<any>>,
+        signals: {} as Record<string, SignalReadable<any>>,
         attributes: new Map<string, Map<string, unknown>>(),
     }
 
@@ -78,7 +78,7 @@ export function template<S extends TemplateHtmlArray, T extends TemplateValueArr
                 if (value instanceof Function) value = createOrGetDeriveOfFunction(value)
             }
 
-            if (value instanceof Signal)
+            if (value instanceof SignalReadable)
             {
                 html += part.state.type === TemplateStateType.AttributeValueUnquoted ? `"<$${value.id}>"` : `<$${value.id}>`
                 outlets.signals[value.id] = value
@@ -136,10 +136,10 @@ export function template<S extends TemplateHtmlArray, T extends TemplateValueArr
                 const signalIds: string[] = /<\$([^>]+)>/g.exec(attributeValue)?.slice(1) ?? []
                 if (signalIds.length === 0) continue
 
-                const valueTemplate: (Signal | string)[] = attributeValue.split(/<\$([^>]+)>/g)
+                const valueTemplate: (SignalReadable | string)[] = attributeValue.split(/<\$([^>]+)>/g)
                     .map((value, index) => index % 2 === 0 ? value : outlets.signals[value]!).filter(value => value)
 
-                const signal = createDerive(() => valueTemplate.map((value) => value instanceof Signal ? value.value.toString() : value).join(''))
+                const signal = createDerive(() => valueTemplate.map((value) => value instanceof SignalReadable ? value.value.toString() : value).join(''))
                 value = signal
             }
 
@@ -152,17 +152,17 @@ export function template<S extends TemplateHtmlArray, T extends TemplateValueArr
                 case 'class':
                     if (!key) throw new Error(`Invalid attribute name ${attributeName}`)
                     if (value instanceof Function) value = createOrGetDeriveOfFunction(value as SignalDeriver<unknown>)
-                    if (value instanceof Signal) injectOrGetMasterAPI(element).subscribe(value, (active) => element.classList.toggle(key, !!active), { mode: 'immediate' })
+                    if (value instanceof SignalReadable) injectOrGetMasterAPI(element).subscribe(value, (active) => element.classList.toggle(key, !!active), { mode: 'immediate' })
                     else element.classList.toggle(key, !!value)
                     break
                 case 'style':
                     if (!key) throw new Error(`Invalid attribute name ${attributeName}`)
                     if (value instanceof Function) value = createOrGetDeriveOfFunction(value as SignalDeriver<unknown>)
-                    if (value instanceof Signal) injectOrGetMasterAPI(element).subscribe(value, (value) => element.style.setProperty(key, `${value}`), { mode: 'immediate' })
+                    if (value instanceof SignalReadable) injectOrGetMasterAPI(element).subscribe(value, (value) => element.style.setProperty(key, `${value}`), { mode: 'immediate' })
                     else element.style.setProperty(key, `${value}`)
                     break
                 case 'ref':
-                    if (!(value instanceof SignalSettable<HTMLElement>)) throw new Error(`:ref attribute must be a SignalSettable<HTMLElement>`)
+                    if (!(value instanceof SignalWritable<HTMLElement>)) throw new Error(`:ref attribute must be a SignalWritable<HTMLElement>`)
                     value.value = element
                     break
                 case 'on': {
@@ -175,8 +175,8 @@ export function template<S extends TemplateHtmlArray, T extends TemplateValueArr
                 }
                 case 'bind': {
                     if (!key) throw new Error(`Invalid attribute name ${attributeName}`)
-                    if (!(value instanceof SignalSettable<unknown>)) throw new Error(`:bind attribute must be a SignalSettable`)
-                    const signal = value as SignalSettable<unknown>
+                    if (!(value instanceof SignalWritable<unknown>)) throw new Error(`:bind attribute must be a SignalWritable`)
+                    const signal = value as SignalWritable<unknown>
                     switch (key)
                     {
                         case 'value': {
@@ -244,7 +244,7 @@ export function template<S extends TemplateHtmlArray, T extends TemplateValueArr
                 }
                 default:
                     if (value instanceof Function) value = createOrGetDeriveOfFunction(value as SignalDeriver<unknown>)
-                    if (value instanceof Signal) injectOrGetMasterAPI(element).subscribe(value, (value) => element.setAttribute(attributeName, `${value}`), { mode: 'immediate' })
+                    if (value instanceof SignalReadable) injectOrGetMasterAPI(element).subscribe(value, (value) => element.setAttribute(attributeName, `${value}`), { mode: 'immediate' })
                     else element.setAttribute(attributeName, `${value}`)
                     break
             }

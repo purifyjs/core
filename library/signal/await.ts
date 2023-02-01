@@ -1,5 +1,5 @@
-import type { Signal } from "./base"
-import { createSignal } from "./settable"
+import type { SignalReadable } from "./readable"
+import { createWritable } from "./writable"
 
 /**
  * Derives a signal from a promise.
@@ -14,34 +14,34 @@ import { createSignal } from "./settable"
 export function createAwait<T, P, E>(then: Promise<T>, placeholder?: P, onError?: <T extends Error>(error: T) => E):
     P extends undefined
     ? E extends undefined
-    ? Signal<T | null>
-    : Signal<T | E | null>
+    ? SignalReadable<T | null>
+    : SignalReadable<T | E | null>
     : E extends undefined
-    ? Signal<T | P>
-    : Signal<T | P | E>
+    ? SignalReadable<T | P>
+    : SignalReadable<T | P | E>
 {
     if (placeholder !== undefined && onError instanceof Function)
     {
-        const signal = createSignal<T | P | E>(placeholder)
+        const signal = createWritable<T | P | E>(placeholder)
         then.then(value => signal.set(value)).catch((error) => signal.set(onError(error)))
         return signal as any
     }
 
     if (placeholder !== undefined)
     {
-        const signal = createSignal<T | P>(placeholder)
+        const signal = createWritable<T | P>(placeholder)
         then.then(value => signal.set(value))
         return signal as any
     }
 
     if (onError instanceof Function)
     {
-        const signal = createSignal<T | E | null>(null)
+        const signal = createWritable<T | E | null>(null)
         then.then(value => signal.set(value)).catch((error) => signal.set(onError(error)))
         return signal as any
     }
 
-    const signal = createSignal<T | null>(null)
+    const signal = createWritable<T | null>(null)
     then.then(value => signal.set(value))
     return signal as any
 }
