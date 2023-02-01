@@ -38,7 +38,7 @@ export function template<S extends TemplateHtmlArray, T extends TemplateValueArr
     for (let i = 0; i < templateParts.length; i++)
     {
         const part = templateParts[i]!
-        const value: any = values[i]
+        let value: any = values[i]
 
         html += part.html
 
@@ -73,6 +73,11 @@ export function template<S extends TemplateHtmlArray, T extends TemplateValueArr
         }
         else if (part.state.type > TemplateStateType.ATTR_VALUE_START && part.state.type < TemplateStateType.ATTR_VALUE_END)
         {
+            if (!part.state.attribute_name.startsWith('on:'))
+            {
+                if (value instanceof Function) value = createOrGetDeriveOfFunction(value)
+            }
+            
             if (value instanceof Signal)
             {
                 html += part.state.type === TemplateStateType.AttributeValueUnquoted ? `"<$${value.id}>"` : `<$${value.id}>`
@@ -82,6 +87,7 @@ export function template<S extends TemplateHtmlArray, T extends TemplateValueArr
             {
                 html += part.state.type === TemplateStateType.AttributeValueUnquoted ? `""` : ``
             }
+
             const refMap = outlets.attributes
             const attributeMap = refMap.get(part.state.tag_ref) ?? refMap.set(part.state.tag_ref, new Map()).get(part.state.tag_ref)!
             if (!attributeMap.has(part.state.attribute_name))
@@ -174,8 +180,8 @@ export function template<S extends TemplateHtmlArray, T extends TemplateValueArr
                     {
                         case 'value':
                             if (!(
-                                element instanceof HTMLInputElement || 
-                                element instanceof HTMLTextAreaElement || 
+                                element instanceof HTMLInputElement ||
+                                element instanceof HTMLTextAreaElement ||
                                 element instanceof HTMLSelectElement
                             )) throw new Error(`:bind:value attribute must be on an input element`)
                             const listener = () => signal.value = element.value
@@ -191,7 +197,7 @@ export function template<S extends TemplateHtmlArray, T extends TemplateValueArr
                     else element.setAttribute(attributeName, `${value}`)
                     break
             }
-            // if (type) element.removeAttribute(attributeName) Gonna keep it for now for debugging
+            // if (type) element.removeAttribute(attributeName)
         }
     }
 
