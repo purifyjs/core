@@ -165,73 +165,83 @@ export function template<S extends TemplateHtmlArray, T extends TemplateValueArr
                     if (!(value instanceof SignalSettable<HTMLElement>)) throw new Error(`:ref attribute must be a SignalSettable<HTMLElement>`)
                     value.value = element
                     break
-                case 'on':
+                case 'on': {
                     if (!key) throw new Error(`Invalid attribute name ${attributeName}`)
                     if (!(value instanceof Function)) throw new Error(`:on attribute must be a function`)
                     const m = injectOrGetMasterAPI(element)
                     m.onMount(() => element.addEventListener(key, value as EventListener))
                     m.onUnmount(() => element.removeEventListener(key, value as EventListener))
                     break
-                case 'bind':
+                }
+                case 'bind': {
                     if (!key) throw new Error(`Invalid attribute name ${attributeName}`)
                     if (!(value instanceof SignalSettable<unknown>)) throw new Error(`:bind attribute must be a SignalSettable`)
                     const signal = value as SignalSettable<unknown>
                     switch (key)
                     {
-                        case 'value':
+                        case 'value': {
                             if (element instanceof HTMLInputElement)
                             {
                                 switch (element.type)
                                 {
                                     case 'radio':
-                                    case 'checkbox':
-                                        {
-                                            const listener = () => signal.value = element.checked
-                                            const m = injectOrGetMasterAPI(element)
-                                            m.onMount(() => element.addEventListener('input', listener))
-                                            m.onUnmount(() => element.removeEventListener('input', listener))
-                                            m.subscribe(signal, (value) => element.checked = !!value, { mode: 'immediate' })
-                                        }
+                                    case 'checkbox': {
+                                        const listener = () => signal.value = element.checked
+                                        const m = injectOrGetMasterAPI(element)
+                                        m.onMount(() => element.addEventListener('input', listener))
+                                        m.onUnmount(() => element.removeEventListener('input', listener))
+                                        m.subscribe(signal, (value) => element.checked = !!value, { mode: 'immediate' })
                                         break
+                                    }
                                     case 'range':
-                                    case 'number':
-                                        {
-                                            if (typeof value !== 'number') throw new Error(`:bind:value attribute must be a number`)
-                                            const listener = () => signal.value = element.valueAsNumber
-                                            const m = injectOrGetMasterAPI(element)
-                                            m.onMount(() => element.addEventListener('input', listener))
-                                            m.onUnmount(() => element.removeEventListener('input', listener))
-                                            m.subscribe(signal, (value) => element.valueAsNumber = value as any, { mode: 'immediate' })
-                                        }
+                                    case 'number': {
+                                        if (typeof value !== 'number') throw new Error(`:bind:value attribute must be a number`)
+                                        const listener = () => signal.value = element.valueAsNumber
+                                        const m = injectOrGetMasterAPI(element)
+                                        m.onMount(() => element.addEventListener('input', listener))
+                                        m.onUnmount(() => element.removeEventListener('input', listener))
+                                        m.subscribe(signal, (value) => element.valueAsNumber = value as any, { mode: 'immediate' })
                                         break
+                                    }
                                     case 'date':
                                     case 'datetime-local':
                                     case 'month':
                                     case 'time':
-                                    case 'week':
-                                        {
-                                            if (!(value instanceof Date)) throw new Error(`:bind:value attribute must be a Date`)
-                                            const listener = () => signal.value = element.valueAsDate
-                                            const m = injectOrGetMasterAPI(element)
-                                            m.onMount(() => element.addEventListener('input', listener))
-                                            m.onUnmount(() => element.removeEventListener('input', listener))
-                                            m.subscribe(signal, (value) => element.valueAsDate = value as any, { mode: 'immediate' })
-                                        }
+                                    case 'week': {
+                                        if (!(value instanceof Date)) throw new Error(`:bind:value attribute must be a Date`)
+                                        const listener = () => signal.value = element.valueAsDate
+                                        const m = injectOrGetMasterAPI(element)
+                                        m.onMount(() => element.addEventListener('input', listener))
+                                        m.onUnmount(() => element.removeEventListener('input', listener))
+                                        m.subscribe(signal, (value) => element.valueAsDate = value as any, { mode: 'immediate' })
                                         break
-                                    default:
-                                        {
-                                            const listener = () => signal.value = element.value
-                                            const m = injectOrGetMasterAPI(element)
-                                            m.onMount(() => element.addEventListener('input', listener))
-                                            m.onUnmount(() => element.removeEventListener('input', listener))
-                                            m.subscribe(signal, (value) => element.value = `${value}`, { mode: 'immediate' })
-                                        }
+                                    }
+                                    default: {
+                                        const listener = () => signal.value = element.value
+                                        const m = injectOrGetMasterAPI(element)
+                                        m.onMount(() => element.addEventListener('input', listener))
+                                        m.onUnmount(() => element.removeEventListener('input', listener))
+                                        m.subscribe(signal, (value) => element.value = `${value}`, { mode: 'immediate' })
                                         break
+                                    }
                                 }
                                 break
+                            } 
+                            else if (element instanceof HTMLTextAreaElement || element instanceof HTMLSelectElement)
+                            {
+                                const listener = () => signal.value = element.value
+                                const m = injectOrGetMasterAPI(element)
+                                m.onMount(() => element.addEventListener('input', listener))
+                                m.onUnmount(() => element.removeEventListener('input', listener))
+                                m.subscribe(signal, (value) => element.value = `${value}`, { mode: 'immediate' })
+                                break
                             }
+
+                            throw new Error(`:bind:value attribute is not supported on ${element.tagName}`)
+                        }
                     }
                     break
+                }
                 default:
                     if (value instanceof Function) value = createOrGetDeriveOfFunction(value as SignalDeriver<unknown>)
                     if (value instanceof Signal) injectOrGetMasterAPI(element).subscribe(value, (value) => element.setAttribute(attributeName, `${value}`), { mode: 'immediate' })
