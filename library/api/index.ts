@@ -1,4 +1,4 @@
-import type { SignalReadable, SignalSubscriptionListender, SignalSubscription, SignalSubscriptionOptions } from "../signal/readable"
+import type { SignalSubscriptionListender, SignalSubscription, SignalSubscriptionOptions, SignalReadable } from "../signal/readable"
 import "./mutationObserver"
 
 export interface NodeWithMasterAPI extends Node

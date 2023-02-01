@@ -13,7 +13,7 @@ export function createDerive<T>(...params: ConstructorParameters<typeof SignalDe
 
 const deriveOfFunctionCache = new WeakMap<SignalDeriver<any>, SignalDerivable<any>>()
 /**
- * Same as derive, but specialized for functions.
+ * Same as createDerive, but specialized for functions.
  * 
  * Derives a signal from a function.
  * 
