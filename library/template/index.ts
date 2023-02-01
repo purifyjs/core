@@ -77,7 +77,7 @@ export function template<S extends TemplateHtmlArray, T extends TemplateValueArr
             {
                 if (value instanceof Function) value = createOrGetDeriveOfFunction(value)
             }
-            
+
             if (value instanceof Signal)
             {
                 html += part.state.type === TemplateStateType.AttributeValueUnquoted ? `"<$${value.id}>"` : `<$${value.id}>`
@@ -179,21 +179,62 @@ export function template<S extends TemplateHtmlArray, T extends TemplateValueArr
                     switch (key)
                     {
                         case 'value':
-                            if (!(
-                                element instanceof HTMLInputElement ||
-                                element instanceof HTMLTextAreaElement ||
-                                element instanceof HTMLSelectElement
-                            )) throw new Error(`:bind:value attribute must be on an input element`)
-                            const listener = () => signal.value = element.value
-                            const m = injectOrGetMasterAPI(element)
-                            m.onMount(() => element.addEventListener('input', listener))
-                            m.onUnmount(() => element.removeEventListener('input', listener))
-                            m.subscribe(signal, (value) => element.value = `${value}`, { mode: 'immediate' })
-                            break
+                            if (element instanceof HTMLInputElement)
+                            {
+                                switch (element.type)
+                                {
+                                    case 'radio':
+                                    case 'checkbox':
+                                        {
+                                            const listener = () => signal.value = element.checked
+                                            const m = injectOrGetMasterAPI(element)
+                                            m.onMount(() => element.addEventListener('input', listener))
+                                            m.onUnmount(() => element.removeEventListener('input', listener))
+                                            m.subscribe(signal, (value) => element.checked = !!value, { mode: 'immediate' })
+                                        }
+                                        break
+                                    case 'range':
+                                    case 'number':
+                                        {
+                                            if (typeof value !== 'number') throw new Error(`:bind:value attribute must be a number`)
+                                            const listener = () => signal.value = element.valueAsNumber
+                                            const m = injectOrGetMasterAPI(element)
+                                            m.onMount(() => element.addEventListener('input', listener))
+                                            m.onUnmount(() => element.removeEventListener('input', listener))
+                                            m.subscribe(signal, (value) => element.valueAsNumber = value as any, { mode: 'immediate' })
+                                        }
+                                        break
+                                    case 'date':
+                                    case 'datetime-local':
+                                    case 'month':
+                                    case 'time':
+                                    case 'week':
+                                        {
+                                            if (!(value instanceof Date)) throw new Error(`:bind:value attribute must be a Date`)
+                                            const listener = () => signal.value = element.valueAsDate
+                                            const m = injectOrGetMasterAPI(element)
+                                            m.onMount(() => element.addEventListener('input', listener))
+                                            m.onUnmount(() => element.removeEventListener('input', listener))
+                                            m.subscribe(signal, (value) => element.valueAsDate = value as any, { mode: 'immediate' })
+                                        }
+                                        break
+                                    default:
+                                        {
+                                            const listener = () => signal.value = element.value
+                                            const m = injectOrGetMasterAPI(element)
+                                            m.onMount(() => element.addEventListener('input', listener))
+                                            m.onUnmount(() => element.removeEventListener('input', listener))
+                                            m.subscribe(signal, (value) => element.value = `${value}`, { mode: 'immediate' })
+                                        }
+                                        break
+                                }
+                                break
+                            }
                     }
+                    break
                 default:
                     if (value instanceof Function) value = createOrGetDeriveOfFunction(value as SignalDeriver<unknown>)
-                    if (value instanceof Signal) injectOrGetMasterAPI(element).subscribe(value, (value) => element.setAttribute(key, `${value}`), { mode: 'immediate' })
+                    if (value instanceof Signal) injectOrGetMasterAPI(element).subscribe(value, (value) => element.setAttribute(attributeName, `${value}`), { mode: 'immediate' })
                     else element.setAttribute(attributeName, `${value}`)
                     break
             }
