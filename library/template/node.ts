@@ -1,5 +1,5 @@
 import { EMPTY_NODE } from "."
-import { assertsMountableNode } from "../api"
+import { assertsMountableNode } from "../mountable"
 import { createOrGetDeriveOfFunction, SignalDeriver } from "../signal/derivable"
 import { SignalReadable } from "../signal/readable"
 

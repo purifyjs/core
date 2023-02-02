@@ -1,4 +1,4 @@
-import { asMountableNode } from "./api"
+import { asMountableNode } from "./mountable"
 import { createTemplateCache, html, TemplateHtmlArray, TemplateValueArrayFromHtmlArray } from "./template"
 import { randomId } from "./utils/id"
 

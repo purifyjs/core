@@ -1,4 +1,4 @@
-import { asMountableNode, assertsMountableNode } from "../api"
+import { asMountableNode, assertsMountableNode } from "../mountable"
 import { createDerive, createOrGetDeriveOfFunction, SignalDeriver } from "../signal/derivable"
 import { SignalReadable } from "../signal/readable"
 import { SignalWritable } from "../signal/writable"
