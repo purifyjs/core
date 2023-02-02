@@ -9,8 +9,8 @@ export function createEach<T extends unknown[] | SignalReadable<unknown[]>, R>(
     ...key: T extends SignalReadable ? [(item: TypeOfEach<T>[number]) => string | number] : []
 ): T extends SignalReadable ? SignalReadable<R[]> : R[]
 {
-    if (each instanceof SignalReadable) return (createEach_ArraySignal as any)(each, as, key) as any
-    return (createEach_Array as any)(each, as, key) as any
+    if (each instanceof SignalReadable) return (createEach_ArraySignal as any)(each, as, ...key) as any
+    return (createEach_Array as any)(each, as, ...key) as any
 }
 
 function createEach_Array<T extends unknown[], R>(each: T, as: (item: T[number], index: number) => R): R[]
