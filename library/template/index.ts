@@ -239,6 +239,8 @@ export function template<S extends TemplateHtmlArray, T extends TemplateValueArr
 
                             throw new Error(`:bind:value attribute is not supported on ${element.tagName}`)
                         }
+                        default:
+                            throw new Error(`Invalid bind name ${key}`)
                     }
                     break
                 }
