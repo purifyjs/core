@@ -1,7 +1,7 @@
 import { randomId } from "../utils/id"
 
 export interface SignalSubscription { unsubscribe(): void }
-export interface SignalSubscriptionListender<T> { (value: T): any }
+export interface SignalSubscriptionListener<T> { (value: T): any }
 export interface SignalSubscriptionOptions
 {
     mode: 'normal' | 'once' | 'immediate'
@@ -15,7 +15,7 @@ export function createReadable<T>(...params: ConstructorParameters<typeof Signal
 export class SignalReadable<T = any>
 {
     public readonly id
-    protected readonly _listeners: Set<SignalSubscriptionListender<any>>
+    protected readonly _listeners: Set<SignalSubscriptionListener<any>>
     protected _value: T
 
     constructor(value: T) 
@@ -32,7 +32,7 @@ export class SignalReadable<T = any>
 
     public get value() { return this.get() }
 
-    public subscribe(listener: SignalSubscriptionListender<T>, options?: SignalSubscriptionOptions): SignalSubscription
+    public subscribe(listener: SignalSubscriptionListener<T>, options?: SignalSubscriptionOptions): SignalSubscription
     {
         console.log('%csubscribed', 'color:orange', listener.name, 'to', this.id)
         switch (options?.mode)

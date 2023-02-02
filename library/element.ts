@@ -1,4 +1,4 @@
-import { MasterAPI } from "./api"
+import { asMountableNode } from "./api"
 import { createTemplateCache, html, TemplateHtmlArray, TemplateValueArrayFromHtmlArray } from "./template"
 import { randomId } from "./utils/id"
 
@@ -8,7 +8,7 @@ export function defineMasterElement(tagName = `x-${randomId()}`)
     {
     }
     customElements.define(tagName, CustomMasterElement)
-    return (...params: ConstructorParameters<typeof CustomMasterElement>) => new CustomMasterElement(...params)
+    return (...params: ConstructorParameters<typeof CustomMasterElement>) => asMountableNode(new CustomMasterElement(...params))
 }
 
 export function defineMasterElementCached(tagName = `x-${randomId()}`)
@@ -33,20 +33,17 @@ export function defineMasterElementCached(tagName = `x-${randomId()}`)
         }
     }
     customElements.define(tagName, CustomMasterElementCached)
-    return (...params: ConstructorParameters<typeof CustomMasterElementCached>) => new CustomMasterElementCached(...params)
+    return (...params: ConstructorParameters<typeof CustomMasterElementCached>) => asMountableNode(new CustomMasterElementCached(...params))
 }
 
 export abstract class MasterElement extends HTMLElement
 {
     public static readonly globalFragment = document.createDocumentFragment()
 
-    public readonly m: MasterAPI
-
     constructor()
     {
         super()
         this.attachShadow({ mode: 'open' })
-        this.m = new MasterAPI(this)
         this.clear()
     }
 

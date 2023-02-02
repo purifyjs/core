@@ -1,7 +1,7 @@
 import { EMPTY_NODE } from "."
-import { injectOrGetMasterAPI } from "../api"
-import { SignalReadable } from "../signal/readable"
+import { assertsMountableNode } from "../api"
 import { createOrGetDeriveOfFunction, SignalDeriver } from "../signal/derivable"
+import { SignalReadable } from "../signal/readable"
 
 export function valueToNode(value: unknown): Node
 {
@@ -23,7 +23,7 @@ export function valueToNode(value: unknown): Node
         const endComment = document.createComment(``)
         fragment.append(startComment, endComment)
 
-        const m = injectOrGetMasterAPI(startComment)
+        assertsMountableNode(startComment)
 
         let signal: SignalReadable
         if (value instanceof Function) signal = createOrGetDeriveOfFunction(value as SignalDeriver<unknown>)
@@ -32,7 +32,7 @@ export function valueToNode(value: unknown): Node
         startComment.nodeValue = `signal ${signal.id}`
         endComment.nodeValue = `/signal ${signal.id}`
 
-        m.subscribe(signal, (signalValue) => 
+        startComment.$subscribe(signal, (signalValue) => 
         {
             while (startComment.nextSibling !== endComment) startComment.nextSibling!.remove()
             endComment.before(valueToNode(signalValue))

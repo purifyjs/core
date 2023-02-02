@@ -1,6 +1,6 @@
-import { injectOrGetMasterAPI } from "../api"
-import { SignalReadable } from "../signal/readable"
+import { asMountableNode, assertsMountableNode } from "../api"
 import { createDerive, createOrGetDeriveOfFunction, SignalDeriver } from "../signal/derivable"
+import { SignalReadable } from "../signal/readable"
 import { SignalWritable } from "../signal/writable"
 import { valueToNode } from "./node"
 import { parseTemplateParts, TemplatePart, TemplateStateType } from "./parts"
@@ -152,13 +152,13 @@ export function template<S extends TemplateHtmlArray, T extends TemplateValueArr
                 case 'class':
                     if (!key) throw new Error(`Invalid attribute name ${attributeName}`)
                     if (value instanceof Function) value = createOrGetDeriveOfFunction(value as SignalDeriver<unknown>)
-                    if (value instanceof SignalReadable) injectOrGetMasterAPI(element).subscribe(value, (active) => element.classList.toggle(key, !!active), { mode: 'immediate' })
+                    if (value instanceof SignalReadable) asMountableNode(element).$subscribe(value, (active) => element.classList.toggle(key, !!active), { mode: 'immediate' })
                     else element.classList.toggle(key, !!value)
                     break
                 case 'style':
                     if (!key) throw new Error(`Invalid attribute name ${attributeName}`)
                     if (value instanceof Function) value = createOrGetDeriveOfFunction(value as SignalDeriver<unknown>)
-                    if (value instanceof SignalReadable) injectOrGetMasterAPI(element).subscribe(value, (value) => element.style.setProperty(key, `${value}`), { mode: 'immediate' })
+                    if (value instanceof SignalReadable) asMountableNode(element).$subscribe(value, (value) => element.style.setProperty(key, `${value}`), { mode: 'immediate' })
                     else element.style.setProperty(key, `${value}`)
                     break
                 case 'ref':
@@ -168,9 +168,9 @@ export function template<S extends TemplateHtmlArray, T extends TemplateValueArr
                 case 'on': {
                     if (!key) throw new Error(`Invalid attribute name ${attributeName}`)
                     if (!(value instanceof Function)) throw new Error(`:on attribute must be a function`)
-                    const m = injectOrGetMasterAPI(element)
-                    m.onMount(() => element.addEventListener(key, value as EventListener))
-                    m.onUnmount(() => element.removeEventListener(key, value as EventListener))
+                    assertsMountableNode(element)
+                    element.$onMount(() => element.addEventListener(key, value as EventListener))
+                    element.$onUnmount(() => element.removeEventListener(key, value as EventListener))
                     break
                 }
                 case 'bind': {
@@ -187,20 +187,20 @@ export function template<S extends TemplateHtmlArray, T extends TemplateValueArr
                                     case 'radio':
                                     case 'checkbox': {
                                         const listener = () => signal.value = element.checked
-                                        const m = injectOrGetMasterAPI(element)
-                                        m.onMount(() => element.addEventListener('input', listener))
-                                        m.onUnmount(() => element.removeEventListener('input', listener))
-                                        m.subscribe(signal, (value) => element.checked = !!value, { mode: 'immediate' })
+                                        assertsMountableNode(element)
+                                        element.$onMount(() => element.addEventListener('input', listener))
+                                        element.$onUnmount(() => element.removeEventListener('input', listener))
+                                        element.$subscribe(signal, (value) => element.checked = !!value, { mode: 'immediate' })
                                         break
                                     }
                                     case 'range':
                                     case 'number': {
                                         if (typeof value !== 'number') throw new Error(`:bind:value attribute must be a number`)
                                         const listener = () => signal.value = element.valueAsNumber
-                                        const m = injectOrGetMasterAPI(element)
-                                        m.onMount(() => element.addEventListener('input', listener))
-                                        m.onUnmount(() => element.removeEventListener('input', listener))
-                                        m.subscribe(signal, (value) => element.valueAsNumber = value as any, { mode: 'immediate' })
+                                        assertsMountableNode(element)
+                                        element.$onMount(() => element.addEventListener('input', listener))
+                                        element.$onUnmount(() => element.removeEventListener('input', listener))
+                                        element.$subscribe(signal, (value) => element.valueAsNumber = value as any, { mode: 'immediate' })
                                         break
                                     }
                                     case 'date':
@@ -210,18 +210,18 @@ export function template<S extends TemplateHtmlArray, T extends TemplateValueArr
                                     case 'week': {
                                         if (!(value instanceof Date)) throw new Error(`:bind:value attribute must be a Date`)
                                         const listener = () => signal.value = element.valueAsDate
-                                        const m = injectOrGetMasterAPI(element)
-                                        m.onMount(() => element.addEventListener('input', listener))
-                                        m.onUnmount(() => element.removeEventListener('input', listener))
-                                        m.subscribe(signal, (value) => element.valueAsDate = value as any, { mode: 'immediate' })
+                                        assertsMountableNode(element)
+                                        element.$onMount(() => element.addEventListener('input', listener))
+                                        element.$onUnmount(() => element.removeEventListener('input', listener))
+                                        element.$subscribe(signal, (value) => element.valueAsDate = value as any, { mode: 'immediate' })
                                         break
                                     }
                                     default: {
                                         const listener = () => signal.value = element.value
-                                        const m = injectOrGetMasterAPI(element)
-                                        m.onMount(() => element.addEventListener('input', listener))
-                                        m.onUnmount(() => element.removeEventListener('input', listener))
-                                        m.subscribe(signal, (value) => element.value = `${value}`, { mode: 'immediate' })
+                                        assertsMountableNode(element)
+                                        element.$onMount(() => element.addEventListener('input', listener))
+                                        element.$onUnmount(() => element.removeEventListener('input', listener))
+                                        element.$subscribe(signal, (value) => element.value = `${value}`, { mode: 'immediate' })
                                         break
                                     }
                                 }
@@ -230,10 +230,10 @@ export function template<S extends TemplateHtmlArray, T extends TemplateValueArr
                             else if (element instanceof HTMLTextAreaElement || element instanceof HTMLSelectElement)
                             {
                                 const listener = () => signal.value = element.value
-                                const m = injectOrGetMasterAPI(element)
-                                m.onMount(() => element.addEventListener('input', listener))
-                                m.onUnmount(() => element.removeEventListener('input', listener))
-                                m.subscribe(signal, (value) => element.value = `${value}`, { mode: 'immediate' })
+                                assertsMountableNode(element)
+                                element.$onMount(() => element.addEventListener('input', listener))
+                                element.$onUnmount(() => element.removeEventListener('input', listener))
+                                element.$subscribe(signal, (value) => element.value = `${value}`, { mode: 'immediate' })
                                 break
                             }
 
@@ -246,7 +246,7 @@ export function template<S extends TemplateHtmlArray, T extends TemplateValueArr
                 }
                 default:
                     if (value instanceof Function) value = createOrGetDeriveOfFunction(value as SignalDeriver<unknown>)
-                    if (value instanceof SignalReadable) injectOrGetMasterAPI(element).subscribe(value, (value) => element.setAttribute(attributeName, `${value}`), { mode: 'immediate' })
+                    if (value instanceof SignalReadable) asMountableNode(element).$subscribe(value, (value) => element.setAttribute(attributeName, `${value}`), { mode: 'immediate' })
                     else element.setAttribute(attributeName, `${value}`)
                     break
             }

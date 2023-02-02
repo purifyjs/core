@@ -1,4 +1,4 @@
-import type { NodeWithMasterAPI } from "."
+import { isMountableNode } from "."
 
 const enum NodePlace
 {
@@ -23,17 +23,17 @@ Element.prototype.attachShadow = function (options: ShadowRootInit)
     return shadowRoot
 }
 
-function addedNode(node: NodeWithMasterAPI, place: NodePlace)
+function addedNode(node: Node, place: NodePlace)
 {
     if (place === NodePlace.Unknown && getRootNode(node) !== document) return
-    node.$masterAPI?.emitMount()
+    if (isMountableNode(node)) node.$emitMount()
     Array.from(node.childNodes).forEach((node) => addedNode(node, NodePlace.InDOM))
     if (node instanceof HTMLElement) Array.from(node.shadowRoot?.childNodes ?? []).forEach((node) => addedNode(node, NodePlace.InDOM))
 }
 
-function removedNode(node: NodeWithMasterAPI)
+function removedNode(node: Node)
 {
-    node.$masterAPI?.emitUnmount()
+    if (isMountableNode(node)) node.$emitUnmount()
     Array.from(node.childNodes).forEach(removedNode)
     if (node instanceof HTMLElement) Array.from(node.shadowRoot?.childNodes ?? []).forEach(removedNode)
 }
