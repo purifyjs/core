@@ -12,12 +12,10 @@ export function createEach<T extends unknown[] | SignalReadable<unknown[]>, R>(
     if (each instanceof SignalReadable) return (createEach_ArraySignal as any)(each, as, ...key) as any
     return (createEach_Array as any)(each, as, ...key) as any
 }
-
 function createEach_Array<T extends unknown[], R>(each: T, as: (item: T[number], index: number) => R): R[]
 {
     return each.map((item, index) => as(item, index))
 }
-
 function createEach_ArraySignal<T extends unknown[], R>(each: SignalReadable<T>, as: (item: T[number], index: SignalReadable<number>) => R, key?: (item: T[number]) => string | number): SignalReadable<R[]>
 {
     let caches: Record<string, { index: SignalWritable<number>, value: R }> = {}
