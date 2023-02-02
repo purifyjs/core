@@ -11,7 +11,7 @@ Counters are a great way to get started with Master.ts. They are simple enough t
 
 *counter.ts*
 ```ts
-import { defineMasterElementCached } from "master-ts/library/element"
+import { defineMasterElementCached } from "master-ts/library/component"
 import type { SignalSettable } from "master-ts/library/signal/settable"
 
 const Element = defineMasterElementCached()
@@ -31,7 +31,7 @@ export function Counter(count: SignalSettable<number>)
 
 *app.ts* 
 ```ts
-import { defineMasterElementCached } from "master-ts/library/element"
+import { defineMasterElementCached } from "master-ts/library/component"
 import { Counter } from "./counter"
 
 const Element = defineMasterElementCached()
@@ -74,7 +74,7 @@ Todo is another great way to get started with Master.ts. It is easy to understan
 
 *todo.ts*
 ```ts
-import { defineMasterElementCached } from "master-ts/library/element"
+import { defineMasterElementCached } from "master-ts/library/component"
 import { html } from "master-ts/library/template"
 import { randomId } from "master-ts/library/utils/id"
 

@@ -1,19 +1,19 @@
-import { asMountableNode } from "./mountable"
-import { createTemplateCache, html, TemplateHtmlArray, TemplateValueArrayFromHtmlArray } from "./template"
-import { randomId } from "./utils/id"
+import { asMountableNode } from "../mountable"
+import { createTemplateCache, html, TemplateHtmlArray, TemplateValueArrayFromHtmlArray } from "../template"
+import { randomId } from "../utils/id"
 
-export function defineMasterElement(tagName = `x-${randomId()}`)
+export function defineComponentNoCache(tagName = `x-${randomId()}`)
 {
-    const CustomMasterElement = class extends MasterElement 
+    const CustomMasterElement = class extends Component 
     {
     }
     customElements.define(tagName, CustomMasterElement)
     return (...params: ConstructorParameters<typeof CustomMasterElement>) => asMountableNode(new CustomMasterElement(...params))
 }
 
-export function defineMasterElementCached(tagName = `x-${randomId()}`)
+export function defineComponent(tagName = `x-${randomId()}`)
 {
-    const CustomMasterElementCached = class extends MasterElement 
+    const CustomMasterElementCached = class extends Component 
     {
         protected static readonly templateCache = createTemplateCache()
         public override clear()
@@ -36,7 +36,7 @@ export function defineMasterElementCached(tagName = `x-${randomId()}`)
     return (...params: ConstructorParameters<typeof CustomMasterElementCached>) => asMountableNode(new CustomMasterElementCached(...params))
 }
 
-export abstract class MasterElement extends HTMLElement
+export abstract class Component extends HTMLElement
 {
     public static readonly globalFragment = document.createDocumentFragment()
 
@@ -47,13 +47,13 @@ export abstract class MasterElement extends HTMLElement
         this.clear()
     }
 
-    clear()
+    public clear()
     {
         this.shadowRoot!.innerHTML = ''
-        this.shadowRoot!.append(MasterElement.globalFragment.cloneNode(true))
+        this.shadowRoot!.append(Component.globalFragment.cloneNode(true))
     }
 
-    html<S extends TemplateHtmlArray, T extends TemplateValueArrayFromHtmlArray<S>>(parts: S, ...values: T)
+    public html<S extends TemplateHtmlArray, T extends TemplateValueArrayFromHtmlArray<S>>(parts: S, ...values: T)
     {
         this.clear()
         const fragment = html(parts, ...values)
