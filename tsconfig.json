@@ -8,22 +8,39 @@
       "DOM"
     ],
     "moduleResolution": "Node",
-    "strict": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
     "esModuleInterop": true,
     "noEmit": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "noImplicitReturns": true,
     "skipLibCheck": true,
     "removeComments": false,
-    "useUnknownInCatchVariables": true,
-    "importsNotUsedAsValues": "error",
-    "preserveConstEnums": true,
-    "noUncheckedIndexedAccess": true,
     "sourceMap": true,
-    "noImplicitOverride": true
+    /* STRICT */
+    "strict": true,
+    /* not needed but putting these here, so they dont show up in autocomplate */
+    "strictBindCallApply": true,
+    "strictFunctionTypes": true,
+    "strictNullChecks": true,
+    "strictPropertyInitialization": true,
+    "stripInternal": true,
+    /* NO IMPLICIT */
+    "noImplicitReturns": true,
+    "noImplicitAny": true,
+    "noImplicitOverride": true,
+    "noImplicitThis": true,
+    /* NO UNUSED */
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    /* NO UNCHECKED */
+    "useUnknownInCatchVariables": true,
+    "noUncheckedIndexedAccess": true,
+    /* OTHER */
+    "preserveConstEnums": true,
+    "importsNotUsedAsValues": "error",
+    "forceConsistentCasingInFileNames": true,
+    /* ALLOW */
+    "noFallthroughCasesInSwitch": false,
+    "noPropertyAccessFromIndexSignature": false,
   },
   "include": [
     "library",
