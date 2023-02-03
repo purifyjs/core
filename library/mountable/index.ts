@@ -22,11 +22,11 @@ export function isMountableNode<T extends Node>(node: T): node is MountableNode 
 
 export function asMountableNode<T extends Node>(node: T): MountableNode & T
 {
-    assertsMountableNode(node)
+    makeMountableNode(node)
     return node
 }
 
-export function assertsMountableNode<T extends Node>(node: T): asserts node is MountableNode & T
+export function makeMountableNode<T extends Node>(node: T): asserts node is MountableNode & T
 {
     if (isMountableNode(node)) return
     type Impl = Pick<MountableNode, Exclude<keyof MountableNode, keyof Node>>

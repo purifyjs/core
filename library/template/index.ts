@@ -1,4 +1,4 @@
-import { asMountableNode, assertsMountableNode } from "../mountable"
+import { asMountableNode, makeMountableNode } from "../mountable"
 import { createDerive, createOrGetDeriveOfFunction, SignalDeriver } from "../signal/derivable"
 import { SignalReadable } from "../signal/readable"
 import { SignalWritable } from "../signal/writable"
@@ -6,27 +6,16 @@ import { valueToNode } from "./node"
 import { parseTemplateParts, TemplatePart, TemplateStateType } from "./parts"
 
 export type TemplateValue = string | number | boolean | null | undefined | Node | SignalReadable<any> | SignalDeriver<any> | Function | TemplateValue[]
-export type TemplateHtmlArray = readonly string[]
-
-export type TemplateValueArrayFromHtmlArray<_T extends readonly string[]> = TemplateValue[]
 
 export const EMPTY_NODE = document.createDocumentFragment()
 const SIGNAL_TEXT = Symbol('signal_text')
 
-export function html<S extends TemplateHtmlArray, T extends TemplateValueArrayFromHtmlArray<S>>(parts: S, ...values: T)
+export function html<S extends TemplateStringsArray, T extends TemplateValue[]>(strings: S, ...values: T)
 {
-    return template(parts, values)
+    return render(parseTemplateParts(strings), values)
 }
 
-export function createTemplateCache()
-{
-    let cache: TemplatePart[] | null = null
-    return {
-        html: (parts, ...values) => template(parts, values, cache ?? (cache = parseTemplateParts(parts)))
-    } satisfies { html: typeof html }
-}
-
-export function template<S extends TemplateHtmlArray, T extends TemplateValueArrayFromHtmlArray<S>>(parts: S, values: T, templateParts = parseTemplateParts(parts)): Node[]
+export function render<T extends TemplateValue[]>(templateParts: TemplatePart[], values: T): Node[]
 {
     const nodes: Node[] = []
     const outlets = {
@@ -150,32 +139,32 @@ export function template<S extends TemplateHtmlArray, T extends TemplateValueArr
             switch (type)
             {
                 case 'class':
-                    if (!key) throw new Error(`Invalid attribute name ${attributeName}`)
+                    if (!key) throw new Error(`Expected expected key after ${type}: in ${attributeName}`)
                     if (value instanceof Function) value = createOrGetDeriveOfFunction(value as SignalDeriver<unknown>)
                     if (value instanceof SignalReadable) asMountableNode(element).$subscribe(value, (active) => element.classList.toggle(key, !!active), { mode: 'immediate' })
                     else element.classList.toggle(key, !!value)
                     break
                 case 'style':
-                    if (!key) throw new Error(`Invalid attribute name ${attributeName}`)
+                    if (!key) throw new Error(`Expected expected key after ${type}: in ${attributeName}`)
                     if (value instanceof Function) value = createOrGetDeriveOfFunction(value as SignalDeriver<unknown>)
                     if (value instanceof SignalReadable) asMountableNode(element).$subscribe(value, (value) => element.style.setProperty(key, `${value}`), { mode: 'immediate' })
                     else element.style.setProperty(key, `${value}`)
                     break
                 case 'ref':
-                    if (!(value instanceof SignalWritable<HTMLElement>)) throw new Error(`:ref attribute must be a SignalWritable<HTMLElement>`)
+                    if (!(value instanceof SignalWritable<HTMLElement>)) throw new Error(`Expected ${SignalWritable.name} for ${attributeName} attribute, got ${value}`)
                     value.value = element
                     break
                 case 'on': {
-                    if (!key) throw new Error(`Invalid attribute name ${attributeName}`)
-                    if (!(value instanceof Function)) throw new Error(`:on attribute must be a function`)
-                    assertsMountableNode(element)
+                    if (!key) throw new Error(`Expected expected key after ${type}: in ${attributeName}`)
+                    if (!(value instanceof Function)) throw new Error(`Expected ${Function.name} for ${attributeName} attribute, got ${value}`)
+                    makeMountableNode(element)
                     element.$onMount(() => element.addEventListener(key, value as EventListener))
                     element.$onUnmount(() => element.removeEventListener(key, value as EventListener))
                     break
                 }
                 case 'bind': {
-                    if (!key) throw new Error(`Invalid attribute name ${attributeName}`)
-                    if (!(value instanceof SignalWritable<unknown>)) throw new Error(`:bind attribute must be a SignalWritable`)
+                    if (!key) throw new Error(`Expected expected key after ${type}: in ${attributeName}`)
+                    if (!(value instanceof SignalWritable<unknown>)) throw new Error(`Expected ${SignalWritable.name} for ${attributeName} attribute, got ${value}`)
                     const signal = value as SignalWritable<unknown>
                     switch (key)
                     {
@@ -187,7 +176,7 @@ export function template<S extends TemplateHtmlArray, T extends TemplateValueArr
                                     case 'radio':
                                     case 'checkbox': {
                                         const listener = () => signal.value = element.checked
-                                        assertsMountableNode(element)
+                                        makeMountableNode(element)
                                         element.$onMount(() => element.addEventListener('input', listener))
                                         element.$onUnmount(() => element.removeEventListener('input', listener))
                                         element.$subscribe(signal, (value) => element.checked = !!value, { mode: 'immediate' })
@@ -197,7 +186,7 @@ export function template<S extends TemplateHtmlArray, T extends TemplateValueArr
                                     case 'number': {
                                         if (typeof value !== 'number') throw new Error(`:bind:value attribute must be a number`)
                                         const listener = () => signal.value = element.valueAsNumber
-                                        assertsMountableNode(element)
+                                        makeMountableNode(element)
                                         element.$onMount(() => element.addEventListener('input', listener))
                                         element.$onUnmount(() => element.removeEventListener('input', listener))
                                         element.$subscribe(signal, (value) => element.valueAsNumber = value as any, { mode: 'immediate' })
@@ -210,7 +199,7 @@ export function template<S extends TemplateHtmlArray, T extends TemplateValueArr
                                     case 'week': {
                                         if (!(value instanceof Date)) throw new Error(`:bind:value attribute must be a Date`)
                                         const listener = () => signal.value = element.valueAsDate
-                                        assertsMountableNode(element)
+                                        makeMountableNode(element)
                                         element.$onMount(() => element.addEventListener('input', listener))
                                         element.$onUnmount(() => element.removeEventListener('input', listener))
                                         element.$subscribe(signal, (value) => element.valueAsDate = value as any, { mode: 'immediate' })
@@ -218,7 +207,7 @@ export function template<S extends TemplateHtmlArray, T extends TemplateValueArr
                                     }
                                     default: {
                                         const listener = () => signal.value = element.value
-                                        assertsMountableNode(element)
+                                        makeMountableNode(element)
                                         element.$onMount(() => element.addEventListener('input', listener))
                                         element.$onUnmount(() => element.removeEventListener('input', listener))
                                         element.$subscribe(signal, (value) => element.value = `${value}`, { mode: 'immediate' })
@@ -226,21 +215,21 @@ export function template<S extends TemplateHtmlArray, T extends TemplateValueArr
                                     }
                                 }
                                 break
-                            } 
+                            }
                             else if (element instanceof HTMLTextAreaElement || element instanceof HTMLSelectElement)
                             {
                                 const listener = () => signal.value = element.value
-                                assertsMountableNode(element)
+                                makeMountableNode(element)
                                 element.$onMount(() => element.addEventListener('input', listener))
                                 element.$onUnmount(() => element.removeEventListener('input', listener))
                                 element.$subscribe(signal, (value) => element.value = `${value}`, { mode: 'immediate' })
                                 break
                             }
 
-                            throw new Error(`:bind:value attribute is not supported on ${element.tagName}`)
+                            throw new Error(`${attributeName} attribute is not supported on ${element.tagName} element`)
                         }
                         default:
-                            throw new Error(`Invalid bind name ${key}`)
+                            throw new Error(`Unknown ${type}: key ${key}, at ${attributeName}`)
                     }
                     break
                 }

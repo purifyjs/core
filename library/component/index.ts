@@ -1,63 +1,50 @@
-import { asMountableNode } from "../mountable"
-import { createTemplateCache, html, TemplateHtmlArray, TemplateValueArrayFromHtmlArray } from "../template"
+import { makeMountableNode } from "../mountable"
+import { render, TemplateValue } from "../template"
+import { parseTemplateParts, TemplatePart } from "../template/parts"
 import { randomId } from "../utils/id"
-
-export function defineComponentNoCache(tagName = `x-${randomId()}`)
-{
-    const CustomMasterElement = class extends Component 
-    {
-    }
-    customElements.define(tagName, CustomMasterElement)
-    return (...params: ConstructorParameters<typeof CustomMasterElement>) => asMountableNode(new CustomMasterElement(...params))
-}
 
 export function defineComponent(tagName = `x-${randomId()}`)
 {
-    const CustomMasterElementCached = class extends Component 
+    const component = class extends Component 
     {
-        protected static readonly templateCache = createTemplateCache()
-        public override clear()
+        protected static cssLink: HTMLLinkElement = document.createElement('link')
+
+        public static set css(css: string)
         {
-            if (this.htmlBuilt) throw new Error('Cannot clear cached element')
-            super.clear()
+            const blob = new Blob([css], { type: 'text/css' })
+            const url = URL.createObjectURL(blob)
+            this.cssLink.rel = 'stylesheet'
+            this.cssLink.href = url
         }
 
-        protected htmlBuilt = false
-        public override html<S extends TemplateHtmlArray, T extends TemplateValueArrayFromHtmlArray<S>>(parts: S, ...values: T)
+        protected static templateParts: TemplatePart[] | null = null
+        public html<T extends TemplateValue[]>(strings: TemplateStringsArray, ...values: T)
         {
-            if (this.htmlBuilt) throw new Error('Cannot build html twice on cached element')
-            const fragment = CustomMasterElementCached.templateCache.html(parts, ...values)
-            this.shadowRoot!.append(...fragment)
-            this.htmlBuilt = true
-            return this
+            const nodes = render(component.templateParts ??= parseTemplateParts(strings), values)
+            this.shadowRoot!.innerHTML = ''
+            this.shadowRoot!.append(Component.globalFragmentBefore.cloneNode(true))
+            const link = component.cssLink.cloneNode(true) as HTMLLinkElement
+            this.shadowRoot!.append(link)
+            this.shadowRoot!.append(...nodes)
+            this.shadowRoot!.append(Component.globalFragmentAfter.cloneNode(true))
         }
     }
-    customElements.define(tagName, CustomMasterElementCached)
-    return (...params: ConstructorParameters<typeof CustomMasterElementCached>) => asMountableNode(new CustomMasterElementCached(...params))
+    customElements.define(tagName, component)
+
+
+
+    return component
 }
 
 export abstract class Component extends HTMLElement
 {
-    public static readonly globalFragment = document.createDocumentFragment()
+    public static readonly globalFragmentBefore = document.createDocumentFragment()
+    public static readonly globalFragmentAfter = document.createDocumentFragment()
 
     constructor()
     {
         super()
         this.attachShadow({ mode: 'open' })
-        this.clear()
-    }
-
-    public clear()
-    {
-        this.shadowRoot!.innerHTML = ''
-        this.shadowRoot!.append(Component.globalFragment.cloneNode(true))
-    }
-
-    public html<S extends TemplateHtmlArray, T extends TemplateValueArrayFromHtmlArray<S>>(parts: S, ...values: T)
-    {
-        this.clear()
-        const fragment = html(parts, ...values)
-        this.shadowRoot!.append(...fragment)
-        return this
+        makeMountableNode(this)
     }
 }

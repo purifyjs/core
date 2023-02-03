@@ -1,4 +1,4 @@
-import type { TemplateHtmlArray } from "."
+import type { TemplateStringsArray } from "."
 import { randomId } from "../utils/id"
 
 export const enum TemplateStateType
@@ -39,7 +39,7 @@ export interface TemplatePart
     state: TemplateState
 }
 
-export function parseTemplateParts(arr: TemplateHtmlArray)
+export function parseTemplateParts(arr: TemplateStringsArray)
 {
     const templateParts: TemplatePart[] = []
 

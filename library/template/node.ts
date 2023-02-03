@@ -1,5 +1,5 @@
 import { EMPTY_NODE } from "."
-import { assertsMountableNode } from "../mountable"
+import { makeMountableNode } from "../mountable"
 import { createOrGetDeriveOfFunction, SignalDeriver } from "../signal/derivable"
 import { SignalReadable } from "../signal/readable"
 
@@ -23,7 +23,7 @@ export function valueToNode(value: unknown): Node
         const endComment = document.createComment(``)
         fragment.append(startComment, endComment)
 
-        assertsMountableNode(startComment)
+        makeMountableNode(startComment)
 
         let signal: SignalReadable
         if (value instanceof Function) signal = createOrGetDeriveOfFunction(value as SignalDeriver<unknown>)
