@@ -19,10 +19,10 @@ function createEach_Array<T extends unknown[], R>(each: T, as: (item: T[number],
 function createEach_ArraySignal<T extends unknown[], R>(each: SignalReadable<T>, as: (item: T[number], index: SignalReadable<number>) => R, key?: (item: T[number]) => string | number): SignalReadable<R[]>
 {
     let caches: Record<string, { index: SignalWritable<number>, value: R }> = {}
-    const derived = createDerive(($) =>
+    const derived = createDerive((s) =>
     {
         const newCaches: typeof caches = {}
-        const collection = each instanceof SignalReadable ? $(each).value : each
+        const collection = each instanceof SignalReadable ? s(each).value : each
         const results = collection.map((item, index) =>
         {
             const k = key?.(item)

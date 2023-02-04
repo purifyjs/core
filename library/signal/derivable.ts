@@ -11,7 +11,7 @@ export function createDerive<T>(...params: ConstructorParameters<typeof SignalDe
     return new SignalDerivable<T>(...params)
 }
 
-const deriveOfFunctionCache = new WeakMap<SignalDeriver<any>, SignalDerivable<any>>()
+const deriveOfFunctionCache = new WeakMap<SignalDeriver<unknown>, SignalDerivable<any>>()
 /**
  * Same as createDerive, but specialized for functions.
  * 
@@ -23,7 +23,7 @@ const deriveOfFunctionCache = new WeakMap<SignalDeriver<any>, SignalDerivable<an
  * @param func The function that derives the value of the signal.
  * @returns The signal that is derived from the function.
  * @example
- * const double = m.deriveFromFunction(($) => $(foo).value * 2)
+ * const double = m.deriveFromFunction((s) => s(foo).value * 2)
 **/
 export function createOrGetDeriveOfFunction<T>(func: SignalDeriver<T>): SignalDerivable<T>
 {

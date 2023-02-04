@@ -3,8 +3,9 @@ import { HtmlParse, HtmlParseStateType } from "./html"
 
 export interface TemplateDescriptor
 {
-    html: string
+    template: HTMLTemplateElement
     valueDescriptors: TemplateValueDescriptor[]
+    attributePartsMap: Map<string, Map<string, number[]>>
 }
 
 export const enum TemplateValueDescriptorType
@@ -29,16 +30,17 @@ export interface TemplateValueDescriptor
 export function parseTemplateDescriptor<T extends HtmlParse[]>(parses: T): TemplateDescriptor
 {
     let html = ''
-    let valueDescriptors: TemplateValueDescriptor[] = []
+
     try
     {
-        valueDescriptors = parses.map((parse, index) => 
+        const attributePartsMap: Map<string, Map<string, number[]>> = new Map()
+        const valueDescriptors: TemplateValueDescriptor[] = parses.map((parse, index) => 
         {
             html += parse.html
 
             if (parse.state.type === HtmlParseStateType.Outer)
             {
-                const ref= randomId()
+                const ref = randomId()
                 html += `<x :ref="${ref}"></x>`
                 return {
                     type: TemplateValueDescriptorType.RenderNode,
@@ -90,7 +92,13 @@ export function parseTemplateDescriptor<T extends HtmlParse[]>(parses: T): Templ
                 {
                     const name = attributeNameParts[0]!
                     if (quote === '') html += `""`
-                    else html += `<${index}>`
+                    else 
+                    {
+                        html += parse.state.tag_ref // using the tag ref as a separator or placeholder for the signal value
+                        const attributeMap = attributePartsMap.get(parse.state.tag_ref) ?? attributePartsMap.set(parse.state.tag_ref, new Map()).get(parse.state.tag_ref)!
+                        const attributePartArray = attributeMap.get(name) ?? attributeMap.set(name, []).get(name)!
+                        attributePartArray.push(index)
+                    }
                     return {
                         type: TemplateValueDescriptorType.Attribute,
                         ref: parse.state.tag_ref,
@@ -105,16 +113,20 @@ export function parseTemplateDescriptor<T extends HtmlParse[]>(parses: T): Templ
 
             throw new Error(`Unexpected value`)
         })
+
+        const template = document.createElement('template')
+        template.innerHTML = html
+
+        return {
+            template,
+            valueDescriptors,
+            attributePartsMap
+        }
     }
     catch (error)
     {
         if (error instanceof Error)
-            throw new Error(`Error while parsing template: ${error.message}. \nAt:\n ${html.slice(-256).trim()}`)
-        throw new Error(`Unknown error while parsing template. \nAt:\n ${html.slice(-256).trim()}`)
-    }
-
-    return {
-        html,
-        valueDescriptors
+            throw new Error(`Error while parsing template: ${error.message}. \nAt:\n${html.slice(-256).trim()}`)
+        throw new Error(`Unknown error while parsing template. \nAt:\n${html.slice(-256).trim()}`)
     }
 }

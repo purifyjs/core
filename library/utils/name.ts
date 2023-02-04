@@ -1,5 +1,9 @@
-export function name(of: unknown)
+export function nameOf(of: any)
 {
-    if (of instanceof Function) return of.name
-    return of!.constructor.name ?? `${of}`
+    return `${of.name ?? of!.constructor.name ?? `${of}`}`
+}
+
+export function typeOf(of: any)
+{
+    return `(${typeof of} ${nameOf(of)} ${of})`
 }

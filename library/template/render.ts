@@ -1,9 +1,9 @@
 import { Component } from "../component"
 import { asMountableNode, makeMountableNode } from "../mountable"
-import { createOrGetDeriveOfFunction, SignalDeriver } from "../signal/derivable"
+import { createDerive, createOrGetDeriveOfFunction, SignalDeriver } from "../signal/derivable"
 import { SignalReadable } from "../signal/readable"
 import { SignalWritable } from "../signal/writable"
-import { name } from "../utils/name"
+import { nameOf, typeOf } from "../utils/name"
 import { bindToElement } from "./bind"
 import { valueToNode } from "./node"
 import { parseHtml } from "./parse/html"
@@ -12,23 +12,15 @@ import { parseTemplateDescriptor, TemplateDescriptor, TemplateValueDescriptorTyp
 export type TemplateValue = string | number | boolean | null | undefined | Node | SignalReadable<any> | SignalDeriver<any> | Function | TemplateValue[]
 
 export const EMPTY_NODE = document.createDocumentFragment()
-const SIGNAL_TEXT = Symbol('signal_text')
 
 export function html<S extends TemplateStringsArray, T extends TemplateValue[]>(strings: S, ...values: T)
 {
-    const htmlParse = parseHtml(strings)
-    const templateDescriptor = parseTemplateDescriptor(htmlParse)
-    return render(templateDescriptor, values)
+    return render(parseTemplateDescriptor(parseHtml(strings)), values)
 }
 
 export function render<T extends TemplateValue[]>(templateDescriptor: TemplateDescriptor, values: T): Node[]
 {
-    const fragment = document.createDocumentFragment()
-    {
-        const outlet = document.createElement('outlet')
-        outlet.innerHTML = templateDescriptor.html
-        fragment.append(...Array.from(outlet.childNodes))
-    }
+    const fragment = templateDescriptor.template.content.cloneNode(true) as DocumentFragment
 
     try
     {
@@ -48,7 +40,7 @@ export function render<T extends TemplateValue[]>(templateDescriptor: TemplateDe
                     break
                 case TemplateValueDescriptorType.RenderComponent:
                     {
-                        if (!(value instanceof Component)) throw new Error(`Expected ${Component.name} at index "${index}", but got ${name(value)}.`)
+                        if (!(value instanceof Component)) throw new Error(`Expected ${nameOf(Component)} at index "${index}", but got ${nameOf(value)}.`)
                         const outlet = fragment.querySelector(`[\\:ref="${descriptor.ref}"]`)
                         if (!outlet) throw new Error(`Could not find outlet with ref "${descriptor.ref}".`)
                         value.append(...Array.from(outlet.childNodes))
@@ -62,6 +54,7 @@ export function render<T extends TemplateValue[]>(templateDescriptor: TemplateDe
                     {
                         const element = fragment.querySelector(`[\\:ref="${descriptor.ref}"]`) as HTMLElement
                         if (!element) throw new Error(`Could not find element with ref "${descriptor.ref}".`)
+                        if (value instanceof Function) values[index] = value = createOrGetDeriveOfFunction(value as SignalDeriver<unknown>)
                         if (value instanceof SignalReadable)
                         {
                             if (descriptor.quote === '')
@@ -71,15 +64,16 @@ export function render<T extends TemplateValue[]>(templateDescriptor: TemplateDe
                             }
                             else
                             {
-                                // This has to be handled at the end, after all attributes have been known.
-                                // Or maybe not
-                                throw new Error(`Not implemented yet.`)
+                                // Handled at the end.
                             }
                         }
                         else
                         {
                             if (descriptor.quote === '') element.setAttribute(descriptor.attribute.name, `${value}`)
-                            else element.setAttribute(descriptor.attribute.name, `${value}`)
+                            else
+                            {
+                                // Handled at the end.
+                            }
                         }
                     }
                     break
@@ -100,17 +94,17 @@ export function render<T extends TemplateValue[]>(templateDescriptor: TemplateDe
                                 else element.style.setProperty(descriptor.attribute.name, `${value}`)
                                 break
                             case 'on':
-                                if (!(value instanceof Function)) throw new Error(`${descriptor.attribute.type}:${descriptor.attribute.name} must be a function, but got ${name(value)}.`)
+                                if (!(value instanceof Function)) throw new Error(`${descriptor.attribute.type}:${descriptor.attribute.name} must be a function, but got ${nameOf(value)}.`)
                                 makeMountableNode(element)
                                 element.$onMount(() => element.addEventListener(descriptor.attribute.name, value as EventListener))
                                 element.$onUnmount(() => element.removeEventListener(descriptor.attribute.name, value as EventListener))
                                 break
                             case 'ref':
-                                if (!(value instanceof SignalWritable)) throw new Error(`${descriptor.attribute.type}:${descriptor.attribute.name} must be a ${SignalWritable.name}, but got ${name(value)}.`)
+                                if (!(value instanceof SignalWritable)) throw new Error(`${descriptor.attribute.type}:${descriptor.attribute.name} must be a ${nameOf(SignalWritable)}, but got ${typeOf(value)}.`)
                                 value.set(element)
                                 break
                             case 'bind':
-                                if (!(value instanceof SignalWritable)) throw new Error(`${descriptor.attribute.type}:${descriptor.attribute.name} must be a ${SignalWritable.name}, but got ${name(value)}.`)
+                                if (!(value instanceof SignalWritable)) throw new Error(`${descriptor.attribute.type}:${descriptor.attribute.name} must be a ${nameOf(SignalWritable)}, but got ${typeOf(value)}.`)
                                 bindToElement(value, element, descriptor.attribute.name)
                                 break
                             default:
@@ -119,11 +113,35 @@ export function render<T extends TemplateValue[]>(templateDescriptor: TemplateDe
                     }
             }
         }
+
+        for (const [ref, attributes] of templateDescriptor.attributePartsMap)
+        {
+            const element = fragment.querySelector(`[\\:ref="${ref}"]`) as HTMLElement
+            if (!element) throw new Error(`While rendering attribute parts: Could not find element with ref "${ref}".`)
+            for (const [name, indexMap] of attributes)
+            {
+                const attributeTemplate = element.getAttribute(name)?.split(ref).filter((s) => s).flatMap((part, index) =>
+                {
+                    const valueIndex = indexMap[index]
+                    if (valueIndex === undefined) throw new Error(`While rendering attribute parts: Could not find value index of ${index}th part of attribute "${name}" on element with ref "${ref}".`)
+                    const value = values[valueIndex]
+                    if (!(value instanceof SignalReadable)) throw new Error(`While rendering attribute parts: Expected ${nameOf(SignalReadable)} at index "${valueIndex}", but got ${typeOf(value)}.`)
+                    return [part, value]
+                })
+                if (!attributeTemplate) throw new Error(`While rendering attribute parts: Could not find attribute "${name}" on element with ref "${ref}".`)
+                makeMountableNode(element)
+                const signal = createDerive((s) => attributeTemplate.map((part) => part instanceof SignalReadable ? s(part).value : part).join(''))
+                element.$subscribe(signal, (value) => element.setAttribute(name, value), { mode: 'immediate' })
+            }
+        }
     }
     catch (error)
     {
         if (error instanceof Error)
-            throw new Error(`Error while rendering template: ${error.message}.\nHtml:\n${templateDescriptor.html.trim()}`)
+        {
+            console.error(`Values:`, values)
+            throw new Error(`Error while rendering template: ${error.message}.\nHtml:\n${templateDescriptor.template.innerHTML.trim()}`)
+        }
     }
 
     return Array.from(fragment.childNodes)
