@@ -32,8 +32,8 @@ Basically it combines the best parts of Svelte, Lit and React into one library.<
 It's not a compiler but it's still fast like Svelte thanks to the Shadow DOM and Web Components API, similar to Svelte it only updates the changing parts of the DOM.<br/>
 Like React it uses functions to create HTML elements and components, so it's natural and intuitive to use.<br/>
 It's also similar to Lit that it uses Template Literals to create HTML elements which let's you write HTML in a more natural way with in a TS file.<br/> 
-And different from any other frameworks or libraries, that while it's allowing you to use attributes on your components such as class, id, style, etc.
-it also has a clear seperation between props and attributes.<br/>
+And different from any other frameworks or libraries, while it's allowing you to use attributes on your components such as class, id, style, etc.
+as well as directives such as `on:` which let's you bind to events, it also has a clear seperation between props and attributes, without any prefix or suffix.<br/>
 Like Svelte it has a syntax to toggle classes or change style properties, eg. `class:active` and `style:color`.<br/>
 It also has a syntax to bind to events, eg. `on:click`.<br/>
 
