@@ -1,4 +1,4 @@
-import { EMPTY_NODE } from "."
+import { EMPTY_NODE } from "./render"
 import { makeMountableNode } from "../mountable"
 import { createOrGetDeriveOfFunction, SignalDeriver } from "../signal/derivable"
 import { SignalReadable } from "../signal/readable"

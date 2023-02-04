@@ -75,7 +75,7 @@ Todo is another great way to get started with Master.ts. It is easy to understan
 *todo.ts*
 ```ts
 import { defineMasterElementCached } from "master-ts/library/component"
-import { html } from "master-ts/library/template"
+import { html } from "master-ts/library/template/render"
 import { randomId } from "master-ts/library/utils/id"
 
 interface Todo

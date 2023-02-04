@@ -1,6 +1,7 @@
 import { makeMountableNode } from "../mountable"
-import { render, TemplateValue } from "../template"
-import { parseTemplateParts, TemplatePart } from "../template/parts"
+import { parseHtml } from "../template/parse/html"
+import { parseTemplateDescriptor, TemplateDescriptor } from "../template/parse/template"
+import { render, TemplateValue } from "../template/render"
 import { randomId } from "../utils/id"
 
 export function defineComponent(tagName = `x-${randomId()}`)
@@ -17,10 +18,10 @@ export function defineComponent(tagName = `x-${randomId()}`)
             this.cssLink.href = url
         }
 
-        protected static templateParts: TemplatePart[] | null = null
+        protected static templateDescriptor: TemplateDescriptor | null = null
         public html<T extends TemplateValue[]>(strings: TemplateStringsArray, ...values: T)
         {
-            const nodes = render(component.templateParts ??= parseTemplateParts(strings), values)
+            const nodes = render(component.templateDescriptor ??= parseTemplateDescriptor(parseHtml(strings)), values)
             this.shadowRoot!.innerHTML = ''
             this.shadowRoot!.append(Component.globalFragmentBefore.cloneNode(true))
             const link = component.cssLink.cloneNode(true) as HTMLLinkElement

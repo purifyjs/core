@@ -1,7 +1,6 @@
-import type { TemplateStringsArray } from "."
-import { randomId } from "../utils/id"
+import { randomId } from "../../utils/id"
 
-export const enum TemplateStateType
+export const enum HtmlParseStateType
 {
     Outer,
 
@@ -24,27 +23,27 @@ export const enum TemplateStateType
     ATTR_END
 }
 
-export interface TemplateState
+export interface HtmlParseState
 {
-    type: TemplateStateType
+    type: HtmlParseStateType
     tag: string
     tag_ref: string
     attribute_name: string
     attribute_value: string
 }
 
-export interface TemplatePart
+export interface HtmlParse
 {
     html: string
-    state: TemplateState
+    state: HtmlParseState
 }
 
-export function parseTemplateParts(arr: TemplateStringsArray)
+export function parseHtml(arr: TemplateStringsArray)
 {
-    const templateParts: TemplatePart[] = []
+    const parses: HtmlParse[] = []
 
-    const state: TemplateState = {
-        type: TemplateStateType.Outer,
+    const state: HtmlParseState = {
+        type: HtmlParseStateType.Outer,
         tag: '',
         tag_ref: '',
         attribute_name: '',
@@ -53,40 +52,40 @@ export function parseTemplateParts(arr: TemplateStringsArray)
 
     for (let i = 0; i < arr.length; i++)
     {
-        const part = arr[i]!
+        const parse = arr[i]!
         let html = ''
 
-        for (let i = 0; i < part.length; i++)
+        for (let i = 0; i < parse.length; i++)
         {
-            const char = part[i]!
+            const char = parse[i]!
             try
             {
                 html = processChar(char, html, state)
             }
             catch (e)
             {
-                const errorHtml = '\n' + `${templateParts.map((part) => part.html).join('')}${html}{{{${char}}}}${part.slice(i + 1)}`.trim() + '\n'
+                const errorHtml = '\n' + `${parses.map((part) => part.html).join('')}${html}{{{${char}}}}${parse.slice(i + 1)}`.trim() + '\n'
                 if (e instanceof Error) throw new Error(`Parsing error:${e.message}\nAt:\n${errorHtml}`)
                 throw new Error(`Unknown parsing error\nAt:\n${errorHtml}`)
             }
         }
 
-        templateParts.push({
+        parses.push({
             html,
             state: { ...state }
         })
     }
-    return templateParts
+    return parses
 }
 
-function processChar(char: string, html: string, state: TemplateState)
+function processChar(char: string, html: string, state: HtmlParseState)
 {
     switch (state.type)
     {
-        case TemplateStateType.Outer:
+        case HtmlParseStateType.Outer:
             if (char === '<')
             {
-                state.type = TemplateStateType.TagName
+                state.type = HtmlParseStateType.TagName
                 state.tag = ''
                 state.tag_ref = randomId()
                 state.attribute_name = ''
@@ -94,62 +93,62 @@ function processChar(char: string, html: string, state: TemplateState)
             }
             else if (/\s/.test(html[html.length - 1]!) && /\s/.test(char)) return html
             break
-        case TemplateStateType.TagName:
+        case HtmlParseStateType.TagName:
             if (state.tag === '' && char === '/')
             {
-                state.type = TemplateStateType.TagClose
+                state.type = HtmlParseStateType.TagClose
                 state.tag = ''
             }
             else if (char === '>')
             {
-                state.type = TemplateStateType.Outer
+                state.type = HtmlParseStateType.Outer
                 /* html += ` :ref="${ref}"` */
             }
             else if (/\s/.test(char))
             {
-                state.type = TemplateStateType.TagInner
+                state.type = HtmlParseStateType.TagInner
                 html += ` :ref="${state.tag_ref}"`
             }
             else state.tag += char
             break
-        case TemplateStateType.TagInner:
-            if (char === '>') state.type = TemplateStateType.Outer
-            else if (/\s/.test(char)) state.type = TemplateStateType.TagInner
+        case HtmlParseStateType.TagInner:
+            if (char === '>') state.type = HtmlParseStateType.Outer
+            else if (/\s/.test(char)) state.type = HtmlParseStateType.TagInner
             else
             {
-                state.type = TemplateStateType.AttributeName
+                state.type = HtmlParseStateType.AttributeName
                 state.attribute_name = char
             }
             break
-        case TemplateStateType.TagClose:
+        case HtmlParseStateType.TagClose:
             if (char === '>')
             {
-                state.type = TemplateStateType.Outer
+                state.type = HtmlParseStateType.Outer
                 state.tag = ''
             }
             else state.tag += char
             break
-        case TemplateStateType.AttributeName:
-            if (char === '>') state.type = TemplateStateType.Outer
-            else if (/\s/.test(char)) state.type = TemplateStateType.TagInner
+        case HtmlParseStateType.AttributeName:
+            if (char === '>') state.type = HtmlParseStateType.Outer
+            else if (/\s/.test(char)) state.type = HtmlParseStateType.TagInner
             else if (char === '=')
             {
-                state.type = TemplateStateType.AttributeValueUnquoted
+                state.type = HtmlParseStateType.AttributeValueUnquoted
                 state.attribute_value = ''
             }
             else state.attribute_name += char
             break
-        case TemplateStateType.AttributeValueUnquoted:
-            if (char === '>') state.type = TemplateStateType.Outer
-            else if (/\s/.test(char)) state.type = TemplateStateType.TagInner
+        case HtmlParseStateType.AttributeValueUnquoted:
+            if (char === '>') state.type = HtmlParseStateType.Outer
+            else if (/\s/.test(char)) state.type = HtmlParseStateType.TagInner
             else if (char === '"')
             {
-                state.type = TemplateStateType.AttributeValueDoubleQuoted
+                state.type = HtmlParseStateType.AttributeValueDoubleQuoted
                 state.attribute_value = ''
             }
             else if (char === "'")
             {
-                state.type = TemplateStateType.AttributeValueSingleQuoted
+                state.type = HtmlParseStateType.AttributeValueSingleQuoted
                 state.attribute_value = ''
             }
             else 
@@ -158,12 +157,12 @@ function processChar(char: string, html: string, state: TemplateState)
                 // state.attribute_value += char Not needed, causes complexity in parsing. Might be fixed later.
             }
             break
-        case TemplateStateType.AttributeValueSingleQuoted:
-            if (char === "'") state.type = TemplateStateType.TagInner
+        case HtmlParseStateType.AttributeValueSingleQuoted:
+            if (char === "'") state.type = HtmlParseStateType.TagInner
             else state.attribute_value += char
             break
-        case TemplateStateType.AttributeValueDoubleQuoted:
-            if (char === '"') state.type = TemplateStateType.TagInner
+        case HtmlParseStateType.AttributeValueDoubleQuoted:
+            if (char === '"') state.type = HtmlParseStateType.TagInner
             else state.attribute_value += char
             break
     }
