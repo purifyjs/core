@@ -1,12 +1,9 @@
-import { EMPTY_NODE } from "./render"
 import { makeMountableNode } from "../mountable"
 import { createOrGetDeriveOfFunction, SignalDeriver } from "../signal/derivable"
 import { SignalReadable } from "../signal/readable"
 
 export function valueToNode(value: unknown): Node
 {
-    if (value === null) return EMPTY_NODE
-
     if (value instanceof Array)
     {
         const fragment = document.createDocumentFragment()
@@ -48,6 +45,6 @@ export function valueToNode(value: unknown): Node
 const obj = {}
 function assertStringifyable(value: unknown): asserts value is { toString(): string }
 {
-    if (!((value as any).toString instanceof Function) || (value as any).toString === (obj as any).toString)
+    if (!((value as any)?.toString instanceof Function) || (value as any)?.toString === obj.toString)
         throw new Error(`Value ${value} is not stringifyable.`)
 }
