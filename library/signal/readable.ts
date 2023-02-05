@@ -64,6 +64,16 @@ export class SignalReadable<T = any>
     public signal()
     {
         console.log('%csignaling', 'color:yellow', this.id, this._value)
-        this._listeners.forEach(callback => callback(this._value))
+        this._listeners.forEach(callback => 
+        {
+            try
+            {
+                callback(this._value)
+            }
+            catch
+            {
+
+            }
+        })
     }
 }
