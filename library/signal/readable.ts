@@ -80,12 +80,14 @@ export class SignalReadable<T = any>
     public async signalAsync()
     {
         console.log('%csignaling async', 'color:yellow', this.id, this._value)
+        // Giving a size to the array is faster than using push
         const returns: Promise<unknown>[] = new Array(this._listeners.size)
-        this._listeners.forEach(callback =>
+        let i = 0;
+        this._listeners.forEach((callback) =>
         {
             try
             {
-                returns.push(callback(this._value))
+                returns[i++] = callback(this._value)
             }
             catch
             {
