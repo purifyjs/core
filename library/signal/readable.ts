@@ -76,4 +76,22 @@ export class SignalReadable<T = any>
             }
         })
     }
+
+    public async signalAsync()
+    {
+        console.log('%csignaling async', 'color:yellow', this.id, this._value)
+        const returns: Promise<unknown>[] = []
+        this._listeners.forEach(callback =>
+        {
+            try
+            {
+                returns.push(callback(this._value))
+            }
+            catch
+            {
+
+            }
+        })
+        await Promise.all(returns)
+    }
 }

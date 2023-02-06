@@ -16,9 +16,14 @@ export class SignalWritable<T> extends SignalReadable<T>
 
     public set(value: T | typeof SignalWritable.Empty = SignalWritable.Empty)
     {
+        this.setWithoutSignal(value)
+        this.signal()
+    }
+
+    public setWithoutSignal(value: T | typeof SignalWritable.Empty = SignalWritable.Empty)
+    {
         if (value === this._value && typeof value !== 'object') return
         if (value !== SignalWritable.Empty) this._value = value
-        this.signal()
     }
 
     public change(changer: SignalChanger<T>)
