@@ -32,8 +32,6 @@ export function defineComponent(tagName = `x-${randomId()}`)
     }
     customElements.define(tagName, component)
 
-
-
     return component
 }
 
