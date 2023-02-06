@@ -43,7 +43,6 @@
     "noPropertyAccessFromIndexSignature": false,
   },
   "include": [
-    "library",
-    "library/utils"
+    "library"
   ]
 }
