@@ -19,12 +19,18 @@ export function defineComponent(tagName = `x-${randomId()}`)
         public set $template({ strings, values }: Template)
         {
             const nodes = render(component.templateDescriptor ??= parseTemplateDescriptor(parseTemplateHtml(strings)), values)
-            this.shadowRoot!.innerHTML = ''
+            
+            while (this.shadowRoot!.firstChild)
+                this.shadowRoot!.removeChild(this.shadowRoot!.firstChild)
+                
             this.shadowRoot!.append(Component.globalFragmentBefore.cloneNode(true))
+
             const style = document.createElement('style')
             style.textContent = component.cssString
             this.shadowRoot!.append(style)
+            
             this.shadowRoot!.append(...nodes)
+
             this.shadowRoot!.append(Component.globalFragmentAfter.cloneNode(true))
         }
     }
