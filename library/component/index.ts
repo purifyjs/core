@@ -1,45 +1,53 @@
-import { makeMountableNode } from "../mountable"
+import type { MountableNode } from "../mountable"
+import { render, Template } from "../template"
 import { parseTemplateDescriptor, TemplateDescriptor } from "../template/parse/descriptor"
 import { parseTemplateHtml } from "../template/parse/html"
-import { render, Template } from "../template"
 import { randomId } from "../utils/id"
 
 export function defineComponent(tagName = `x-${randomId()}`)
 {
-    const component = class extends Component 
+    type Component = typeof Component
+    const Component = class extends ComponentBase
     {
         protected static cssString = ''
 
         public static set $css(css: string)
         {
-            component.cssString = css
+            Component.cssString = css
         }
 
         protected static templateDescriptor: TemplateDescriptor | null = null
         public set $template({ strings, values }: Template)
         {
-            const nodes = render(component.templateDescriptor ??= parseTemplateDescriptor(parseTemplateHtml(strings)), values)
+            const nodes = render(Component.templateDescriptor ??= parseTemplateDescriptor(parseTemplateHtml(strings)), values)
             
             while (this.shadowRoot!.firstChild)
                 this.shadowRoot!.removeChild(this.shadowRoot!.firstChild)
                 
-            this.shadowRoot!.append(Component.globalFragmentBefore.cloneNode(true))
+            this.shadowRoot!.append(ComponentBase.globalFragmentBefore.cloneNode(true))
 
             const style = document.createElement('style')
-            style.textContent = component.cssString
+            style.textContent = Component.cssString
             this.shadowRoot!.append(style)
             
             this.shadowRoot!.append(...nodes)
 
-            this.shadowRoot!.append(Component.globalFragmentAfter.cloneNode(true))
+            this.shadowRoot!.append(ComponentBase.globalFragmentAfter.cloneNode(true))
         }
     }
-    customElements.define(tagName, component)
+    customElements.define(tagName, Component)
 
-    return component
+    
+
+    return Component as any as { 
+        new(): InstanceType<Component> & MountableNode 
+        $css: string
+        globalFragmentBefore: DocumentFragment
+        globalFragmentAfter: DocumentFragment
+    }
 }
 
-export abstract class Component extends HTMLElement
+export abstract class ComponentBase extends HTMLElement
 {
     public static readonly globalFragmentBefore = document.createDocumentFragment()
     public static readonly globalFragmentAfter = document.createDocumentFragment()
@@ -48,6 +56,5 @@ export abstract class Component extends HTMLElement
     {
         super()
         this.attachShadow({ mode: 'open' })
-        makeMountableNode(this)
     }
 }
