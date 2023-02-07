@@ -26,6 +26,7 @@ export function defineComponent(tagName = `x-${randomId()}`)
         protected static templateDescriptor: TemplateDescriptor | null = null
         public set $template({ strings, values }: Template)
         {
+            if (Component.templateDescriptor !== null) throw new Error('Template can only be set once per instance.')
             const nodes = render(Component.templateDescriptor ??= parseTemplateDescriptor(parseTemplateHtml(strings)), values)
             
             while (this.shadowRoot!.firstChild)
