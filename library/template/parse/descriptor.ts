@@ -1,5 +1,5 @@
 import { randomId } from "../../utils/id"
-import { TemplateHtmlParse, HtmlParseStateType } from "./html"
+import { HtmlParseStateType, TemplateHtmlParse } from "./html"
 
 export interface TemplateDescriptor
 {

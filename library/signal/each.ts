@@ -1,5 +1,5 @@
-import { SignalReadable } from "./readable"
 import { createDerive } from "./derivable"
+import { SignalReadable } from "./readable"
 import { createWritable, SignalWritable } from "./writable"
 
 type TypeOfEach<T> = T extends SignalReadable<infer U> ? U : T

@@ -1,4 +1,4 @@
-import type { SignalSubscriptionListener, SignalSubscription, SignalSubscriptionOptions, SignalReadable } from "../signal/readable"
+import type { SignalReadable, SignalSubscription, SignalSubscriptionListener, SignalSubscriptionOptions } from "../signal/readable"
 import { assert } from "../utils/assert"
 import "./mutationObserver"
 
