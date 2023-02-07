@@ -1,3 +1,4 @@
+import { bindClassMethods } from "../utils/bind"
 import { SignalReadable, SignalSubscription } from "./readable"
 
 export interface SignalDependencyAdder
@@ -49,6 +50,7 @@ export class SignalDerivable<T> extends SignalReadable<T>
         this.dependencySubscriptions = []
         console.log('%cnew derived signal', 'color:purple', this.id)
         for (const dependency of dependencies) this.addDependency(dependency)
+        bindClassMethods(this)
     }
 
     protected activate()
@@ -105,7 +107,7 @@ export class SignalDerivable<T> extends SignalReadable<T>
 
     public override signal()
     {
-        const value = this.deriver(this.addDependency.bind(this))
+        const value = this.deriver(this.addDependency)
         if (value === this._value && typeof value !== 'object') return
         this._value = value
         super.signal()

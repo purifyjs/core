@@ -1,3 +1,4 @@
+import { bindClassMethods } from "../utils/bind"
 import { randomId } from "../utils/id"
 
 export interface SignalSubscription { unsubscribe(): void }
@@ -23,6 +24,7 @@ export class SignalReadable<T = any>
         this.id = randomId()
         this._listeners = new Set()
         this._value = value
+        bindClassMethods(this)
     }
 
     public get() 

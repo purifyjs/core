@@ -2,6 +2,7 @@ import type { MountableNode } from "../mountable"
 import { render, Template } from "../template"
 import { parseTemplateDescriptor, TemplateDescriptor } from "../template/parse/descriptor"
 import { parseTemplateHtml } from "../template/parse/html"
+import { bindClassMethods } from "../utils/bind"
 import { randomId } from "../utils/id"
 
 export function defineComponent(tagName = `x-${randomId()}`)
@@ -10,6 +11,12 @@ export function defineComponent(tagName = `x-${randomId()}`)
     const Component = class extends ComponentBase
     {
         protected static cssString = ''
+
+        constructor()
+        {
+            super()
+            bindClassMethods(this)
+        }
 
         public static set $css(css: string)
         {
