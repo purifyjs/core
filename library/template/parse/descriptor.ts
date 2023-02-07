@@ -1,5 +1,5 @@
 import { randomId } from "../../utils/id"
-import { HtmlParse, HtmlParseStateType } from "./html"
+import { TemplateHtmlParse, HtmlParseStateType } from "./html"
 
 export interface TemplateDescriptor
 {
@@ -27,22 +27,27 @@ export interface TemplateValueDescriptor
     quote: '"' | "'" | ''
 }
 
-export function parseTemplateDescriptor<T extends HtmlParse[]>(parses: T): TemplateDescriptor
+export function parseTemplateDescriptor<T extends TemplateHtmlParse>(htmlParse: T): TemplateDescriptor
 {
     let html = ''
 
     try
     {
         const attributePartsMap: Map<string, Map<string, number[]>> = new Map()
-        const valueDescriptors: TemplateValueDescriptor[] = parses.map((parse, index) => 
-        {
-            html += parse.html
+        const valueDescriptors: TemplateValueDescriptor[] = new Array(htmlParse.parts.length - 1)
 
-            if (parse.state.type === HtmlParseStateType.Outer)
+        for (let i = 0; i < htmlParse.parts.length; i++)
+        {
+            const parsePart = htmlParse.parts[i]!
+            html += parsePart.html
+
+            if (!(i < valueDescriptors.length)) break
+
+            if (parsePart.state.type === HtmlParseStateType.Outer)
             {
                 const ref = randomId()
                 html += `<x :ref="${ref}"></x>`
-                return {
+                valueDescriptors[i] = {
                     type: TemplateValueDescriptorType.RenderNode,
                     ref,
                     attribute: {
@@ -51,42 +56,45 @@ export function parseTemplateDescriptor<T extends HtmlParse[]>(parses: T): Templ
                     },
                     quote: ''
                 }
+                continue
             }
-            else if (parse.state.type === HtmlParseStateType.TagInner && !parse.state.attribute_name)
+            else if (parsePart.state.type === HtmlParseStateType.TagInner && !parsePart.state.attribute_name)
             {
-                if (parse.state.tag === 'x')
+                if (parsePart.state.tag === 'x')
                 {
-                    return {
+                    valueDescriptors[i] = {
                         type: TemplateValueDescriptorType.RenderComponent,
-                        ref: parse.state.tag_ref,
+                        ref: parsePart.state.tag_ref,
                         attribute: {
                             type: '',
                             name: ''
                         },
                         quote: ''
                     }
+                    continue
                 }
             }
-            else if (parse.state.type > HtmlParseStateType.ATTR_VALUE_START && parse.state.type < HtmlParseStateType.ATTR_VALUE_END)
+            else if (parsePart.state.type > HtmlParseStateType.ATTR_VALUE_START && parsePart.state.type < HtmlParseStateType.ATTR_VALUE_END)
             {
-                const attributeNameParts = parse.state.attribute_name.split(':')
-                const quote = parse.state.type === HtmlParseStateType.AttributeValueUnquoted ? '' : parse.state.type === HtmlParseStateType.AttributeValueSingleQuoted ? "'" : '"'
+                const attributeNameParts = parsePart.state.attribute_name.split(':')
+                const quote = parsePart.state.type === HtmlParseStateType.AttributeValueUnquoted ? '' : parsePart.state.type === HtmlParseStateType.AttributeValueSingleQuoted ? "'" : '"'
                 if (attributeNameParts.length === 2)
                 {
-                    if (parse.state.type !== HtmlParseStateType.AttributeValueUnquoted)
+                    if (parsePart.state.type !== HtmlParseStateType.AttributeValueUnquoted)
                         throw new Error('Directive value must be unquoted')
                     html += `""`
                     const type = attributeNameParts[0]!
                     const name = attributeNameParts[1]!
-                    return {
+                    valueDescriptors[i] = {
                         type: TemplateValueDescriptorType.Directive,
-                        ref: parse.state.tag_ref,
+                        ref: parsePart.state.tag_ref,
                         attribute: {
                             type,
                             name
                         },
                         quote
                     }
+                    continue
                 }
                 else
                 {
@@ -94,25 +102,26 @@ export function parseTemplateDescriptor<T extends HtmlParse[]>(parses: T): Templ
                     if (quote === '') html += `""`
                     else 
                     {
-                        html += parse.state.tag_ref // using the tag ref as a separator or placeholder for the signal value
-                        const attributeMap = attributePartsMap.get(parse.state.tag_ref) ?? attributePartsMap.set(parse.state.tag_ref, new Map()).get(parse.state.tag_ref)!
+                        html += parsePart.state.tag_ref // using the tag ref as a separator or placeholder for the signal value
+                        const attributeMap = attributePartsMap.get(parsePart.state.tag_ref) ?? attributePartsMap.set(parsePart.state.tag_ref, new Map()).get(parsePart.state.tag_ref)!
                         const attributePartArray = attributeMap.get(name) ?? attributeMap.set(name, []).get(name)!
-                        attributePartArray.push(index)
+                        attributePartArray.push(i)
                     }
-                    return {
+                    valueDescriptors[i] = {
                         type: TemplateValueDescriptorType.Attribute,
-                        ref: parse.state.tag_ref,
+                        ref: parsePart.state.tag_ref,
                         attribute: {
                             type: '',
                             name
                         },
                         quote
                     }
+                    continue
                 }
             }
 
             throw new Error(`Unexpected value`)
-        })
+        }
 
         const template = document.createElement('template')
         template.innerHTML = html

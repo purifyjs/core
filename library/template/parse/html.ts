@@ -1,5 +1,25 @@
 import { randomId } from "../../utils/id"
 
+export interface TemplateHtmlParse
+{
+    parts: TemplateHtmlParsePart[]
+}
+
+export interface TemplateHtmlParsePart
+{
+    html: string
+    state: HtmlParseState
+}
+
+export interface HtmlParseState
+{
+    type: HtmlParseStateType
+    tag: string
+    tag_ref: string
+    attribute_name: string
+    attribute_value: string
+}
+
 export const enum HtmlParseStateType
 {
     Outer,
@@ -23,24 +43,9 @@ export const enum HtmlParseStateType
     ATTR_END
 }
 
-export interface HtmlParseState
+export function parseTemplateHtml(arr: TemplateStringsArray): TemplateHtmlParse
 {
-    type: HtmlParseStateType
-    tag: string
-    tag_ref: string
-    attribute_name: string
-    attribute_value: string
-}
-
-export interface HtmlParse
-{
-    html: string
-    state: HtmlParseState
-}
-
-export function parseHtml(arr: TemplateStringsArray)
-{
-    const parses: HtmlParse[] = []
+    const parses: TemplateHtmlParsePart[] = []
 
     const state: HtmlParseState = {
         type: HtmlParseStateType.Outer,
@@ -75,7 +80,9 @@ export function parseHtml(arr: TemplateStringsArray)
             state: { ...state }
         })
     }
-    return parses
+    return {
+        parts: parses
+    }
 }
 
 function processChar(char: string, html: string, state: HtmlParseState)

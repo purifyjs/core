@@ -6,16 +6,26 @@ import { SignalWritable } from "../signal/writable"
 import { nameOf, typeOf } from "../utils/name"
 import { bindToElement } from "./bind"
 import { valueToNode } from "./node"
-import { parseHtml } from "./parse/html"
-import { parseTemplateDescriptor, TemplateDescriptor, TemplateValueDescriptorType } from "./parse/template"
+import { parseTemplateHtml } from "./parse/html"
+import { parseTemplateDescriptor, TemplateDescriptor, TemplateValueDescriptorType } from "./parse/descriptor"
 
 export type TemplateValue = string | number | boolean | null | undefined | Node | SignalReadable<any> | SignalDeriver<any> | Function | TemplateValue[]
+export interface Template
+{
+    strings: TemplateStringsArray
+    values: TemplateValue[]
+}
 
 export const EMPTY_NODE = document.createDocumentFragment()
 
 export function html<S extends TemplateStringsArray, T extends TemplateValue[]>(strings: S, ...values: T)
 {
-    return render(parseTemplateDescriptor(parseHtml(strings)), values)
+    return render(parseTemplateDescriptor(parseTemplateHtml(strings)), values)
+}
+
+export function template<S extends TemplateStringsArray, T extends TemplateValue[]>(strings: S, ...values: T)
+{
+    return { strings, values }
 }
 
 export function render<T extends TemplateValue[]>(templateDescriptor: TemplateDescriptor, values: T): Node[]
