@@ -1,48 +1,43 @@
 {
-  "compilerOptions": {
-    "target": "ESNext",
-    "useDefineForClassFields": true,
-    "module": "ESNext",
-    "lib": [
-      "ESNext",
-      "DOM"
-    ],
-    "moduleResolution": "Node",
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "esModuleInterop": true,
-    "noEmit": true,
-    "skipLibCheck": true,
-    "removeComments": false,
-    "sourceMap": true,
-    /* STRICT */
-    "strict": true,
-    /* not needed but putting these here, so they dont show up in autocomplate */
-    "strictBindCallApply": true,
-    "strictFunctionTypes": true,
-    "strictNullChecks": true,
-    "strictPropertyInitialization": true,
-    "stripInternal": true,
-    /* NO IMPLICIT */
-    "noImplicitReturns": true,
-    "noImplicitAny": true,
-    "noImplicitOverride": true,
-    "noImplicitThis": true,
-    /* NO UNUSED */
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    /* NO UNCHECKED */
-    "useUnknownInCatchVariables": true,
-    "noUncheckedIndexedAccess": true,
-    /* OTHER */
-    "preserveConstEnums": true,
-    "importsNotUsedAsValues": "error",
-    "forceConsistentCasingInFileNames": true,
-    /* ALLOW */
-    "noFallthroughCasesInSwitch": false,
-    "noPropertyAccessFromIndexSignature": false,
-  },
-  "include": [
-    "library"
-  ]
+	"compilerOptions": {
+		"target": "ESNext",
+		"useDefineForClassFields": true,
+		"module": "ESNext",
+		"lib": ["ESNext", "DOM"],
+		"moduleResolution": "Node",
+		"resolveJsonModule": true,
+		"isolatedModules": true,
+		"esModuleInterop": true,
+		"noEmit": true,
+		"skipLibCheck": true,
+		"removeComments": false,
+		"sourceMap": true,
+		/* STRICT */
+		"strict": true,
+		/* not needed but putting these here, so they dont show up in autocomplate */
+		"strictBindCallApply": true,
+		"strictFunctionTypes": true,
+		"strictNullChecks": true,
+		"strictPropertyInitialization": true,
+		"stripInternal": true,
+		/* NO IMPLICIT */
+		"noImplicitReturns": true,
+		"noImplicitAny": true,
+		"noImplicitOverride": true,
+		"noImplicitThis": true,
+		/* NO UNUSED */
+		"noUnusedLocals": true,
+		"noUnusedParameters": true,
+		/* NO UNCHECKED */
+		"useUnknownInCatchVariables": true,
+		"noUncheckedIndexedAccess": true,
+		/* OTHER */
+		"preserveConstEnums": true,
+		"importsNotUsedAsValues": "error",
+		"forceConsistentCasingInFileNames": true,
+		/* ALLOW */
+		"noFallthroughCasesInSwitch": false,
+		"noPropertyAccessFromIndexSignature": false
+	},
+	"include": ["library"]
 }

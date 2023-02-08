@@ -1,4 +1,3 @@
-export function randomId()
-{
-    return Math.floor(Math.random() * Number.MAX_SAFE_INTEGER).toString(32)
+export function randomId() {
+	return Math.floor(Math.random() * Number.MAX_SAFE_INTEGER).toString(32)
 }
