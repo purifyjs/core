@@ -6,7 +6,7 @@ type TypeOfEach<T> = T extends SignalReadable<infer U> ? U : T
 export function createEach<T extends unknown[] | SignalReadable<unknown[]>, R>(
 	each: T,
 	as: (item: TypeOfEach<T>[number], index: T extends SignalReadable ? SignalReadable<number> : number) => R,
-	...key: T extends SignalReadable ? [(item: TypeOfEach<T>[keyof TypeOfEach<T>]) => string | number] : []
+	...key: T extends SignalReadable<any> ? [(item: TypeOfEach<T>[number]) => string | number] : []
 ): T extends SignalReadable ? SignalReadable<R[]> : R[] {
 	if (each instanceof SignalReadable) return (createEach_ArraySignal as any)(each, as, ...key) as any
 	return (createEach_Array as any)(each, as, ...key) as any
