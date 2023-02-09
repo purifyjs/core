@@ -16,22 +16,49 @@ export function masterTsPreprocessor() {
 
 /**
  * Add import to file if it doesn't exist
- * if the import exists, add the statement to the existing import
+ * if the import exists, and statement doesn't exist, add the statement to the import
+ *
+ * So for example addImport(src, "master-ts/library/template/cache", "createCachedHtml") will add
+ * import { createCachedHtml } from "master-ts/library/template/cache"
+ * But if:
+ * `import { createCachedHtml } from "master-ts/library/template/cache"` already exists, will keep the src the same and return `createCachedHtml`
+ * `import { createCachedHtml, foo } from "master-ts/library/template/cache"` already exists, will keep the src the same and return `createCachedHtml`
+ * `import { createCachedHtml as bar, foo } from "master-ts/library/template/cache"` already exists, will keep the src the same and return `bar`
+ *
+ * Returns { src: string, statement: string }
  * @param {string} src - source code
  * @param {string} from - import from
  * @param {string} importStatement - import statement
- * @returns {string} - source code with the import added
+ * @returns {{ src: string, statement: string }} - source code with the import added and the import statement
  * @example addImport(src, "master-ts/library/template/cache", "createCachedHtml")
  */
 function addImport(src, from, importStatement) {
-	const importRegex = new RegExp(`import {${importStatement}} from "${from}"`)
-	const importExists = importRegex.test(src)
-	if (importExists) {
-		src = src.replace(importRegex, `import {$1, ${importStatement}} from "${from}"`)
+	// find the import
+	const importRegex = new RegExp(`import\\s*\\{\\s*([^}]+)\\s*\\}\\s*from\\s*["']${from}["']`, "g")
+	const importMatch = src.match(importRegex)
+	if (importMatch) {
+		// find the statement
+		const statementRegex = new RegExp(`\\s*${importStatement}\\s*(as\\s*\\w+)?\\s*`, "g")
+		const statementMatch = importMatch[0].match(statementRegex)
+		if (statementMatch) {
+			// return the statement name
+			const statementName = statementMatch[0]
+				.replace(/(as\s*)?(\w+)/, "$2")
+				.split(" as ")
+				.map((s) => s.trim())
+			return { src, statement: statementName[statementName.length - 1] }
+		} else {
+			// add the statement to the import
+			const importIndex = src.indexOf(importMatch[0])
+			const importEndIndex = importIndex + importMatch[0].length
+			src = `${src.slice(0, importEndIndex - 1)}, ${importStatement}${src.slice(importEndIndex - 1)}`
+			return { src, statement: importStatement }
+		}
 	} else {
-		src = `import {${importStatement}} from "${from}"\n${src}`
+		// add the import to the top of the file
+		src = `import { ${importStatement} } from "${from}"\n${src}`
+		return { src, statement: importStatement }
 	}
-	return src
 }
 
 /**
@@ -51,27 +78,62 @@ function addToTop(src, code) {
 	return src
 }
 
+/**
+ * Check if the file includes the import and import includes the statement and return the statement
+ * If the import doesn't exist, return null
+
+ * @param {string} src - source code
+ * @param {string} from - import from
+ * @param {string} importStatement - import statement
+ * @returns {string} - import statement name
+ * @example findImportName(src, "master-ts/library/template", "html")
+ */
+function findImportStatement(src, from, importStatement) {
+	// find the import
+	const importRegex = new RegExp(`import\\s*\\{\\s*([^}]+)\\s*\\}\\s*from\\s*["']${from}["']`, "g")
+	const importMatch = src.match(importRegex)
+	if (!importMatch) return null
+
+	// find the statement
+	const statementRegex = new RegExp(`\\s*${importStatement}\\s*(as\\s*\\w+)?\\s*`, "g")
+	const statementMatch = importMatch[0].match(statementRegex)
+	if (!statementMatch) return null
+
+	// return the statement name
+	const statementName = statementMatch[0]
+		.replace(/(as\s*)?(\w+)/, "$2")
+		.split(" as ")
+		.map((s) => s.trim())
+	return statementName[statementName.length - 1]
+}
+
 /** 
 	Finds all the html templates in the source code and converts them to cached html templates
-	html template is html`<div>hello</div>` replace it with html1`<div>hello</div>` 1 is the index number, every match has their own index number
-	and define the cache at the top of the file with const html1 = createCachedHtml()
+	html template is html`<div>hello</div>` replace it with __html0`<div>hello</div>` 0 is the index number, every match has their own index number
+	and define the cache at the top of the file with const __html0 = createCachedHtml()
+	check if file imports `html` from `master-ts/library/template check if `html` is changed using as 
 	@param {string} src - source code
 	@returns {string} - source code with all the html templates converted to cached html templates
  */
 function convertHtmlTemplatestoCachedHtmlTemplates(src) {
-	// find all the html templates in the source code
-	const htmlTemplates = src.match(/html`[^`]*`/g)
-	if (htmlTemplates) {
-		// add import to file if it doesn't exist
-		src = addImport(src, "master-ts/library/template/cache", "createCachedHtml")
-		// for each template
-		for (let i = 0; i < htmlTemplates.length; i++) {
-			// replace html` with html1`
-			src = src.replace(htmlTemplates[i], htmlTemplates[i].replace("html`", `html${i}\``))
+	const htmlTemplateName = findImportStatement(src, "master-ts/library/template", "html")
+	if (!htmlTemplateName) return src
 
-			// define the cache at the top of the file
-			src = addToTop(src, `const html${i} = createCachedHtml()`)
-		}
+	const htmlTemplates = src.match(new RegExp(`${htmlTemplateName}\`[^]*?\``, "g"))
+	if (!htmlTemplates) return src
+
+	// add the import to the top of the file
+	const addedImport = addImport(src, "master-ts/library/template/cache", "createCachedHtml")
+	src = addedImport.src
+	const createCachedHtml = addedImport.statement
+
+	for (let i = 0; i < htmlTemplates.length; i++) {
+		const htmlTemplate = htmlTemplates[i]
+		// replace the html template with the cached html template
+		src = src.replace(htmlTemplate, `__html${i}${htmlTemplate.slice(htmlTemplateName.length)}`)
+
+		// add the cached html template to the top of the file
+		src = addToTop(src, `const __html${i} = ${createCachedHtml}()`)
 	}
 
 	return src
