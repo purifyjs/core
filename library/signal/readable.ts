@@ -15,7 +15,7 @@ export function createReadable<T>(...params: ConstructorParameters<typeof Signal
 	return new SignalReadable<T>(...params)
 }
 
-export class SignalReadable<T = any> {
+export class SignalReadable<T = unknown> {
 	public readonly id
 	protected readonly _listeners: Set<SignalSubscriptionListener<any>>
 	protected _value: T
