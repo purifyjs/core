@@ -1,4 +1,4 @@
-import { bindClassMethods } from "../utils/bind"
+import { bindMethods } from "../utils/bind"
 import { SignalReadable } from "./readable"
 export interface SignalChanger<T> {
 	(value: T): void
@@ -11,7 +11,7 @@ export function createWritable<T>(...params: ConstructorParameters<typeof Signal
 export class SignalWritable<T> extends SignalReadable<T> {
 	constructor(...params: ConstructorParameters<typeof SignalReadable<T>>) {
 		super(...params)
-		bindClassMethods(this)
+		bindMethods(this)
 	}
 
 	public override get value() {

@@ -1,4 +1,4 @@
-import { bindClassMethods } from "../utils/bind"
+import { bindMethods } from "../utils/bind"
 import { randomId } from "../utils/id"
 
 export interface SignalSubscription {
@@ -24,7 +24,7 @@ export class SignalReadable<T = unknown> {
 		this.id = randomId()
 		this._listeners = new Set()
 		this._value = value
-		bindClassMethods(this)
+		bindMethods(this)
 	}
 
 	public get() {

@@ -1,4 +1,4 @@
-import { bindClassMethods } from "../utils/bind"
+import { bindMethods } from "../utils/bind"
 import { SignalReadable, SignalSubscription } from "./readable"
 
 export interface SignalDependencyAdder {
@@ -47,7 +47,7 @@ export class SignalDerivable<T> extends SignalReadable<T> {
 		this.dependencySubscriptions = []
 		console.log("%cnew derived signal", "color:purple", this.id)
 		for (const dependency of dependencies) this.addDependency(dependency)
-		bindClassMethods(this)
+		bindMethods(this)
 	}
 
 	protected activate() {
@@ -55,9 +55,7 @@ export class SignalDerivable<T> extends SignalReadable<T> {
 		console.log("%cactivating", "color:blue", this.id, this.deriver)
 
 		this.active = true
-		this.dependencies.forEach((updater) =>
-			this.dependencySubscriptions.push(updater.subscribe(() => this.signal()))
-		)
+		this.dependencies.forEach((updater) => this.dependencySubscriptions.push(updater.subscribe(() => this.signal())))
 		this.signal()
 	}
 
@@ -84,9 +82,7 @@ export class SignalDerivable<T> extends SignalReadable<T> {
 		return dependency
 	}
 
-	public override subscribe(
-		...params: Parameters<SignalReadable<T>["subscribe"]>
-	): ReturnType<SignalReadable<T>["subscribe"]> {
+	public override subscribe(...params: Parameters<SignalReadable<T>["subscribe"]>): ReturnType<SignalReadable<T>["subscribe"]> {
 		this.activate()
 		const subscription = super.subscribe(...params)
 

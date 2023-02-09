@@ -1,5 +1,5 @@
 import type { MountableNode } from "../mountable"
-import { bindClassMethods } from "../utils/bind"
+import { bindMethods } from "../utils/bind"
 import { randomId } from "../utils/id"
 
 export function defineComponent(tagName = `x-${randomId()}`) {
@@ -9,7 +9,7 @@ export function defineComponent(tagName = `x-${randomId()}`) {
 
 		constructor() {
 			super()
-			bindClassMethods(this)
+			bindMethods(this)
 		}
 
 		public static set $css(css: string) {
