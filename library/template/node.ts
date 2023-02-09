@@ -1,8 +1,11 @@
+import { EMPTY_NODE } from "."
 import { makeMountableNode } from "../mountable"
 import { createOrGetDeriveOfFunction, SignalDeriver } from "../signal/derivable"
 import { SignalReadable } from "../signal/readable"
 
 export function valueToNode(value: unknown): Node {
+	if (value === null) return EMPTY_NODE
+
 	if (value instanceof Array) {
 		const fragment = document.createDocumentFragment()
 		for (const item of value) fragment.append(valueToNode(item))

@@ -33,12 +33,14 @@ export function createAwait<T, R, P, E>(
 			const signal = createWritable<R | P | E>(placeholder)
 			promise.subscribe(
 				async (value) => {
+					const id = ++counter
 					try {
-						const id = ++counter
+						signal.set(placeholder)
 						const result = await value
 						if (id !== counter) return
 						signal.set(then(result))
 					} catch (error) {
+						if (id !== counter) return
 						assert<Error>(error)
 						signal.set(onError(error))
 					}
@@ -52,12 +54,14 @@ export function createAwait<T, R, P, E>(
 			const signal = createWritable<R | P>(placeholder)
 			promise.subscribe(
 				async (value) => {
+					const id = ++counter
 					try {
-						const id = ++counter
+						signal.set(placeholder)
 						const result = await value
 						if (id !== counter) return
 						signal.set(then(result))
 					} catch (error) {
+						if (id !== counter) return
 						assert<Error>(error)
 					}
 				},
@@ -70,12 +74,14 @@ export function createAwait<T, R, P, E>(
 			const signal = createWritable<R | E | null>(null)
 			promise.subscribe(
 				async (value) => {
+					const id = ++counter
 					try {
-						const id = ++counter
+						signal.set(null)
 						const result = await value
 						if (id !== counter) return
 						signal.set(then(result))
 					} catch (error) {
+						if (id !== counter) return
 						assert<Error>(error)
 						signal.set(onError(error))
 					}
@@ -88,12 +94,14 @@ export function createAwait<T, R, P, E>(
 		const signal = createWritable<R | null>(null)
 		promise.subscribe(
 			async (value) => {
+				const id = ++counter
 				try {
-					const id = ++counter
+					signal.set(null)
 					const result = await value
 					if (id !== counter) return
 					signal.set(then(result))
 				} catch (error) {
+					if (id !== counter) return
 					assert<Error>(error)
 				}
 			},
