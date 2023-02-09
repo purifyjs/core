@@ -22,6 +22,8 @@ export class SignalWritable<T> extends SignalReadable<T> {
 	}
 
 	public set(value: T) {
+		if (value === this._value) return
+
 		this.setWithoutSignal(value)
 		this.signal()
 	}
