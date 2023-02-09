@@ -23,8 +23,7 @@ function addedNode(node: Node, place: NodePlace) {
 	if (place === NodePlace.Unknown && getRootNode(node) !== document) return
 	if (isMountableNode(node)) node.$emitMount()
 	Array.from(node.childNodes).forEach((node) => addedNode(node, NodePlace.InDOM))
-	if (node instanceof HTMLElement)
-		Array.from(node.shadowRoot?.childNodes ?? []).forEach((node) => addedNode(node, NodePlace.InDOM))
+	if (node instanceof HTMLElement) Array.from(node.shadowRoot?.childNodes ?? []).forEach((node) => addedNode(node, NodePlace.InDOM))
 }
 
 function removedNode(node: Node) {

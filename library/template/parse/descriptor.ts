@@ -1,15 +1,20 @@
-import { randomId } from "../../utils/id"
-import { HtmlParseStateType, TemplateHtmlParse } from "./html"
 import { instancer } from "master-instancer/library"
+import { randomId } from "../../utils/id"
 import { unhandled } from "../../utils/unhandled"
+import { HtmlParseStateType, TemplateHtmlParse } from "./html"
 
-export class ValueIndex {
+export class TemplateValueIndex {
 	constructor(public index: number) {}
 }
 
+const enum TemplateElementRef {
+	_ = "",
+}
+export type { TemplateElementRef }
+
 export type TemplateValueDescriptor = InstanceType<typeof TemplateValueDescriptor>
 export const TemplateValueDescriptor = instancer<{
-	ref: string
+	ref: TemplateElementRef
 }>()()
 
 export type TemplateValueDescriptorRenderNode = InstanceType<typeof TemplateValueDescriptorRenderNode>
@@ -38,15 +43,15 @@ export const TemplateValueDescriptorDirective = instancer<{
 export interface TemplateDescriptor {
 	template: HTMLTemplateElement
 	valueDescriptors: TemplateValueDescriptor[]
-	multiValueAttributes: Map<string, Map<string, (string | ValueIndex)[]>>
+	refAttributeValueMap: Map<TemplateElementRef, Map<string, (string | TemplateValueIndex)[]>>
 }
 
 export function parseTemplateDescriptor<T extends TemplateHtmlParse>(htmlParse: T): TemplateDescriptor {
 	let html = ""
 
 	try {
-		const refAttributes: Map<string, Map<string, number[]>> = new Map()
-		const multiValueAttributes: TemplateDescriptor["multiValueAttributes"] = new Map()
+		const refAttributeValueIndexMap: Map<TemplateElementRef, Map<string, number[]>> = new Map()
+		const refAttributeValueMap: TemplateDescriptor["refAttributeValueMap"] = new Map()
 		const valueDescriptors: TemplateDescriptor["valueDescriptors"] = new Array(htmlParse.parts.length - 1)
 
 		for (let i = 0; i < htmlParse.parts.length; i++) {
@@ -56,13 +61,14 @@ export function parseTemplateDescriptor<T extends TemplateHtmlParse>(htmlParse: 
 			if (!(i < valueDescriptors.length)) break
 
 			if (parsePart.state.type === HtmlParseStateType.Outer) {
-				const ref = randomId()
+				const ref = randomId() as TemplateElementRef
 				html += `<x :ref="${ref}"></x>`
 				valueDescriptors[i] = new TemplateValueDescriptorRenderNode({ ref })
 				continue
 			} else if (parsePart.state.type === HtmlParseStateType.TagInner && !parsePart.state.attribute_name) {
 				if (parsePart.state.tag === "x") {
-					valueDescriptors[i] = new TemplateValueDescriptorRenderComponent({ ref: parsePart.state.tag_ref })
+					const ref = parsePart.state.tag_ref as TemplateElementRef
+					valueDescriptors[i] = new TemplateValueDescriptorRenderComponent({ ref })
 					continue
 				}
 			} else if (parsePart.state.type > HtmlParseStateType.ATTR_VALUE_START && parsePart.state.type < HtmlParseStateType.ATTR_VALUE_END) {
@@ -76,28 +82,28 @@ export function parseTemplateDescriptor<T extends TemplateHtmlParse>(htmlParse: 
 				if (attributeNameParts.length === 2) {
 					if (parsePart.state.type !== HtmlParseStateType.AttributeValueUnquoted) throw new Error("Directive value must be unquoted")
 					html += `""`
+					const ref = parsePart.state.tag_ref as TemplateElementRef
 					const type = attributeNameParts[0]!
 					const name = attributeNameParts[1]!
 					if (!isTemplateValueDirectiveType(type)) throw new Error(`Unknown directive type "${type}".`)
 					valueDescriptors[i] = new TemplateValueDescriptorDirective({
-						ref: parsePart.state.tag_ref,
+						ref,
 						type,
 						name,
 					})
 					continue
 				} else {
+					const ref = parsePart.state.tag_ref as TemplateElementRef
 					const name = attributeNameParts[0]!
 					if (quote === "") html += `""`
 					else {
-						html += parsePart.state.tag_ref // using the tag ref as a separator or placeholder for the value
-						const attributeMap =
-							refAttributes.get(parsePart.state.tag_ref) ??
-							refAttributes.set(parsePart.state.tag_ref, new Map()).get(parsePart.state.tag_ref)!
+						html += ref // using the tag ref as a separator or placeholder for the value
+						const attributeMap = refAttributeValueIndexMap.get(ref) ?? refAttributeValueIndexMap.set(ref, new Map()).get(ref)!
 						const attributePartArray = attributeMap.get(name) ?? attributeMap.set(name, []).get(name)!
 						attributePartArray.push(i)
 					}
 					valueDescriptors[i] = new TemplateValueDescriptorAttribute({
-						ref: parsePart.state.tag_ref,
+						ref,
 						name,
 						quote,
 					})
@@ -177,10 +183,10 @@ export function parseTemplateDescriptor<T extends TemplateHtmlParse>(htmlParse: 
 			}
 		}
 
-		for (const [ref, attributes] of refAttributes) {
+		for (const [ref, attributes] of refAttributeValueIndexMap) {
 			const element = template.content.querySelector(`[\\:ref="${ref}"]`) as HTMLElement
 			if (!element) throw new Error(`Could not find element with ref "${ref}".`)
-			multiValueAttributes.set(ref, new Map())
+			refAttributeValueMap.set(ref, new Map())
 
 			for (const [name, indexMap] of attributes) {
 				const attributeTemplateString = element.getAttribute(name)
@@ -192,16 +198,16 @@ export function parseTemplateDescriptor<T extends TemplateHtmlParse>(htmlParse: 
 						const valueIndex = indexMap[index]
 						if (valueIndex === undefined)
 							throw new Error(`Could not find value index of ${index}th part of attribute "${name}" on element with ref "${ref}".`)
-						return [part, new ValueIndex(valueIndex)]
+						return [part, new TemplateValueIndex(valueIndex)]
 					})
-				multiValueAttributes.get(ref)!.set(name, attributeTemplate)
+				refAttributeValueMap.get(ref)!.set(name, attributeTemplate)
 			}
 		}
 
 		return {
 			template,
 			valueDescriptors,
-			multiValueAttributes,
+			refAttributeValueMap: refAttributeValueMap,
 		}
 	} catch (error) {
 		if (error instanceof Error) throw new Error(`Error while parsing template: ${error.message}. \nAt:\n${html.slice(-256).trim()}`)

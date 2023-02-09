@@ -1,9 +1,4 @@
-import type {
-	SignalReadable,
-	SignalSubscription,
-	SignalSubscriptionListener,
-	SignalSubscriptionOptions,
-} from "../signal/readable"
+import type { SignalReadable, SignalSubscription, SignalSubscriptionListener, SignalSubscriptionOptions } from "../signal/readable"
 import { assert } from "../utils/assert"
 import "./mutationObserver"
 
@@ -13,11 +8,7 @@ export interface MountableNode extends Node {
 	$emitUnmount(): void
 	$onMount<T extends Function>(listener: T): void
 	$onUnmount<T extends Function>(listener: T): void
-	$subscribe<T>(
-		signal: SignalReadable<T>,
-		listener: SignalSubscriptionListener<T>,
-		options?: SignalSubscriptionOptions
-	): void
+	$subscribe<T>(signal: SignalReadable<T>, listener: SignalSubscriptionListener<T>, options?: SignalSubscriptionOptions): void
 	$interval<T>(callback: () => T, delay: number): void
 	$timeout<T>(callback: () => T, delay: number): void
 }
@@ -61,11 +52,7 @@ export function makeMountableNode<T extends Node>(node: T): asserts node is Moun
 			if (_mounted === false) listener()
 			else _onUnmountListeners.push(listener)
 		},
-		$subscribe<T>(
-			signal: SignalReadable<T>,
-			listener: SignalSubscriptionListener<T>,
-			options?: SignalSubscriptionOptions
-		) {
+		$subscribe<T>(signal: SignalReadable<T>, listener: SignalSubscriptionListener<T>, options?: SignalSubscriptionOptions) {
 			let subscription: SignalSubscription
 			this.$onMount(() => (subscription = signal.subscribe(listener, options)))
 			this.$onUnmount(() => subscription.unsubscribe())

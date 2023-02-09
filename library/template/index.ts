@@ -14,7 +14,7 @@ import {
 	TemplateValueDescriptorDirective,
 	TemplateValueDescriptorRenderComponent,
 	TemplateValueDescriptorRenderNode,
-	ValueIndex,
+	TemplateValueIndex,
 } from "./parse/descriptor"
 import { parseTemplateHtml } from "./parse/html"
 
@@ -41,7 +41,6 @@ export function render<T extends TemplateValue[]>(templateDescriptor: TemplateDe
 		for (let index = 0; index < values.length; index++) {
 			const descriptor = templateDescriptor.valueDescriptors[index]!
 			let value = values[index]
-
 			if (descriptor instanceof TemplateValueDescriptorRenderNode) {
 				const outlet = fragment.querySelector(`[\\:ref="${descriptor.ref}"]`)!
 				outlet.replaceWith(valueToNode(value))
@@ -154,7 +153,7 @@ export function render<T extends TemplateValue[]>(templateDescriptor: TemplateDe
 			}
 		}
 
-		for (const [ref, attributes] of templateDescriptor.multiValueAttributes) {
+		for (const [ref, attributes] of templateDescriptor.refAttributeValueMap) {
 			const element = fragment.querySelector(`[\\:ref="${ref}"]`) as HTMLElement
 			if (!element) throw new Error(`While rendering attribute parts: Could not find element with ref "${ref}".`)
 
@@ -163,7 +162,7 @@ export function render<T extends TemplateValue[]>(templateDescriptor: TemplateDe
 				const signal = createDerive((s) =>
 					parts
 						.map((part) => {
-							const value = part instanceof ValueIndex ? values[part.index] : part
+							const value = part instanceof TemplateValueIndex ? values[part.index] : part
 							return value instanceof SignalReadable ? s(value).value : value
 						})
 						.join("")
