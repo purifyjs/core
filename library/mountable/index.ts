@@ -70,7 +70,7 @@ export function makeMountableNode<T extends Node>(node: T): asserts node is Moun
 	}
 	Object.assign(node, impl)
 
-	const name = node instanceof Element ? node.tagName : node.nodeValue || node.nodeName
-	impl.$onMount(() => console.log("%cmounted", "color:red;font-weight:bold;font-size:12px", name))
-	impl.$onUnmount(() => console.log("%cunmounted", "color:blue;font-weight:bold;font-size:12px", name))
+	// xx const name = node instanceof Element ? node.tagName : node.nodeValue || node.nodeName
+	// xx impl.$onMount(() => console.log("%cmounted", "color:red;font-weight:bold;font-size:12px", name))
+	// xx impl.$onUnmount(() => console.log("%cunmounted", "color:blue;font-weight:bold;font-size:12px", name))
 }

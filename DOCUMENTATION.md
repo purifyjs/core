@@ -108,8 +108,7 @@ export function Todo() {
 
 	return element.html`
         <div>
-            <input type="text" value=${newTodo} on:input=${(event: InputEvent) =>
-		(newTodo.value = (event.target as HTMLInputElement).value)} />
+            <input type="text" value=${newTodo} on:input=${(event: InputEvent) => (newTodo.value = (event.target as HTMLInputElement).value)} />
             <button on:click=${() => addTodo(newTodo.value)}>Add</button>
         </div>
         <ul>

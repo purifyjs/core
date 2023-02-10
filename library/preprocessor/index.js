@@ -7,11 +7,67 @@ export function masterTsPreprocessor() {
 		transform(src, id) {
 			if (!fileRegex.test(id)) return
 			return {
-				code: convertHtmlTemplatestoCachedHtmlTemplates(src),
+				code: preprocess(src),
 				map: null, // provide source map if available
 			}
 		},
 	}
+}
+
+/** 
+	Finds all the html templates in the source code and converts them to cached html templates
+	html template is html`<div>hello</div>` replace it with __html0`<div>hello</div>` 0 is the index number, every match has their own index number
+	and define the cache at the top of the file with const __html0 = createCachedHtml()
+	check if file imports `html` from `master-ts/library/template check if `html` is changed using as 
+	@param {string} src - source code
+	@returns {string} - source code with all the html templates converted to cached html templates
+ */
+function preprocess(src) {
+	const htmlTemplateName = findImportStatement(src, "master-ts/library/template", "html")
+	if (!htmlTemplateName) return src
+
+	const htmlTemplateRegex = new RegExp(`${htmlTemplateName}\`[^]*?\``, "g")
+	if (!htmlTemplateRegex.test(src)) return src
+
+	// add the import to the top of the file
+	const addedImport = addImport(src, "master-ts/library/template/cache", "createCachedHtml")
+	src = addedImport.src
+	const createCachedHtml = addedImport.statement
+
+	let cachers = 0
+
+	src = src.replace(htmlTemplateRegex, (htmlTemplate, index) => {
+		const htmlTemplateContent = htmlTemplate.slice(htmlTemplateName.length + 1, -1)
+		return `__html${cachers++}\`${minifyHtml(htmlTemplateContent)}\``
+	})
+
+	// add the cachers to the top of the file
+	for (let i = 0; i < cachers; i++) {
+		src = addToTop(src, `const __html${i} = ${createCachedHtml}()`)
+	}
+
+	src = findCssTemplatesAndOptimize(src)
+
+	return src
+}
+
+/**
+ * @param {string} src - source code
+ * @returns {string} - source code with all the css templates converted to optimized css
+ */
+function findCssTemplatesAndOptimize(src) {
+	const cssTemplateName = findImportStatement(src, "master-ts/library/template/css", "css")
+	if (!cssTemplateName) return src
+
+	const cssTemplateRegex = new RegExp(`${cssTemplateName}\`[^]*?\``, "g")
+	if (!cssTemplateRegex.test(src)) return src
+
+	src = src.replace(cssTemplateRegex, (cssTemplate, index) => {
+		const cssTemplateContent = cssTemplate.slice(cssTemplateName.length + 1, -1)
+		return `${cssTemplateName}\`${minifyCss(cssTemplateContent)}\``
+	})
+
+	return src
 }
 
 /**
@@ -107,34 +163,57 @@ function findImportStatement(src, from, importStatement) {
 	return statementName[statementName.length - 1]
 }
 
-/** 
-	Finds all the html templates in the source code and converts them to cached html templates
-	html template is html`<div>hello</div>` replace it with __html0`<div>hello</div>` 0 is the index number, every match has their own index number
-	and define the cache at the top of the file with const __html0 = createCachedHtml()
-	check if file imports `html` from `master-ts/library/template check if `html` is changed using as 
-	@param {string} src - source code
-	@returns {string} - source code with all the html templates converted to cached html templates
+/**
+ * Minify the HTML
+ * @param {string} html - html code
+ * @returns {string} - minified html code
  */
-function convertHtmlTemplatestoCachedHtmlTemplates(src) {
-	const htmlTemplateName = findImportStatement(src, "master-ts/library/template", "html")
-	if (!htmlTemplateName) return src
+function minifyHtml(html) {
+	html = html.trim()
 
-	const htmlTemplates = src.match(new RegExp(`${htmlTemplateName}\`[^]*?\``, "g"))
-	if (!htmlTemplates) return src
+	let result = ""
 
-	// add the import to the top of the file
-	const addedImport = addImport(src, "master-ts/library/template/cache", "createCachedHtml")
-	src = addedImport.src
-	const createCachedHtml = addedImport.statement
+	let currentQuote = []
 
-	for (let i = 0; i < htmlTemplates.length; i++) {
-		const htmlTemplate = htmlTemplates[i]
-		// replace the html template with the cached html template
-		src = src.replace(htmlTemplate, `__html${i}${htmlTemplate.slice(htmlTemplateName.length)}`)
-
-		// add the cached html template to the top of the file
-		src = addToTop(src, `const __html${i} = ${createCachedHtml}()`)
+	function isQuote(char) {
+		return char === "'" || char === '"' || char === "`"
 	}
 
-	return src
+	function isWhitespace(char) {
+		return /\s/.test(char)
+	}
+
+	for (let i = 0; i < html.length; i++) {
+		const char = html[i]
+		const prevChar = html[i - 1]
+
+		if (isQuote(char) && prevChar !== "\\") {
+			if (char === currentQuote[currentQuote.length - 1]) {
+				currentQuote.pop()
+			} else {
+				currentQuote.push(char)
+			}
+
+			result += char
+			continue
+		}
+
+		if (isWhitespace(char) && isWhitespace(prevChar) && currentQuote.length === 0) continue
+
+		result += char
+	}
+
+	return result
+}
+
+/**
+ * Minify the CSS
+ * @param {string} css - css code
+ * @returns {string} - minified css code
+ */
+function minifyCss(css) {
+	// remove all whitespace that is not inside a string
+	css = css.replace(/([^"'])(\s+)/g, "$1 ")
+
+	return css
 }

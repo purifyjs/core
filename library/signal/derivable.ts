@@ -45,14 +45,14 @@ export class SignalDerivable<T> extends SignalReadable<T> {
 		this.deriver = deriver
 		this.dependencies = new Set()
 		this.dependencySubscriptions = []
-		console.log("%cnew derived signal", "color:purple", this.id)
+		// xx console.log("%cnew derived signal", "color:purple", this.id)
 		for (const dependency of dependencies) this.addDependency(dependency)
 		bindMethods(this)
 	}
 
 	protected activate() {
 		if (this.active === true) return
-		console.log("%cactivating", "color:blue", this.id, this.deriver)
+		// xx console.log("%cactivating", "color:blue", this.id, this.deriver)
 
 		this.active = true
 		this.dependencies.forEach((updater) => this.dependencySubscriptions.push(updater.subscribe(() => this.signal())))
@@ -61,7 +61,7 @@ export class SignalDerivable<T> extends SignalReadable<T> {
 
 	protected deactivate() {
 		if (this.active === false) return
-		console.log("%cdeactivating", "color:blue", this.id, this.deriver)
+		// xx console.log("%cdeactivating", "color:blue", this.id, this.deriver)
 
 		this.active = false
 		this.dependencySubscriptions.forEach((subscription) => subscription.unsubscribe())
@@ -75,7 +75,7 @@ export class SignalDerivable<T> extends SignalReadable<T> {
 
 	protected addDependency: SignalDependencyAdder = (dependency) => {
 		if (!this.dependencies.has(dependency)) {
-			console.log("%cadded dependency", "color:green", dependency.id, "to", this.id)
+			// xx console.log("%cadded dependency", "color:green", dependency.id, "to", this.id)
 			this.dependencies.add(dependency)
 			this.dependencySubscriptions.push(dependency.subscribe(() => this.signal()))
 		}

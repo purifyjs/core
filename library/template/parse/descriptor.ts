@@ -1,7 +1,15 @@
 import { instancer } from "master-instancer/library"
 import { randomId } from "../../utils/id"
 import { unhandled } from "../../utils/unhandled"
-import { HtmlParseStateType, TemplateHtmlParse } from "./html"
+import {
+	HTML_PARSE_STATE_ATTR_VALUE_SINGLE_QUOTED,
+	HTML_PARSE_STATE_ATTR_VALUE_UNQUOTED,
+	HTML_PARSE_STATE_ATTR_VALUE_END,
+	HTML_PARSE_STATE_ATTR_VALUE_START,
+	HTML_PARSE_STATE_OUTER,
+	HTML_PARSE_STATE_TAG_INNER,
+	TemplateHtmlParse,
+} from "./html"
 
 export class TemplateValueIndex {
 	constructor(public index: number) {}
@@ -60,27 +68,27 @@ export function parseTemplateDescriptor<T extends TemplateHtmlParse>(htmlParse: 
 
 			if (!(i < valueDescriptors.length)) break
 
-			if (parsePart.state.type === HtmlParseStateType.Outer) {
+			if (parsePart.state.type === HTML_PARSE_STATE_OUTER) {
 				const ref = randomId() as TemplateElementRef
 				html += `<x :ref="${ref}"></x>`
 				valueDescriptors[i] = new TemplateValueDescriptorRenderNode({ ref })
 				continue
-			} else if (parsePart.state.type === HtmlParseStateType.TagInner && !parsePart.state.attribute_name) {
+			} else if (parsePart.state.type === HTML_PARSE_STATE_TAG_INNER && !parsePart.state.attribute_name) {
 				if (parsePart.state.tag === "x") {
 					const ref = parsePart.state.tag_ref as TemplateElementRef
 					valueDescriptors[i] = new TemplateValueDescriptorRenderComponent({ ref })
 					continue
 				}
-			} else if (parsePart.state.type > HtmlParseStateType.ATTR_VALUE_START && parsePart.state.type < HtmlParseStateType.ATTR_VALUE_END) {
+			} else if (parsePart.state.type > HTML_PARSE_STATE_ATTR_VALUE_START && parsePart.state.type < HTML_PARSE_STATE_ATTR_VALUE_END) {
 				const attributeNameParts = parsePart.state.attribute_name.split(":")
 				const quote =
-					parsePart.state.type === HtmlParseStateType.AttributeValueUnquoted
+					parsePart.state.type === HTML_PARSE_STATE_ATTR_VALUE_UNQUOTED
 						? ""
-						: parsePart.state.type === HtmlParseStateType.AttributeValueSingleQuoted
+						: parsePart.state.type === HTML_PARSE_STATE_ATTR_VALUE_SINGLE_QUOTED
 						? "'"
 						: '"'
 				if (attributeNameParts.length === 2) {
-					if (parsePart.state.type !== HtmlParseStateType.AttributeValueUnquoted) throw new Error("Directive value must be unquoted")
+					if (parsePart.state.type !== HTML_PARSE_STATE_ATTR_VALUE_UNQUOTED) throw new Error("Directive value must be unquoted")
 					html += `""`
 					const ref = parsePart.state.tag_ref as TemplateElementRef
 					const type = attributeNameParts[0]!
