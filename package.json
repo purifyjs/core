@@ -1,17 +1,17 @@
 {
-  "type": "module",
-  "name": "master-ts",
-  "version": "1.0.0",
-  "description": "Master.ts is a framework for building SPA applications using TypeScript.",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/DeepDoge/master-ts.git"
-  },
-  "bugs": {
-    "url": "https://github.com/DeepDoge/master-ts/issues"
-  },
-  "homepage": "https://github.com/DeepDoge/master-ts#readme",
-  "dependencies": {
-    "master-instancer": "github:DeepDoge/master-instancer"
-  }
+	"type": "module",
+	"name": "master-ts",
+	"version": "1.0.0",
+	"description": "MasterTS is a framework for building SPA applications using TypeScript.",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/DeepDoge/master-ts.git"
+	},
+	"bugs": {
+		"url": "https://github.com/DeepDoge/master-ts/issues"
+	},
+	"homepage": "https://github.com/DeepDoge/master-ts#readme",
+	"dependencies": {
+		"master-instancer": "github:DeepDoge/master-instancer"
+	}
 }

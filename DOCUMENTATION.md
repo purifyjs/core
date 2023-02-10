@@ -2,15 +2,15 @@
 
 This project is way to early in development to have any documentation. <br/>
 Things are keep changing and the documentation is not up to date.<br/>
-You can instead check http://github.com/DeepDoge/master-ts-vite-template it's always up to date with the latest version of Master.ts.
+You can instead check http://github.com/DeepDoge/master-ts-vite-demo it's always up to date with the latest version of MasterTS.
 
 # Quick Start
 
-Quick start guide for using Master.ts using the best recommended practices.
+Quick start guide for using MasterTS using the best recommended practices.
 
 ## Counter
 
-Counters are a great way to get started with Master.ts. They are simple enough to be easy to understand.
+Counters are a great way to get started with MasterTS. They are simple enough to be easy to understand.
 
 _counter.ts_
 
@@ -73,7 +73,7 @@ document.body.appendChild(App())
 
 ## Todo
 
-Todo is another great way to get started with Master.ts. It is easy to understand, but complex enough to show off some of the more advanced features of Master.ts.
+Todo is another great way to get started with MasterTS. It is easy to understand, but complex enough to show off some of the more advanced features of MasterTS.
 
 _todo.ts_
 
@@ -143,12 +143,12 @@ document.body.appendChild(App())
 
 # Documentation
 
-Explaning everything about Master.ts one by one starting from the core concepts.
+Explaning everything about MasterTS one by one starting from the core concepts.
 
 ## Signals
 
-Signals are the core of Master.ts. They are used to store data and to update the DOM when the data changes.<br/>
-Master.ts does not use the concept of a "state". Instead, Master.ts uses signals to store reactive data. This allows for more flexibility and control over the data.<br/>
+Signals are the core of MasterTS. They are used to store data and to update the DOM when the data changes.<br/>
+MasterTS does not use the concept of a "state". Instead, MasterTS uses signals to store reactive data. This allows for more flexibility and control over the data.<br/>
 There are three types of signals:
 
 -   [Static Signal](#static-signal)
@@ -163,7 +163,7 @@ And two additional types of utility signals:
 ### Static Signal
 
 Static signals are the simplest type of signal. They are used to store static data that will never change.<br/>
-Unlike other frameworks and libraries, signals in Master.ts doesn't require value to change in order to trigger the subscribers.<br/>
+Unlike other frameworks and libraries, signals in MasterTS doesn't require value to change in order to trigger the subscribers.<br/>
 This allows for more flexibility and control over the reactivity of the data.
 
 #### Creating Static Signals
@@ -179,7 +179,7 @@ Common methods for all signals:
 
 ##### Signal Subscription
 
-Unlike other frameworks and libraries, signals in Master.ts doesn't require value to change in order to trigger the subscribers.<br/>
+Unlike other frameworks and libraries, signals in MasterTS doesn't require value to change in order to trigger the subscribers.<br/>
 when you use the `signal()` method, it will trigger the subscribers of the signal, no matter if the value has changed or not.<br/>
 This allows for more flexibility and control over the reactivity of the data.
 

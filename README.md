@@ -1,6 +1,6 @@
-# Master.ts : A Breath of Fresh Air
+# MasterTS : A Breath of Fresh Air
 
-Master.ts is a frontend library for building single-page applications (SPAs) using Web Components and TypeScript. It is designed to be lightweight and easy to use, with a focus on transparency and simplicity.
+MasterTS is a frontend library for building single-page applications (SPAs) using Web Components and TypeScript. It is designed to be lightweight and easy to use, with a focus on transparency and simplicity.
 
 # Install
 
@@ -10,24 +10,24 @@ npm i https://github.com/DeepDoge/master-ts.git -D
 
 ## Warning
 
-Please note that Master.ts is currently a work in progress prototype and is not ready for production use.
+Please note that MasterTS is currently a work in progress prototype and is not ready for production use.
 
 ## Coding
 
-If you want to work on this project, it is recommended to use the [Master.ts Workspace](https://github.com/DeepDoge/master-ts-workspace) for a better developer experience.
+If you want to work on this project, it is recommended to use the [MasterTS Workspace](https://github.com/DeepDoge/master-ts-workspace) for a better developer experience.
 
 ## Example
 
-For an example of how to use Master.ts, see the [Master.ts Vite Template](https://github.com/DeepDoge/master-ts-vite-template).
+For an example of how to use MasterTS, see the [MasterTS Vite Demo](https://github.com/DeepDoge/master-ts-vite-demo).
 
 ## Motivation
 
 There are many frontend libraries available for building SPAs, but most of them are either too complex or a mess of "features" that are just duct tape solutions.
 
-Master.ts is designed to be simple and easy to use, with a focus on transparency and simplicity.
+MasterTS is designed to be simple and easy to use, with a focus on transparency and simplicity.
 
--   Master.ts uses TS files which allows for a more natural and intuitive development experience.
--   Master.ts can work with any other libraries and frameworks.
+-   MasterTS uses TS files which allows for a more natural and intuitive development experience.
+-   MasterTS can work with any other libraries and frameworks.
 -   It's lightweight and has no dependencies.
 -   It uses the syntax that is already available in TS and HTML.
 -   It's reactive like Svelte so it only updates the changing parts of the DOM, which is more efficient than other libraries.
@@ -46,4 +46,4 @@ It also has a syntax to bind to events, eg. `on:click`.<br/>
 
 ## Note
 
-Initially, the goal of Master.ts was to create a library with resumable server-side rendering (SSR), similar to Qwik. While it was possible to achieve this, it became clear that significant sacrifices would need to be made in order to make it work correctly. Since Master.ts is intended for use with platforms like IPFS, which do not have a server or cloud infrastructure, it was decided that an SPA was sufficient for now. It is possible that additional features and changes will be made in the future.
+Initially, the goal of MasterTS was to create a library with resumable server-side rendering (SSR), similar to Qwik. While it was possible to achieve this, it became clear that significant sacrifices would need to be made in order to make it work correctly. Since MasterTS is intended for use with platforms like IPFS, which do not have a server or cloud infrastructure, it was decided that an SPA was sufficient for now. It is possible that additional features and changes will be made in the future.
