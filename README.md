@@ -18,7 +18,7 @@ If you want to work on this project, it is recommended to use the [MasterTS Work
 
 ## Example
 
-For an example of how to use MasterTS, see the [MasterTS Vite Demo](https://github.com/DeepDoge/master-ts-vite-demo).
+For an example of how to use MasterTS, see the [MasterTS Vite Example](https://github.com/DeepDoge/master-ts-vite-demo).
 
 ## Motivation
 
