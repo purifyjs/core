@@ -65,6 +65,7 @@ ${Counter()}
 ```
 
 Now these are readable, but not that nice.
+
 If i were to make my own syntax, i would do this:
 
 ```svelte
