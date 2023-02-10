@@ -98,7 +98,7 @@ I mean at least we can do this:
 
 But then we don't have a way to choose which signal to subscribe to.
 
-But maybe we don't add anything as a dependency, this behavior can be default.
+But maybe if we don't add anything as a dependency, this behavior can be default.
 
 So if you pick it only adds the ones you picked as dependencies. If you don't pick anything, it adds all of them based on context.
 
