@@ -50,6 +50,33 @@ But i think we can make each, if, await, etc. functions to be more readable.
 
 But one ugly thing is, we have to use `<x>` tag for components, so existing inline html extensions can be happy.
 
+Basically we use components like this:
+
+```svelte
+<x ${Counter()} class="my-counter">
+    My Counter
+</x>
+```
+
+Or this, if we don't wanna add attributes or children:
+
+```ts
+${Counter()}
+```
+
+Now these are readable, but not that nice.
+If i were to make my own syntax, i would do this:
+
+```svelte
+<Counter() class="my-counter">
+    My Counter
+</Counter>
+```
+
+So we can use it like a normal tag but you can clearly see that it's a function. And you can pass parameters to it as well as generic types.
+
+But we are not having our own file type, at least not yet.
+
 Anohter thing is, in Svelte you can do this:
 
 ```svelte
