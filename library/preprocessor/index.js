@@ -1,3 +1,5 @@
+// TODO: Me and copilot wrote this at the middle of the night, it's not the best code and actually shoudln't work in many cases. Rewrite it
+
 const fileRegex = /\.(ts)$/
 
 export function masterTsPreprocessor() {
