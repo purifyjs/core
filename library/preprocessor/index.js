@@ -174,41 +174,8 @@ function findImportStatement(src, from, importStatement) {
  * @returns {string} - minified html code
  */
 function minifyHtml(html) {
-	html = html.trim()
-
-	let result = ""
-
-	let currentQuote = []
-
-	function isQuote(char) {
-		return char === "'" || char === '"' || char === "`"
-	}
-
-	function isWhitespace(char) {
-		return /\s/.test(char)
-	}
-
-	for (let i = 0; i < html.length; i++) {
-		const char = html[i]
-		const prevChar = html[i - 1]
-
-		if (isQuote(char) && prevChar !== "\\") {
-			if (char === currentQuote[currentQuote.length - 1]) {
-				currentQuote.pop()
-			} else {
-				currentQuote.push(char)
-			}
-
-			result += char
-			continue
-		}
-
-		if (isWhitespace(char) && isWhitespace(prevChar) && currentQuote.length === 0) continue
-
-		result += char
-	}
-
-	return result
+	// remove all whitespace that is not inside a string
+	return html.replace(/([^"'])(\s+)/g, "$1 ")
 }
 
 /**
