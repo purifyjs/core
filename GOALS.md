@@ -27,6 +27,8 @@ It's problamatic with Promises
 
 Signals solves these problems.
 
+Including signals everything works anywhere in the code.
+
 # Now what?
 
 I did all that, I'm happy about bundle size, even though it's not a compiler, it's pretty close to Svelte's empty bundle size.
