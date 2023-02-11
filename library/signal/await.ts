@@ -1,6 +1,6 @@
 import { assert } from "../utils/assert"
 import { SignalReadable } from "./readable"
-import { createWritable } from "./writable"
+import { writable } from "./writable"
 
 /**
  * Derives a signal from a promise.
@@ -14,7 +14,7 @@ import { createWritable } from "./writable"
  * @example
  * const signal = m.await(AsyncFooComponent(), 'loading')
  **/
-export function createAwait<T, R, P, E>(
+export function promise<T, R, P, E>(
 	promise: Promise<T> | SignalReadable<Promise<T>>,
 	then: (awaited: T) => R,
 	placeholder?: P,
@@ -30,7 +30,7 @@ export function createAwait<T, R, P, E>(
 		let counter = 0
 
 		if (placeholder !== undefined && onError instanceof Function) {
-			const signal = createWritable<R | P | E>(placeholder)
+			const signal = writable<R | P | E>(placeholder)
 			promise.subscribe(
 				async (value) => {
 					const id = ++counter
@@ -51,7 +51,7 @@ export function createAwait<T, R, P, E>(
 		}
 
 		if (placeholder !== undefined) {
-			const signal = createWritable<R | P>(placeholder)
+			const signal = writable<R | P>(placeholder)
 			promise.subscribe(
 				async (value) => {
 					const id = ++counter
@@ -71,7 +71,7 @@ export function createAwait<T, R, P, E>(
 		}
 
 		if (onError instanceof Function) {
-			const signal = createWritable<R | E | null>(null)
+			const signal = writable<R | E | null>(null)
 			promise.subscribe(
 				async (value) => {
 					const id = ++counter
@@ -91,7 +91,7 @@ export function createAwait<T, R, P, E>(
 			return signal as any
 		}
 
-		const signal = createWritable<R | null>(null)
+		const signal = writable<R | null>(null)
 		promise.subscribe(
 			async (value) => {
 				const id = ++counter
@@ -110,24 +110,24 @@ export function createAwait<T, R, P, E>(
 		return signal as any
 	} else {
 		if (placeholder !== undefined && onError instanceof Function) {
-			const signal = createWritable<R | P | E>(placeholder)
+			const signal = writable<R | P | E>(placeholder)
 			promise.then((value) => signal.set(then(value))).catch((error) => signal.set(onError(error)))
 			return signal as any
 		}
 
 		if (placeholder !== undefined) {
-			const signal = createWritable<R | P>(placeholder)
+			const signal = writable<R | P>(placeholder)
 			promise.then((value) => signal.set(then(value)))
 			return signal as any
 		}
 
 		if (onError instanceof Function) {
-			const signal = createWritable<R | E | null>(null)
+			const signal = writable<R | E | null>(null)
 			promise.then((value) => signal.set(then(value))).catch((error) => signal.set(onError(error)))
 			return signal as any
 		}
 
-		const signal = createWritable<R | null>(null)
+		const signal = writable<R | null>(null)
 		promise.then((value) => signal.set(then(value)))
 		return signal as any
 	}

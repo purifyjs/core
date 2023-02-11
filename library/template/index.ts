@@ -1,6 +1,6 @@
 import { ComponentBase } from "../component"
 import { asMountableNode, makeMountableNode } from "../mountable"
-import { createDerive, createOrGetDeriveOfFunction, SignalDeriver } from "../signal/derive"
+import { derive, createOrGetDeriveOfFunction, SignalDeriver } from "../signal/derive"
 import { SignalReadable } from "../signal/readable"
 import { SignalWritable } from "../signal/writable"
 import { assert } from "../utils/assert"
@@ -23,8 +23,6 @@ export interface Template {
 	strings: TemplateStringsArray
 	values: TemplateValue[]
 }
-
-export const EMPTY_NODE = document.createDocumentFragment()
 
 export function html<S extends TemplateStringsArray, T extends TemplateValue[]>(strings: S, ...values: T) {
 	return render(parseTemplateDescriptor(parseTemplateHtml(strings)), values)
@@ -159,7 +157,7 @@ export function render<T extends TemplateValue[]>(templateDescriptor: TemplateDe
 
 			for (const [name, parts] of attributes) {
 				makeMountableNode(element)
-				const signal = createDerive((s) =>
+				const signal = derive((s) =>
 					parts
 						.map((part) => {
 							const value = part instanceof TemplateValueIndex ? values[part.index] : part

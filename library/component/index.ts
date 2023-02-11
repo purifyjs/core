@@ -3,7 +3,6 @@ import { bindMethods } from "../utils/bind"
 import { randomId } from "../utils/id"
 
 export function defineComponent(tagName = `x-${randomId()}`) {
-	type Component = typeof Component
 	const Component = class extends ComponentBase {
 		protected static cssString = ""
 
@@ -32,12 +31,14 @@ export function defineComponent(tagName = `x-${randomId()}`) {
 	}
 	customElements.define(tagName, Component)
 
-	return Component as any as {
-		new (): InstanceType<Component> & MountableNode
+	type Component = {
+		new (): InstanceType<typeof Component> & MountableNode
 		$css: string
 		globalFragmentBefore: DocumentFragment
 		globalFragmentAfter: DocumentFragment
 	}
+
+	return Component as unknown as Component
 }
 
 export abstract class ComponentBase extends HTMLElement {

@@ -1,4 +1,4 @@
-import { createReadable, SignalReadable, SignalSubscription } from "./readable"
+import { readable, SignalReadable, SignalSubscription } from "./readable"
 
 export interface SignalDeriveDependencyAdder {
 	<T extends SignalReadable>(signal: T): T
@@ -7,11 +7,11 @@ export interface SignalDeriver<T> {
 	(addDependency: SignalDeriveDependencyAdder): T
 }
 
-export function createDerive<T>(deriver: SignalDeriver<T>): SignalReadable<T> {
+export function derive<T>(deriver: SignalDeriver<T>): SignalReadable<T> {
 	const dependencies = new Set<SignalReadable>()
 	const dependencySubscriptions: SignalSubscription[] = []
 
-	const readable = createReadable<T>(
+	return readable<T>(
 		deriver((v) => v),
 		(set) => {
 			function addDependency<T extends SignalReadable>(signal: T): T {
@@ -35,8 +35,6 @@ export function createDerive<T>(deriver: SignalDeriver<T>): SignalReadable<T> {
 			return () => dependencySubscriptions.forEach((subscription) => subscription.unsubscribe())
 		}
 	)
-
-	return readable
 }
 
 const deriveOfFunctionCache = new WeakMap<SignalDeriver<unknown>, SignalReadable<any>>()
@@ -55,7 +53,7 @@ const deriveOfFunctionCache = new WeakMap<SignalDeriver<unknown>, SignalReadable
  **/
 export function createOrGetDeriveOfFunction<T>(func: SignalDeriver<T>): SignalReadable<T> {
 	if (deriveOfFunctionCache.has(func)) return deriveOfFunctionCache.get(func)!
-	const computed = createDerive(func)
+	const computed = derive(func)
 	deriveOfFunctionCache.set(func, computed)
 	return computed
 }

@@ -1,7 +1,8 @@
-import { EMPTY_NODE } from "."
 import { makeMountableNode } from "../mountable"
 import { createOrGetDeriveOfFunction, SignalDeriver } from "../signal/derive"
 import { SignalReadable } from "../signal/readable"
+
+const EMPTY_NODE = document.createDocumentFragment()
 
 export function valueToNode(value: unknown): Node {
 	if (value === null) return EMPTY_NODE

@@ -23,7 +23,7 @@ export interface SignalUpdaterCleaner {
 	(): void
 }
 
-export function createReadable<T>(...params: ConstructorParameters<typeof SignalReadable<T>>) {
+export function readable<T>(...params: ConstructorParameters<typeof SignalReadable<T>>) {
 	return new SignalReadable<T>(...params)
 }
 
