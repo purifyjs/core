@@ -42,12 +42,5 @@ export function valueToNode(value: unknown): Node {
 		return fragment
 	}
 
-	assertStringifyable(value)
-	return document.createTextNode(value.toString())
-}
-
-const obj = {}
-function assertStringifyable(value: unknown): asserts value is { toString(): string } {
-	if (!((value as any)?.toString instanceof Function) || (value as any)?.toString === obj.toString)
-		throw new Error(`Value ${value} is not stringifyable.`)
+	return document.createTextNode(`${value}`)
 }
