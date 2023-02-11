@@ -8,7 +8,8 @@ Everything is typed naturally. TypeScript first.
 
 We don't wanna use any other tool than TS.
 
-This is a library. Well we preprocess html`` template strings but this is just changing them with a code that already exists in the library.
+This is a library. Well we preprocess html`` template strings but this is just changing them with a code that already exists in the library.<br/>
+Also it works just fine without the preprocess, just a bit slower
 
 Also we dont wanna differentiate between components and elements. Everything is an element.
 
