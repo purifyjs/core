@@ -1,134 +1,52 @@
 import { assert } from "../utils/assert"
-import { SignalReadable } from "./readable"
-import { writable } from "./writable"
+import { createReadable, SignalReadable } from "./readable"
 
-/**
- * Derives a signal from a promise.
- *
- * When the promise is resolved, the signal is set to the resolved value.
- * @param promise The promise to derive the signal from.
- * @param then The function that derives the value of the signal from the resolved value of the promise.
- * @param placeholder The value to set the signal to while the promise is pending.
- * @param onError The function that derives the value of the signal from the error of the promise.
- * @returns The signal that is derived from the promise.
- * @example
- * const signal = m.await(AsyncFooComponent(), 'loading')
- **/
-export function promise<T, R, P, E>(
-	promise: Promise<T> | SignalReadable<Promise<T>>,
-	then: (awaited: T) => R,
-	placeholder?: P,
-	onError?: <T extends Error>(error: T) => E
-): P extends undefined
-	? E extends undefined
-		? SignalReadable<R | null>
-		: SignalReadable<R | E | null>
-	: E extends undefined
-	? SignalReadable<R | P>
-	: SignalReadable<R | P | E> {
-	if (promise instanceof SignalReadable) {
-		let counter = 0
+interface Await<Awaited, Returns> {
+	placeholder<Placeholder extends () => unknown>(placeholder: Placeholder): Await<Awaited, Returns | ReturnType<Placeholder>>
+	error<OnError extends (error: Error) => unknown>(error: OnError): Await<Awaited, Returns | ReturnType<OnError>>
+	then<Result>(then: (awaited: Awaited) => Result): SignalReadable<Returns | Result>
+}
 
-		if (placeholder !== undefined && onError instanceof Function) {
-			const signal = writable<R | P | E>(placeholder)
-			promise.subscribe(
-				async (value) => {
-					const id = ++counter
-					try {
-						signal.set(placeholder)
-						const result = await value
-						if (id !== counter) return
-						signal.set(then(result))
-					} catch (error) {
-						if (id !== counter) return
-						assert<Error>(error)
-						signal.set(onError(error))
-					}
-				},
-				{ mode: "immediate" }
-			)
-			return signal as any
-		}
+export function createAwait<Awaited>(promise: Promise<Awaited> | SignalReadable<Promise<Awaited>>) {
+	let placeholder_: () => unknown
+	let error_: (error: Error) => unknown
 
-		if (placeholder !== undefined) {
-			const signal = writable<R | P>(placeholder)
-			promise.subscribe(
-				async (value) => {
-					const id = ++counter
-					try {
-						signal.set(placeholder)
-						const result = await value
-						if (id !== counter) return
-						signal.set(then(result))
-					} catch (error) {
-						if (id !== counter) return
-						assert<Error>(error)
-					}
-				},
-				{ mode: "immediate" }
-			)
-			return signal as any
-		}
-
-		if (onError instanceof Function) {
-			const signal = writable<R | E | null>(null)
-			promise.subscribe(
-				async (value) => {
-					const id = ++counter
-					try {
-						signal.set(null)
-						const result = await value
-						if (id !== counter) return
-						signal.set(then(result))
-					} catch (error) {
-						if (id !== counter) return
-						assert<Error>(error)
-						signal.set(onError(error))
-					}
-				},
-				{ mode: "immediate" }
-			)
-			return signal as any
-		}
-
-		const signal = writable<R | null>(null)
-		promise.subscribe(
-			async (value) => {
-				const id = ++counter
-				try {
-					signal.set(null)
-					const result = await value
-					if (id !== counter) return
-					signal.set(then(result))
-				} catch (error) {
-					if (id !== counter) return
-					assert<Error>(error)
-				}
-			},
-			{ mode: "immediate" }
-		)
-		return signal as any
-	} else {
-		if (placeholder !== undefined && onError instanceof Function) {
-			const signal = writable<R | P | E>(placeholder)
-			promise.then((value) => signal.set(then(value))).catch((error) => signal.set(onError(error)))
-			return signal as any
-		}
-
-		if (placeholder !== undefined) {
-			const signal = writable<R | P>(placeholder)
-			promise.then((value) => signal.set(then(value)))
-			return signal as any
-		}
-
-		if (onError instanceof Function) {
-			const signal = writable<R | E | null>(null)
-			promise.then((value) => signal.set(then(value))).catch((error) => signal.set(onError(error)))
-			return signal as any
-		}
-
-		const signal = writable<R | null>(null)
-		promise.then((value) => signal.set(then(value)))
-		return signal as any
-	}
+	return {
+		placeholder<Placeholder extends () => unknown>(placeholder: Placeholder) {
+			placeholder_ = placeholder
+			return this
+		},
+		error<OnError extends (error: Error) => unknown>(error: OnError) {
+			error_ = error
+			return this
+		},
+		then<Result>(then: (awaited: Awaited) => Result) {
+			if (promise instanceof SignalReadable) {
+				return createReadable(placeholder_(), (set) => {
+					let counter = 0
+					return promise.subscribe(
+						async (value) => {
+							const id = ++counter
+							try {
+								set(placeholder_())
+								const result = await value
+								if (id !== counter) return
+								set(then(result))
+							} catch (error) {
+								if (id !== counter) return
+								assert<Error>(error)
+								set(error_(error))
+							}
+						},
+						{ mode: "immediate" }
+					).unsubscribe
+				})
+			} else {
+				return createReadable(placeholder_(), (set) => {
+					promise.then((value) => set(then(value))).catch((error) => set(error_(error)))
+					return () => {}
+				})
+			}
+		},
+	} as any as Await<Awaited, never>
 }

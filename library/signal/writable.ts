@@ -1,6 +1,6 @@
 import { SignalReadable, SignalSetter } from "./readable"
 
-export function writable<T>(...params: ConstructorParameters<typeof SignalWritable<T>>) {
+export function createWritable<T>(...params: ConstructorParameters<typeof SignalWritable<T>>) {
 	return new SignalWritable<T>(...params)
 }
 

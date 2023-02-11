@@ -23,7 +23,7 @@ export interface SignalUpdaterCleaner {
 	(): void
 }
 
-export function readable<T>(...params: ConstructorParameters<typeof SignalReadable<T>>) {
+export function createReadable<T>(...params: ConstructorParameters<typeof SignalReadable<T>>) {
 	return new SignalReadable<T>(...params)
 }
 
@@ -43,6 +43,10 @@ export class SignalReadable<T = unknown> {
 	}
 
 	public get() {
+		if (this._updater && !this._cleaner) {
+			this.activate()
+			setTimeout(() => this.checkActive(), 5000)
+		}
 		return this._value
 	}
 
@@ -51,18 +55,24 @@ export class SignalReadable<T = unknown> {
 	}
 
 	protected checkActive() {
+		if (this._listeners.size) this.activate()
+		else this.deactivate()
+	}
+
+	protected activate() {
 		if (!this._updater) return
-		if (this._cleaner) {
-			if (this._listeners.size > 0) return
-			this._cleaner()
-			this._cleaner = null
-		} else {
-			if (this._listeners.size === 0) return
-			this._cleaner = this._updater((value, silent) => {
-				this._value = value
-				if (!silent) this.signal()
-			})
-		}
+		if (this._cleaner) return
+		this._cleaner = this._updater((value, silent) => {
+			this._value = value
+			if (!silent) this.signal()
+		})
+	}
+
+	protected deactivate() {
+		if (!this._updater) return
+		if (!this._cleaner) return
+		this._cleaner()
+		this._cleaner = null
 	}
 
 	public subscribe(listener: SignalSubscriptionListener<T>, options?: SignalSubscriptionOptions): SignalSubscription {

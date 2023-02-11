@@ -1,6 +1,6 @@
-import { derive } from "./derive"
+import { createDerive } from "./derive"
 import { SignalReadable } from "./readable"
-import { writable, SignalWritable } from "./writable"
+import { createWritable, SignalWritable } from "./writable"
 
 type KeyGetter<T> = (item: T, index: number) => string | number
 
@@ -17,7 +17,7 @@ function isEachSignal<T extends unknown[]>(each: unknown): each is SignalReadabl
 	return each instanceof SignalReadable
 }
 
-export function each<U extends SignalReadable<unknown[]> | unknown[]>(
+export function createEach<U extends SignalReadable<unknown[]> | unknown[]>(
 	each: U
 ): U extends SignalReadable<infer T> ? (T extends unknown[] ? EachOfSignalArray<T> : never) : U extends unknown[] ? EachOfArray<U> : never {
 	type T = U extends SignalReadable<infer T> ? T : U
@@ -31,7 +31,7 @@ export function each<U extends SignalReadable<unknown[]> | unknown[]>(
 			},
 			as<R>(as: (item: T[number], index: SignalReadable<number>) => R) {
 				let caches: Record<string, { index: SignalWritable<number>; value: R }> = {}
-				const derived = derive((s) => {
+				const derived = createDerive((s) => {
 					const newCaches: typeof caches = {}
 					const collection = s(each).ref
 					const results = collection.map((item, index) => {
@@ -43,7 +43,7 @@ export function each<U extends SignalReadable<unknown[]> | unknown[]>(
 							newCaches[k] = cache
 							return cache.value
 						} else {
-							const indexSignal = writable(index)
+							const indexSignal = createWritable(index)
 							const value = as(item, indexSignal)
 							newCaches[k] = { index: indexSignal, value }
 							return value

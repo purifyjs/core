@@ -1,6 +1,6 @@
 import { ComponentBase } from "../component"
 import { asMountableNode, makeMountableNode } from "../mountable"
-import { derive, createOrGetDeriveOfFunction, SignalDeriver } from "../signal/derive"
+import { createDerive, createOrGetDeriveOfFunction, SignalDeriver } from "../signal/derive"
 import { SignalReadable } from "../signal/readable"
 import { SignalWritable } from "../signal/writable"
 import { assert } from "../utils/assert"
@@ -157,7 +157,7 @@ export function render<T extends TemplateValue[]>(templateDescriptor: TemplateDe
 
 			for (const [name, parts] of attributes) {
 				makeMountableNode(element)
-				const signal = derive((s) =>
+				const signal = createDerive((s) =>
 					parts
 						.map((part) => {
 							const value = part instanceof TemplateValueIndex ? values[part.index] : part
