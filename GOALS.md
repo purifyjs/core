@@ -122,3 +122,5 @@ Maybe we also make signals callable, so we can do this:
 Way better probably. Or might be confusing, since we can't use this while setting a value. But we can still set value with `a.value = 5`.
 
 Maybe we can use something shorter than `value` like `v` or `val` or `var`
+
+Ok, fixed the each and stuff, now we have each, switch and await, nicely used. i mean more readable
