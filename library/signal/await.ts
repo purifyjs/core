@@ -1,9 +1,13 @@
 import { assert } from "../utils/assert"
 import { createReadable, SignalReadable } from "./readable"
 
-interface Await<Awaited, Returns> {
-	placeholder<Placeholder extends () => unknown>(placeholder: Placeholder): Await<Awaited, Returns | ReturnType<Placeholder>>
-	error<OnError extends (error: Error) => unknown>(error: OnError): Await<Awaited, Returns | ReturnType<OnError>>
+interface Await<Awaited, Returns, Omits extends string> {
+	placeholder<Placeholder extends () => unknown>(
+		placeholder: Placeholder
+	): Omit<Await<Awaited, Returns | ReturnType<Placeholder>, Omits | "placeholder">, Omits | "placeholder">
+	error<OnError extends (error: Error) => unknown>(
+		error: OnError
+	): Omit<Await<Awaited, Returns | ReturnType<OnError>, Omits | "error">, Omits | "error">
 	then<Result>(then: (awaited: Awaited) => Result): SignalReadable<Returns | Result>
 }
 
@@ -48,5 +52,5 @@ export function createAwait<Awaited>(promise: Promise<Awaited> | SignalReadable<
 				})
 			}
 		},
-	} as any as Await<Awaited, never>
+	} as any as Await<Awaited, never, never>
 }
