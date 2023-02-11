@@ -12,9 +12,7 @@
 	},
 	"homepage": "https://github.com/DeepDoge/master-ts#readme",
 	"dependencies": {
+		"parse-literals": "^1.2.1",
 		"master-instancer": "github:DeepDoge/master-instancer"
-	},
-	"devDependencies": {
-		"parse-literals": "^1.2.1"
 	}
 }
