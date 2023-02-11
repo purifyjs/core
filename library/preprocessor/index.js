@@ -1,5 +1,4 @@
-// TODO: Me and copilot wrote this in the middle of the night, it's not the best code and actually shoudln't work in many cases. Rewrite it
-
+import { parseLiterals } from "parse-literals"
 const fileRegex = /\.(ts)$/
 
 export function masterTsPreprocessor() {
@@ -25,51 +24,55 @@ export function masterTsPreprocessor() {
 	@returns {string} - source code with all the html templates converted to cached html templates
  */
 function preprocess(src) {
-	const htmlTemplateName = findImportStatement(src, "master-ts/library/template", "html")
-	if (!htmlTemplateName) return src
+	const htmlTag = findImportStatement(src, "master-ts/library/template", "html")
+	const cssTag = findImportStatement(src, "master-ts/library/template/css", "css")
 
-	const htmlTemplateRegex = new RegExp(`${htmlTemplateName}\`[^]*?\``, "g")
-	if (!htmlTemplateRegex.test(src)) return src
+	let htmlCachersCount = 0
+	{
+		const toReplace = []
+		parseLiterals(src).forEach((template) => {
+			if (htmlTag && template.tag === htmlTag) {
+				const endOfTag = template.parts[0].start - 1
+				toReplace.push({ start: endOfTag - htmlTag.length, end: endOfTag, replace: `__html${htmlCachersCount++}` })
+				template.parts.forEach((part) => toReplace.push({ start: part.start, end: part.end, replace: minifyHtml(part.text) }))
+			} else if (cssTag && template.tag === cssTag) {
+				template.parts.forEach((part) => toReplace.push({ start: part.start, end: part.end, replace: minifyCss(part.text) }))
+			}
+		})
+
+		let offset = 0
+		toReplace.sort((a, b) => a.start - b.start)
+		toReplace.forEach(({ start, end, replace }) => {
+			src = replacePartOfString(src, start + offset, end + offset, replace)
+			offset += replace.length - (end - start)
+		})
+	}
+
+	if (htmlCachersCount === 0) return src
 
 	// add the import to the top of the file
 	const addedImport = addImport(src, "master-ts/library/template/cache", "createCachedHtml")
 	src = addedImport.src
-	const createCachedHtml = addedImport.statement
-
-	let cachers = 0
-
-	src = src.replace(htmlTemplateRegex, (htmlTemplate, index) => {
-		const htmlTemplateContent = htmlTemplate.slice(htmlTemplateName.length + 1, -1)
-		return `__html${cachers++}\`${minifyHtml(htmlTemplateContent)}\``
-	})
+	const createCachedHtmlStatement = addedImport.statement
 
 	// add the cachers to the top of the file
-	for (let i = 0; i < cachers; i++) {
-		src = addToTop(src, `const __html${i} = ${createCachedHtml}()`)
-	}
+	for (let i = 0; i < htmlCachersCount; i++) src = addToTop(src, `const __html${i} = ${createCachedHtmlStatement}()`)
 
-	src = findCssTemplatesAndOptimize(src)
+	console.log(src)
 
 	return src
 }
 
 /**
- * @param {string} src - source code
- * @returns {string} - source code with all the css templates converted to optimized css
+ *
+ * @param {string} src
+ * @param {number} start
+ * @param {number} end
+ * @param {string} replace
+ * @returns {string} replaced
  */
-function findCssTemplatesAndOptimize(src) {
-	const cssTemplateName = findImportStatement(src, "master-ts/library/template/css", "css")
-	if (!cssTemplateName) return src
-
-	const cssTemplateRegex = new RegExp(`${cssTemplateName}\`[^]*?\``, "g")
-	if (!cssTemplateRegex.test(src)) return src
-
-	src = src.replace(cssTemplateRegex, (cssTemplate, index) => {
-		const cssTemplateContent = cssTemplate.slice(cssTemplateName.length + 1, -1)
-		return `${cssTemplateName}\`${minifyCss(cssTemplateContent)}\``
-	})
-
-	return src
+function replacePartOfString(src, start, end, replace) {
+	return `${src.substring(0, start)}${replace}${src.substring(end)}`
 }
 
 /**

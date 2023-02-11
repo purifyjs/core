@@ -13,5 +13,8 @@
 	"homepage": "https://github.com/DeepDoge/master-ts#readme",
 	"dependencies": {
 		"master-instancer": "github:DeepDoge/master-instancer"
+	},
+	"devDependencies": {
+		"parse-literals": "^1.2.1"
 	}
 }
