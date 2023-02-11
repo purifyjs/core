@@ -11,6 +11,18 @@ export interface SignalSubscriptionOptions {
 	mode: "normal" | "once" | "immediate"
 }
 
+export interface SignalSetter<T> {
+	(value: T, silent?: boolean): void
+}
+
+export interface SignalUpdater<T> {
+	(set: SignalSetter<T>): SignalUpdaterCleaner
+}
+
+export interface SignalUpdaterCleaner {
+	(): void
+}
+
 export function createReadable<T>(...params: ConstructorParameters<typeof SignalReadable<T>>) {
 	return new SignalReadable<T>(...params)
 }
@@ -19,20 +31,38 @@ export class SignalReadable<T = unknown> {
 	public readonly id
 	protected readonly _listeners: Set<SignalSubscriptionListener<any>>
 	protected _value: T
+	protected _updater: SignalUpdater<T> | null
+	protected _cleaner: SignalUpdaterCleaner | null = null
 
-	constructor(value: T) {
+	constructor(initial: T, updater: SignalUpdater<T> | null = null) {
+		bindMethods(this)
 		this.id = randomId()
 		this._listeners = new Set()
-		this._value = value
-		bindMethods(this)
+		this._value = initial
+		this._updater = updater
 	}
 
 	public get() {
 		return this._value
 	}
 
-	public get value() {
+	public get ref() {
 		return this.get()
+	}
+
+	protected checkActive() {
+		if (!this._updater) return
+		if (this._cleaner) {
+			if (this._listeners.size > 0) return
+			this._cleaner()
+			this._cleaner = null
+		} else {
+			if (this._listeners.size === 0) return
+			this._cleaner = this._updater((value, silent) => {
+				this._value = value
+				if (!silent) this.signal()
+			})
+		}
 	}
 
 	public subscribe(listener: SignalSubscriptionListener<T>, options?: SignalSubscriptionOptions): SignalSubscription {
@@ -52,10 +82,12 @@ export class SignalReadable<T = unknown> {
 				this._listeners.add(listener)
 				break
 		}
+		this.checkActive()
 		return {
 			unsubscribe: () => {
 				// xx console.log("%cunsubscribed", "color:orange", listener.name, "from", this.id)
 				this._listeners.delete(listener)
+				this.checkActive()
 			},
 		}
 	}

@@ -1,6 +1,6 @@
 import { EMPTY_NODE } from "."
 import { makeMountableNode } from "../mountable"
-import { createOrGetDeriveOfFunction, SignalDeriver } from "../signal/derivable"
+import { createOrGetDeriveOfFunction, SignalDeriver } from "../signal/derive"
 import { SignalReadable } from "../signal/readable"
 
 export function valueToNode(value: unknown): Node {

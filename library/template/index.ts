@@ -1,6 +1,6 @@
 import { ComponentBase } from "../component"
 import { asMountableNode, makeMountableNode } from "../mountable"
-import { createDerive, createOrGetDeriveOfFunction, SignalDeriver } from "../signal/derivable"
+import { createDerive, createOrGetDeriveOfFunction, SignalDeriver } from "../signal/derive"
 import { SignalReadable } from "../signal/readable"
 import { SignalWritable } from "../signal/writable"
 import { assert } from "../utils/assert"
@@ -109,7 +109,7 @@ export function render<T extends TemplateValue[]>(templateDescriptor: TemplateDe
 						switch (descriptor.name) {
 							case "value:string":
 								{
-									const listener = () => (signal.value = element.value)
+									const listener = () => (signal.ref = element.value)
 									makeMountableNode(element)
 									element.$onMount(() => element.addEventListener("input", listener))
 									element.$onUnmount(() => element.removeEventListener("input", listener))
@@ -118,7 +118,7 @@ export function render<T extends TemplateValue[]>(templateDescriptor: TemplateDe
 								break
 							case "value:number":
 								{
-									const listener = () => (signal.value = element.valueAsNumber)
+									const listener = () => (signal.ref = element.valueAsNumber)
 									makeMountableNode(element)
 									element.$onMount(() => element.addEventListener("input", listener))
 									element.$onUnmount(() => element.removeEventListener("input", listener))
@@ -127,7 +127,7 @@ export function render<T extends TemplateValue[]>(templateDescriptor: TemplateDe
 								break
 							case "value:date":
 								{
-									const listener = () => (signal.value = element.valueAsDate)
+									const listener = () => (signal.ref = element.valueAsDate)
 									makeMountableNode(element)
 									element.$onMount(() => element.addEventListener("input", listener))
 									element.$onUnmount(() => element.removeEventListener("input", listener))
@@ -136,7 +136,7 @@ export function render<T extends TemplateValue[]>(templateDescriptor: TemplateDe
 								break
 							case "value:boolean":
 								{
-									const listener = () => (signal.value = element.checked)
+									const listener = () => (signal.ref = element.checked)
 									makeMountableNode(element)
 									element.$onMount(() => element.addEventListener("input", listener))
 									element.$onUnmount(() => element.removeEventListener("input", listener))
@@ -163,7 +163,7 @@ export function render<T extends TemplateValue[]>(templateDescriptor: TemplateDe
 					parts
 						.map((part) => {
 							const value = part instanceof TemplateValueIndex ? values[part.index] : part
-							return value instanceof SignalReadable ? s(value).value : value
+							return value instanceof SignalReadable ? s(value).ref : value
 						})
 						.join("")
 				)

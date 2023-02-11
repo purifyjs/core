@@ -1,4 +1,4 @@
-import { createDerive } from "./derivable"
+import { createDerive } from "./derive"
 import { SignalReadable } from "./readable"
 import { createWritable, SignalWritable } from "./writable"
 
@@ -22,13 +22,13 @@ function createEach_ArraySignal<T extends unknown[], R>(
 	let caches: Record<string, { index: SignalWritable<number>; value: R }> = {}
 	const derived = createDerive((s) => {
 		const newCaches: typeof caches = {}
-		const collection = each instanceof SignalReadable ? s(each).value : each
+		const collection = each instanceof SignalReadable ? s(each).ref : each
 		const results = collection.map((item, index) => {
 			const k = key(item)
 
 			const cache = caches[k]
 			if (cache) {
-				cache.index.value = index
+				cache.index.ref = index
 				newCaches[k] = cache
 				return cache.value
 			} else {
