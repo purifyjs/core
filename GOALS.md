@@ -15,7 +15,9 @@ Also we dont wanna differentiate between components and elements. Everything is 
 
 We have signals, that are the main thing, they are different from normal variables.
 
-And this whole thing is build around the idea of signals. Our signals are different than Svelte states/stores, or React states.
+And this whole thing is build around the idea of signals. Without signals, its just a static HTML.
+
+Our signals are different than Svelte states/stores, or React states.
 
 We can signal subscribers without changing any value.
 
