@@ -1,11 +1,12 @@
 import type { MountableNode } from "../mountable"
+import type { CssTemplateString } from "../template/css"
 import { bindMethods } from "../utils/bind"
 import { randomId } from "../utils/id"
 
 export function defineComponent(tagName = `x-${randomId()}`) {
 	type XComponent = {
 		new (): InstanceType<typeof XComponent> & MountableNode
-		$css: string
+		$css: CssTemplateString
 		globalFragmentBefore: DocumentFragment
 		globalFragmentAfter: DocumentFragment
 	}
@@ -17,7 +18,7 @@ export function defineComponent(tagName = `x-${randomId()}`) {
 			bindMethods(this)
 		}
 
-		public static set $css(css: string) {
+		public static set $css(css: CssTemplateString) {
 			XComponent.cssString = css
 		}
 
