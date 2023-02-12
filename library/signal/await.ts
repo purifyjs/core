@@ -12,20 +12,20 @@ interface Await<Awaited, Returns, Omits extends string> {
 	then<Result>(then: (awaited: Awaited) => Result): SignalReadable<Returns | Result>
 }
 
-export function createAwait<Awaited>(promiseDeriver: SignalDeriver<Promise<Awaited>>) {
+export function createAwait<Awaited>(promiseDeriver: SignalDeriver<Promise<Awaited>>): Await<Awaited, never, never> {
 	let placeholder_: () => unknown
 	let error_: (error: Error) => unknown
 
 	return {
-		placeholder<Placeholder extends () => unknown>(placeholder: Placeholder) {
+		placeholder(placeholder) {
 			placeholder_ = placeholder
 			return this
 		},
-		error<OnError extends (error: Error) => unknown>(error: OnError) {
+		error(error) {
 			error_ = error
 			return this
 		},
-		then<Result>(then: (awaited: Awaited) => Result) {
+		then(then) {
 			const signal = createDerive(promiseDeriver)
 			return createReadable(placeholder_(), (set) => {
 				let counter = 0
@@ -45,7 +45,7 @@ export function createAwait<Awaited>(promiseDeriver: SignalDeriver<Promise<Await
 					},
 					{ mode: "immediate" }
 				).unsubscribe
-			})
+			}) as SignalReadable<never>
 		},
-	} as any as Await<Awaited, never, never>
+	}
 }

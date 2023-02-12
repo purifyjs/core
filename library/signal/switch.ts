@@ -1,20 +1,25 @@
 import { createDerive, SignalDeriver } from "./derive"
 import type { SignalReadable } from "./readable"
 
+type ThenUnknown = () => unknown
+type CaseUnknown = unknown
+// type IfUnknown = (value: unknown) => unknown
+
 interface Switch<Returns> {
-	case<Case, Then extends () => unknown>(case_: Case, then: Then): Switch<Returns | ReturnType<Then>>
-	default<Default extends () => unknown>(default__?: Default): SignalReadable<Returns | ReturnType<Default>>
+	case<Case extends CaseUnknown, Then extends ThenUnknown>(case_: Case, then: Then): Switch<Returns | ReturnType<Then>>
+	// if<If extends IfUnknown, Then extends ThenUnknown>(if_: If, then_: Then): Switch<Returns | ReturnType<Then>>
+	default<Default extends ThenUnknown>(default_?: Default): SignalReadable<Returns | ReturnType<Default>>
 }
 
-export function createSwitch<T extends SignalDeriver<unknown>>(switch_: T) {
-	const map = new Map()
+export function createSwitch<T extends SignalDeriver<unknown>>(switch_: T): Switch<never> {
+	const cases = new Map<CaseUnknown, ThenUnknown>()
 	return {
-		case<Case, Then extends () => unknown>(case_: Case, then: Then) {
-			map.set(case_, then)
+		case(case_, then) {
+			cases.set(case_, then)
 			return this
 		},
-		default<Default extends () => unknown>(default__?: Default) {
-			return createDerive((s) => map.get(switch_(s))?.() ?? default__?.() ?? null)
+		default(default_) {
+			return createDerive((s) => cases.get(switch_(s))?.() ?? default_?.() ?? null) as SignalReadable<never>
 		},
-	} as Switch<never>
+	}
 }
