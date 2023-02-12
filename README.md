@@ -1,6 +1,6 @@
 # MasterTS : A Breath of Fresh Air
 
-A stright TypeScript library for building user interfaces
+A straight and clean TypeScript library for building user interfaces
 
 MasterTS is a frontend library for building single-page applications (SPAs) using Web Components and TypeScript. It is designed to be lightweight and easy to use, with a focus on transparency and simplicity.
 
