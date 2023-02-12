@@ -32,13 +32,13 @@ MasterTS is designed to be simple and easy to use, with a focus on transparency 
 -   MasterTS can work with any other libraries and frameworks.
 -   It's lightweight and has no dependencies.
 -   It uses the syntax that is already available in TS and HTML.
--   It's reactive like SolidJs so it only updates the changing parts of the DOM, which is more efficient than other libraries.
+-   It's reactive like SolidJS so it only updates the changing parts of the DOM, which is more efficient than other libraries.
 -   It's also fast and efficient because its built on top of native Shadow DOM and Web Components API.
 -   It uses Template Literals to create HTML elements which let's you write HTML in a more natural way with in a TS file.
 -   It doesn't hide anything from you and doesn't do anything without your knowledge. It's transparent and simple.
 
-Basically it combines the best parts of Svelte, Lit and React into one library.<br/>
-It's not a compiler but it's still fast like Svelte thanks to the Shadow DOM and Web Components API, similar to Svelte it only updates the changing parts of the DOM.<br/>
+Basically it combines the best parts of Svelte, Lit, React and SolidJS into one library.<br/>
+It's not a compiler but it's still fast like Svelte thanks to the Shadow DOM and Web Components API, similar to SolidJS it only updates the changing parts of the DOM.<br/>
 Like React it uses functions to create HTML elements and components, so it's natural and intuitive to use.<br/>
 It's also similar to Lit that it uses Template Literals to create HTML elements which let's you write HTML in a more natural way with in a TS file.<br/>
 And different from any other frameworks or libraries, while it's allowing you to use attributes on your components such as class, id, style, etc.
