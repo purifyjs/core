@@ -1,5 +1,6 @@
 import type { MountableNode } from "../mountable"
 import type { CssTemplateString } from "../template/css"
+import { assert } from "../utils/assert"
 import { bindMethods } from "../utils/bind"
 import { randomId } from "../utils/id"
 
@@ -23,17 +24,19 @@ export function defineComponent(tagName: `${string}-${string}${string[0]}` = `x-
 		}
 
 		public set $html(nodes: Node[]) {
-			while (this.shadowRoot!.firstChild) this.shadowRoot!.removeChild(this.shadowRoot!.firstChild)
+			assert<ShadowRoot>(this.shadowRoot)
 
-			this.shadowRoot!.append(Component.globalFragmentBefore.cloneNode(true))
+			while (this.shadowRoot.firstChild) this.shadowRoot.removeChild(this.shadowRoot.firstChild)
+
+			this.shadowRoot.append(Component.globalFragmentBefore.cloneNode(true))
 
 			const style = document.createElement("style")
 			style.textContent = XComponent.cssString
-			this.shadowRoot!.append(style)
+			this.shadowRoot.append(style)
 
-			this.shadowRoot!.append(...nodes)
+			this.shadowRoot.append(...nodes)
 
-			this.shadowRoot!.append(Component.globalFragmentAfter.cloneNode(true))
+			this.shadowRoot.append(Component.globalFragmentAfter.cloneNode(true))
 		}
 	}
 	customElements.define(tagName, XComponent)
