@@ -58,8 +58,6 @@ function preprocess(src) {
 	// add the cachers to the top of the file
 	for (let i = 0; i < htmlCachersCount; i++) src = addToTop(src, `const __html${i} = ${createCachedHtmlStatement}()`)
 
-	console.log(src)
-
 	return src
 }
 
