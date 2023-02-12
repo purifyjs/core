@@ -22,3 +22,4 @@ export const $ = {
 	each: createEach,
 	await: createAwait,
 }
+// NOTE: I wanna use namespace, so the names of the functions gets minified. But can't find a way to do it while using the names "switch" and "await"

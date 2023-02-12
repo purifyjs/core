@@ -1,4 +1,4 @@
-import { ComponentBase } from "../component"
+import { ComponentElement } from "../component"
 import { asMountableNode, makeMountableNode } from "../mountable"
 import { createDerive, createOrGetDeriveOfFunction, SignalDeriver } from "../signal/derive"
 import { SignalReadable } from "../signal/readable"
@@ -43,8 +43,8 @@ export function render<T extends TemplateValue[]>(templateDescriptor: TemplateDe
 				const outlet = fragment.querySelector(`[\\:ref="${descriptor.ref}"]`)!
 				outlet.replaceWith(valueToNode(value))
 			} else if (descriptor instanceof TemplateValueDescriptorRenderComponent) {
-				if (!(value instanceof ComponentBase))
-					throw new Error(`Expected ${nameOf(ComponentBase)} at index "${index}", but got ${nameOf(value)}.`)
+				if (!(value instanceof ComponentElement))
+					throw new Error(`Expected ${nameOf(ComponentElement)} at index "${index}", but got ${nameOf(value)}.`)
 				const outlet = fragment.querySelector(`[\\:ref="${descriptor.ref}"]`)!
 				value.append(...Array.from(outlet.childNodes))
 				outlet.removeAttribute(":outlet")

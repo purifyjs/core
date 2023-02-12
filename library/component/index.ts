@@ -3,7 +3,13 @@ import { bindMethods } from "../utils/bind"
 import { randomId } from "../utils/id"
 
 export function defineComponent(tagName = `x-${randomId()}`) {
-	const Component = class extends ComponentBase {
+	type XComponent = {
+		new (): InstanceType<typeof XComponent> & MountableNode
+		$css: string
+		globalFragmentBefore: DocumentFragment
+		globalFragmentAfter: DocumentFragment
+	}
+	const XComponent = class extends Component {
 		protected static cssString = ""
 
 		constructor() {
@@ -12,36 +18,29 @@ export function defineComponent(tagName = `x-${randomId()}`) {
 		}
 
 		public static set $css(css: string) {
-			Component.cssString = css
+			XComponent.cssString = css
 		}
 
 		public set $html(nodes: Node[]) {
 			while (this.shadowRoot!.firstChild) this.shadowRoot!.removeChild(this.shadowRoot!.firstChild)
 
-			this.shadowRoot!.append(ComponentBase.globalFragmentBefore.cloneNode(true))
+			this.shadowRoot!.append(Component.globalFragmentBefore.cloneNode(true))
 
 			const style = document.createElement("style")
-			style.textContent = Component.cssString
+			style.textContent = XComponent.cssString
 			this.shadowRoot!.append(style)
 
 			this.shadowRoot!.append(...nodes)
 
-			this.shadowRoot!.append(ComponentBase.globalFragmentAfter.cloneNode(true))
+			this.shadowRoot!.append(Component.globalFragmentAfter.cloneNode(true))
 		}
 	}
-	customElements.define(tagName, Component)
+	customElements.define(tagName, XComponent)
 
-	type Component = {
-		new (): InstanceType<typeof Component> & MountableNode
-		$css: string
-		globalFragmentBefore: DocumentFragment
-		globalFragmentAfter: DocumentFragment
-	}
-
-	return Component as unknown as Component
+	return XComponent as unknown as XComponent
 }
 
-export abstract class ComponentBase extends HTMLElement {
+export abstract class Component extends HTMLElement {
 	public static readonly globalFragmentBefore = document.createDocumentFragment()
 	public static readonly globalFragmentAfter = document.createDocumentFragment()
 
