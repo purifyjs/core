@@ -1,4 +1,5 @@
 import { assert } from "../utils/assert"
+import { createDerive, SignalDeriver } from "./derive"
 import { createReadable, SignalReadable } from "./readable"
 
 interface Await<Awaited, Returns, Omits extends string> {
@@ -11,7 +12,7 @@ interface Await<Awaited, Returns, Omits extends string> {
 	then<Result>(then: (awaited: Awaited) => Result): SignalReadable<Returns | Result>
 }
 
-export function createAwait<Awaited>(promise: Promise<Awaited> | SignalReadable<Promise<Awaited>>) {
+export function createAwait<Awaited>(promiseDeriver: SignalDeriver<Promise<Awaited>>) {
 	let placeholder_: () => unknown
 	let error_: (error: Error) => unknown
 
@@ -25,32 +26,26 @@ export function createAwait<Awaited>(promise: Promise<Awaited> | SignalReadable<
 			return this
 		},
 		then<Result>(then: (awaited: Awaited) => Result) {
-			if (promise instanceof SignalReadable) {
-				return createReadable(placeholder_(), (set) => {
-					let counter = 0
-					return promise.subscribe(
-						async (value) => {
-							const id = ++counter
-							try {
-								set(placeholder_())
-								const result = await value
-								if (id !== counter) return
-								set(then(result))
-							} catch (error) {
-								if (id !== counter) return
-								assert<Error>(error)
-								set(error_(error))
-							}
-						},
-						{ mode: "immediate" }
-					).unsubscribe
-				})
-			} else {
-				return createReadable(placeholder_(), (set) => {
-					promise.then((value) => set(then(value))).catch((error) => set(error_(error)))
-					return () => {}
-				})
-			}
+			const signal = createDerive(promiseDeriver)
+			return createReadable(placeholder_(), (set) => {
+				let counter = 0
+				return signal.subscribe(
+					async (value) => {
+						const id = ++counter
+						try {
+							set(placeholder_())
+							const result = await value
+							if (id !== counter) return
+							set(then(result))
+						} catch (error) {
+							if (id !== counter) return
+							assert<Error>(error)
+							set(error_(error))
+						}
+					},
+					{ mode: "immediate" }
+				).unsubscribe
+			})
 		},
 	} as any as Await<Awaited, never, never>
 }
