@@ -32,7 +32,7 @@ MasterTS is designed to be simple and easy to use, with a focus on transparency 
 -   MasterTS can work with any other libraries and frameworks.
 -   It's lightweight and has no dependencies.
 -   It uses the syntax that is already available in TS and HTML.
--   It's reactive like Svelte so it only updates the changing parts of the DOM, which is more efficient than other libraries.
+-   It's reactive like SolidJs so it only updates the changing parts of the DOM, which is more efficient than other libraries.
 -   It's also fast and efficient because its built on top of native Shadow DOM and Web Components API.
 -   It uses Template Literals to create HTML elements which let's you write HTML in a more natural way with in a TS file.
 -   It doesn't hide anything from you and doesn't do anything without your knowledge. It's transparent and simple.
