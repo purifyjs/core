@@ -3,7 +3,7 @@ import type { CssTemplateString } from "../template/css"
 import { bindMethods } from "../utils/bind"
 import { randomId } from "../utils/id"
 
-export function defineComponent(tagName = `x-${randomId()}`) {
+export function defineComponent(tagName: `${string}-${string}${string[0]}` = `x-${randomId()}`) {
 	type XComponent = {
 		new (): InstanceType<typeof XComponent> & MountableNode
 		$css: CssTemplateString
