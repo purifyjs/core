@@ -24,9 +24,7 @@ export function defineComponent(tagName: `${string}-${string}${string[0]}` = `x-
 			assert<ShadowRoot>(this.shadowRoot)
 			while (this.shadowRoot.firstChild) this.shadowRoot.removeChild(this.shadowRoot.firstChild)
 			this.shadowRoot.append(...nodes)
-			this.shadowRoot.adoptedStyleSheets = XComponent.cssStyleSheet
-				? [...Component.globalCssStyleSheets, XComponent.cssStyleSheet]
-				: Component.globalCssStyleSheets
+			this.shadowRoot.adoptedStyleSheets = XComponent.cssStyleSheet ? [...Component.globalCss, XComponent.cssStyleSheet] : Component.globalCss
 		}
 	}
 	customElements.define(tagName, XComponent)
@@ -35,7 +33,7 @@ export function defineComponent(tagName: `${string}-${string}${string[0]}` = `x-
 }
 
 export abstract class Component extends HTMLElement {
-	public static globalCssStyleSheets: CSSStyleSheet[] = []
+	public static globalCss: CSSStyleSheet[] = []
 
 	constructor() {
 		super()
