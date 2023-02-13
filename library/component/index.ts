@@ -1,5 +1,4 @@
 import type { MountableNode } from "../mountable"
-import type { CssTemplateString } from "../template/css"
 import { assert } from "../utils/assert"
 import { bindMethods } from "../utils/bind"
 import { randomId } from "../utils/id"
@@ -7,36 +6,27 @@ import { randomId } from "../utils/id"
 export function defineComponent(tagName: `${string}-${string}${string[0]}` = `x-${randomId()}`) {
 	type XComponent = {
 		new (): InstanceType<typeof XComponent> & MountableNode
-		$css: CssTemplateString
-		globalFragmentBefore: DocumentFragment
-		globalFragmentAfter: DocumentFragment
+		$css: CSSStyleSheet
 	}
 	const XComponent = class extends Component {
-		protected static cssString = ""
+		private static cssStyleSheet: CSSStyleSheet | null = null
 
 		constructor() {
 			super()
 			bindMethods(this)
 		}
 
-		public static set $css(css: CssTemplateString) {
-			XComponent.cssString = css
+		public static set $css(css: typeof this.cssStyleSheet) {
+			this.cssStyleSheet = css
 		}
 
 		public set $html(nodes: Node[]) {
 			assert<ShadowRoot>(this.shadowRoot)
-
 			while (this.shadowRoot.firstChild) this.shadowRoot.removeChild(this.shadowRoot.firstChild)
-
-			this.shadowRoot.append(Component.globalFragmentBefore.cloneNode(true))
-
-			const style = document.createElement("style")
-			style.textContent = XComponent.cssString
-			this.shadowRoot.append(style)
-
 			this.shadowRoot.append(...nodes)
-
-			this.shadowRoot.append(Component.globalFragmentAfter.cloneNode(true))
+			this.shadowRoot.adoptedStyleSheets = XComponent.cssStyleSheet
+				? [...Component.globalCssStyleSheets, XComponent.cssStyleSheet]
+				: Component.globalCssStyleSheets
 		}
 	}
 	customElements.define(tagName, XComponent)
@@ -45,8 +35,7 @@ export function defineComponent(tagName: `${string}-${string}${string[0]}` = `x-
 }
 
 export abstract class Component extends HTMLElement {
-	public static readonly globalFragmentBefore = document.createDocumentFragment()
-	public static readonly globalFragmentAfter = document.createDocumentFragment()
+	public static globalCssStyleSheets: CSSStyleSheet[] = []
 
 	constructor() {
 		super()
