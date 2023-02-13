@@ -27,13 +27,13 @@ export function createAwait<Awaited>(promiseDeriver: SignalDeriver<Promise<Await
 		},
 		then(then) {
 			const signal = createDerive(promiseDeriver)
-			return createReadable(placeholder_(), (set) => {
+			return createReadable<unknown>(placeholder_?.() ?? null, (set) => {
 				let counter = 0
 				return signal.subscribe(
 					async (value) => {
 						const id = ++counter
 						try {
-							set(placeholder_())
+							if (placeholder_) set(placeholder_())
 							const result = await value
 							if (id !== counter) return
 							set(then(result))
