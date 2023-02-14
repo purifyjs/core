@@ -27,31 +27,34 @@ export function createSuspense<Awaited>(promise: SignalReadable<Promise<Awaited>
 		},
 		result(then?: (awaited: Awaited) => unknown) {
 			if (promise instanceof Promise) {
-				return createReadable<unknown>(placeholder_?.() ?? null, (set) => {
+				return createReadable<unknown>(placeholder_ ? placeholder_() : null, (set) => {
 					promise
-						.then((awaited) => then?.(awaited) ?? awaited)
-						.catch((error) => error_?.(error) ?? null)
+						.then((awaited) => (then ? then(awaited) : awaited))
+						.catch((error) => {
+							if (!error_) throw error
+							set(error_)
+						})
 						.then((result) => set(result))
 
 					return () => {}
 				}) as SignalReadable<never>
 			}
 
-			return createReadable<unknown>(placeholder_?.() ?? null, (set) => {
+			return createReadable<unknown>(placeholder_ ? placeholder_() : null, (set) => {
 				let counter = 0
 				return promise.subscribe(
 					async (value) => {
 						const id = ++counter
 						try {
-							if (placeholder_) set(placeholder_())
+							if (placeholder_ !== undefined) set(placeholder_())
 							const result = await value
 							if (id !== counter) return
-							set(then?.(result) ?? result)
+							set(then ? then(result) : result)
 						} catch (error) {
 							if (id !== counter) return
 							assert<Error>(error)
 							if (!error_) throw error
-							set(error_(error) ?? null)
+							set(error_(error))
 						}
 					},
 					{ mode: "immediate" }
