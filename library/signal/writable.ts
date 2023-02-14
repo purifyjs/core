@@ -15,7 +15,7 @@ export class SignalWritable<T> extends SignalReadable<T> implements ISignalWrita
 		super(value)
 	}
 
-	public set(value: T, silent = false) {
+	public readonly set = (value: T, silent = false) => {
 		if (value === this._value) return
 		this._value = value
 		if (!silent) this.signal()

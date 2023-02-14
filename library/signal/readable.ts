@@ -1,4 +1,3 @@
-import { bindMethods } from "../utils/bind"
 import { randomId } from "../utils/id"
 
 export interface SignalSubscription {
@@ -35,14 +34,13 @@ export class SignalReadable<T = unknown> {
 	protected _cleaner: SignalUpdaterCleaner | null = null
 
 	constructor(initial: T, updater: SignalUpdater<T> | null = null) {
-		bindMethods(this)
 		this.id = randomId()
 		this._listeners = new Set()
 		this._value = initial
 		this._updater = updater
 	}
 
-	public get() {
+	public readonly get = () => {
 		if (this._updater && !this._cleaner) {
 			this.activate()
 			setTimeout(() => this.checkActive(), 5000)
@@ -54,12 +52,12 @@ export class SignalReadable<T = unknown> {
 		return this.get()
 	}
 
-	protected checkActive() {
+	protected readonly checkActive = () => {
 		if (this._listeners.size) this.activate()
 		else this.deactivate()
 	}
 
-	protected activate() {
+	protected readonly activate = () => {
 		if (!this._updater) return
 		if (this._cleaner) return
 		this._cleaner = this._updater((value, silent) => {
@@ -68,14 +66,14 @@ export class SignalReadable<T = unknown> {
 		})
 	}
 
-	protected deactivate() {
+	protected readonly deactivate = () => {
 		if (!this._updater) return
 		if (!this._cleaner) return
 		this._cleaner()
 		this._cleaner = null
 	}
 
-	public subscribe(listener: SignalSubscriptionListener<T>, options?: SignalSubscriptionOptions): SignalSubscription {
+	public readonly subscribe = (listener: SignalSubscriptionListener<T>, options?: SignalSubscriptionOptions): SignalSubscription => {
 		// xx console.log("%csubscribed", "color:orange", listener.name, "to", this.id)
 		switch (options?.mode) {
 			case "once":
@@ -102,7 +100,7 @@ export class SignalReadable<T = unknown> {
 		}
 	}
 
-	public signal() {
+	public readonly signal = () => {
 		// xx console.log("%csignaling", "color:yellow", this.id, this._value)
 		this._listeners.forEach((callback) => {
 			try {
@@ -111,7 +109,7 @@ export class SignalReadable<T = unknown> {
 		})
 	}
 
-	public async signalAsync() {
+	public readonly signalAsync = async () => {
 		// xx console.log("%csignaling async", "color:yellow", this.id, this._value)
 		// Giving a size to the array is faster than using push
 		const returns: Promise<unknown>[] = new Array(this._listeners.size)

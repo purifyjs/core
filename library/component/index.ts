@@ -1,6 +1,4 @@
 import type { MountableNode } from "../mountable"
-import { assert } from "../utils/assert"
-import { bindMethods } from "../utils/bind"
 import { randomId } from "../utils/id"
 
 export function defineComponent(tagName: `${string}-${string}${string[0]}` = `x-${randomId()}`) {
@@ -11,17 +9,11 @@ export function defineComponent(tagName: `${string}-${string}${string[0]}` = `x-
 	const XComponent = class extends Component {
 		private static cssStyleSheet: CSSStyleSheet | null = null
 
-		constructor() {
-			super()
-			bindMethods(this)
-		}
-
 		public static set $css(css: typeof this.cssStyleSheet) {
 			this.cssStyleSheet = css
 		}
 
 		public set $html(nodes: Node[]) {
-			assert<ShadowRoot>(this.shadowRoot)
 			while (this.shadowRoot.firstChild) this.shadowRoot.removeChild(this.shadowRoot.firstChild)
 			this.shadowRoot.append(...nodes)
 			this.shadowRoot.adoptedStyleSheets = XComponent.cssStyleSheet ? [...Component.globalCss, XComponent.cssStyleSheet] : Component.globalCss
@@ -34,9 +26,10 @@ export function defineComponent(tagName: `${string}-${string}${string[0]}` = `x-
 
 export abstract class Component extends HTMLElement {
 	public static globalCss: CSSStyleSheet[] = []
+	public override shadowRoot: ShadowRoot
 
 	constructor() {
 		super()
-		this.attachShadow({ mode: "open" })
+		this.shadowRoot = this.attachShadow({ mode: "open" })
 	}
 }
