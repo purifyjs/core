@@ -50,7 +50,8 @@ export function createSuspense<Awaited>(promise: SignalReadable<Promise<Awaited>
 						} catch (error) {
 							if (id !== counter) return
 							assert<Error>(error)
-							set(error_?.(error) ?? null)
+							if (!error_) throw error
+							set(error_(error) ?? null)
 						}
 					},
 					{ mode: "immediate" }
