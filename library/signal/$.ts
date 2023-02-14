@@ -1,25 +1,15 @@
 import { createWritable } from "./writable"
 import { createReadable } from "./readable"
 import { createDerive } from "./derive"
-import { createSwitch } from "./switch"
+import { createMatch } from "./match"
 import { createEach } from "./each"
-import { createAwait } from "./await"
+import { createSuspense } from "./suspense"
 
-/**
- * All the signal related functions are defined here.
- * @function writable Creates a writable signal.
- * @function readable Creates a readable signal.
- * @function derive Creates a derived signal.
- * @function switch Creates a switch signal.
- * @function each Creates an each signal.
- * @function await Creates an await signal.
- */
-export const $ = {
-	writable: createWritable,
-	readable: createReadable,
-	derive: createDerive,
-	switch: createSwitch,
-	each: createEach,
-	await: createAwait,
+export namespace $ {
+	export const writable = createWritable
+	export const readable = createReadable
+	export const derive = createDerive
+	export const match = createMatch
+	export const each = createEach
+	export const suspense = createSuspense
 }
-// NOTE: I wanna use namespace, so the names of the functions gets minified. But can't find a way to do it while using the names "switch" and "await"

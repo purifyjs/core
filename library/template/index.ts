@@ -18,7 +18,7 @@ import {
 } from "./parse/descriptor"
 import { parseTemplateHtml } from "./parse/html"
 
-export type TemplateValue = string | number | boolean | Node | SignalReadable<any> | SignalDeriver<any> | Function | TemplateValue[]
+export type TemplateValue = string | number | boolean | Node | SignalReadable<any> | SignalDeriver<any> | Function | null | TemplateValue[]
 export interface Template {
 	strings: TemplateStringsArray
 	values: TemplateValue[]
