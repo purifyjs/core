@@ -10,6 +10,7 @@ interface Await<Awaited, Returns, Omits extends string> {
 		error: OnError
 	): Omit<Await<Awaited, Returns | ReturnType<OnError>, Omits | "error">, Omits | "error">
 	then<Result>(then: (awaited: Awaited) => Result): SignalReadable<Returns | Result>
+	then(): SignalReadable<Returns | Awaited>
 }
 
 export function createAwait<Awaited>(promiseDeriver: SignalDeriver<Promise<Awaited>>): Await<Awaited, never, never> {
@@ -25,7 +26,7 @@ export function createAwait<Awaited>(promiseDeriver: SignalDeriver<Promise<Await
 			error_ = error
 			return this
 		},
-		then(then) {
+		then(then?: (awaited: Awaited) => unknown) {
 			const signal = createDerive(promiseDeriver)
 			return createReadable<unknown>(placeholder_?.() ?? null, (set) => {
 				let counter = 0
@@ -36,7 +37,7 @@ export function createAwait<Awaited>(promiseDeriver: SignalDeriver<Promise<Await
 							if (placeholder_) set(placeholder_())
 							const result = await value
 							if (id !== counter) return
-							set(then(result))
+							set(then?.(result) ?? result)
 						} catch (error) {
 							if (id !== counter) return
 							assert<Error>(error)
