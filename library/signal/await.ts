@@ -1,8 +1,14 @@
 import { createDerive, SignalDeriver } from "./derive"
 import { createReadable } from "./readable"
 
-export function createAwait<Awaited, Placeholder>(promiseDeriver: SignalDeriver<Promise<Awaited>>, placeholder?: Placeholder) {
-	const signal = createDerive(promiseDeriver)
+export function createAwait<Awaited, Placeholder>(promise: SignalDeriver<Promise<Awaited>> | Promise<Awaited>, placeholder?: Placeholder) {
+	if (promise instanceof Promise) {
+		return createReadable<Placeholder | Awaited | null>(placeholder ?? null, (set) => {
+			promise.then((result) => set(result))
+			return () => {}
+		})
+	}
+	const signal = createDerive(promise)
 	return createReadable<Placeholder | Awaited | null>(placeholder ?? null, (set) => {
 		let counter = 0
 		return signal.subscribe(
