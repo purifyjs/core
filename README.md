@@ -1,28 +1,32 @@
+<p align="center">
+  <img src="https://ipfs.io/ipfs/QmW6Q7ifwuaR9HKSnNcwyXu8DsJVHrXHQ4w89paEJ9qRRx" />
+</p>
+
 # MasterTS : A Breath of Fresh Air
 
 A straight and clean TypeScript library for building user interfaces
 
 MasterTS is a frontend library for building single-page applications (SPAs) using Web Components and TypeScript. It is designed to be lightweight and easy to use, with a focus on transparency and simplicity.
 
-# Install
+## Install
 
 ```bash
 npm i https://github.com/DeepDoge/master-ts.git -D
 ```
 
-## Warning
+### Warning
 
 Please note that MasterTS is currently a work in progress prototype and is not ready for production use.
 
-## Coding
+### Coding
 
 If you want to work on this project, it is recommended to use the [MasterTS Workspace](https://github.com/DeepDoge/master-ts-workspace) for a better developer experience.
 
-## Example
+### Example
 
 For an example of how to use MasterTS, see the [MasterTS Vite Example](https://github.com/DeepDoge/master-ts-vite-demo).
 
-## Motivation
+### Motivation
 
 There are many frontend libraries available for building SPAs, but most of them are either too complex or a mess of "features" that are just duct tape solutions.
 
@@ -48,6 +52,6 @@ It also has a syntax to bind to events, eg. `on:click`.<br/>
 
 Take a look at the [#Example](#example)
 
-## Note
+### Note
 
 Initially, the goal of MasterTS was to create a library with resumable server-side rendering (SSR), similar to Qwik. While it was possible to achieve this, it became clear that significant sacrifices would need to be made in order to make it work correctly. Since MasterTS is intended for use with platforms like IPFS, which do not have a server or cloud infrastructure, it was decided that an SPA was sufficient for now. It is possible that additional features and changes will be made in the future.
