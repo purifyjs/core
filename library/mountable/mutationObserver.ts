@@ -21,13 +21,13 @@ Element.prototype.attachShadow = function (options: ShadowRootInit) {
 
 function addedNode(node: Node, place: NodePlace) {
 	if (place === NodePlace.Unknown && getRootNode(node) !== document) return
-	if (isMountableNode(node)) node.$emitMount()
+	if (isMountableNode(node)) node._$emitMount()
 	Array.from(node.childNodes).forEach((node) => addedNode(node, NodePlace.InDOM))
 	if (node instanceof HTMLElement) Array.from(node.shadowRoot?.childNodes ?? []).forEach((node) => addedNode(node, NodePlace.InDOM))
 }
 
 function removedNode(node: Node) {
-	if (isMountableNode(node)) node.$emitUnmount()
+	if (isMountableNode(node)) node._$emitUnmount()
 	Array.from(node.childNodes).forEach(removedNode)
 	if (node instanceof HTMLElement) Array.from(node.shadowRoot?.childNodes ?? []).forEach(removedNode)
 }

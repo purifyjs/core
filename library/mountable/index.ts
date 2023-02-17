@@ -4,8 +4,8 @@ import "./mutationObserver"
 
 export interface MountableNode extends Node {
 	get $mounted(): boolean | null
-	$emitMount(): void
-	$emitUnmount(): void
+	_$emitMount(): void
+	_$emitUnmount(): void
 	$onMount<T extends Function>(listener: T): void
 	$onUnmount<T extends Function>(listener: T): void
 	$subscribe<T>(signal: SignalReadable<T>, listener: SignalSubscriptionListener<T>, options?: SignalSubscriptionOptions): void
@@ -34,12 +34,12 @@ export function makeMountableNode<T extends Node>(node: T): asserts node is Moun
 		get $mounted() {
 			return _mounted
 		},
-		$emitMount() {
+		_$emitMount() {
 			if (_mounted) return
 			_mounted = true
 			_onMountListeners.forEach((listener) => listener())
 		},
-		$emitUnmount() {
+		_$emitUnmount() {
 			if (!_mounted) return
 			_mounted = false
 			_onUnmountListeners.forEach((listener) => listener())
