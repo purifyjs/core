@@ -1,4 +1,4 @@
-import type { MountableNode } from "../mountable"
+import { makeMountableNode, MountableNode } from "../mountable"
 import { randomId } from "../utils/id"
 
 export function defineComponent(tagName: `${string}-${string}${string[0]}` = `x-${randomId()}`) {
@@ -33,5 +33,6 @@ export abstract class Component extends HTMLElement {
 	constructor() {
 		super()
 		this.shadowRoot = this.attachShadow({ mode: "open" })
+		makeMountableNode(this)
 	}
 }

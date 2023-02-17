@@ -11,34 +11,31 @@ export function createDerive<T>(deriver: SignalDeriver<T>): SignalReadable<T> {
 	const dependencies = new Set<SignalReadable>()
 	const dependencySubscriptions: SignalSubscription[] = []
 
-	return createReadable<T>(
-		deriver((v) => v),
-		(set) => {
-			function addDependency<T extends SignalReadable>(signal: T): T {
-				if (dependencies.has(signal)) return signal
-				dependencies.add(signal)
-				dependencySubscriptions.push(signal.subscribe(() => update()))
-				return signal
-			}
-
-			function update() {
-				const dependencySizeCache = dependencies.size
-				SignalReadable.SyncContext = new Set()
-				const value = deriver(addDependency)
-				if (dependencySizeCache === dependencies.size) SignalReadable.SyncContext.forEach(addDependency)
-				SignalReadable.SyncContext = null
-				set(value)
-			}
-
-			{
-				let i = 0
-				for (const dependency of dependencies) dependencySubscriptions[i++] = dependency.subscribe(() => update())
-			}
-			update()
-
-			return () => dependencySubscriptions.forEach((subscription) => subscription.unsubscribe())
+	return createReadable<T>(null!, (set) => {
+		function addDependency<T extends SignalReadable>(signal: T): T {
+			if (dependencies.has(signal)) return signal
+			dependencies.add(signal)
+			dependencySubscriptions.push(signal.subscribe(() => update()))
+			return signal
 		}
-	)
+
+		function update() {
+			const dependencySizeCache = dependencies.size
+			SignalReadable.SyncContext = new Set()
+			const value = deriver(addDependency)
+			if (dependencySizeCache === dependencies.size) SignalReadable.SyncContext.forEach(addDependency)
+			SignalReadable.SyncContext = null
+			set(value)
+		}
+
+		{
+			let i = 0
+			for (const dependency of dependencies) dependencySubscriptions[i++] = dependency.subscribe(() => update())
+		}
+		update()
+
+		return () => dependencySubscriptions.forEach((subscription) => subscription.unsubscribe())
+	})
 }
 
 const deriveOfFunctionCache = new WeakMap<SignalDeriver<unknown>, SignalReadable<any>>()
