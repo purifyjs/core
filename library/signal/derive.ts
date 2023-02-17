@@ -22,7 +22,11 @@ export function createDerive<T>(deriver: SignalDeriver<T>): SignalReadable<T> {
 			}
 
 			function update() {
+				const dependencySizeCache = dependencies.size
+				SignalReadable.SyncContext = new Set()
 				const value = deriver(addDependency)
+				if (dependencySizeCache === dependencies.size) SignalReadable.SyncContext.forEach(addDependency)
+				SignalReadable.SyncContext = null
 				set(value)
 			}
 

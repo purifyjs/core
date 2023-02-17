@@ -27,6 +27,7 @@ export function createReadable<T>(...params: ConstructorParameters<typeof Signal
 }
 
 export class SignalReadable<T = unknown> {
+	public static SyncContext: Set<SignalReadable> | null
 	public readonly id
 	protected readonly _listeners: Set<SignalSubscriptionListener<any>>
 	protected _value: T
@@ -45,6 +46,7 @@ export class SignalReadable<T = unknown> {
 			this.activate()
 			setTimeout(() => this.checkActive(), 5000)
 		}
+		SignalReadable.SyncContext?.add(this)
 		return this._value
 	}
 
