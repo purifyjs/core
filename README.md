@@ -18,6 +18,12 @@ npm i https://github.com/DeepDoge/master-ts.git -D
 
 Please note that MasterTS is currently a work in progress prototype and is not ready for production use.
 
+### Documentation
+
+Too early for that, but gonna make one when I stop making breaking changes.<br/>
+IDK when this will happen but if I don't make any breaking change for 2 months, then I'm writing the documentation.<br/>
+Until then check out the [Vite Example](#example)
+
 ### Coding
 
 If you want to work on this project, it is recommended to use the [MasterTS Workspace](https://github.com/DeepDoge/master-ts-workspace) for a better developer experience.
