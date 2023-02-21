@@ -1,4 +1,4 @@
-import { instancer } from "master-instancer/library"
+import { instanceableType } from "master-instanceable-types/library"
 import { randomId } from "../../utils/id"
 import { unhandled } from "../../utils/unhandled"
 import {
@@ -20,22 +20,21 @@ const enum TemplateElementRef {
 }
 export type { TemplateElementRef }
 
-export type TemplateValueDescriptor = InstanceType<typeof TemplateValueDescriptor>
-export const TemplateValueDescriptor = instancer<{
+export const TemplateValueDescriptor = instanceableType<{
 	ref: TemplateElementRef
-}>()()
-
+}>()
+export type TemplateValueDescriptor = InstanceType<typeof TemplateValueDescriptor>
 export type TemplateValueDescriptorRenderNode = InstanceType<typeof TemplateValueDescriptorRenderNode>
-export const TemplateValueDescriptorRenderNode = instancer<{}>()(TemplateValueDescriptor)
-
-export const TemplateValueDescriptorRenderComponent = instancer<{}>()(TemplateValueDescriptor)
+export const TemplateValueDescriptorRenderNode = TemplateValueDescriptor.intersect(instanceableType()).$()
 export type TemplateValueDescriptorRenderComponent = InstanceType<typeof TemplateValueDescriptorRenderComponent>
-
+export const TemplateValueDescriptorRenderComponent = TemplateValueDescriptor.intersect(instanceableType()).$()
 export type TemplateValueDescriptorAttribute = InstanceType<typeof TemplateValueDescriptorAttribute>
-export const TemplateValueDescriptorAttribute = instancer<{
-	name: string
-	quote: "'" | '"' | ""
-}>()(TemplateValueDescriptor)
+export const TemplateValueDescriptorAttribute = TemplateValueDescriptor.intersect(
+	instanceableType<{
+		name: string
+		quote: "'" | '"' | ""
+	}>()
+).$()
 
 export const templateValueDirectiveTypes = ["class", "style", "on", "bind", "ref"] as const
 export type TemplateValueDirectiveType = typeof templateValueDirectiveTypes[number]
@@ -43,10 +42,12 @@ export function isTemplateValueDirectiveType(value: string): value is TemplateVa
 	return templateValueDirectiveTypes.includes(value as any)
 }
 export type TemplateValueDescriptorDirective = InstanceType<typeof TemplateValueDescriptorDirective>
-export const TemplateValueDescriptorDirective = instancer<{
-	type: TemplateValueDirectiveType
-	name: string
-}>()(TemplateValueDescriptor)
+export const TemplateValueDescriptorDirective = TemplateValueDescriptor.intersect(
+	instanceableType<{
+		type: TemplateValueDirectiveType
+		name: string
+	}>()
+).$()
 
 export interface TemplateDescriptor {
 	template: HTMLTemplateElement
