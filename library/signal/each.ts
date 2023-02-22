@@ -6,11 +6,11 @@ type KeyGetter<T> = (item: T, index: number) => string | number
 
 interface EachOfSignalArray<T extends unknown[]> {
 	key(getter: KeyGetter<T[number]>): this
-	as<R>(as: (item: T[number], index: SignalReadable<number>) => R): SignalReadable<R[]>
+	$<R>(as: (item: T[number], index: SignalReadable<number>) => R): SignalReadable<R[]>
 }
 
 interface EachOfArray<T extends unknown[]> {
-	as<R>(as: (item: T[number], index: number) => R): R[]
+	$<R>(as: (item: T[number], index: number) => R): R[]
 }
 
 function isEachSignal<T extends unknown[]>(each: unknown): each is SignalReadable<T> {
@@ -29,7 +29,7 @@ export function createEach<U extends SignalReadable<unknown[]> | unknown[]>(
 				keyGetter = getter
 				return this
 			},
-			as<R>(as: (item: T[number], index: SignalReadable<number>) => R) {
+			$<R>(as: (item: T[number], index: SignalReadable<number>) => R) {
 				let caches: Record<string, { index: SignalWritable<number>; value: R }> = {}
 				const derived = createDerive((s) => {
 					const newCaches: typeof caches = {}
@@ -59,7 +59,7 @@ export function createEach<U extends SignalReadable<unknown[]> | unknown[]>(
 	}
 
 	return {
-		as<R>(as: (item: T[number], index: number) => R) {
+		$<R>(as: (item: T[number], index: number) => R) {
 			return each.map((item, index) => as(item, index))
 		},
 	} as any

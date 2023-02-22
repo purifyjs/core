@@ -1,18 +1,18 @@
 import { assert } from "../utils/assert"
 import { createReadable, SignalReadable } from "./readable"
 
-interface Suspense<Awaited, Returns, Omits extends string> {
+interface Await<Awaited, Returns, Omits extends string> {
 	placeholder<Placeholder extends () => unknown>(
 		placeholder: Placeholder
-	): Omit<Suspense<Awaited, Returns | ReturnType<Placeholder>, Omits | "placeholder">, Omits | "placeholder">
+	): Omit<Await<Awaited, Returns | ReturnType<Placeholder>, Omits | "placeholder">, Omits | "placeholder">
 	error<OnError extends (error: Error) => unknown>(
 		error: OnError
-	): Omit<Suspense<Awaited, Returns | ReturnType<OnError>, Omits | "error">, Omits | "error">
-	result<Result>(then: (awaited: Awaited) => Result): SignalReadable<Returns | Result>
-	result(): SignalReadable<Returns | Awaited>
+	): Omit<Await<Awaited, Returns | ReturnType<OnError>, Omits | "error">, Omits | "error">
+	$<Result>(then: (awaited: Awaited) => Result): SignalReadable<Returns | Result>
+	$(): SignalReadable<Returns | Awaited>
 }
 
-export function createSuspense<Awaited>(promise: SignalReadable<Promise<Awaited>> | Promise<Awaited>): Suspense<Awaited, never, never> {
+export function createAwait<Awaited>(promise: SignalReadable<Promise<Awaited>> | Promise<Awaited>): Await<Awaited, never, never> {
 	let placeholder_: (() => unknown) | undefined
 	let error_: ((error: Error) => unknown) | undefined
 
@@ -25,7 +25,7 @@ export function createSuspense<Awaited>(promise: SignalReadable<Promise<Awaited>
 			error_ = error
 			return this
 		},
-		result(then?: (awaited: Awaited) => unknown) {
+		$(then?: (awaited: Awaited) => unknown) {
 			if (promise instanceof Promise) {
 				return createReadable<unknown>(placeholder_ ? placeholder_() : null, (set) => {
 					promise

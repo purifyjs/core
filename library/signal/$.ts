@@ -3,13 +3,13 @@ import { createReadable } from "./readable"
 import { createDerive } from "./derive"
 import { createMatch } from "./match"
 import { createEach } from "./each"
-import { createSuspense } from "./suspense"
+import { createAwait } from "./await"
 
 export namespace $ {
-	export const writable = createWritable
-	export const readable = createReadable
-	export const derive = createDerive
-	export const match = createMatch
-	export const each = createEach
-	export const suspense = createSuspense
+	export const Writable = createWritable
+	export const Readable = createReadable
+	export const Derive = createDerive
+	export const Match = createMatch
+	export const Each = createEach
+	export const Await = createAwait
 }
