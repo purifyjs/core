@@ -6,10 +6,10 @@ type CaseUnknown = unknown
 // type IfUnknown = (value: unknown) => unknown
 
 interface Match<T extends SignalReadable<unknown> | unknown, Returns> {
-	case<Case extends CaseUnknown, Then extends ThenUnknown>(case_: Case, then: Then): Match<T, Returns | ReturnType<Then>>
+	case<Case extends CaseUnknown, Then extends ThenUnknown>(value: Case, then: Then): Match<T, Returns | ReturnType<Then>>
 	// if<If extends IfUnknown, Then extends ThenUnknown>(if_: If, then_: Then): Switch<Returns | ReturnType<Then>>
 	$<Default extends ThenUnknown>(
-		default_?: Default
+		fallback?: Default
 	): Default extends unknown
 		? T extends SignalReadable<any>
 			? SignalReadable<Returns>
@@ -22,14 +22,14 @@ interface Match<T extends SignalReadable<unknown> | unknown, Returns> {
 export function createMatch<T extends SignalReadable<unknown> | unknown>(match: T): Match<T, never> {
 	const cases = new Map<CaseUnknown, ThenUnknown>()
 	return {
-		case(case_, then) {
-			cases.set(case_, then)
+		case(value, then) {
+			cases.set(value, then)
 			return this
 		},
-		$(default_) {
+		$(fallback) {
 			if (match instanceof SignalReadable)
-				return createDerive((s) => cases.get(s(match).ref)?.() ?? default_?.() ?? null) as SignalReadable<never>
-			return (cases.get(match)?.() ?? default_?.() ?? null) as any
+				return createDerive((s) => cases.get(s(match).ref)?.() ?? fallback?.() ?? null) as SignalReadable<never>
+			return (cases.get(match)?.() ?? fallback?.() ?? null) as any
 		},
 	}
 }
