@@ -5,8 +5,8 @@ type ThenUnknown = () => unknown
 type CaseUnknown = unknown
 // type IfUnknown = (value: unknown) => unknown
 
-interface Match<T extends SignalReadable<unknown> | unknown, Returns> {
-	case<Case extends CaseUnknown, Then extends ThenUnknown>(value: Case, then: Then): Match<T, Returns | ReturnType<Then>>
+interface Switch<T extends SignalReadable<unknown> | unknown, Returns> {
+	case<Case extends CaseUnknown, Then extends ThenUnknown>(value: Case, then: Then): Switch<T, Returns | ReturnType<Then>>
 	// if<If extends IfUnknown, Then extends ThenUnknown>(if_: If, then_: Then): Switch<Returns | ReturnType<Then>>
 	$<Default extends ThenUnknown>(
 		fallback?: Default
@@ -19,7 +19,7 @@ interface Match<T extends SignalReadable<unknown> | unknown, Returns> {
 		: Returns | ReturnType<Default>
 }
 
-export function createMatch<T extends SignalReadable<unknown> | unknown>(match: T): Match<T, never> {
+export function createSwitch<T extends SignalReadable<unknown> | unknown>(match: T): Switch<T, never> {
 	const cases = new Map<CaseUnknown, ThenUnknown>()
 	return {
 		case(value, then) {
