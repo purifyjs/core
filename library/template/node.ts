@@ -7,32 +7,25 @@ const EMPTY_NODE = document.createDocumentFragment()
 
 export function valueToNode(value: unknown): Node {
 	if (value === null) return EMPTY_NODE
-
+	if (value instanceof Node) return value
 	if (value instanceof Array) {
 		const fragment = document.createDocumentFragment()
 		for (const item of value) fragment.append(valueToNode(item))
 		return fragment
 	}
-
-	if (value instanceof Node) return value
-
-	if (value instanceof SignalReadable || value instanceof Function) {
+	if (value instanceof Function) return valueToNode(createOrGetDeriveOfFunction(value as SignalDeriver<unknown>))
+	if (value instanceof SignalReadable) {
 		const fragment = document.createDocumentFragment()
 		const startComment = document.createComment(``)
 		const endComment = document.createComment(``)
 		fragment.append(startComment, endComment)
 
+		startComment.nodeValue = `signal ${value.id}`
+		endComment.nodeValue = `/signal ${value.id}`
+
 		makeMountableNode(startComment)
-
-		let signal: SignalReadable
-		if (value instanceof Function) signal = createOrGetDeriveOfFunction(value as SignalDeriver<unknown>)
-		else signal = value
-
-		startComment.nodeValue = `signal ${signal.id}`
-		endComment.nodeValue = `/signal ${signal.id}`
-
 		startComment.$subscribe(
-			signal,
+			value,
 			(signalValue) => {
 				while (startComment.nextSibling !== endComment) startComment.nextSibling!.remove()
 				endComment.before(valueToNode(signalValue))
@@ -44,6 +37,5 @@ export function valueToNode(value: unknown): Node {
 	}
 
 	if (isTemplatable(value)) return valueToNode(value.toTemplateValue())
-
 	return document.createTextNode(`${value}`)
 }
