@@ -18,7 +18,7 @@ import {
 } from "./parse/descriptor"
 import { parseTemplateHtml } from "./parse/html"
 
-export type Templatable = { toHtml(): Node | Node[] }
+export type Templatable = { toHtml(): TemplateValue }
 export function isTemplatable(value: any): value is Templatable {
 	return value?.toHtml instanceof Function
 }
