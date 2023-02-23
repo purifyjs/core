@@ -1,3 +1,4 @@
+import { isTemplatable } from "."
 import { makeMountableNode } from "../mountable"
 import { createOrGetDeriveOfFunction, SignalDeriver } from "../signal/derive"
 import { SignalReadable } from "../signal/readable"
@@ -41,6 +42,8 @@ export function valueToNode(value: unknown): Node {
 
 		return fragment
 	}
+
+	if (isTemplatable(value)) return valueToNode(value.toHtml())
 
 	return document.createTextNode(`${value}`)
 }
