@@ -43,7 +43,7 @@ export function valueToNode(value: unknown): Node {
 		return fragment
 	}
 
-	if (isTemplatable(value)) return valueToNode(value.toHtml())
+	if (isTemplatable(value)) return valueToNode(value.toTemplate())
 
 	return document.createTextNode(`${value}`)
 }
