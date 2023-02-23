@@ -49,7 +49,7 @@ export const TemplateValueDescriptorDirective = TemplateValueDescriptor.intersec
 	}>()
 ).$()
 
-export interface TemplateDescriptor {
+export type TemplateDescriptor = {
 	template: HTMLTemplateElement
 	valueDescriptors: TemplateValueDescriptor[]
 	refAttributeValueMap: Map<TemplateElementRef, Map<string, (string | TemplateValueIndex)[]>>

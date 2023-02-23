@@ -2,7 +2,7 @@ import type { SignalReadable, SignalSubscription, SignalSubscriptionListener, Si
 import { assert } from "../utils/assert"
 import "./mutationObserver"
 
-export interface MountableNode extends Node {
+export type MountableNode = Node & {
 	get $mounted(): boolean | null
 	_$emitMount(): void
 	_$emitUnmount(): void

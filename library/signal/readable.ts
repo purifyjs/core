@@ -1,24 +1,24 @@
 import { randomId } from "../utils/id"
 
-export interface SignalSubscription {
+export type SignalSubscription = {
 	unsubscribe(): void
 }
-export interface SignalSubscriptionListener<T> {
+export type SignalSubscriptionListener<T> = {
 	(value: T): any
 }
-export interface SignalSubscriptionOptions {
+export type SignalSubscriptionOptions = {
 	mode: "normal" | "once" | "immediate"
 }
 
-export interface SignalSetter<T> {
+export type SignalSetter<T> = {
 	(value: T, silent?: boolean): void
 }
 
-export interface SignalUpdater<T> {
+export type SignalUpdater<T> = {
 	(set: SignalSetter<T>): SignalUpdaterCleaner
 }
 
-export interface SignalUpdaterCleaner {
+export type SignalUpdaterCleaner = {
 	(): void
 }
 

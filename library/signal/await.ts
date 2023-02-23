@@ -1,7 +1,7 @@
 import { assert } from "../utils/assert"
 import { createReadable, SignalReadable } from "./readable"
 
-interface Await<Awaited, Returns, Omits extends string> {
+type Await<Awaited, Returns, Omits extends string> = {
 	placeholder<Placeholder extends () => unknown>(
 		placeholder: Placeholder
 	): Omit<Await<Awaited, Returns | ReturnType<Placeholder>, Omits | "placeholder">, Omits | "placeholder">

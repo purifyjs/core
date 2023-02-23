@@ -19,7 +19,7 @@ import {
 import { parseTemplateHtml } from "./parse/html"
 
 export type TemplateValue = string | number | boolean | Node | SignalReadable<any> | SignalDeriver<any> | Function | null | TemplateValue[]
-export interface Template {
+export type Template = {
 	strings: TemplateStringsArray
 	values: TemplateValue[]
 }

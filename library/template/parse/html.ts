@@ -1,15 +1,15 @@
 import { randomId } from "../../utils/id"
 
-export interface TemplateHtmlParse {
+export type TemplateHtmlParse = {
 	parts: TemplateHtmlParsePart[]
 }
 
-export interface TemplateHtmlParsePart {
+export type TemplateHtmlParsePart = {
 	html: string
 	state: HtmlParseState
 }
 
-export interface HtmlParseState {
+export type HtmlParseState = {
 	type: HtmlParseStateType
 	tag: string
 	tag_ref: string

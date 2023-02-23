@@ -1,9 +1,9 @@
 import { createReadable, SignalReadable, SignalSubscription } from "./readable"
 
-export interface SignalDeriveDependencyAdder {
+export type SignalDeriveDependencyAdder = {
 	<T extends SignalReadable>(signal: T): T
 }
-export interface SignalDeriver<T> {
+export type SignalDeriver<T> = {
 	(addDependency: SignalDeriveDependencyAdder): T
 }
 
