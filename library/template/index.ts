@@ -19,8 +19,8 @@ import {
 import { parseTemplateHtml } from "./parse/html"
 
 export type Templatable = { toTemplateValue(): TemplateValue }
-export function isTemplatable(value: any): value is Templatable {
-	return value?.toHtml instanceof Function
+export function isTemplatable(value: unknown): value is Templatable {
+	return (value as Templatable)?.toTemplateValue instanceof Function
 }
 
 export type TemplateValue =

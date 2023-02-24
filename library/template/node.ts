@@ -37,5 +37,6 @@ export function valueToNode(value: unknown): Node {
 	}
 
 	if (isTemplatable(value)) return valueToNode(value.toTemplateValue())
+
 	return document.createTextNode(`${value}`)
 }
