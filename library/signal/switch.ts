@@ -24,11 +24,10 @@ export function createSwitch<T extends SignalReadable<unknown> | unknown>(match:
 	return {
 		case(value, then) {
 			cases.set(value, then)
-			return this
+			return this as never
 		},
 		$(fallback) {
-			if (match instanceof SignalReadable)
-				return createDerive((s) => cases.get(s(match).ref)?.() ?? fallback?.() ?? null) as SignalReadable<never>
+			if (match instanceof SignalReadable) return createDerive((s) => cases.get(s(match).ref)?.() ?? fallback?.() ?? null) as never
 			return (cases.get(match)?.() ?? fallback?.() ?? null) as any
 		},
 	}

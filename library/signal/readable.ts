@@ -4,7 +4,7 @@ export type SignalSubscription = {
 	unsubscribe(): void
 }
 export type SignalSubscriptionListener<T> = {
-	(value: T): any
+	(value: T): unknown
 }
 export type SignalSubscriptionOptions = {
 	mode: "normal" | "once" | "immediate"
@@ -15,11 +15,7 @@ export type SignalSetter<T> = {
 }
 
 export type SignalUpdater<T> = {
-	(set: SignalSetter<T>): SignalUpdaterCleaner
-}
-
-export type SignalUpdaterCleaner = {
-	(): void
+	(set: SignalSetter<T>): Function
 }
 
 export function createReadable<T>(...params: ConstructorParameters<typeof SignalReadable<T>>) {
@@ -27,12 +23,12 @@ export function createReadable<T>(...params: ConstructorParameters<typeof Signal
 }
 
 export class SignalReadable<T = unknown> {
-	public static SyncContext: Set<SignalReadable> | null
+	public static _SyncContext: Set<SignalReadable> | null
 	public readonly id
-	protected readonly _listeners: Set<SignalSubscriptionListener<any>>
+	protected readonly _listeners: Set<SignalSubscriptionListener<T>>
 	protected _value: T
 	protected _updater: SignalUpdater<T> | null
-	protected _cleaner: SignalUpdaterCleaner | null = null
+	protected _cleaner: Function | null = null
 
 	constructor(initial: T, updater: SignalUpdater<T> | null = null) {
 		this.id = randomId()
@@ -46,7 +42,7 @@ export class SignalReadable<T = unknown> {
 			this.activate()
 			setTimeout(() => this.checkActive(), 5000)
 		}
-		SignalReadable.SyncContext?.add(this)
+		SignalReadable._SyncContext?.add(this as any)
 		return this._value
 	}
 
@@ -118,7 +114,8 @@ export class SignalReadable<T = unknown> {
 		let i = 0
 		this._listeners.forEach((callback) => {
 			try {
-				returns[i++] = callback(this._value)
+				const r = callback(this._value)
+				if (r instanceof Promise) returns[i++] = r
 			} catch {}
 		})
 		await Promise.all(returns)

@@ -1,18 +1,18 @@
 import { createReadable, SignalReadable, SignalSubscription } from "./readable"
 
 export type SignalDeriveDependencyAdder = {
-	<T extends SignalReadable>(signal: T): T
+	<T>(signal: SignalReadable<T>): SignalReadable<T>
 }
 export type SignalDeriver<T> = {
 	(addDependency: SignalDeriveDependencyAdder): T
 }
 
 export function createDerive<T>(deriver: SignalDeriver<T>): SignalReadable<T> {
-	const dependencies = new Set<SignalReadable>()
+	const dependencies = new Set<SignalReadable<any>>()
 	const dependencySubscriptions: SignalSubscription[] = []
 
 	return createReadable<T>(null!, (set) => {
-		function addDependency<T extends SignalReadable>(signal: T): T {
+		const addDependency: SignalDeriveDependencyAdder = (signal) => {
 			if (dependencies.has(signal)) return signal
 			dependencies.add(signal)
 			dependencySubscriptions.push(signal.subscribe(() => update()))
@@ -21,10 +21,10 @@ export function createDerive<T>(deriver: SignalDeriver<T>): SignalReadable<T> {
 
 		function update() {
 			const dependencySizeCache = dependencies.size
-			SignalReadable.SyncContext = new Set()
+			SignalReadable._SyncContext = new Set()
 			const value = deriver(addDependency)
-			if (dependencySizeCache === dependencies.size) SignalReadable.SyncContext.forEach(addDependency)
-			SignalReadable.SyncContext = null
+			if (dependencySizeCache === dependencies.size) SignalReadable._SyncContext.forEach(addDependency)
+			SignalReadable._SyncContext = null
 			set(value)
 		}
 

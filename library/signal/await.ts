@@ -15,17 +15,23 @@ type Await<Awaited, Returns, Omits extends string> = {
 export function createAwait<Awaited>(promise: SignalReadable<Promise<Awaited>> | Promise<Awaited>): Await<Awaited, never, never> {
 	let placeholder_: (() => unknown) | undefined
 	let error_: ((error: Error) => unknown) | undefined
+	let done = false
 
 	return {
 		placeholder(placeholder) {
+			if (placeholder_) throw new Error("placeholder already set")
 			placeholder_ = placeholder
-			return this
+			return this as never
 		},
 		error(error) {
+			if (error_) throw new Error("error already set")
 			error_ = error
-			return this
+			return this as never
 		},
 		$(then?: (awaited: Awaited) => unknown) {
+			if (done) throw new Error("await already done")
+			done = true
+
 			if (promise instanceof Promise) {
 				return createReadable<unknown>(placeholder_ ? placeholder_() : null, (set) => {
 					promise
@@ -37,7 +43,7 @@ export function createAwait<Awaited>(promise: SignalReadable<Promise<Awaited>> |
 						.then((result) => set(result))
 
 					return () => {}
-				}) as SignalReadable<never>
+				}) as never
 			}
 
 			return createReadable<unknown>(placeholder_ ? placeholder_() : null, (set) => {
@@ -59,7 +65,7 @@ export function createAwait<Awaited>(promise: SignalReadable<Promise<Awaited>> |
 					},
 					{ mode: "immediate" }
 				).unsubscribe
-			}) as SignalReadable<never>
+			}) as never
 		},
 	}
 }

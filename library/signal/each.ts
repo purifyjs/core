@@ -17,25 +17,33 @@ function isEachSignal<T extends unknown[]>(each: unknown): each is SignalReadabl
 	return each instanceof SignalReadable
 }
 
-export function createEach<U extends SignalReadable<unknown[]> | unknown[]>(
+export function createEach<U extends SignalReadable<any[]> | any[]>(
 	each: U
 ): U extends SignalReadable<infer T> ? (T extends unknown[] ? EachOfSignalArray<T> : never) : U extends unknown[] ? EachOfArray<U> : never {
 	type T = U extends SignalReadable<infer T> ? T : U
 
 	if (isEachSignal(each)) {
-		let keyGetter: KeyGetter<T[number]> = (_, index) => index
+		let keyGetter: KeyGetter<T[number]> | null = null
+		let done = false
+
 		return {
 			key(getter: KeyGetter<T[number]>) {
+				if (keyGetter) throw new Error("key getter already set")
 				keyGetter = getter
 				return this
 			},
 			$<R>(as: (item: T[number], index: SignalReadable<number>) => R) {
+				if (done) throw new Error("each is already done")
+				done = true
+
+				if (!keyGetter) keyGetter = (_, index) => index
+
 				let caches: Record<string, { index: SignalWritable<number>; value: R }> = {}
 				const derived = createDerive((s) => {
 					const newCaches: typeof caches = {}
 					const collection = s(each).ref
 					const results = collection.map((item, index) => {
-						const k = keyGetter(item, index)
+						const k = keyGetter!(item, index)
 
 						const cache = caches[k]
 						if (cache) {
