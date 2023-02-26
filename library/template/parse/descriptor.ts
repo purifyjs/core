@@ -20,14 +20,14 @@ const enum TemplateElementRef {
 }
 export type { TemplateElementRef }
 
+export type TemplateValueDescriptor = InstanceType<typeof TemplateValueDescriptor>
 export const TemplateValueDescriptor = instanceableType<{
 	ref: TemplateElementRef
 }>()
-export type TemplateValueDescriptor = InstanceType<typeof TemplateValueDescriptor>
 export type TemplateValueDescriptorRenderNode = InstanceType<typeof TemplateValueDescriptorRenderNode>
-export const TemplateValueDescriptorRenderNode = instanceableType(TemplateValueDescriptor).$()
+export const TemplateValueDescriptorRenderNode = instanceableType(TemplateValueDescriptor).intersect(instanceableType()).$()
 export type TemplateValueDescriptorRenderComponent = InstanceType<typeof TemplateValueDescriptorRenderComponent>
-export const TemplateValueDescriptorRenderComponent = instanceableType(TemplateValueDescriptor).$()
+export const TemplateValueDescriptorRenderComponent = instanceableType(TemplateValueDescriptor).intersect(instanceableType()).$()
 export type TemplateValueDescriptorAttribute = InstanceType<typeof TemplateValueDescriptorAttribute>
 export const TemplateValueDescriptorAttribute = instanceableType(TemplateValueDescriptor)
 	.intersect(
