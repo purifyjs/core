@@ -17,6 +17,10 @@ type IsLiteral<T, Then, Else> = T extends number
 	? boolean extends T
 		? Else
 		: Then
+	: T extends Function
+	? Function extends T
+		? Else
+		: Then
 	: Else
 
 type ThenUnknown = () => unknown
