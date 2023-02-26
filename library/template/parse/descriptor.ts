@@ -25,16 +25,18 @@ export const TemplateValueDescriptor = instanceableType<{
 }>()
 export type TemplateValueDescriptor = InstanceType<typeof TemplateValueDescriptor>
 export type TemplateValueDescriptorRenderNode = InstanceType<typeof TemplateValueDescriptorRenderNode>
-export const TemplateValueDescriptorRenderNode = TemplateValueDescriptor.intersect(instanceableType()).$()
+export const TemplateValueDescriptorRenderNode = instanceableType(TemplateValueDescriptor).$()
 export type TemplateValueDescriptorRenderComponent = InstanceType<typeof TemplateValueDescriptorRenderComponent>
-export const TemplateValueDescriptorRenderComponent = TemplateValueDescriptor.intersect(instanceableType()).$()
+export const TemplateValueDescriptorRenderComponent = instanceableType(TemplateValueDescriptor).$()
 export type TemplateValueDescriptorAttribute = InstanceType<typeof TemplateValueDescriptorAttribute>
-export const TemplateValueDescriptorAttribute = TemplateValueDescriptor.intersect(
-	instanceableType<{
-		name: string
-		quote: "'" | '"' | ""
-	}>()
-).$()
+export const TemplateValueDescriptorAttribute = instanceableType(TemplateValueDescriptor)
+	.intersect(
+		instanceableType<{
+			name: string
+			quote: "'" | '"' | ""
+		}>()
+	)
+	.$()
 
 export const templateValueDirectiveTypes = ["class", "style", "on", "bind", "ref"] as const
 export type TemplateValueDirectiveType = typeof templateValueDirectiveTypes[number]
@@ -42,12 +44,14 @@ export function isTemplateValueDirectiveType(value: string): value is TemplateVa
 	return templateValueDirectiveTypes.includes(value as any)
 }
 export type TemplateValueDescriptorDirective = InstanceType<typeof TemplateValueDescriptorDirective>
-export const TemplateValueDescriptorDirective = TemplateValueDescriptor.intersect(
-	instanceableType<{
-		type: TemplateValueDirectiveType
-		name: string
-	}>()
-).$()
+export const TemplateValueDescriptorDirective = instanceableType(TemplateValueDescriptor)
+	.intersect(
+		instanceableType<{
+			type: TemplateValueDirectiveType
+			name: string
+		}>()
+	)
+	.$()
 
 export type TemplateDescriptor = {
 	template: HTMLTemplateElement
@@ -72,12 +76,12 @@ export function parseTemplateDescriptor<T extends TemplateHtmlParse>(htmlParse: 
 			if (parsePart.state.type === HTML_PARSE_STATE_OUTER) {
 				const ref = randomId() as TemplateElementRef
 				html += `<x :ref="${ref}"></x>`
-				valueDescriptors[i] = new TemplateValueDescriptorRenderNode({ ref })
+				valueDescriptors[i] = TemplateValueDescriptorRenderNode.new({ ref })
 				continue
 			} else if (parsePart.state.type === HTML_PARSE_STATE_TAG_INNER && !parsePart.state.attribute_name) {
 				if (parsePart.state.tag === "x") {
 					const ref = parsePart.state.tag_ref as TemplateElementRef
-					valueDescriptors[i] = new TemplateValueDescriptorRenderComponent({ ref })
+					valueDescriptors[i] = TemplateValueDescriptorRenderComponent.new({ ref })
 					continue
 				}
 			} else if (parsePart.state.type > HTML_PARSE_STATE_ATTR_VALUE_START && parsePart.state.type < HTML_PARSE_STATE_ATTR_VALUE_END) {
@@ -95,7 +99,7 @@ export function parseTemplateDescriptor<T extends TemplateHtmlParse>(htmlParse: 
 					const type = attributeNameParts[0]!
 					const name = attributeNameParts[1]!
 					if (!isTemplateValueDirectiveType(type)) throw new Error(`Unknown directive type "${type}".`)
-					valueDescriptors[i] = new TemplateValueDescriptorDirective({
+					valueDescriptors[i] = TemplateValueDescriptorDirective.new({
 						ref,
 						type,
 						name,
@@ -111,7 +115,7 @@ export function parseTemplateDescriptor<T extends TemplateHtmlParse>(htmlParse: 
 						const attributePartArray = attributeMap.get(name) ?? attributeMap.set(name, []).get(name)!
 						attributePartArray.push(i)
 					}
-					valueDescriptors[i] = new TemplateValueDescriptorAttribute({
+					valueDescriptors[i] = TemplateValueDescriptorAttribute.new({
 						ref,
 						name,
 						quote,
