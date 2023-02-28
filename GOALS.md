@@ -152,13 +152,16 @@ If you add dependencies manually like this ^, it doesn't add dependencies based 
 Also instead of defining a derive signal like `$.derive()`, you can also just define a function, but note that, it won't be converted to a derived signal until its rendered on the html template, then the function is being WeakMap(ed) to its derived signal.
 
 Also derived signals won't run if they have no subscribers.
+
 But if you try to read it's value while it has no subs, then it gets activated for a while, then in 5 seconds if it still has 0 subs, it gets deactivated again.
 
 You can use the the subcribe function, to subscribe to the signals, like `mySignal.subscribe(...)` but then you have to unsub, manually.
 instead you can use the `subscribe` function on any `MountableNode` which includes your component.
+
 So you can do this `myComponent.$subscribe(mySignal, ...)`, which subs to the signal on mount and unsubs on unmount, then subs again on mount again and etc.
-if you wanna sub to multiple things at once, for now you can make a dummy derived signal and sub to it like `myComponent.$subscribe($.derive((d) => {d(foo);d(bar);d(baz)}), ...)` and etc.
 
-also there is `$.readable()` which is similar to `Readable`s on Svelte.
+If you wanna sub to multiple things at once, for now you can make a dummy derived signal and sub to it like `myComponent.$subscribe($.derive((d) => {d(foo);d(bar);d(baz)}), ...)` and etc.
 
-btw `$` is just an alias/shortcut etc, you can also create signals like `createWritable()`, `createReadable()`, `createDerive()` etc. but `$` just has all of under one namespace, which makes it easier to discover all built-in signal types.
+Also there is `$.readable()` which is similar to `Readable`s on Svelte.
+
+BTW `$` is just an alias/shortcut, you can also create signals like `createWritable()`, `createReadable()`, `createDerive()` etc. but `$` just has all of them under one namespace, which makes it easier to discover all built-in signal types.
