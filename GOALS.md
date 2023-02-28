@@ -124,3 +124,27 @@ Way better probably. Or might be confusing, since we can't use this while settin
 Maybe we can use something shorter than `value` like `v` or `val` or `var`
 
 Ok, fixed the each and stuff, now we have each, switch and await, nicely used. i mean more readable
+
+So you know have `$.each()`, `$.switch()`, `$.await()`, which are fully and correctly typed, and nice to look and use.
+
+I also made signals derives add dependencies automatically, when no dependecy added manually.
+Also changed the signal .value to .ref 
+So you can do these now.
+ ```html
+<div>${() => a.ref + b.ref}</div>
+```
+```ts
+const foo = $.writable(0)
+foo.ref += 8
+const double = $.derive(() => foo.ref * 2)
+```
+etc.
+
+you can also add dependecies manually like this, which is useful if your derive signal is async.
+because dependencies that are added automatically, do it based on sync context.
+which can be problamatic with async stuff sometimes.
+```ts
+const foo = $.writable("")
+const result = $.derive(async (d) => await fetch(`...${d(foo).ref}`))
+```
+If you add dependencies manually like this ^, it doesn't add dependencies based on context automatically.
