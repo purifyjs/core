@@ -42,7 +42,7 @@ export class SignalReadable<T = unknown> {
 			this.activate()
 			setTimeout(() => this.checkActive(), 5000)
 		}
-		SignalReadable._SyncContext?.add(this as any)
+		SignalReadable._SyncContext?.add(this as never)
 		return this._value
 	}
 

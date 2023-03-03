@@ -63,12 +63,12 @@ export function createEach<U extends SignalReadable<any[]> | any[]>(
 
 				return derived
 			},
-		} as any
+		} as never
 	}
 
 	return {
 		$<R>(as: (item: T[number], index: number) => R) {
 			return each.map((item, index) => as(item, index))
 		},
-	} as any
+	} as never
 }

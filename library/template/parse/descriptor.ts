@@ -41,7 +41,7 @@ export const TemplateValueDescriptorAttribute = instanceableType(TemplateValueDe
 export const templateValueDirectiveTypes = ["class", "style", "on", "bind", "ref"] as const
 export type TemplateValueDirectiveType = typeof templateValueDirectiveTypes[number]
 export function isTemplateValueDirectiveType(value: string): value is TemplateValueDirectiveType {
-	return templateValueDirectiveTypes.includes(value as any)
+	return templateValueDirectiveTypes.includes(value as never)
 }
 export type TemplateValueDescriptorDirective = InstanceType<typeof TemplateValueDescriptorDirective>
 export const TemplateValueDescriptorDirective = instanceableType(TemplateValueDescriptor)
