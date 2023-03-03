@@ -1,6 +1,6 @@
 import { isTemplatable } from "."
 import { makeMountableNode } from "../mountable"
-import { createOrGetDeriveOfFunction, SignalDeriver } from "../signal/derive"
+import { createOrGetDeriveOfFunction } from "../signal/derive"
 import { SignalReadable } from "../signal/readable"
 
 const EMPTY_NODE = document.createDocumentFragment()
@@ -13,7 +13,7 @@ export function valueToNode(value: unknown): Node {
 		for (const item of value) fragment.append(valueToNode(item))
 		return fragment
 	}
-	if (value instanceof Function) return valueToNode(createOrGetDeriveOfFunction(value as SignalDeriver<unknown>))
+	if (value instanceof Function) return valueToNode(createOrGetDeriveOfFunction<unknown>(value as never))
 	if (value instanceof SignalReadable) {
 		const fragment = document.createDocumentFragment()
 		const startComment = document.createComment(``)

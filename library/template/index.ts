@@ -1,7 +1,7 @@
 import { instanceableTypeOf } from "master-instanceable-types/library"
 import { Component } from "../component"
 import { asMountableNode, makeMountableNode } from "../mountable"
-import { createDerive, createOrGetDeriveOfFunction, SignalDeriver } from "../signal/derive"
+import { createDerive, createOrGetDeriveOfFunction } from "../signal/derive"
 import { SignalReadable } from "../signal/readable"
 import { SignalWritable } from "../signal/writable"
 import { assert } from "../utils/assert"
@@ -24,17 +24,7 @@ export function isTemplatable(value: unknown): value is Templatable {
 	return (value as Templatable)?.toTemplateValue instanceof Function
 }
 
-export type TemplateValue =
-	| string
-	| number
-	| boolean
-	| Node
-	| SignalReadable<any>
-	| SignalDeriver<any>
-	| Function
-	| Templatable
-	| null
-	| TemplateValue[]
+export type TemplateValue = string | number | boolean | Node | SignalReadable<any> | Function | Templatable | null | TemplateValue[]
 export type Template = {
 	strings: TemplateStringsArray
 	values: TemplateValue[]
@@ -69,7 +59,7 @@ export function render<T extends TemplateValue[]>(templateDescriptor: TemplateDe
 				outlet.replaceWith(value)
 			} else if (descriptor instanceof TemplateValueDescriptorAttribute) {
 				const element = fragment.querySelector(`[\\:ref="${descriptor.ref}"]`) as HTMLElement
-				if (value instanceof Function) values[index] = value = createOrGetDeriveOfFunction(value as SignalDeriver<unknown>)
+				if (value instanceof Function) values[index] = value = createOrGetDeriveOfFunction(value)
 				if (value instanceof SignalReadable) {
 					if (descriptor.quote === "") {
 						makeMountableNode(element)
@@ -89,7 +79,7 @@ export function render<T extends TemplateValue[]>(templateDescriptor: TemplateDe
 				const element = fragment.querySelector(`[\\:ref="${descriptor.ref}"]`) as HTMLElement
 				switch (descriptor.type) {
 					case "class":
-						if (value instanceof Function) value = createOrGetDeriveOfFunction(value as SignalDeriver<unknown>)
+						if (value instanceof Function) value = createOrGetDeriveOfFunction(value)
 						if (value instanceof SignalReadable)
 							asMountableNode(element).$subscribe(value, (v) => element.classList.toggle(descriptor.name, !!v), {
 								mode: "immediate",
@@ -97,7 +87,7 @@ export function render<T extends TemplateValue[]>(templateDescriptor: TemplateDe
 						else element.classList.toggle(descriptor.name, !!value)
 						break
 					case "style":
-						if (value instanceof Function) value = createOrGetDeriveOfFunction(value as SignalDeriver<unknown>)
+						if (value instanceof Function) value = createOrGetDeriveOfFunction(value)
 						if (value instanceof SignalReadable)
 							asMountableNode(element).$subscribe(value, (v) => element.style.setProperty(descriptor.name, `${v}`), {
 								mode: "immediate",
