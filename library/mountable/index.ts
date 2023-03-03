@@ -1,5 +1,4 @@
 import type { SignalReadable, SignalSubscription, SignalSubscriptionListener, SignalSubscriptionOptions } from "../signal/readable"
-import { assert } from "../utils/assert"
 
 export type UnknownListenerWithCleanup = ListenerWithCleanup<Function | void>
 export type ListenerWithCleanup<R extends Function | void> = {
@@ -62,17 +61,12 @@ export type MountableNode = Node & {
 	$timeout<T>(callback: () => T, delay: number): void
 }
 
-export function isMountableNode<T extends Node>(node: T): node is MountableNode & T {
-	assert<MountableNode>(node)
-	return node.$mounted !== undefined
+const mountableNodes = new WeakSet<MountableNode>()
+export function isMountableNode<T extends Node>(node: T): node is T & MountableNode {
+	return mountableNodes.has(node as never)
 }
 
-export function asMountableNode<T extends Node>(node: T): MountableNode & T {
-	makeMountableNode(node)
-	return node
-}
-
-export function makeMountableNode<T extends Node>(node: T): asserts node is MountableNode & T {
+export function makeMountableNode<T extends Node>(node: T): asserts node is T & MountableNode {
 	if (isMountableNode(node)) return
 	type Impl = Pick<MountableNode, Exclude<keyof MountableNode, keyof Node>>
 	let _mounted: boolean | null = null
@@ -131,7 +125,8 @@ export function makeMountableNode<T extends Node>(node: T): asserts node is Moun
 			})
 		},
 	}
-	Object.assign(node, impl)
+
+	mountableNodes.add(Object.assign(node, impl))
 
 	// xx const name = node instanceof Element ? node.tagName : node.nodeValue || node.nodeName
 	// xx impl.$onMount(() => console.log("%cmounted", "color:red;font-weight:bold;font-size:12px", name))

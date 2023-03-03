@@ -1,5 +1,5 @@
 import { Component } from "../component"
-import { asMountableNode, makeMountableNode } from "../mountable"
+import { makeMountableNode } from "../mountable"
 import { createDerive, createOrGetDeriveOfFunction } from "../signal/derive"
 import { SignalReadable } from "../signal/readable"
 import { SignalWritable } from "../signal/writable"
@@ -86,19 +86,21 @@ export function render<T extends TemplateValue[]>(templateDescriptor: TemplateDe
 				switch (descriptor.type) {
 					case "class":
 						if (value instanceof Function) value = createOrGetDeriveOfFunction(value)
-						if (value instanceof SignalReadable)
-							asMountableNode(element).$subscribe(value, (v) => element.classList.toggle(descriptor.name, !!v), {
+						if (value instanceof SignalReadable) {
+							makeMountableNode(element)
+							element.$subscribe(value, (v) => element.classList.toggle(descriptor.name, !!v), {
 								mode: "immediate",
 							})
-						else element.classList.toggle(descriptor.name, !!value)
+						} else element.classList.toggle(descriptor.name, !!value)
 						break
 					case "style":
 						if (value instanceof Function) value = createOrGetDeriveOfFunction(value)
-						if (value instanceof SignalReadable)
-							asMountableNode(element).$subscribe(value, (v) => element.style.setProperty(descriptor.name, `${v}`), {
+						if (value instanceof SignalReadable) {
+							makeMountableNode(element)
+							element.$subscribe(value, (v) => element.style.setProperty(descriptor.name, `${v}`), {
 								mode: "immediate",
 							})
-						else element.style.setProperty(descriptor.name, `${value}`)
+						} else element.style.setProperty(descriptor.name, `${value}`)
 						break
 					case "on":
 						if (!(value instanceof Function))
