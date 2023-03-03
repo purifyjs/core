@@ -1,4 +1,3 @@
-import { instanceableTypeOf } from "master-instanceable-types/library"
 import { Component } from "../component"
 import { asMountableNode, makeMountableNode } from "../mountable"
 import { createDerive, createOrGetDeriveOfFunction } from "../signal/derive"
@@ -49,8 +48,6 @@ export function template<S extends TemplateStringsArray, T extends TemplateValue
 
 export function render<T extends TemplateValue[]>(templateDescriptor: TemplateDescriptor, values: T): Node[] {
 	const fragment = templateDescriptor.template.content.cloneNode(true) as DocumentFragment
-
-	console.log(templateDescriptor.valueDescriptors.map((des) => [des, instanceableTypeOf(des)]))
 
 	try {
 		for (let index = 0; index < values.length; index++) {
