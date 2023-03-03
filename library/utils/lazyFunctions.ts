@@ -1,7 +1,7 @@
 import { assert } from "./assert"
 import type { Obj } from "./type"
 
-export function importFunctionAsync<M extends Obj>(module: Promise<M>) {
+export function lazyFunctions<M extends Obj>(module: Promise<M>) {
 	const proxy = new Proxy(
 		{},
 		{

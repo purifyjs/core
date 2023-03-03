@@ -1,16 +1,60 @@
 import type { SignalReadable, SignalSubscription, SignalSubscriptionListener, SignalSubscriptionOptions } from "../signal/readable"
 import { assert } from "../utils/assert"
-import "./mutationObserver"
 
 export type UnknownListenerWithCleanup = ListenerWithCleanup<Function | void>
 export type ListenerWithCleanup<R extends Function | void> = {
 	(): R
 }
 
+const EMIT_MOUNT = Symbol("emit_mount")
+type EMIT_MOUNT = typeof EMIT_MOUNT
+const EMIT_UNMOUNT = Symbol("emit_unmount")
+type EMIT_UNMOUNT = typeof EMIT_UNMOUNT
+
+{
+	const enum NodePlace {
+		InDOM,
+		Unknown,
+	}
+
+	const mountUnmountObserver = new MutationObserver((mutations) => {
+		for (const mutation of mutations) {
+			Array.from(mutation.removedNodes).forEach(removedNode)
+			Array.from(mutation.addedNodes).forEach((node) => addedNode(node, NodePlace.Unknown))
+		}
+	})
+	mountUnmountObserver.observe(document, { childList: true, subtree: true })
+	const originalAttachShadow = Element.prototype.attachShadow
+	Element.prototype.attachShadow = function (options: ShadowRootInit) {
+		const shadowRoot = originalAttachShadow.call(this, options)
+		if (options.mode === "open") mountUnmountObserver.observe(shadowRoot, { childList: true, subtree: true })
+		return shadowRoot
+	}
+
+	function addedNode(node: Node, place: NodePlace) {
+		if (place === NodePlace.Unknown && getRootNode(node) !== document) return
+		if (isMountableNode(node)) node[EMIT_MOUNT]()
+		Array.from(node.childNodes).forEach((node) => addedNode(node, NodePlace.InDOM))
+		if (node instanceof HTMLElement) Array.from(node.shadowRoot?.childNodes ?? []).forEach((node) => addedNode(node, NodePlace.InDOM))
+	}
+
+	function removedNode(node: Node) {
+		if (isMountableNode(node)) node[EMIT_UNMOUNT]()
+		Array.from(node.childNodes).forEach(removedNode)
+		if (node instanceof HTMLElement) Array.from(node.shadowRoot?.childNodes ?? []).forEach(removedNode)
+	}
+
+	function getRootNode(node: Node): Node {
+		if (node instanceof ShadowRoot) return getRootNode(node.host)
+		if (node.parentNode) return getRootNode(node.parentNode)
+		return node
+	}
+}
+
 export type MountableNode = Node & {
 	get $mounted(): boolean | null
-	_$emitMount(): void
-	_$emitUnmount(): void
+	[EMIT_MOUNT](): void
+	[EMIT_UNMOUNT](): void
 	$onMount<T extends UnknownListenerWithCleanup>(listener: T): void
 	$onUnmount<T extends UnknownListenerWithCleanup>(listener: T): void
 	$subscribe<T>(signal: SignalReadable<T>, listener: SignalSubscriptionListener<T>, options?: SignalSubscriptionOptions): void
@@ -39,12 +83,12 @@ export function makeMountableNode<T extends Node>(node: T): asserts node is Moun
 		get $mounted() {
 			return _mounted
 		},
-		_$emitMount() {
+		[EMIT_MOUNT]() {
 			if (_mounted) return
 			_mounted = true
 			_onMountListeners.forEach((listener) => listener())
 		},
-		_$emitUnmount() {
+		[EMIT_UNMOUNT]() {
 			if (!_mounted) return
 			_mounted = false
 			_onUnmountListeners.forEach((listener) => listener())

@@ -24,7 +24,16 @@ export function isTemplatable(value: unknown): value is Templatable {
 	return (value as Templatable)?.toTemplateValue instanceof Function
 }
 
-export type TemplateValue = string | number | boolean | Node | SignalReadable<any> | Function | Templatable | null | TemplateValue[]
+export type TemplateValue =
+	| string
+	| number
+	| boolean
+	| Node
+	| SignalReadable<any>
+	| ((...args: any[]) => unknown)
+	| Templatable
+	| null
+	| TemplateValue[]
 export type Template = {
 	strings: TemplateStringsArray
 	values: TemplateValue[]
