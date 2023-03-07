@@ -1,4 +1,4 @@
-import { instanceableType } from "master-instanceable-types/library"
+import { compositionType } from "master-ts-composition/library"
 import { randomId } from "../../utils/id"
 import { unhandled } from "../../utils/unhandled"
 import {
@@ -21,17 +21,17 @@ const enum TemplateElementRef {
 export type { TemplateElementRef }
 
 export type TemplateValueDescriptor = InstanceType<typeof TemplateValueDescriptor>
-export const TemplateValueDescriptor = instanceableType<{
+export const TemplateValueDescriptor = compositionType<{
 	ref: TemplateElementRef
 }>()
 export type TemplateValueDescriptorRenderNode = InstanceType<typeof TemplateValueDescriptorRenderNode>
-export const TemplateValueDescriptorRenderNode = instanceableType(TemplateValueDescriptor).intersect(instanceableType()).$()
+export const TemplateValueDescriptorRenderNode = compositionType(TemplateValueDescriptor).intersect(compositionType()).$()
 export type TemplateValueDescriptorRenderComponent = InstanceType<typeof TemplateValueDescriptorRenderComponent>
-export const TemplateValueDescriptorRenderComponent = instanceableType(TemplateValueDescriptor).intersect(instanceableType()).$()
+export const TemplateValueDescriptorRenderComponent = compositionType(TemplateValueDescriptor).intersect(compositionType()).$()
 export type TemplateValueDescriptorAttribute = InstanceType<typeof TemplateValueDescriptorAttribute>
-export const TemplateValueDescriptorAttribute = instanceableType(TemplateValueDescriptor)
+export const TemplateValueDescriptorAttribute = compositionType(TemplateValueDescriptor)
 	.intersect(
-		instanceableType<{
+		compositionType<{
 			name: string
 			quote: "'" | '"' | ""
 		}>()
@@ -44,9 +44,9 @@ export function isTemplateValueDirectiveType(value: string): value is TemplateVa
 	return templateValueDirectiveTypes.includes(value as never)
 }
 export type TemplateValueDescriptorDirective = InstanceType<typeof TemplateValueDescriptorDirective>
-export const TemplateValueDescriptorDirective = instanceableType(TemplateValueDescriptor)
+export const TemplateValueDescriptorDirective = compositionType(TemplateValueDescriptor)
 	.intersect(
-		instanceableType<{
+		compositionType<{
 			type: TemplateValueDirectiveType
 			name: string
 		}>()
