@@ -2,7 +2,7 @@ import { createDerive } from "./derive"
 import { SignalReadable } from "./readable"
 import { createWritable, SignalWritable } from "./writable"
 
-type KeyGetter<T> = (item: T, index: number) => string | number
+type KeyGetter<T> = (item: T, index: number) => unknown
 
 interface EachOfSignalArray<T extends unknown[]> {
 	key(getter: KeyGetter<T[number]>): this
@@ -36,24 +36,24 @@ export function createEach<U extends SignalReadable<any[]> | any[]>(
 				if (done) throw new Error("each is already done")
 				done = true
 
-				if (!keyGetter) keyGetter = (_, index) => index
+				if (!keyGetter) keyGetter = (item) => item
 
-				let caches: Record<string, { index: SignalWritable<number>; value: R }> = {}
+				let caches = new Map<unknown, { index: SignalWritable<number>; value: R }>()
 				const derived = createDerive((s) => {
-					const newCaches: typeof caches = {}
+					const newCaches: typeof caches = new Map()
 					const collection = s(each).ref
 					const results = collection.map((item, index) => {
-						const k = keyGetter!(item, index)
+						const key = keyGetter!(item, index)
 
-						const cache = caches[k]
+						const cache = caches.get(key)
 						if (cache) {
 							cache.index.ref = index
-							newCaches[k] = cache
+							newCaches.set(key, cache)
 							return cache.value
 						} else {
 							const indexSignal = createWritable(index)
 							const value = as(item, indexSignal)
-							newCaches[k] = { index: indexSignal, value }
+							newCaches.set(key, { index: indexSignal, value })
 							return value
 						}
 					})

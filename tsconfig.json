@@ -3,7 +3,7 @@
 		"target": "ESNext",
 		"useDefineForClassFields": true,
 		"module": "ESNext",
-		"lib": ["ESNext", "DOM"],
+		"lib": ["ESNext", "DOM", "DOM.Iterable"],
 		"moduleResolution": "Node",
 		"resolveJsonModule": true,
 		"isolatedModules": true,
@@ -19,7 +19,6 @@
 		"strictFunctionTypes": true,
 		"strictNullChecks": true,
 		"strictPropertyInitialization": true,
-		"stripInternal": true,
 		/* NO IMPLICIT */
 		"noImplicitReturns": true,
 		"noImplicitAny": true,

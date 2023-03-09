@@ -1,2 +1,2 @@
-export type ObjUnknown = Record<string | number | symbol, unknown>
-export type Obj = Record<string | number | symbol, any>
+export type ObjUnknown = Record<PropertyKey, unknown>
+export type Obj = Record<PropertyKey, any>
