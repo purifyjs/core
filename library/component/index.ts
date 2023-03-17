@@ -28,11 +28,11 @@ export function defineComponent(tagName: `${string}-${string}${string[0]}` = `x-
 
 export abstract class Component extends HTMLElement {
 	public static globalCssSheets: CSSStyleSheet[] = []
-	public override shadowRoot: ShadowRoot
+	public override shadowRoot!: ShadowRoot
 
 	constructor() {
 		super()
-		this.shadowRoot = this.attachShadow({ mode: "open" })
+		this.attachShadow({ mode: "open" })
 		makeMountableNode(this)
 	}
 }
