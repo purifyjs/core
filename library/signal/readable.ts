@@ -60,6 +60,8 @@ export class SignalReadable<T = unknown> {
 	protected readonly activate = () => {
 		if (!this._updater) return
 		if (this._cleaner) return
+		if (this.active) throw new Error("WTF!")
+		this.active = true
 		this._cleaner = this._updater(
 			(value, silent) => {
 				this._value = value
@@ -68,18 +70,16 @@ export class SignalReadable<T = unknown> {
 			this._value,
 			this.signal
 		)
-		if (this.active) throw new Error("WTF!")
-		this.active = true
 		/* xx */ console.log("%cactivated", "color:yellow", this.id, this._value)
 	}
 
 	protected readonly deactivate = () => {
 		if (!this._updater) return
 		if (!this._cleaner) return
-		this._cleaner()
-		this._cleaner = null
 		/* xx */ console.log("%cdeactivated", "color:yellow", this.id, this._value)
 		if (!this.active) throw new Error("WTF!")
+		this._cleaner()
+		this._cleaner = null
 		this.active = false
 	}
 
