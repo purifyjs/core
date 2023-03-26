@@ -15,7 +15,7 @@ export type SignalSetter<T> = {
 }
 
 export type SignalUpdater<T> = {
-	(set: SignalSetter<T>): Function
+	(set: SignalSetter<T>, signal: () => void): Function
 }
 
 export function createReadable<T>(...params: ConstructorParameters<typeof SignalReadable<T>>) {
@@ -61,7 +61,7 @@ export class SignalReadable<T = unknown> {
 		this._cleaner = this._updater((value, silent) => {
 			this._value = value
 			if (!silent) this.signal()
-		})
+		}, this.signal)
 	}
 
 	protected readonly deactivate = () => {
