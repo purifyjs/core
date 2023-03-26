@@ -70,7 +70,7 @@ export class SignalReadable<T = unknown> {
 			this._value,
 			this.signal
 		)
-		/* xx */ console.log("%cactivated", "color:yellow", this.id, this._value)
+		// xx console.log("%cactivated", "color:yellow", this.id, this._value)
 	}
 
 	protected readonly deactivate = () => {
@@ -80,11 +80,11 @@ export class SignalReadable<T = unknown> {
 		this.active = false
 		this._cleaner()
 		this._cleaner = null
-		/* xx */ console.log("%cdeactivated", "color:yellow", this.id, this._value)
+		// xx console.log("%cdeactivated", "color:yellow", this.id, this._value)
 	}
 
 	public readonly subscribe = (listener: SignalSubscriptionListener<T>, options?: SignalSubscriptionOptions): SignalSubscription => {
-		/* xx */ console.log("%csubscribed", "color:orange", listener.name, "to", this.id)
+		// xx console.log("%csubscribed", "color:orange", listener.name, "to", this.id)
 		switch (options?.mode) {
 			case "once":
 				const onceCallback = () => {
@@ -103,7 +103,7 @@ export class SignalReadable<T = unknown> {
 		this.checkActive()
 		return {
 			unsubscribe: () => {
-				/* xx */ console.log("%cunsubscribed", "color:orange", listener.name, "from", this.id)
+				// xx console.log("%cunsubscribed", "color:orange", listener.name, "from", this.id)
 				this._listeners.delete(listener)
 				this.checkActive()
 			},
@@ -111,7 +111,7 @@ export class SignalReadable<T = unknown> {
 	}
 
 	public readonly signal = () => {
-		/* xx */ console.log("%csignaling", "color:yellow", this.id, this._value)
+		// xx console.log("%csignaling", "color:yellow", this.id, this._value)
 		this._listeners.forEach((callback) => {
 			try {
 				callback(this._value)
@@ -120,7 +120,7 @@ export class SignalReadable<T = unknown> {
 	}
 
 	public readonly signalAsync = async () => {
-		/* xx */ console.log("%csignaling async", "color:yellow", this.id, this._value)
+		// xx console.log("%csignaling async", "color:yellow", this.id, this._value)
 		// Giving a size to the array is faster than using push
 		const returns: Promise<unknown>[] = new Array(this._listeners.size)
 		let i = 0
