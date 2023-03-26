@@ -223,7 +223,7 @@ export function parseTemplateDescriptor<T extends TemplateHtmlParse>(htmlParse: 
 			refAttributeValueMap: refAttributeValueMap,
 		}
 	} catch (error) {
-		if (error instanceof Error) throw new Error(`Error while parsing template: ${error.message}. \nAt:\n${html.slice(-256).trim()}`)
-		throw new Error(`Unknown error while parsing template. \nAt:\n${html.slice(-256).trim()}`)
+		console.error("Error while parsing template:", error, "At:", html.slice(-256).trim())
+		throw error
 	}
 }

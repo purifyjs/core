@@ -80,10 +80,9 @@ export function parseTemplateHtml(arr: TemplateStringsArray): TemplateHtmlParse 
 			const char = parse[i]!
 			try {
 				html = processChar(char, html, state)
-			} catch (e) {
-				const errorHtml = "\n" + `${parses.map((part) => part.html).join("")}${html}{{{${char}}}}${parse.slice(i + 1)}`.trim() + "\n"
-				if (e instanceof Error) throw new Error(`Parsing error:${e.message}\nAt:\n${errorHtml}`)
-				throw new Error(`Unknown parsing error\nAt:\n${errorHtml}`)
+			} catch (error) {
+				console.error("Error while parsing template:", error, "At:", html.slice(-256).trim())
+				throw error
 			}
 		}
 

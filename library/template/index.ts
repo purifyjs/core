@@ -182,10 +182,8 @@ export function render<T extends TemplateValue[]>(templateDescriptor: TemplateDe
 			}
 		}
 	} catch (error) {
-		if (error instanceof Error) {
-			console.error(`Values:`, values)
-			throw new Error(`Error while rendering template: ${error.stack}.\nHtml:\n${templateDescriptor.template.innerHTML.trim()}`)
-		}
+		console.error("Error while rendering template:", error, "values:", values, "html:", templateDescriptor.template.innerHTML.trim())
+		throw error
 	}
 
 	return Array.from(fragment.childNodes)
