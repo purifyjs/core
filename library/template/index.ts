@@ -23,16 +23,7 @@ export function isTemplatable(value: unknown): value is Templatable {
 	return (value as Templatable)?.toTemplateValue instanceof Function
 }
 
-export type TemplateValue =
-	| string
-	| number
-	| boolean
-	| Node
-	| SignalReadable<any>
-	| ((...args: any[]) => unknown)
-	| Templatable
-	| null
-	| TemplateValue[]
+export type TemplateValue = string | number | boolean | Node | SignalReadable<any> | EventListener | Function | Templatable | null | TemplateValue[]
 export type Template = {
 	strings: TemplateStringsArray
 	values: TemplateValue[]
@@ -172,11 +163,11 @@ export function render<T extends TemplateValue[]>(templateDescriptor: TemplateDe
 
 			for (const [name, parts] of attributes) {
 				makeMountableNode(element)
-				const signal = createDerive((s) =>
+				const signal = createDerive(() =>
 					parts
 						.map((part) => {
 							const value = part instanceof TemplateValueIndex ? values[part.index] : part
-							return value instanceof SignalReadable ? s(value).ref : value
+							return value instanceof SignalReadable ? value.ref : value
 						})
 						.join("")
 				)

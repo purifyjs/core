@@ -39,9 +39,9 @@ export function createEach<U extends SignalReadable<any[]> | any[]>(
 				if (!keyGetter) keyGetter = (item) => item
 
 				let caches = new Map<unknown, { index: SignalWritable<number>; value: R }>()
-				const derived = createDerive((s) => {
+				const derived = createDerive(() => {
 					const newCaches: typeof caches = new Map()
-					const collection = s(each).ref
+					const collection = each.ref
 					const results = collection.map((item, index) => {
 						const key = keyGetter!(item, index)
 
@@ -59,7 +59,7 @@ export function createEach<U extends SignalReadable<any[]> | any[]>(
 					})
 					caches = newCaches
 					return results
-				})
+				}, [each])
 
 				return derived
 			},
