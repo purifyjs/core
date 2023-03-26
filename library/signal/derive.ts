@@ -14,6 +14,7 @@ export function createDerive<T>(deriver: SignalDeriver<T>, staticDependencies?: 
 	const self = createReadable<T>(null!, (set) => {
 		const addDependency: SignalDeriveDependencyAdder = (signal) => {
 			if (dependencies.has(signal)) return signal
+			/* xx */ console.log("%cadded dependecy", "color:orange", signal.id, "to", self.id)
 			dependencies.add(signal)
 			dependencySubscriptions.push(signal.subscribe(() => update()))
 			return signal
