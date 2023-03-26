@@ -65,9 +65,12 @@ export function render<T extends TemplateValue[]>(templateDescriptor: TemplateDe
 				if (value instanceof SignalReadable) {
 					if (descriptor.quote === "") {
 						makeMountableNode(element)
-						element.$subscribe(value, (value) => element.setAttribute(descriptor.name, `${value}`), {
-							mode: "immediate",
-						})
+						element.$subscribe(
+							value,
+							(value) =>
+								value === null ? element.removeAttribute(descriptor.name) : element.setAttribute(descriptor.name, `${value}`),
+							{ mode: "immediate" }
+						)
 					} else {
 						// Handled at the end. Because this attribute can have multiple values.
 					}
