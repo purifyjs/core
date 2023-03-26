@@ -75,7 +75,8 @@ export function render<T extends TemplateValue[]>(templateDescriptor: TemplateDe
 						// Handled at the end. Because this attribute can have multiple values.
 					}
 				} else {
-					if (descriptor.quote === "") element.setAttribute(descriptor.name, `${value}`)
+					if (descriptor.quote === "")
+						value === null ? element.removeAttribute(descriptor.name) : element.setAttribute(descriptor.name, `${value}`)
 					else {
 						// Handled at the end. Because this attribute can have multiple values.
 					}
