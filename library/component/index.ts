@@ -14,9 +14,9 @@ export function defineComponent(tagName: `${string}-${string}${string[0]}` = `x-
 		}
 
 		public set $html(nodes: Node[]) {
-			while (super.$root.firstChild) super.$root.removeChild(super.$root.firstChild)
-			super.$root.append(...nodes)
-			super.$root.adoptedStyleSheets = XComponent.cssStyleSheet
+			while (this.shadowRoot.firstChild) this.shadowRoot.removeChild(this.shadowRoot.firstChild)
+			this.shadowRoot.append(...nodes)
+			this.shadowRoot.adoptedStyleSheets = XComponent.cssStyleSheet
 				? [...Component.globalCssSheets, XComponent.cssStyleSheet]
 				: Component.globalCssSheets
 		}
@@ -28,11 +28,11 @@ export function defineComponent(tagName: `${string}-${string}${string[0]}` = `x-
 
 export abstract class Component extends HTMLElement {
 	public static globalCssSheets: CSSStyleSheet[] = []
-	public $root: ShadowRoot
+	public override shadowRoot!: ShadowRoot
 
 	constructor() {
 		super()
-		this.$root = this.attachShadow({ mode: "open" })
+		this.attachShadow({ mode: "open" })
 		makeMountableNode(this)
 	}
 }
