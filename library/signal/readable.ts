@@ -76,11 +76,11 @@ export class SignalReadable<T = unknown> {
 	protected readonly deactivate = () => {
 		if (!this._updater) return
 		if (!this._cleaner) return
-		/* xx */ console.log("%cdeactivated", "color:yellow", this.id, this._value)
 		if (!this.active) throw new Error("WTF!")
+		this.active = false
 		this._cleaner()
 		this._cleaner = null
-		this.active = false
+		/* xx */ console.log("%cdeactivated", "color:yellow", this.id, this._value)
 	}
 
 	public readonly subscribe = (listener: SignalSubscriptionListener<T>, options?: SignalSubscriptionOptions): SignalSubscription => {
