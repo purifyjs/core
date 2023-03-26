@@ -29,7 +29,7 @@ export type TemplateValue =
 	| boolean
 	| Node
 	| SignalReadable<any>
-	| { (...params: unknown[]): unknown }
+	| { (...params: any[]): unknown }
 	| Templatable
 	| null
 	| TemplateValue[]
