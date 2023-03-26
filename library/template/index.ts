@@ -29,7 +29,6 @@ export type TemplateValue =
 	| boolean
 	| Node
 	| SignalReadable<any>
-	| EventListener
 	| { (...params: unknown[]): unknown }
 	| Templatable
 	| null
@@ -41,10 +40,6 @@ export type Template = {
 
 export function html<S extends TemplateStringsArray, T extends TemplateValue[]>(strings: S, ...values: T) {
 	return render(parseTemplateDescriptor(parseTemplateHtml(strings)), values)
-}
-
-export function template<S extends TemplateStringsArray, T extends TemplateValue[]>(strings: S, ...values: T) {
-	return { strings, values }
 }
 
 export function render<T extends TemplateValue[]>(templateDescriptor: TemplateDescriptor, values: T): Node[] {
