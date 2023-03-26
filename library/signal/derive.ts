@@ -19,16 +19,21 @@ export function createDerive<T>(deriver: SignalDeriver<T>, staticDependencies?: 
 			return signal
 		}
 
-		function update() {
-			if (staticDependencies) SignalReadable._SyncContext.push(new Set())
-			const value = deriver()
-			if (staticDependencies) {
-				const syncContext = SignalReadable._SyncContext.pop()!
-				syncContext.delete(self as SignalReadable<unknown>)
-				syncContext.forEach(addDependency)
-			}
-			set(value)
-		}
+		const update = staticDependencies
+			? () => {
+					const value = deriver()
+					set(value)
+			  }
+			: () => {
+					SignalReadable._SyncContext.push(new Set())
+					const value = deriver()
+
+					const syncContext = SignalReadable._SyncContext.pop()!
+					syncContext.delete(self as SignalReadable<unknown>)
+					syncContext.forEach(addDependency)
+
+					set(value)
+			  }
 
 		{
 			let i = 0
