@@ -6,7 +6,7 @@ type KeyGetter<T> = (item: T, index: number) => unknown
 
 interface EachOfSignalArray<T extends unknown[]> {
 	key(getter: KeyGetter<T[number]>): this
-	$<R>(as: (item: T[number], index: number) => R): SignalReadable<R[]>
+	$<R>(as: (item: SignalReadable<T[number]>, index: SignalReadable<number>) => R): SignalReadable<R[]>
 }
 
 interface EachOfArray<T extends unknown[]> {
@@ -32,13 +32,13 @@ export function createEach<U extends SignalReadable<any[]> | any[]>(
 				keyGetter = getter
 				return this
 			},
-			$<R>(as: (item: T[number], index: number) => R) {
+			$<R>(as: (item: SignalReadable<T[number]>, index: SignalReadable<number>) => R) {
 				if (done) throw new Error("each is already done")
 				done = true
 
 				if (!keyGetter) keyGetter = (item) => item
 
-				let caches = new Map<unknown, { index: SignalWritable<number>; value: SignalReadable<R> }>()
+				let caches = new Map<unknown, { indexSignal: SignalWritable<number>; value: R }>()
 				const derived = createDerive(() => {
 					const newCaches: typeof caches = new Map()
 					const collection = each.ref
@@ -47,13 +47,14 @@ export function createEach<U extends SignalReadable<any[]> | any[]>(
 
 						const cache = caches.get(key)
 						if (cache) {
-							cache.index.ref = index
+							cache.indexSignal.ref = index
 							newCaches.set(key, cache)
 							return cache.value
 						} else {
 							const indexSignal = createWritable(index)
-							const value = createDerive(() => as(each.ref[indexSignal.ref], indexSignal.ref))
-							newCaches.set(key, { index: indexSignal, value })
+							const eachSignal = createDerive(() => each.ref[indexSignal.ref])
+							const value = as(eachSignal, indexSignal)
+							newCaches.set(key, { indexSignal, value })
 							return value
 						}
 					})
