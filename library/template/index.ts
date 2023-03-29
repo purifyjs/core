@@ -18,9 +18,9 @@ import {
 } from "./parse/descriptor"
 import { parseTemplateHtml } from "./parse/html"
 
-export type Templatable = { toTemplateValue(): TemplateValue }
-export function isTemplatable(value: unknown): value is Templatable {
-	return (value as Templatable)?.toTemplateValue instanceof Function
+export type Renderable<T = unknown> = { render(): T }
+export function isRenderable(value: unknown): value is Renderable {
+	return (value as Renderable)?.render instanceof Function
 }
 
 export type TemplateValue =
@@ -30,7 +30,7 @@ export type TemplateValue =
 	| Node
 	| SignalReadable<any>
 	| { (...params: any[]): unknown }
-	| Templatable
+	| Renderable
 	| null
 	| TemplateValue[]
 export type Template = {

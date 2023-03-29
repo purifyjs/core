@@ -2,10 +2,10 @@ import { compositionType } from "master-ts-composition/library"
 import { randomId } from "../../utils/id"
 import { unhandled } from "../../utils/unhandled"
 import {
-	HTML_PARSE_STATE_ATTR_VALUE_SINGLE_QUOTED,
-	HTML_PARSE_STATE_ATTR_VALUE_UNQUOTED,
 	HTML_PARSE_STATE_ATTR_VALUE_END,
+	HTML_PARSE_STATE_ATTR_VALUE_SINGLE_QUOTED,
 	HTML_PARSE_STATE_ATTR_VALUE_START,
+	HTML_PARSE_STATE_ATTR_VALUE_UNQUOTED,
 	HTML_PARSE_STATE_OUTER,
 	HTML_PARSE_STATE_TAG_INNER,
 	TemplateHtmlParse,

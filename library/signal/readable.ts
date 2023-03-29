@@ -15,7 +15,7 @@ export type SignalSetter<T> = {
 }
 
 export type SignalUpdater<T> = {
-	(set: SignalSetter<T>, initial: T, signal: () => void): Function
+	(set: SignalSetter<T>, signal: SignalReadable<T>["signal"]): Function
 }
 
 export function createReadable<T>(...params: ConstructorParameters<typeof SignalReadable<T>>) {
@@ -39,8 +39,8 @@ export class SignalReadable<T = unknown> {
 
 	public readonly get = () => {
 		if (this._updater && !this._cleaner) {
-			this.activate()
-			setTimeout(() => this.checkActive(), 5000)
+			this._activate()
+			setTimeout(() => this._checkActive(), 5000)
 		}
 		SignalReadable._SyncContext[SignalReadable._SyncContext.length - 1]?.add(this as never)
 		return this._value
@@ -50,34 +50,33 @@ export class SignalReadable<T = unknown> {
 		return this.get()
 	}
 
-	protected readonly checkActive = () => {
-		if (this._listeners.size) this.activate()
-		else this.deactivate()
+	protected readonly _checkActive = () => {
+		if (this._listeners.size) this._activate()
+		else this._deactivate()
 	}
 
-	private active = false
+	private _active = false
 
-	protected readonly activate = () => {
+	protected readonly _set: SignalSetter<T> = (value, silent) => {
+		if (value === this._value) return
+		this._value = value
+		if (!silent) this.signal()
+	}
+
+	protected readonly _activate = () => {
 		if (!this._updater) return
 		if (this._cleaner) return
-		if (this.active) throw new Error("WTF!")
-		this.active = true
-		this._cleaner = this._updater(
-			(value, silent) => {
-				this._value = value
-				if (!silent) this.signal()
-			},
-			this._value,
-			this.signal
-		)
+		if (this._active) throw new Error("WTF!")
+		this._active = true
+		this._cleaner = this._updater(this._set, this.signal)
 		// xx console.log("%cactivated", "color:yellow", this.id, this._value)
 	}
 
-	protected readonly deactivate = () => {
+	protected readonly _deactivate = () => {
 		if (!this._updater) return
 		if (!this._cleaner) return
-		if (!this.active) throw new Error("WTF!")
-		this.active = false
+		if (!this._active) throw new Error("WTF!")
+		this._active = false
 		this._cleaner()
 		this._cleaner = null
 		// xx console.log("%cdeactivated", "color:yellow", this.id, this._value)
@@ -100,12 +99,12 @@ export class SignalReadable<T = unknown> {
 				this._listeners.add(listener)
 				break
 		}
-		this.checkActive()
+		this._checkActive()
 		return {
 			unsubscribe: () => {
 				// xx console.log("%cunsubscribed", "color:orange", listener.name, "from", this.id)
 				this._listeners.delete(listener)
-				this.checkActive()
+				this._checkActive()
 			},
 		}
 	}

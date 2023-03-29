@@ -1,36 +1,35 @@
 import { assert } from "../utils/assert"
 import { createReadable, SignalReadable } from "./readable"
 
-type Await<Awaited, Returns, Omits extends string> = {
-	placeholder<Placeholder extends () => unknown>(
-		placeholder: Placeholder
-	): Omit<Await<Awaited, Returns | ReturnType<Placeholder>, Omits | "placeholder">, Omits | "placeholder">
-	error<OnError extends (error: Error) => unknown>(
-		error: OnError
-	): Omit<Await<Awaited, Returns | ReturnType<OnError>, Omits | "error">, Omits | "error">
-	$<Result>(then: (awaited: Awaited) => Result): SignalReadable<Returns | Result>
-	$(): SignalReadable<Returns | Awaited>
+type Placeholder = () => unknown
+type ErrorHandler = (error: Error) => unknown
+
+type Await<TAwaited, TReturns, TOmits extends keyof Await<any, any, any>> = {
+	placeholder<TPlaceholder extends Placeholder>(
+		placeholder: TPlaceholder
+	): Omit<Await<TAwaited, TReturns | ReturnType<TPlaceholder>, TOmits | "placeholder">, TOmits | "placeholder">
+	error<TError extends ErrorHandler>(error: TError): Omit<Await<TAwaited, TReturns | ReturnType<TError>, TOmits | "error">, TOmits | "error">
+	then<TResult>(then: (awaited: TAwaited) => TResult): SignalReadable<TReturns | TResult>
+	then(): SignalReadable<TReturns | TAwaited>
 }
 
 export function createAwait<Awaited>(promise: SignalReadable<Promise<Awaited>> | Promise<Awaited>): Await<Awaited, never, never> {
-	let placeholder_: (() => unknown) | undefined
-	let error_: ((error: Error) => unknown) | undefined
-	let done = false
+	let placeholder_: Placeholder | undefined
+	let error_: ErrorHandler | undefined
 
 	return {
 		placeholder(placeholder) {
-			if (placeholder_) throw new Error("placeholder already set")
+			delete (this as Partial<typeof this>).placeholder
 			placeholder_ = placeholder
 			return this as never
 		},
 		error(error) {
-			if (error_) throw new Error("error already set")
+			delete (this as Partial<typeof this>).error
 			error_ = error
 			return this as never
 		},
-		$(then?: (awaited: Awaited) => unknown) {
-			if (done) throw new Error("await already done")
-			done = true
+		then(then?: (awaited: Awaited) => unknown) {
+			delete (this as Partial<typeof this>).then
 
 			if (promise instanceof Promise) {
 				return createReadable<unknown>(placeholder_ ? placeholder_() : null, (set) => {
@@ -41,7 +40,6 @@ export function createAwait<Awaited>(promise: SignalReadable<Promise<Awaited>> |
 							set(error_)
 						})
 						.then((result) => set(result))
-
 					return () => {}
 				}) as never
 			}

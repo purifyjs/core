@@ -1,5 +1,5 @@
-import { createDerive } from "./derive"
-import { SignalReadable } from "./readable"
+import type { Renderable } from "../template"
+import { createReadable, SignalReadable } from "./readable"
 
 type Excludable<T, Then, Else> = T extends number
 	? number extends T
@@ -27,43 +27,86 @@ type Excludable<T, Then, Else> = T extends number
 	? Then
 	: Else
 
-type ThenBase<Value> = (value: Value) => unknown
+type Then<T> = (value: T) => unknown
+type Switch<TValue, TReturns = never> = {
+	case<TCase extends TValue, TThen extends Then<TCase>>(
+		value: TCase,
+		then: TThen
+	): Switch<Excludable<TCase, Exclude<TValue, TCase>, TValue>, TReturns | ReturnType<TThen>>
+	default<TDefault extends Then<TValue>>(fallback: TDefault): ReturnType<Switch<TValue, TReturns | ReturnType<TDefault>>["render"]>
+} & Renderable<TReturns>
 
-type Switch<Value, Returns, IsSignal extends boolean> = {
-	case<Case extends Value, Then extends ThenBase<Value>>(
-		value: Case,
-		then: Then
-	): Switch<Excludable<Case, Exclude<Value, Case>, Value>, Returns | ReturnType<Then>, IsSignal>
-	$<Default extends ThenBase<Value>>(
-		...fallback: Value extends never ? never : [Default]
-	): Default extends unknown
-		? IsSignal extends true
-			? SignalReadable<Returns>
-			: Returns
-		: IsSignal extends true
-		? SignalReadable<Returns | ReturnType<Default>>
-		: Returns | ReturnType<Default>
-}
+type SwitchSignal<TValue, TReturns = never> = {
+	case<TCase extends TValue, TThen extends Then<TCase>>(
+		value: TCase,
+		then: TThen
+	): SwitchSignal<Excludable<TCase, Exclude<TValue, TCase>, TValue>, TReturns | ReturnType<TThen>>
+	default<TDefault extends Then<SignalReadable<TValue>>>(
+		fallback: TDefault
+	): ReturnType<SwitchSignal<TValue, TReturns | ReturnType<TDefault>>["render"]>
+} & Renderable<SignalReadable<TReturns>>
 
-export function createSwitch<Value>(
-	value: Value
-): Switch<Value extends SignalReadable<infer U> ? U : Value, never, Value extends SignalReadable<any> ? true : false> {
-	const cases = new Map<unknown, ThenBase<any>>()
+function switchValue<T>(value: T): Switch<T> {
+	const cases = new Map<unknown, Then<unknown>>()
+	let fallbackCase: Then<T> | null = null
+
 	return {
 		case(value, then) {
-			cases.set(value, then)
-			return this as never
+			cases.set(value, then as Then<unknown>)
+			return this
 		},
-		$(fallback?: ThenBase<any>): never {
-			if (value instanceof SignalReadable)
-				return createDerive(() => {
-					const then = cases.get(value.ref)
-					if (!then) return fallback?.(value.ref) ?? null
-					return then(value.ref)
-				}) as never
+		default(fallback: Then<T>) {
+			fallbackCase = fallback
+			return this.render()
+		},
+		render(): never {
+			delete (self as Partial<typeof this>).case
+			delete (self as Partial<typeof this>).default
 			const then = cases.get(value)
-			if (!then) return (fallback?.(value) ?? null) as never
-			return then(value) as never
+			if (then) return then(value) as never
+			if (fallbackCase) return fallbackCase(value) as never
+			return null as never
 		},
 	}
+}
+
+function switchSignal<T>(value: SignalReadable<T>): SwitchSignal<T> {
+	const cases = new Map<unknown, Then<unknown>>()
+	let fallbackCase: Then<SignalReadable<T>> | null = null
+	return {
+		case(value, then) {
+			cases.set(value, then as Then<unknown>)
+			return this as never
+		},
+		default(fallback) {
+			fallbackCase = fallback
+			return this.render() as never
+		},
+		render() {
+			delete (this as Partial<typeof this>).case
+			delete (this as Partial<typeof this>).default
+			return createReadable<unknown>(null, (set) => {
+				let isCurrentFallback = false
+				return value.subscribe(
+					(signalValue) => {
+						const then = cases.get(signalValue)
+						if (then) set(then(signalValue))
+						else if (fallbackCase) {
+							if (!isCurrentFallback) set(fallbackCase(value))
+						} else set(null)
+						isCurrentFallback = !then
+					},
+					{ mode: "immediate" }
+				).unsubscribe
+			}) as never
+		},
+	}
+}
+
+export const createSwitch: {
+	<T>(value: SignalReadable<T>): SwitchSignal<T>
+	<T>(value: T): Switch<T>
+} = <T>(value: T | SignalReadable<T>) => {
+	if (value instanceof SignalReadable<T>) return switchSignal(value) as never
+	return switchValue(value) as never
 }
