@@ -9,8 +9,8 @@ type Await<TAwaited, TReturns, TOmits extends keyof Await<any, any, any>> = {
 		placeholder: TPlaceholder
 	): Omit<Await<TAwaited, TReturns | ReturnType<TPlaceholder>, TOmits | "placeholder">, TOmits | "placeholder">
 	error<TError extends ErrorHandler>(error: TError): Omit<Await<TAwaited, TReturns | ReturnType<TError>, TOmits | "error">, TOmits | "error">
-	then<TResult>(then: (awaited: TAwaited) => TResult): SignalReadable<TReturns | TResult>
-	then(): SignalReadable<TReturns | TAwaited>
+	render<TResult>(then: (awaited: TAwaited) => TResult): SignalReadable<TReturns | TResult>
+	render(): SignalReadable<TReturns | TAwaited>
 }
 
 export function createAwait<Awaited>(promise: SignalReadable<Promise<Awaited>> | Promise<Awaited>): Await<Awaited, never, never> {
@@ -28,8 +28,8 @@ export function createAwait<Awaited>(promise: SignalReadable<Promise<Awaited>> |
 			error_ = error
 			return this as never
 		},
-		then(then?: (awaited: Awaited) => unknown) {
-			delete (this as Partial<typeof this>).then
+		render(then?: (awaited: Awaited) => unknown) {
+			delete (this as Partial<typeof this>).render
 
 			if (promise instanceof Promise) {
 				return createReadable<unknown>(placeholder_ ? placeholder_() : null, (set) => {
