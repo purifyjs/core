@@ -1,6 +1,7 @@
-import { render, TemplateValue } from "."
+import type { TemplateValue } from "."
 import { parseTemplateDescriptor, TemplateDescriptor } from "./parse/descriptor"
 import { parseTemplateHtml } from "./parse/html"
+import { render } from "./render"
 
 /** 
 	@internal Use `html` instead. Preprocessor will replace `html` with this. This is internal API.

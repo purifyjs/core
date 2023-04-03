@@ -1,31 +1,8 @@
-import type { Renderable } from "../template"
-import { createReadable, SignalReadable } from "./readable"
+import type { Renderable } from "../template/renderable"
+import { createReadable, SignalReadable } from "../signal/readable"
+import type { Excludable } from "../utils/type"
 
-type Excludable<T, Then, Else> = T extends number
-	? number extends T
-		? Else
-		: Then
-	: T extends string
-	? string extends T
-		? Else
-		: Then
-	: T extends symbol
-	? symbol extends T
-		? Else
-		: Then
-	: T extends boolean
-	? boolean extends T
-		? Else
-		: Then
-	: T extends Function
-	? Function extends T
-		? Else
-		: Then
-	: T extends null
-	? Then
-	: T extends undefined
-	? Then
-	: Else
+// TODO: Try to fix types, if posibble
 
 type Then<T> = (value: T) => unknown
 type Switch<TValue, TReturns = never> = {
@@ -33,7 +10,7 @@ type Switch<TValue, TReturns = never> = {
 		value: TCase,
 		then: TThen
 	): Switch<Excludable<TCase, Exclude<TValue, TCase>, TValue>, TReturns | ReturnType<TThen>>
-	default<TDefault extends Then<TValue>>(fallback: TDefault): ReturnType<Switch<TValue, TReturns | ReturnType<TDefault>>["render"]>
+	default<TDefault extends Then<TValue>>(fallback: TDefault): Switch<never, TReturns | ReturnType<TDefault>>
 } & Renderable<TReturns>
 
 type SwitchSignal<TValue, TReturns = never> = {
@@ -41,9 +18,7 @@ type SwitchSignal<TValue, TReturns = never> = {
 		value: TCase,
 		then: TThen
 	): SwitchSignal<Excludable<TCase, Exclude<TValue, TCase>, TValue>, TReturns | ReturnType<TThen>>
-	default<TDefault extends Then<SignalReadable<TValue>>>(
-		fallback: TDefault
-	): ReturnType<SwitchSignal<TValue, TReturns | ReturnType<TDefault>>["render"]>
+	default<TDefault extends Then<SignalReadable<TValue>>>(fallback: TDefault): SwitchSignal<never, TReturns | ReturnType<TDefault>>
 } & Renderable<SignalReadable<TReturns>>
 
 function switchValue<T>(value: T): Switch<T> {
@@ -57,11 +32,11 @@ function switchValue<T>(value: T): Switch<T> {
 		},
 		default(fallback: Then<T>) {
 			fallbackCase = fallback
-			return this.render()
+			return this
 		},
 		render(): never {
-			delete (self as Partial<typeof this>).case
-			delete (self as Partial<typeof this>).default
+			delete (this as Partial<typeof this>).case
+			delete (this as Partial<typeof this>).default
 			const then = cases.get(value)
 			if (then) return then(value) as never
 			if (fallbackCase) return fallbackCase(value) as never
@@ -80,7 +55,7 @@ function switchSignal<T>(value: SignalReadable<T>): SwitchSignal<T> {
 		},
 		default(fallback) {
 			fallbackCase = fallback
-			return this.render() as never
+			return this as never
 		},
 		render() {
 			delete (this as Partial<typeof this>).case

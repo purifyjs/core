@@ -1,6 +1,6 @@
 import { createDerive } from "./derive"
-import { SignalReadable } from "./readable"
-import { createWritable, SignalWritable } from "./writable"
+import { SignalReadable } from "../signal/readable"
+import { createWritable, SignalWritable } from "../signal/writable"
 
 type KeyGetter<T> = (item: T, index: number) => unknown
 

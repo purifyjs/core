@@ -1,4 +1,4 @@
-import { isRenderable } from "."
+import { isRenderable } from "./renderable"
 import { makeMountableNode } from "../mountable"
 import { createOrGetDeriveOfFunction } from "../signal/derive"
 import { SignalReadable } from "../signal/readable"

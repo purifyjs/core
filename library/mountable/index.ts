@@ -11,15 +11,14 @@ const EMIT_UNMOUNT = Symbol("emit_unmount")
 type EMIT_UNMOUNT = typeof EMIT_UNMOUNT
 
 {
-	const enum NodePlace {
-		InDOM,
-		Unknown,
-	}
+	type NodePlace = typeof NODE_IN_DOM | typeof NODE_NOT_IN_DOM
+	const NODE_IN_DOM = 0
+	const NODE_NOT_IN_DOM = 1
 
 	const mountUnmountObserver = new MutationObserver((mutations) => {
 		for (const mutation of mutations) {
 			Array.from(mutation.removedNodes).forEach(removedNode)
-			Array.from(mutation.addedNodes).forEach((node) => addedNode(node, NodePlace.Unknown))
+			Array.from(mutation.addedNodes).forEach((node) => addedNode(node, NODE_NOT_IN_DOM))
 		}
 	})
 	mountUnmountObserver.observe(document, { childList: true, subtree: true })
@@ -31,10 +30,10 @@ type EMIT_UNMOUNT = typeof EMIT_UNMOUNT
 	}
 
 	function addedNode(node: Node, place: NodePlace) {
-		if (place === NodePlace.Unknown && getRootNode(node) !== document) return
+		if (place === NODE_NOT_IN_DOM && getRootNode(node) !== document) return
 		if (isMountableNode(node)) node[EMIT_MOUNT]()
-		Array.from(node.childNodes).forEach((node) => addedNode(node, NodePlace.InDOM))
-		if (node instanceof HTMLElement) Array.from(node.shadowRoot?.childNodes ?? []).forEach((node) => addedNode(node, NodePlace.InDOM))
+		Array.from(node.childNodes).forEach((node) => addedNode(node, NODE_IN_DOM))
+		if (node instanceof HTMLElement) Array.from(node.shadowRoot?.childNodes ?? []).forEach((node) => addedNode(node, NODE_IN_DOM))
 	}
 
 	function removedNode(node: Node) {

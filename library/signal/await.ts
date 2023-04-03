@@ -1,5 +1,5 @@
 import { assert } from "../utils/assert"
-import { createReadable, SignalReadable } from "./readable"
+import { createReadable, SignalReadable } from "../signal/readable"
 
 type Placeholder = () => unknown
 type ErrorHandler = (error: Error) => unknown

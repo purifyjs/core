@@ -1,4 +1,4 @@
-import { createReadable, SignalReadable, SignalSubscription } from "./readable"
+import { createReadable, SignalReadable, SignalSubscription } from "../signal/readable"
 
 export type SignalDeriveDependencyAdder = {
 	<T>(signal: SignalReadable<T>): SignalReadable<T>
