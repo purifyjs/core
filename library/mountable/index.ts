@@ -10,11 +10,11 @@ type EMIT_MOUNT = typeof EMIT_MOUNT
 const EMIT_UNMOUNT = Symbol("unmount")
 type EMIT_UNMOUNT = typeof EMIT_UNMOUNT
 
-{
-	type NodePlace = typeof NODE_IN_DOM | typeof NODE_NOT_IN_DOM
-	const NODE_IN_DOM = 0
-	const NODE_NOT_IN_DOM = 1
+type NodePlace = typeof NODE_IN_DOM | typeof NODE_NOT_IN_DOM
+const NODE_IN_DOM = 0
+const NODE_NOT_IN_DOM = 1
 
+{
 	const mountUnmountObserver = new MutationObserver((mutations) => {
 		for (const mutation of mutations) {
 			Array.from(mutation.removedNodes).forEach(removedNode)
