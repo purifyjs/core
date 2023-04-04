@@ -15,7 +15,7 @@ Please note that MasterTS is currently a work in progress prototype and is not r
 ## Install
 
 ```bash
-npm i https://github.com/DeepDoge/master-ts.git -D
+npm i github:DeepDoge/master-ts -D
 ```
 
 ### Extensions
