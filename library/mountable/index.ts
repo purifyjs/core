@@ -5,9 +5,9 @@ export type ListenerWithCleanup<R extends Function | void> = {
 	(): R
 }
 
-const EMIT_MOUNT = Symbol("emit_mount")
+const EMIT_MOUNT = Symbol("mount")
 type EMIT_MOUNT = typeof EMIT_MOUNT
-const EMIT_UNMOUNT = Symbol("emit_unmount")
+const EMIT_UNMOUNT = Symbol("unmount")
 type EMIT_UNMOUNT = typeof EMIT_UNMOUNT
 
 {
