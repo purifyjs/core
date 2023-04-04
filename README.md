@@ -8,25 +8,24 @@ A straight and clean TypeScript library for building user interfaces
 
 MasterTS is a frontend library for building single-page applications (SPAs) using Web Components and TypeScript. It is designed to be lightweight and easy to use, with a focus on transparency and simplicity.
 
+### Warning
+
+Please note that MasterTS is currently a work in progress prototype and is not ready for production use (probably).
+
 ## Install
 
 ```bash
 npm i https://github.com/DeepDoge/master-ts.git -D
 ```
 
-### Warning
-
-Please note that MasterTS is currently a work in progress prototype and is not ready for production use.
+### Extensions
+Recommended extensions for inline html syntax highlight, intellij and formatting: [MasterTS Recommended Extensions](https://github.com/DeepDoge/master-ts-vite-demo/blob/master/.vscode/extensions.json)
 
 ### Documentation
 
 Too early for that, but gonna make one when I stop making breaking changes.<br/>
 IDK when this will happen but if I don't make any breaking change for 2 months, then I'm writing the documentation.<br/>
 Until then check out the [Vite Example](#example)
-
-### Coding
-
-If you want to work on this project, it is recommended to use the [MasterTS Workspace](https://github.com/DeepDoge/master-ts-workspace) for a better developer experience.
 
 ### Example
 
@@ -61,3 +60,7 @@ Take a look at the [#Example](#example)
 ### Note
 
 Initially, the goal of MasterTS was to create a library with resumable server-side rendering (SSR), similar to Qwik. While it was possible to achieve this, it became clear that significant sacrifices would need to be made in order to make it work correctly. Since MasterTS is intended for use with platforms like IPFS, which do not have a server or cloud infrastructure, it was decided that an SPA was sufficient for now. It is possible that additional features and changes will be made in the future.
+
+### Development
+
+If you wanna work on MasterTS, it is recommended to use the [MasterTS Workspace](https://github.com/DeepDoge/master-ts-workspace) for a better developer experience.
