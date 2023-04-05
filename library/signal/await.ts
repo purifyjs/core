@@ -1,19 +1,31 @@
 import { assert } from "../utils/assert"
 import { createReadable, SignalReadable } from "../signal/readable"
+import { createWritable } from "./writable"
 
 type Placeholder = () => unknown
 type ErrorHandler = (error: Error) => unknown
 
-type Await<TAwaited, TReturns, TOmits extends keyof Await<any, any, any>> = {
+type AwaitPromise<TAwaited, TReturns = never, TUsed extends keyof AwaitPromise<any, any, any> = never> = {
 	placeholder<TPlaceholder extends Placeholder>(
 		placeholder: TPlaceholder
-	): Omit<Await<TAwaited, TReturns | ReturnType<TPlaceholder>, TOmits | "placeholder">, TOmits | "placeholder">
-	error<TError extends ErrorHandler>(error: TError): Omit<Await<TAwaited, TReturns | ReturnType<TError>, TOmits | "error">, TOmits | "error">
-	render<TResult>(then: (awaited: TAwaited) => TResult): SignalReadable<TReturns | TResult>
+	): Omit<AwaitPromise<TAwaited, TReturns | ReturnType<TPlaceholder>, TUsed | "placeholder">, TUsed | "placeholder">
+	error<TError extends ErrorHandler>(error: TError): Omit<AwaitPromise<TAwaited, TReturns | ReturnType<TError>, TUsed | "error">, TUsed | "error">
+	render<TAs>(as: (awaited: TAwaited) => TAs): SignalReadable<TReturns | TAs>
 	render(): SignalReadable<TReturns | TAwaited>
 }
 
-export function createAwait<Awaited>(promise: SignalReadable<Promise<Awaited>> | Promise<Awaited>): Await<Awaited, never, never> {
+type AwaitPromiseSignal<TAwaited, TOther = never, TUsed extends keyof AwaitPromiseSignal<any, any, any> = never> = {
+	placeholder<TPlaceholder extends Placeholder>(
+		placeholder: TPlaceholder
+	): Omit<AwaitPromiseSignal<TAwaited, TOther | ReturnType<TPlaceholder>, TUsed | "placeholder">, TUsed | "placeholder">
+	error<TError extends ErrorHandler>(
+		error: TError
+	): Omit<AwaitPromiseSignal<TAwaited, TOther | ReturnType<TError>, TUsed | "error">, TUsed | "error">
+	render<TAs>(as: (awaited: SignalReadable<TAwaited>) => TAs): SignalReadable<TOther | TAs>
+	render(): SignalReadable<TOther | TAwaited>
+}
+
+function awaitPromise<Awaited>(promise: Promise<Awaited>): AwaitPromise<Awaited> {
 	let placeholder_: Placeholder | undefined
 	let error_: ErrorHandler | undefined
 
@@ -30,30 +42,52 @@ export function createAwait<Awaited>(promise: SignalReadable<Promise<Awaited>> |
 		},
 		render(then?: (awaited: Awaited) => unknown) {
 			delete (this as Partial<typeof this>).render
+			return createReadable(placeholder_ ? placeholder_() : null, (set) => {
+				promise
+					.then((awaited) => (then ? then(awaited) : awaited))
+					.catch((error) => {
+						if (!error_) throw error
+						set(error_)
+					})
+					.then((result) => set(result))
+				return () => {}
+			}) as never
+		},
+	}
+}
 
-			if (promise instanceof Promise) {
-				return createReadable<unknown>(placeholder_ ? placeholder_() : null, (set) => {
-					promise
-						.then((awaited) => (then ? then(awaited) : awaited))
-						.catch((error) => {
-							if (!error_) throw error
-							set(error_)
-						})
-						.then((result) => set(result))
-					return () => {}
-				}) as never
-			}
+function awaitPromiseSignal<Awaited>(promiseSignal: SignalReadable<Promise<Awaited>>): AwaitPromiseSignal<Awaited> {
+	let placeholder_: Placeholder | undefined
+	let error_: ErrorHandler | undefined
 
+	return {
+		placeholder(placeholder) {
+			delete (this as Partial<typeof this>).placeholder
+			placeholder_ = placeholder
+			return this as never
+		},
+		error(error) {
+			delete (this as Partial<typeof this>).error
+			error_ = error
+			return this as never
+		},
+		render(then?: (awaited: SignalReadable<Awaited>) => unknown) {
+			delete (this as Partial<typeof this>).render
 			return createReadable<unknown>(placeholder_ ? placeholder_() : null, (set) => {
 				let counter = 0
-				return promise.subscribe(
-					async (value) => {
+
+				let thenCache: unknown
+				const awaitedSignal = createWritable<Awaited>(null!)
+
+				return promiseSignal.subscribe(
+					async (promise) => {
 						const id = ++counter
 						try {
 							if (placeholder_ !== undefined) set(placeholder_())
-							const result = await value
+							const awaited = await promise
 							if (id !== counter) return
-							set(then ? then(result) : result)
+							awaitedSignal.ref = awaited
+							set(then ? (thenCache ??= then(awaitedSignal)) : awaited)
 						} catch (error) {
 							if (id !== counter) return
 							assert<Error>(error)
@@ -66,4 +100,12 @@ export function createAwait<Awaited>(promise: SignalReadable<Promise<Awaited>> |
 			}) as never
 		},
 	}
+}
+
+export const createAwait: {
+	<Awaited>(promise: Promise<Awaited>): AwaitPromise<Awaited>
+	<Awaited>(promiseSignal: SignalReadable<Promise<Awaited>>): AwaitPromiseSignal<Awaited>
+} = (promise) => {
+	if (promise instanceof SignalReadable) return awaitPromiseSignal(promise)
+	return awaitPromise(promise)
 }
