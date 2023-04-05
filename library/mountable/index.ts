@@ -56,6 +56,7 @@ export type MountableNode = Node & {
 	$onMount<T extends UnknownListenerWithCleanup>(listener: T): void
 	$onUnmount<T extends UnknownListenerWithCleanup>(listener: T): void
 	$subscribe<T>(signal: SignalReadable<T>, listener: SignalSubscriptionListener<T>, options?: SignalSubscriptionOptions): void
+	$effect<T extends SignalReadable<any>[]>(callback: () => void, options?: SignalSubscriptionOptions | null, ...signals: T): void
 	$interval<T>(callback: () => T, delay: number): void
 	$timeout<T>(callback: () => T, delay: number): void
 }
@@ -86,7 +87,7 @@ export function makeMountableNode<T extends Node>(node: T): asserts node is T & 
 			_mounted = false
 			_onUnmountListeners.forEach((listener) => listener())
 		},
-		$onMount<T extends UnknownListenerWithCleanup>(listener: T) {
+		$onMount(listener) {
 			if (_mounted === true) listener()?.()
 			else {
 				_onMountListeners.push(() => {
@@ -95,7 +96,7 @@ export function makeMountableNode<T extends Node>(node: T): asserts node is T & 
 				})
 			}
 		},
-		$onUnmount<T extends UnknownListenerWithCleanup>(listener: T) {
+		$onUnmount(listener) {
 			if (_mounted === false) listener()?.()
 			else {
 				_onUnmountListeners.push(() => {
@@ -104,20 +105,28 @@ export function makeMountableNode<T extends Node>(node: T): asserts node is T & 
 				})
 			}
 		},
-		$subscribe<T>(signal: SignalReadable<T>, listener: SignalSubscriptionListener<T>, options?: SignalSubscriptionOptions) {
+		$subscribe(signal, listener, options) {
 			let subscription: SignalSubscription
 			this.$onMount(() => {
 				subscription = signal.subscribe(listener, options)
 			})
 			this.$onUnmount(() => subscription.unsubscribe())
 		},
-		$interval<T>(callback: () => T, delay: number) {
+		$effect(callback, options, ...signals) {
+			let subscriptions: SignalSubscription[] = new Array(signals.length)
+
+			this.$onMount(() => {
+				for (let i = 0; i < signals.length; i++) subscriptions[i] = signals[i]!.subscribe(() => callback(), options ?? undefined)
+			})
+			this.$onUnmount(() => subscriptions.forEach((subscription) => subscription.unsubscribe()))
+		},
+		$interval(callback, delay) {
 			this.$onMount(() => {
 				const interval = setInterval(callback, delay)
 				return () => clearInterval(interval)
 			})
 		},
-		$timeout<T>(callback: () => T, delay: number) {
+		$timeout(callback, delay) {
 			this.$onMount(() => {
 				const timeout = setTimeout(callback, delay)
 				return () => clearTimeout(timeout)
