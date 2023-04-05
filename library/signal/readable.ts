@@ -87,13 +87,13 @@ export class SignalReadable<T = unknown> {
 		switch (options?.mode) {
 			case "once":
 				const onceCallback = () => {
-					listener(this._value)
+					listener(this.ref)
 					this._listeners.delete(onceCallback)
 				}
 				this._listeners.add(onceCallback)
 				break
 			case "immediate":
-				listener(this._value)
+				listener(this.ref)
 			case "normal":
 			default:
 				this._listeners.add(listener)
@@ -113,7 +113,7 @@ export class SignalReadable<T = unknown> {
 		// xx console.log("%csignaling", "color:yellow", this.id, this._value)
 		this._listeners.forEach((callback) => {
 			try {
-				callback(this._value)
+				callback(this.ref)
 			} catch {}
 		})
 	}
@@ -125,7 +125,7 @@ export class SignalReadable<T = unknown> {
 		let i = 0
 		this._listeners.forEach((callback) => {
 			try {
-				const r = callback(this._value)
+				const r = callback(this.ref)
 				if (r instanceof Promise) returns[i++] = r
 			} catch {}
 		})

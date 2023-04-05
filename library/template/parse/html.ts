@@ -62,7 +62,7 @@ export const HTML_PARSE_STATE_ATTR_VALUE_END = 14
 export const HTML_PARSE_STATE_ATTR_END = 15
 
 export function parseTemplateHtml(arr: TemplateStringsArray): TemplateHtmlParse {
-	const parses: TemplateHtmlParsePart[] = []
+	const parses: TemplateHtmlParsePart[] = new Array(arr.length)
 
 	const state: HtmlParseState = {
 		type: HTML_PARSE_STATE_OUTER,
@@ -86,10 +86,10 @@ export function parseTemplateHtml(arr: TemplateStringsArray): TemplateHtmlParse 
 			}
 		}
 
-		parses.push({
+		parses[i] = {
 			html,
 			state: { ...state },
-		})
+		}
 	}
 	return {
 		parts: parses,

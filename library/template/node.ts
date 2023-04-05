@@ -11,19 +11,16 @@ export function valueToNode(value: unknown): Node {
 
 	if (value instanceof Array) {
 		const fragment = document.createDocumentFragment()
-		for (const item of value) fragment.append(valueToNode(item))
+		fragment.append(...value.map((item) => valueToNode(item)))
 		return fragment
 	}
 
 	if (value instanceof Function) return valueToNode(createOrGetDeriveOfFunction<unknown>(value as never))
 	if (value instanceof SignalReadable) {
 		const fragment = document.createDocumentFragment()
-		const startComment = document.createComment(``)
-		const endComment = document.createComment(``)
+		const startComment = document.createComment(`signal ${value.id}`)
+		const endComment = document.createComment(`/signal ${value.id}`)
 		fragment.append(startComment, endComment)
-
-		startComment.nodeValue = `signal ${value.id}`
-		endComment.nodeValue = `/signal ${value.id}`
 
 		makeMountableNode(startComment)
 		startComment.$subscribe(
