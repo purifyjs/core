@@ -32,7 +32,7 @@ function eachOfSignalArray<T extends unknown[]>(each: SignalReadable<T>): EachOf
 		},
 		as<R>(as: (item: SignalReadable<T[number]>, index: SignalReadable<number>) => R) {
 			delete (this as Partial<typeof this>).as
-			if (!keyGetter) keyGetter = (item) => item
+			if (!keyGetter) keyGetter = (_, index) => index
 			let caches = new Map<unknown, { indexSignal: SignalWritable<number>; value: R }>()
 			const derived = createDerive(() => {
 				const newCaches: typeof caches = new Map()
