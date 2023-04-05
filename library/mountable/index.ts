@@ -56,7 +56,7 @@ export type MountableNode = Node & {
 	$onMount<T extends UnknownListenerWithCleanup>(listener: T): void
 	$onUnmount<T extends UnknownListenerWithCleanup>(listener: T): void
 	$subscribe<T>(signal: SignalReadable<T>, listener: SignalSubscriptionListener<T>, options?: SignalSubscriptionOptions): void
-	$effect<T extends SignalReadable<any>[]>(callback: () => void, options?: SignalSubscriptionOptions | null, ...signals: T): void
+	$effect<T extends SignalReadable<any>[]>(callback: () => void, ...signals: T): void
 	$interval<T>(callback: () => T, delay: number): void
 	$timeout<T>(callback: () => T, delay: number): void
 }
@@ -112,11 +112,12 @@ export function makeMountableNode<T extends Node>(node: T): asserts node is T & 
 			})
 			this.$onUnmount(() => subscription.unsubscribe())
 		},
-		$effect(callback, options, ...signals) {
+		$effect(callback, ...signals) {
 			let subscriptions: SignalSubscription[] = new Array(signals.length)
 
 			this.$onMount(() => {
-				for (let i = 0; i < signals.length; i++) subscriptions[i] = signals[i]!.subscribe(() => callback(), options ?? undefined)
+				for (let i = 0; i < signals.length; i++) subscriptions[i] = signals[i]!.subscribe(() => callback())
+				callback()
 			})
 			this.$onUnmount(() => subscriptions.forEach((subscription) => subscription.unsubscribe()))
 		},
