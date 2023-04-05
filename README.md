@@ -36,35 +36,34 @@ For an example of how to use MasterTS, see the [MasterTS Vite Example](https://g
 There are many frontend libraries available for building SPAs, but most of them are either too complex or a mess of "features" that are just duct tape solutions.<br/>
 Many have good sides, and some are better than others, but still have bad sides.<br/>
 
-In React, reactivy is not great, most of the time you have to ask yourself "Will it re-render?".
-And Svelte's problem is the components. Components in Svelte has this nice reactivity thanks to their compiler.<br/>
-But when you try to make more complex combination of reactive values with it, it starts to become problamatic.<br/>
+In React, reactivity is not great, most of the time you have to ask yourself "Will it re-render?".
+And Svelte's problem is the components. Components in Svelte have this nice reactivity thanks to their compiler.<br/>
+But when you try to make more complex combinations of reactive values with it, it starts to become problematic.<br/>
 It becomes even more problematic when you try to combine stores with compiled reactive values that you have to find hacky solutions around.<br/>
-MasterTS only has one thing that is reactive and that is the signals, they are easy to see, detect and use.<br/>
+MasterTS only has one thing that is reactive, and that is the signals; they are easy to see, detect, and use.<br/>
 They can be used anywhere anyway in any combination, without the need for hacks and boilerplate code.
 
-Another problem with Svelte, React and many other frameworks is, Components are not HTML Nodes, 
-espacially in Svelte using components as value is mostly feels hacky with no full TypeScript support.<br/>
-MasterTS uses Web-Components like Lit, so a component is just another HTML Node that you can use and store in anyway. It's not special and doesn't have any pitfalls.
+Another problem with Svelte, React, and many other frameworks is that components are not HTML Nodes, especially in Svelte using components as a value mostly feels hacky with no full TypeScript support.<br/>
+MasterTS uses Web-Components like Lit, so a component is just another HTML Node that you can use and store in any way. It's not special and doesn't have any pitfalls.
 
-In SolidJS and React, we use TSX, which let's which lets you define components in any way you want, they are just functions returning a component.<br/>
-MasterTS follows the same path, components can be defined and created in anyway, so it's modular. 
+In SolidJS and React, we use TSX, which lets you define components in any way you want; they are just functions returning a component.<br/>
+MasterTS follows the same path; components can be defined and created in any way, so it's modular. 
 
-Svelte expects you to relay on the compiler so much. It expects you to use `.svelte` file extension for your components which is not really modular and free, and doesn't have full TypeScript support and when it has the TypeScript support, it's not always great.<br/>
-In MasterTS we use `.ts` files, so TypeScript is the first class citizen and natively supported.<br/>
+Svelte expects you to rely on the compiler so much. It expects you to use `.svelte` file extension for your components, which is not really modular and free and doesn't have full TypeScript support, and when it has TypeScript support, it's not always great.<br/>
+In MasterTS, we use `.ts` files, so TypeScript is the first-class citizen and natively supported.<br/>
 
 So MasterTS is the combination of these (with some changes):
-- It gets signals from SolidJS but doesn't return it with a getter, setter tuple and makes it easy to detect runtime.
-- It gets function based components from React's TSX, and even more flexable.
-- It gets html template syntax and stores from Svelte, but stores are signals.
-- It uses Web-Components like Lit while also let's you use fragments without Web-Components.
-- It just a TS library.
+- It gets signals from SolidJS but doesn't return it with a getter, setter tuple and makes it easy to detect at runtime.
+- It gets function-based components from React's TSX, and even more flexible.
+- It gets HTML template syntax and stores from Svelte, but stores are signals.
+- It uses Web-Components like Lit while also lets you use fragments without Web-Components.
+- It's just a TS library.
 
-So, MasterTS is designed to be simple and easy to use, with a focus on transparency, simplicity and modularity.
+So, MasterTS is designed to be simple and easy to use, with a focus on transparency, simplicity, and modularity.
 
-**Simple:** It does what you expect it to do. Everything is either a HTML Node or a Signal.
+**Simple:** It does what you expect it to do. Everything is either an HTML Node or a Signal.
 
-**Transparent:** It prioritizes not hiding things from you. Everything where it should be at.
+**Transparent:** It prioritizes not hiding things from you. Everything is where it should be.
 
 **Modular:** It doesn't tell you where and how to define things. Everything is easy to understand and combine. 
 
