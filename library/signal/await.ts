@@ -1,6 +1,7 @@
 import { assert } from "../utils/assert"
 import { createReadable, SignalReadable } from "../signal/readable"
 import { createWritable } from "./writable"
+import { RenderSymbol } from "../template/renderable"
 
 type Placeholder = () => unknown
 type ErrorHandler = (error: Error) => unknown
@@ -10,8 +11,9 @@ type AwaitPromise<TAwaited, TReturns = never, TUsed extends keyof AwaitPromise<a
 		placeholder: TPlaceholder
 	): Omit<AwaitPromise<TAwaited, TReturns | ReturnType<TPlaceholder>, TUsed | "placeholder">, TUsed | "placeholder">
 	error<TError extends ErrorHandler>(error: TError): Omit<AwaitPromise<TAwaited, TReturns | ReturnType<TError>, TUsed | "error">, TUsed | "error">
-	render<TAs>(as: (awaited: TAwaited) => TAs): SignalReadable<TReturns | TAs>
-	render(): SignalReadable<TReturns | TAwaited>
+	then<TAs>(as: (awaited: TAwaited) => TAs): SignalReadable<TReturns | TAs>
+	then(): SignalReadable<TReturns | TAwaited>
+	[RenderSymbol](): SignalReadable<TReturns | TAwaited>
 }
 
 type AwaitPromiseSignal<TAwaited, TOther = never, TUsed extends keyof AwaitPromiseSignal<any, any, any> = never> = {
@@ -21,8 +23,9 @@ type AwaitPromiseSignal<TAwaited, TOther = never, TUsed extends keyof AwaitPromi
 	error<TError extends ErrorHandler>(
 		error: TError
 	): Omit<AwaitPromiseSignal<TAwaited, TOther | ReturnType<TError>, TUsed | "error">, TUsed | "error">
-	render<TAs>(as: (awaited: SignalReadable<TAwaited>) => TAs): SignalReadable<TOther | TAs>
-	render(): SignalReadable<TOther | TAwaited>
+	then<TAs>(as: (awaited: SignalReadable<TAwaited>) => TAs): SignalReadable<TOther | TAs>
+	then(): SignalReadable<TOther | TAwaited>
+	[RenderSymbol](): SignalReadable<TOther | TAwaited>
 }
 
 function awaitPromise<Awaited>(promise: Promise<Awaited>): AwaitPromise<Awaited> {
@@ -40,8 +43,8 @@ function awaitPromise<Awaited>(promise: Promise<Awaited>): AwaitPromise<Awaited>
 			error_ = error
 			return this as never
 		},
-		render(then?: (awaited: Awaited) => unknown) {
-			delete (this as Partial<typeof this>).render
+		then(then?: (awaited: Awaited) => unknown) {
+			delete (this as Partial<typeof this>).then
 			return createReadable(placeholder_ ? placeholder_() : null, (set) => {
 				promise
 					.then((awaited) => (then ? then(awaited) : awaited))
@@ -52,6 +55,9 @@ function awaitPromise<Awaited>(promise: Promise<Awaited>): AwaitPromise<Awaited>
 					.then((result) => set(result))
 				return () => {}
 			}) as never
+		},
+		[RenderSymbol]() {
+			return this.then()
 		},
 	}
 }
@@ -71,8 +77,8 @@ function awaitPromiseSignal<Awaited>(promiseSignal: SignalReadable<Promise<Await
 			error_ = error
 			return this as never
 		},
-		render(then?: (awaited: SignalReadable<Awaited>) => unknown) {
-			delete (this as Partial<typeof this>).render
+		then(then?: (awaited: SignalReadable<Awaited>) => unknown) {
+			delete (this as Partial<typeof this>).then
 			return createReadable<unknown>(placeholder_ ? placeholder_() : null, (set) => {
 				let counter = 0
 
@@ -98,6 +104,9 @@ function awaitPromiseSignal<Awaited>(promiseSignal: SignalReadable<Promise<Await
 					{ mode: "immediate" }
 				).unsubscribe
 			}) as never
+		},
+		[RenderSymbol]() {
+			return this.then()
 		},
 	}
 }

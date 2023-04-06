@@ -1,3 +1,6 @@
+import { makeMountableNode } from "../mountable"
+import { valueToNode } from "../template/node"
+import { Renderable, RenderSymbol } from "../template/renderable"
 import { randomId } from "../utils/id"
 
 export type SignalSubscription = {
@@ -22,7 +25,7 @@ export function createReadable<T>(...params: ConstructorParameters<typeof Signal
 	return new SignalReadable<T>(...params)
 }
 
-export class SignalReadable<T = unknown> {
+export class SignalReadable<T = unknown> implements Renderable<DocumentFragment> {
 	public static _SyncContext: Set<SignalReadable>[] = []
 	public readonly id
 	protected readonly _listeners: Set<SignalSubscriptionListener<T>>
@@ -130,5 +133,24 @@ export class SignalReadable<T = unknown> {
 			} catch {}
 		})
 		await Promise.all(returns)
+	}
+
+	public readonly [RenderSymbol] = () => {
+		const fragment = document.createDocumentFragment()
+		const startComment = document.createComment(`signal ${this.id}`)
+		const endComment = document.createComment(`/signal ${this.id}`)
+		fragment.append(startComment, endComment)
+
+		makeMountableNode(startComment)
+		startComment.$subscribe(
+			this,
+			(signalValue) => {
+				while (startComment.nextSibling !== endComment) startComment.nextSibling!.remove()
+				endComment.before(valueToNode(signalValue))
+			},
+			{ mode: "immediate" }
+		)
+
+		return fragment
 	}
 }

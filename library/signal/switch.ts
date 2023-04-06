@@ -1,4 +1,4 @@
-import type { Renderable } from "../template/renderable"
+import { Renderable, RenderSymbol } from "../template/renderable"
 import { createReadable, SignalReadable } from "../signal/readable"
 import type { Excludable } from "../utils/type"
 
@@ -10,7 +10,7 @@ type Switch<TValue, TReturns = never> = {
 		value: TCase,
 		then: TThen
 	): Switch<Excludable<TCase, Exclude<TValue, TCase>, TValue>, TReturns | ReturnType<TThen>>
-	default<TDefault extends Then<TValue>>(fallback: TDefault): Switch<never, TReturns | ReturnType<TDefault>>
+	default<TDefault extends Then<TValue>>(fallback: TDefault): Omit<Switch<never, TReturns | ReturnType<TDefault>>, string>
 } & Renderable<TReturns>
 
 type SwitchSignal<TValue, TReturns = never> = {
@@ -18,7 +18,7 @@ type SwitchSignal<TValue, TReturns = never> = {
 		value: TCase,
 		then: TThen
 	): SwitchSignal<Excludable<TCase, Exclude<TValue, TCase>, TValue>, TReturns | ReturnType<TThen>>
-	default<TDefault extends Then<SignalReadable<TValue>>>(fallback: TDefault): SwitchSignal<never, TReturns | ReturnType<TDefault>>
+	default<TDefault extends Then<SignalReadable<TValue>>>(fallback: TDefault): Omit<SwitchSignal<never, TReturns | ReturnType<TDefault>>, string>
 } & Renderable<SignalReadable<TReturns>>
 
 function switchValue<T>(value: T): Switch<T> {
@@ -34,9 +34,7 @@ function switchValue<T>(value: T): Switch<T> {
 			fallbackCase = fallback
 			return this
 		},
-		render(): never {
-			delete (this as Partial<typeof this>).case
-			delete (this as Partial<typeof this>).default
+		[RenderSymbol](): never {
 			const then = cases.get(value)
 			if (then) return then(value) as never
 			if (fallbackCase) return fallbackCase(value) as never
@@ -54,10 +52,12 @@ function switchSignal<T>(value: SignalReadable<T>): SwitchSignal<T> {
 			return this as never
 		},
 		default(fallback) {
+			delete (this as Partial<typeof this>).case
+			delete (this as Partial<typeof this>).default
 			fallbackCase = fallback
 			return this as never
 		},
-		render() {
+		[RenderSymbol]() {
 			delete (this as Partial<typeof this>).case
 			delete (this as Partial<typeof this>).default
 			return createReadable<unknown>(null, (set) => {

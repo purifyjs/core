@@ -5,14 +5,14 @@ export type ListenerWithCleanup<R extends Function | void> = {
 	(): R
 }
 
-const EMIT_MOUNT = Symbol("mount")
-type EMIT_MOUNT = typeof EMIT_MOUNT
-const EMIT_UNMOUNT = Symbol("unmount")
-type EMIT_UNMOUNT = typeof EMIT_UNMOUNT
+const EMIT_MOUNT = Symbol("emit-mount")
+const EMIT_UNMOUNT = Symbol("emit-unmount")
 
-type NodePlace = typeof NODE_IN_DOM | typeof NODE_NOT_IN_DOM
-const NODE_IN_DOM = 0
-const NODE_NOT_IN_DOM = 1
+const NODE_IN_DOM = Symbol()
+type NODE_IN_DOM = typeof NODE_IN_DOM
+const NODE_NOT_IN_DOM = Symbol()
+type NODE_NOT_IN_DOM = typeof NODE_NOT_IN_DOM
+type NodePlace = NODE_IN_DOM | NODE_NOT_IN_DOM
 
 {
 	const mountUnmountObserver = new MutationObserver((mutations) => {

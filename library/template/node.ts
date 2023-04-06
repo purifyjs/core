@@ -1,7 +1,5 @@
-import { isRenderable } from "./renderable"
-import { makeMountableNode } from "../mountable"
 import { createOrGetDeriveOfFunction } from "../signal/derive"
-import { SignalReadable } from "../signal/readable"
+import { isRenderable, RenderSymbol } from "./renderable"
 
 const EMPTY_NODE = document.createDocumentFragment()
 
@@ -16,26 +14,8 @@ export function valueToNode(value: unknown): Node {
 	}
 
 	if (value instanceof Function) return valueToNode(createOrGetDeriveOfFunction<unknown>(value as never))
-	if (value instanceof SignalReadable) {
-		const fragment = document.createDocumentFragment()
-		const startComment = document.createComment(`signal ${value.id}`)
-		const endComment = document.createComment(`/signal ${value.id}`)
-		fragment.append(startComment, endComment)
 
-		makeMountableNode(startComment)
-		startComment.$subscribe(
-			value,
-			(signalValue) => {
-				while (startComment.nextSibling !== endComment) startComment.nextSibling!.remove()
-				endComment.before(valueToNode(signalValue))
-			},
-			{ mode: "immediate" }
-		)
-
-		return fragment
-	}
-
-	if (isRenderable(value)) return valueToNode(value.render())
+	if (isRenderable(value)) return valueToNode(value[RenderSymbol]())
 
 	return document.createTextNode(`${value}`)
 }
