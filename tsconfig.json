@@ -4,7 +4,7 @@
 		"useDefineForClassFields": true,
 		"module": "ESNext",
 		"lib": ["ESNext", "DOM", "DOM.Iterable"],
-		"moduleResolution": "node",
+		"moduleResolution": "Node",
 		"resolveJsonModule": true,
 		"isolatedModules": true,
 		"esModuleInterop": true,
@@ -31,6 +31,7 @@
 		"useUnknownInCatchVariables": true,
 		"noUncheckedIndexedAccess": true,
 		/* OTHER */
+		"preserveConstEnums": true,
 		"importsNotUsedAsValues": "error",
 		"forceConsistentCasingInFileNames": true,
 		/* ALLOW */
