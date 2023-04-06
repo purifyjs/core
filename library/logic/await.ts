@@ -1,6 +1,6 @@
 import { assert } from "../utils/assert"
 import { createReadable, SignalReadable } from "../signal/readable"
-import { createWritable } from "./writable"
+import { createWritable } from "../signal/writable"
 import { RenderSymbol } from "../template/renderable"
 
 type Placeholder = () => unknown

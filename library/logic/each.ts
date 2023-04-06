@@ -1,15 +1,14 @@
 import { makeMountableNode } from "../mountable"
 import { SignalReadable } from "../signal/readable"
-import type { SignalWritable } from "../signal/writable"
+import { createWritable, SignalWritable } from "../signal/writable"
 import { valueToNode } from "../template/node"
 import { RenderSymbol } from "../template/renderable"
-import { $ } from "./$"
 
 type KeyGetter<T> = (item: T, index: number) => unknown
 
 interface EachOfSignalArray<T extends unknown[]> {
 	key(getter: KeyGetter<T[number]>): Omit<this, "key">
-	as<R>(as?: (item: SignalReadable<T[number]>, index: SignalReadable<number>) => R): Omit<this, "as">
+	as<R>(as?: (item: T[number], index: SignalReadable<number>) => R): Omit<this, "as">
 	[RenderSymbol](): DocumentFragment
 }
 
@@ -32,7 +31,7 @@ function eachOfArray<T extends unknown[]>(each: T) {
 
 function eachOfSignalArray<T extends unknown[]>(each: SignalReadable<T>) {
 	let _keyGetter: KeyGetter<T[number]>
-	let _as: ((item: SignalReadable<T[number]>, index: SignalReadable<number>) => unknown) | undefined
+	let _as: ((item: T[number], index: SignalReadable<number>) => unknown) | undefined
 
 	return {
 		key(keyGetter: KeyGetter<T[number]>) {
@@ -40,7 +39,7 @@ function eachOfSignalArray<T extends unknown[]>(each: SignalReadable<T>) {
 			_keyGetter = keyGetter
 			return this
 		},
-		as<R>(as?: (item: SignalReadable<T[number]>, index: SignalReadable<number>) => R) {
+		as<R>(as?: (item: T[number], index: SignalReadable<number>) => R) {
 			delete (this as Partial<typeof this>).as
 			_as = as
 			return this
@@ -74,9 +73,8 @@ function eachOfSignalArray<T extends unknown[]>(each: SignalReadable<T>) {
 							newKeyOrder[index] = key
 							nodes = cache.nodes
 						} else {
-							const indexSignal = $.writable(index)
-							const itemSignal = $.derive(() => each.ref[indexSignal.ref])
-							const value = _as ? _as(itemSignal, indexSignal) : itemSignal
+							const indexSignal = createWritable(index)
+							const value = _as ? _as(item, indexSignal) : item
 							const node = valueToNode(value)
 							nodes = node instanceof DocumentFragment ? Array.from(node.childNodes) : [node as ChildNode]
 							newCaches.set(key, { nodes, indexSignal })
