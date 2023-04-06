@@ -1,4 +1,5 @@
 import { makeMountableNode } from "../mountable"
+import { createDerive } from "../signal/derive"
 import { SignalReadable } from "../signal/readable"
 import { createWritable, SignalWritable } from "../signal/writable"
 import { valueToNode } from "../template/node"
@@ -8,7 +9,7 @@ type KeyGetter<T> = (item: T, index: number) => unknown
 
 interface EachOfSignalArray<T extends unknown[]> {
 	key(getter: KeyGetter<T[number]>): Omit<this, "key">
-	as<R>(as?: (item: T[number], index: SignalReadable<number>) => R): Omit<this, "as">
+	as<R>(as?: (item: SignalReadable<T[number]>, index: SignalReadable<number>) => R): Omit<this, "as">
 	[RenderSymbol](): DocumentFragment
 }
 
@@ -31,7 +32,7 @@ function eachOfArray<T extends unknown[]>(each: T) {
 
 function eachOfSignalArray<T extends unknown[]>(each: SignalReadable<T>) {
 	let _keyGetter: KeyGetter<T[number]>
-	let _as: ((item: T[number], index: SignalReadable<number>) => unknown) | undefined
+	let _as: ((item: SignalReadable<T[number]>, index: SignalReadable<number>) => unknown) | undefined
 
 	return {
 		key(keyGetter: KeyGetter<T[number]>) {
@@ -39,7 +40,7 @@ function eachOfSignalArray<T extends unknown[]>(each: SignalReadable<T>) {
 			_keyGetter = keyGetter
 			return this
 		},
-		as<R>(as?: (item: T[number], index: SignalReadable<number>) => R) {
+		as<R>(as?: (item: SignalReadable<T[number]>, index: SignalReadable<number>) => R) {
 			delete (this as Partial<typeof this>).as
 			_as = as
 			return this
@@ -74,7 +75,11 @@ function eachOfSignalArray<T extends unknown[]>(each: SignalReadable<T>) {
 							nodes = cache.nodes
 						} else {
 							const indexSignal = createWritable(index)
-							const value = _as ? _as(item, indexSignal) : item
+							// we need itemSignal because when array changes also the item should hcange even though item has the same key
+							// i mean this sounds correct but maybe it shouldn't change idk
+							// alternative is just using the item, not signal, and having a different key
+							const itemSignal = createDerive(() => each.ref[indexSignal.ref])
+							const value = _as ? _as(itemSignal, indexSignal) : itemSignal
 							const node = valueToNode(value)
 							nodes = node instanceof DocumentFragment ? Array.from(node.childNodes) : [node as ChildNode]
 							newCaches.set(key, { nodes, indexSignal })
