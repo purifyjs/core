@@ -1,4 +1,4 @@
-import { makeMountableNode } from "../mountable"
+import { mountableNodeAssert } from "../mountable"
 import { valueToNode } from "../template/node"
 import { Renderable, RenderSymbol } from "../template/renderable"
 import { randomId } from "../utils/id"
@@ -141,7 +141,7 @@ export class SignalReadable<T = unknown> implements Renderable<DocumentFragment>
 		const endComment = document.createComment(`/signal ${this.id}`)
 		fragment.append(startComment, endComment)
 
-		makeMountableNode(startComment)
+		mountableNodeAssert(startComment)
 		startComment.$subscribe(
 			this,
 			(signalValue) => {

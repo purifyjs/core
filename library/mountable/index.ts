@@ -66,7 +66,7 @@ export function isMountableNode<T extends Node>(node: T): node is T & MountableN
 	return mountableNodes.has(node as never)
 }
 
-export function makeMountableNode<T extends Node>(node: T): asserts node is T & MountableNode {
+export function mountableNodeAssert<T extends Node>(node: T): asserts node is T & MountableNode {
 	if (isMountableNode(node)) return
 	type Impl = Pick<MountableNode, Exclude<keyof MountableNode, keyof Node>>
 	let _mounted: boolean | null = null
@@ -140,4 +140,9 @@ export function makeMountableNode<T extends Node>(node: T): asserts node is T & 
 	// xx const name = node instanceof Element ? node.tagName : node.nodeValue || node.nodeName
 	// xx impl.$onMount(() => console.log("%cmounted", "color:red;font-weight:bold;font-size:12px", name))
 	// xx impl.$onUnmount(() => console.log("%cunmounted", "color:blue;font-weight:bold;font-size:12px", name))
+}
+
+export function mountableNodeFrom<T extends Node>(node: T): T & MountableNode {
+	mountableNodeAssert(node)
+	return node
 }

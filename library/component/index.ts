@@ -1,38 +1,42 @@
-import { makeMountableNode, MountableNode } from "../mountable"
+import { MountableNode, mountableNodeAssert } from "../mountable"
 import { randomId } from "../utils/id"
 
-export function defineComponent(tagName: `${string}-${string}${string[0]}` = `x-${randomId()}`) {
-	type XComponent = {
-		new (): InstanceType<typeof XComponent> & MountableNode
-		$css: CSSStyleSheet
-	}
-	const XComponent = class extends Component {
-		private static cssStyleSheet: CSSStyleSheet | null = null
+type TagName = `${string}-${string}${string[0]}`
 
-		public static set $css(css: typeof this.cssStyleSheet) {
-			this.cssStyleSheet = css
+export function defineComponent(tagName: TagName = `x-${randomId()}`) {
+	class Component extends ComponentBase {
+		public static $css: CSSStyleSheet | null = null
+
+		constructor() {
+			super()
+			mountableNodeAssert(this)
 		}
 
-		public set $html(nodes: Node[]) {
+		public override set $html(nodes: Node[]) {
 			while (this.$root.firstChild) this.$root.removeChild(this.$root.firstChild)
 			this.$root.append(...nodes)
-			this.$root.adoptedStyleSheets = XComponent.cssStyleSheet
-				? [...Component.globalCssSheets, XComponent.cssStyleSheet]
-				: Component.globalCssSheets
+			this.$root.adoptedStyleSheets = Component.$css ? [...ComponentBase.$globalCSS, Component.$css] : ComponentBase.$globalCSS
 		}
 	}
-	customElements.define(tagName, XComponent)
 
-	return XComponent as unknown as XComponent
+	customElements.define(tagName, Component)
+
+	return Component as Omit<typeof Component, "new"> & { new (): InstanceType<typeof Component> & MountableNode }
 }
 
-export abstract class Component extends HTMLElement {
-	public static globalCssSheets: CSSStyleSheet[] = []
+export { ComponentBase as Component }
+class ComponentBase extends HTMLElement {
+	public static $globalCSS: CSSStyleSheet[] = []
 	public $root: ShadowRoot // needed to access shadowdom in chrome extensions, for some reason shadowRoot returns undefined in chrome extensions
 
 	constructor() {
 		super()
 		this.$root = this.attachShadow({ mode: "open" })
-		makeMountableNode(this)
+	}
+
+	public set $html(nodes: Node[]) {
+		while (this.$root.firstChild) this.$root.removeChild(this.$root.firstChild)
+		this.$root.append(...nodes)
+		this.$root.adoptedStyleSheets = ComponentBase.$globalCSS
 	}
 }

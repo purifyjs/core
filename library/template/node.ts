@@ -13,7 +13,7 @@ export function valueToNode(value: unknown): Node {
 		return fragment
 	}
 
-	if (value instanceof Function) return valueToNode(createOrGetDeriveOfFunction<unknown>(value as never))
+	if (value instanceof Function) return valueToNode(createOrGetDeriveOfFunction(value as () => unknown))
 
 	if (isRenderable(value)) return valueToNode(value[RenderSymbol]())
 

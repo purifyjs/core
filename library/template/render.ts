@@ -1,6 +1,6 @@
 import type { TemplateValue } from "."
 import { Component } from "../component"
-import { makeMountableNode } from "../mountable"
+import { mountableNodeAssert } from "../mountable"
 import { createDerive, createOrGetDeriveOfFunction } from "../signal/derive"
 import { SignalReadable } from "../signal/readable"
 import { SignalWritable } from "../signal/writable"
@@ -31,15 +31,14 @@ export function render<T extends TemplateValue[]>(templateDescriptor: TemplateDe
 				if (!(value instanceof Component)) throw new Error(`Expected ${nameOf(Component)} at index "${index}", but got ${nameOf(value)}.`)
 				const outlet = fragment.querySelector(`[\\:ref="${descriptor.ref}"]`)!
 				value.append(...Array.from(outlet.childNodes))
-				outlet.removeAttribute(":outlet")
 				for (const attribute of Array.from(outlet.attributes)) value.setAttribute(attribute.name, attribute.value)
 				outlet.replaceWith(value)
 			} else if (descriptor instanceof TemplateValueDescriptorAttribute) {
 				const element = fragment.querySelector(`[\\:ref="${descriptor.ref}"]`) as HTMLElement
-				if (value instanceof Function) values[index] = value = createOrGetDeriveOfFunction(value)
+				if (value instanceof Function) values[index] = value = createOrGetDeriveOfFunction(value as () => unknown)
 				if (value instanceof SignalReadable) {
 					if (descriptor.quote === "") {
-						makeMountableNode(element)
+						mountableNodeAssert(element)
 						element.$subscribe(
 							value,
 							(value) =>
@@ -60,18 +59,18 @@ export function render<T extends TemplateValue[]>(templateDescriptor: TemplateDe
 				const element = fragment.querySelector(`[\\:ref="${descriptor.ref}"]`) as HTMLElement
 				switch (descriptor.type) {
 					case "class":
-						if (value instanceof Function) value = createOrGetDeriveOfFunction(value)
+						if (value instanceof Function) value = createOrGetDeriveOfFunction(value as () => unknown)
 						if (value instanceof SignalReadable) {
-							makeMountableNode(element)
+							mountableNodeAssert(element)
 							element.$subscribe(value, (v) => element.classList.toggle(descriptor.name, !!v), {
 								mode: "immediate",
 							})
 						} else element.classList.toggle(descriptor.name, !!value)
 						break
 					case "style":
-						if (value instanceof Function) value = createOrGetDeriveOfFunction(value)
+						if (value instanceof Function) value = createOrGetDeriveOfFunction(value as () => unknown)
 						if (value instanceof SignalReadable) {
-							makeMountableNode(element)
+							mountableNodeAssert(element)
 							element.$subscribe(value, (v) => element.style.setProperty(descriptor.name, `${v}`), {
 								mode: "immediate",
 							})
@@ -80,7 +79,7 @@ export function render<T extends TemplateValue[]>(templateDescriptor: TemplateDe
 					case "on":
 						if (!(value instanceof Function))
 							throw new Error(`${descriptor.type}:${descriptor.name} must be a function, but got ${nameOf(value)}.`)
-						makeMountableNode(element)
+						mountableNodeAssert(element)
 						element.$onMount(() => element.addEventListener(descriptor.name, value as EventListener))
 						element.$onUnmount(() => element.removeEventListener(descriptor.name, value as EventListener))
 						break
@@ -98,7 +97,7 @@ export function render<T extends TemplateValue[]>(templateDescriptor: TemplateDe
 							case "value:string":
 								{
 									const listener = () => (signal.ref = element.value)
-									makeMountableNode(element)
+									mountableNodeAssert(element)
 									element.$onMount(() => element.addEventListener("input", listener))
 									element.$onUnmount(() => element.removeEventListener("input", listener))
 									element.$subscribe(signal, (value) => (element.value = `${value}`), { mode: "immediate" })
@@ -107,7 +106,7 @@ export function render<T extends TemplateValue[]>(templateDescriptor: TemplateDe
 							case "value:number":
 								{
 									const listener = () => (signal.ref = element.valueAsNumber)
-									makeMountableNode(element)
+									mountableNodeAssert(element)
 									element.$onMount(() => element.addEventListener("input", listener))
 									element.$onUnmount(() => element.removeEventListener("input", listener))
 									element.$subscribe(signal, (value) => (element.valueAsNumber = value), { mode: "immediate" })
@@ -116,7 +115,7 @@ export function render<T extends TemplateValue[]>(templateDescriptor: TemplateDe
 							case "value:date":
 								{
 									const listener = () => (signal.ref = element.valueAsDate)
-									makeMountableNode(element)
+									mountableNodeAssert(element)
 									element.$onMount(() => element.addEventListener("input", listener))
 									element.$onUnmount(() => element.removeEventListener("input", listener))
 									element.$subscribe(signal, (value) => (element.valueAsDate = value), { mode: "immediate" })
@@ -125,7 +124,7 @@ export function render<T extends TemplateValue[]>(templateDescriptor: TemplateDe
 							case "value:boolean":
 								{
 									const listener = () => (signal.ref = element.checked)
-									makeMountableNode(element)
+									mountableNodeAssert(element)
 									element.$onMount(() => element.addEventListener("input", listener))
 									element.$onUnmount(() => element.removeEventListener("input", listener))
 									element.$subscribe(signal, (value) => (element.checked = value), { mode: "immediate" })
@@ -146,7 +145,7 @@ export function render<T extends TemplateValue[]>(templateDescriptor: TemplateDe
 			if (!element) throw new Error(`While rendering attribute parts: Could not find element with ref "${ref}".`)
 
 			for (const [name, parts] of attributes) {
-				makeMountableNode(element)
+				mountableNodeAssert(element)
 				const signal = createDerive(() =>
 					parts
 						.map((part) => {

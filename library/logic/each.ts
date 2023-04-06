@@ -1,4 +1,4 @@
-import { makeMountableNode } from "../mountable"
+import { mountableNodeAssert } from "../mountable"
 import { createDerive } from "../signal/derive"
 import { SignalReadable } from "../signal/readable"
 import { createWritable, SignalWritable } from "../signal/writable"
@@ -56,7 +56,7 @@ function eachOfSignalArray<T extends unknown[]>(each: SignalReadable<T>) {
 			const fragment = document.createDocumentFragment()
 			fragment.append(startComment, endComment)
 
-			makeMountableNode(startComment)
+			mountableNodeAssert(startComment)
 			startComment.$subscribe(
 				each,
 				(eachValue) => {
