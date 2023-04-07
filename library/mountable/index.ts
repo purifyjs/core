@@ -63,7 +63,7 @@ export type MountableNode = Node & {
 
 const mountableNodes = new WeakSet<MountableNode>()
 export function isMountableNode<T extends Node>(node: T): node is T & MountableNode {
-	return mountableNodes.has(node as never)
+	return mountableNodes.has(node as unknown as MountableNode)
 }
 
 export function mountableNodeAssert<T extends Node>(node: T): asserts node is T & MountableNode {

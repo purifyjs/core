@@ -41,7 +41,7 @@ export const TemplateValueDescriptorAttribute = compositionType(TemplateValueDes
 export const templateValueDirectiveTypes = ["class", "style", "on", "bind", "ref"] as const
 export type TemplateValueDirectiveType = typeof templateValueDirectiveTypes[number]
 export function isTemplateValueDirectiveType(value: string): value is TemplateValueDirectiveType {
-	return templateValueDirectiveTypes.includes(value as never)
+	return templateValueDirectiveTypes.includes(value as TemplateValueDirectiveType)
 }
 export type TemplateValueDescriptorDirective = InstanceType<typeof TemplateValueDescriptorDirective>
 export const TemplateValueDescriptorDirective = compositionType(TemplateValueDescriptor)

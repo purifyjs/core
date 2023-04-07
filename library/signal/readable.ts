@@ -45,7 +45,7 @@ export class SignalReadable<T = unknown> implements Renderable<DocumentFragment>
 			this._activate()
 			setTimeout(() => this._checkActive(), 5000)
 		}
-		SignalReadable._SyncContext[SignalReadable._SyncContext.length - 1]?.add(this as never)
+		SignalReadable._SyncContext[SignalReadable._SyncContext.length - 1]?.add(this as SignalReadable<unknown>)
 		return this._value
 	}
 

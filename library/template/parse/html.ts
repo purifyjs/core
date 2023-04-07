@@ -18,7 +18,7 @@ export type HtmlParseState = {
 }
 
 /*
-Not being compiled to literal for some reason
+Not being compiled to inline literal for some reasons
 export const enum HtmlParseStateType {
 	Outer,
 
