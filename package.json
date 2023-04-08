@@ -2,7 +2,6 @@
 	"type": "module",
 	"name": "master-ts",
 	"dependencies": {
-		"master-ts-composition": "github:DeepDoge/master-ts-composition",
 		"parse-literals": "^1.2.1"
 	}
 }
