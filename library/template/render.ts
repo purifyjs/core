@@ -8,33 +8,26 @@ import { assert } from "../utils/assert"
 import { nameOf, typeOf } from "../utils/name"
 import { unhandled } from "../utils/unhandled"
 import { valueToNode } from "./node"
-import {
-	TemplateDescriptor,
-	TemplateValueDescriptorAttribute,
-	TemplateValueDescriptorDirective,
-	TemplateValueDescriptorRenderComponent,
-	TemplateValueDescriptorRenderNode,
-	TemplateValueIndex,
-} from "./parse/descriptor"
+import { checkValueDescriptorType, TemplateDescriptor } from "./parse/descriptor"
 
-export function render<T extends TemplateValue[]>(templateDescriptor: TemplateDescriptor, values: T): Node[] {
-	const fragment = templateDescriptor.template.content.cloneNode(true) as DocumentFragment
+export function render<T extends TemplateValue[]>(template: HTMLTemplateElement, templateDescriptor: TemplateDescriptor, values: T): Node[] {
+	const fragment = template.content.cloneNode(true) as DocumentFragment
 
 	try {
 		for (let index = 0; index < values.length; index++) {
 			const descriptor = templateDescriptor.valueDescriptors[index]!
+			const element = fragment.querySelector(`[ref\\:${descriptor.ref}]`) as HTMLElement
+
 			let value = values[index]
-			if (descriptor instanceof TemplateValueDescriptorRenderNode) {
-				const outlet = fragment.querySelector(`[\\:ref="${descriptor.ref}"]`)!
-				outlet.replaceWith(valueToNode(value))
-			} else if (descriptor instanceof TemplateValueDescriptorRenderComponent) {
+
+			if (checkValueDescriptorType("render-node", descriptor)) {
+				element.replaceWith(valueToNode(value))
+			} else if (checkValueDescriptorType("render-component", descriptor)) {
 				if (!(value instanceof Component)) throw new Error(`Expected ${nameOf(Component)} at index "${index}", but got ${nameOf(value)}.`)
-				const outlet = fragment.querySelector(`[\\:ref="${descriptor.ref}"]`)!
-				value.append(...Array.from(outlet.childNodes))
-				for (const attribute of Array.from(outlet.attributes)) value.setAttribute(attribute.name, attribute.value)
-				outlet.replaceWith(value)
-			} else if (descriptor instanceof TemplateValueDescriptorAttribute) {
-				const element = fragment.querySelector(`[\\:ref="${descriptor.ref}"]`) as HTMLElement
+				value.append(...Array.from(element.childNodes))
+				for (const attribute of Array.from(element.attributes)) value.setAttribute(attribute.name, attribute.value)
+				element.replaceWith(value)
+			} else if (checkValueDescriptorType("attribute", descriptor)) {
 				if (value instanceof Function) values[index] = value = createOrGetDeriveOfFunction(value as () => unknown)
 				if (value instanceof SignalReadable) {
 					if (descriptor.quote === "") {
@@ -55,9 +48,8 @@ export function render<T extends TemplateValue[]>(templateDescriptor: TemplateDe
 						// Handled at the end. Because this attribute can have multiple values.
 					}
 				}
-			} else if (descriptor instanceof TemplateValueDescriptorDirective) {
-				const element = fragment.querySelector(`[\\:ref="${descriptor.ref}"]`) as HTMLElement
-				switch (descriptor.type) {
+			} else if (checkValueDescriptorType("directive", descriptor)) {
+				switch (descriptor.directive) {
 					case "class":
 						if (value instanceof Function) value = createOrGetDeriveOfFunction(value as () => unknown)
 						if (value instanceof SignalReadable) {
@@ -135,21 +127,19 @@ export function render<T extends TemplateValue[]>(templateDescriptor: TemplateDe
 						}
 						break
 					default:
-						unhandled("Unhanded directive type", descriptor.type)
+						unhandled("Unhanded directive type", descriptor.directive)
 				}
 			}
 		}
 
-		for (const [ref, attributes] of templateDescriptor.refAttributeValueMap) {
-			const element = fragment.querySelector(`[\\:ref="${ref}"]`) as HTMLElement
-			if (!element) throw new Error(`While rendering attribute parts: Could not find element with ref "${ref}".`)
-
-			for (const [name, parts] of attributes) {
+		for (const [ref, { attributes }] of templateDescriptor.refDataMap) {
+			const element = fragment.querySelector(`[ref\\:${ref}]`) as HTMLElement
+			for (const [name, { parts }] of attributes) {
 				mountableNodeAssert(element)
 				const signal = createDerive(() =>
-					parts
+					parts!
 						.map((part) => {
-							const value = part instanceof TemplateValueIndex ? values[part.index] : part
+							const value = typeof part === "number" ? values[part] : part
 							return value instanceof SignalReadable ? value.ref : value
 						})
 						.join("")
@@ -160,7 +150,7 @@ export function render<T extends TemplateValue[]>(templateDescriptor: TemplateDe
 			}
 		}
 	} catch (error) {
-		console.error("Error while rendering template:", error, "values:", values, "html:", templateDescriptor.template.innerHTML.trim())
+		console.error("Error while rendering template:", error, "values:", values, "html:", template.innerHTML.trim())
 		throw error
 	}
 

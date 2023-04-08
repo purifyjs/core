@@ -12,13 +12,11 @@ export type TemplateHtmlParsePart = {
 export type HtmlParseState = {
 	type: HtmlParseStateType
 	tag: string
-	tag_ref: string
-	attribute_name: string
-	attribute_value: string
+	ref: string
+	attributeName: string
+	attributeValue: string
 }
 
-/*
-Not being compiled to inline literal for some reasons
 export const enum HtmlParseStateType {
 	Outer,
 
@@ -39,37 +37,17 @@ export const enum HtmlParseStateType {
 	ATTR_VALUE_QUOTED_END,
 	ATTR_VALUE_END,
 	ATTR_END,
-} */
-export type HtmlParseStateType = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15
-export const HTML_PARSE_STATE_OUTER = 0
-
-export const HTML_PARSE_STATE_TAG_START = 1
-export const HTML_PARSE_STATE_TAG_INNER = 2
-export const HTML_PARSE_STATE_TAG_NAME = 3
-export const HTML_PARSE_STATE_TAG_CLOSE = 4
-export const HTML_PARSE_STATE_TAG_END = 5
-
-export const HTML_PARSE_STATE_ATTR_START = 6
-export const HTML_PARSE_STATE_ATTR_NAME = 7
-export const HTML_PARSE_STATE_ATTR_VALUE_START = 8
-export const HTML_PARSE_STATE_ATTR_VALUE_UNQUOTED = 9
-
-export const HTML_PARSE_STATE_ATTR_VALUE_QUOTED_START = 10
-export const HTML_PARSE_STATE_ATTR_VALUE_SINGLE_QUOTED = 11
-export const HTML_PARSE_STATE_ATTR_VALUE_DOUBLE_QUOTED = 12
-export const HTML_PARSE_STATE_ATTR_VALUE_QUOTED_END = 13
-export const HTML_PARSE_STATE_ATTR_VALUE_END = 14
-export const HTML_PARSE_STATE_ATTR_END = 15
+}
 
 export function parseTemplateHtml(arr: TemplateStringsArray): TemplateHtmlParse {
 	const parses: TemplateHtmlParsePart[] = new Array(arr.length)
 
 	const state: HtmlParseState = {
-		type: HTML_PARSE_STATE_OUTER,
+		type: HtmlParseStateType.Outer,
 		tag: "",
-		tag_ref: "",
-		attribute_name: "",
-		attribute_value: "",
+		ref: "",
+		attributeName: "",
+		attributeValue: "",
 	}
 
 	for (let i = 0; i < arr.length; i++) {
@@ -79,7 +57,7 @@ export function parseTemplateHtml(arr: TemplateStringsArray): TemplateHtmlParse 
 		for (let i = 0; i < parse.length; i++) {
 			const char = parse[i]!
 			try {
-				html = processChar(char, html, state)
+				html += processChar(char, state)
 			} catch (error) {
 				console.error("Error while parsing template:", error, "At:", html.slice(-256).trim())
 				throw error
@@ -96,74 +74,75 @@ export function parseTemplateHtml(arr: TemplateStringsArray): TemplateHtmlParse 
 	}
 }
 
-function processChar(char: string, html: string, state: HtmlParseState) {
+function processChar(char: string, state: HtmlParseState) {
+	let result = char
 	switch (state.type) {
-		case HTML_PARSE_STATE_OUTER:
+		case HtmlParseStateType.Outer:
 			if (char === "<") {
-				state.type = HTML_PARSE_STATE_TAG_NAME
+				state.type = HtmlParseStateType.TagName
 				state.tag = ""
-				state.tag_ref = randomId()
-				state.attribute_name = ""
-				state.attribute_value = ""
-			} else if (/\s/.test(html[html.length - 1]!) && /\s/.test(char)) return html
+				state.ref = randomId()
+				state.attributeName = ""
+				state.attributeValue = ""
+			}
 			break
-		case HTML_PARSE_STATE_TAG_NAME:
+		case HtmlParseStateType.TagName:
 			if (state.tag === "" && char === "/") {
-				state.type = HTML_PARSE_STATE_TAG_CLOSE
+				state.type = HtmlParseStateType.TagClose
 				state.tag = ""
 			} else if (char === ">") {
-				state.type = HTML_PARSE_STATE_OUTER
-				/* html += ` :ref="${ref}"` */
+				state.type = HtmlParseStateType.Outer
 			} else if (/\s/.test(char)) {
-				state.type = HTML_PARSE_STATE_TAG_INNER
-				html += ` :ref="${state.tag_ref}"`
+				state.type = HtmlParseStateType.TagInner
 			} else state.tag += char
 			break
-		case HTML_PARSE_STATE_TAG_INNER:
-			if (char === ">") state.type = HTML_PARSE_STATE_OUTER
-			else if (/\s/.test(char)) state.type = HTML_PARSE_STATE_TAG_INNER
+		case HtmlParseStateType.TagInner:
+			if (char === ">") state.type = HtmlParseStateType.Outer
+			else if (/\s/.test(char)) state.type = HtmlParseStateType.TagInner
 			else {
-				state.type = HTML_PARSE_STATE_ATTR_NAME
-				state.attribute_name = char
+				state.type = HtmlParseStateType.AttributeName
+				state.attributeName = char
+				result = `ref:${state.ref} ${result}`
 			}
 			break
-		case HTML_PARSE_STATE_TAG_CLOSE:
+		case HtmlParseStateType.TagClose:
 			if (char === ">") {
-				state.type = HTML_PARSE_STATE_OUTER
+				state.type = HtmlParseStateType.Outer
 				state.tag = ""
 			} else state.tag += char
 			break
-		case HTML_PARSE_STATE_ATTR_NAME:
-			if (char === ">") state.type = HTML_PARSE_STATE_OUTER
-			else if (/\s/.test(char)) state.type = HTML_PARSE_STATE_TAG_INNER
+		case HtmlParseStateType.AttributeName:
+			if (char === ">") state.type = HtmlParseStateType.Outer
+			else if (/\s/.test(char)) state.type = HtmlParseStateType.TagInner
 			else if (char === "=") {
-				state.type = HTML_PARSE_STATE_ATTR_VALUE_UNQUOTED
-				state.attribute_value = ""
-			} else state.attribute_name += char
+				state.type = HtmlParseStateType.AttributeValueUnquoted
+				state.attributeValue = ""
+			} else state.attributeName += char
 			break
-		case HTML_PARSE_STATE_ATTR_VALUE_UNQUOTED:
-			if (char === ">") state.type = HTML_PARSE_STATE_OUTER
-			else if (/\s/.test(char)) state.type = HTML_PARSE_STATE_TAG_INNER
+		case HtmlParseStateType.AttributeValueUnquoted:
+			if (char === ">") state.type = HtmlParseStateType.Outer
+			else if (/\s/.test(char)) state.type = HtmlParseStateType.TagInner
 			else if (char === '"') {
-				state.type = HTML_PARSE_STATE_ATTR_VALUE_DOUBLE_QUOTED
-				state.attribute_value = ""
+				state.type = HtmlParseStateType.AttributeValueDoubleQuoted
+				state.attributeValue = ""
 			} else if (char === "'") {
-				state.type = HTML_PARSE_STATE_ATTR_VALUE_SINGLE_QUOTED
-				state.attribute_value = ""
+				state.type = HtmlParseStateType.AttributeValueSingleQuoted
+				state.attributeValue = ""
 			} else {
 				throw new Error(`Unexpected character '${char}' in attribute value`)
-				// state.attribute_value += char Not needed, causes complexity in parsing. Might be fixed later.
+				// state.attribute_value += char
+				// Not needed, causes complexity in parsing.
 			}
 			break
-		case HTML_PARSE_STATE_ATTR_VALUE_SINGLE_QUOTED:
-			if (char === "'") state.type = HTML_PARSE_STATE_TAG_INNER
-			else state.attribute_value += char
+		case HtmlParseStateType.AttributeValueSingleQuoted:
+			if (char === "'") state.type = HtmlParseStateType.TagInner
+			else state.attributeValue += char
 			break
-		case HTML_PARSE_STATE_ATTR_VALUE_DOUBLE_QUOTED:
-			if (char === '"') state.type = HTML_PARSE_STATE_TAG_INNER
-			else state.attribute_value += char
+		case HtmlParseStateType.AttributeValueDoubleQuoted:
+			if (char === '"') state.type = HtmlParseStateType.TagInner
+			else state.attributeValue += char
 			break
 	}
 
-	return `${html}${char}`
+	return result
 }
