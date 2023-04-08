@@ -11,53 +11,48 @@ export function parseTemplate({ refDataMap, valueDescriptors, html }: TemplateDe
 		if (!element) throw new Error(`Could not find outlet with ref "${descriptor.ref}".`)
 
 		if (checkValueDescriptorType("directive", descriptor)) {
-			switch (descriptor.directive) {
-				case "class":
-					break
-				case "style":
-					break
-				case "on":
-					break
-				case "ref":
-					break
-				case "bind":
-					switch (descriptor.name) {
-						case "value": {
-							if (element instanceof HTMLInputElement) {
-								switch (element.type) {
-									case "radio":
-									case "checkbox":
-										descriptor.name = "value:boolean"
-										break
-									case "range":
-									case "number":
-										descriptor.name = "value:number"
-										break
-									case "date":
-									case "datetime-local":
-									case "month":
-									case "time":
-									case "week":
-										descriptor.name = "value:date"
-										break
-									default:
-										descriptor.name = "value:string"
-										break
-								}
-								break
-							} else if (element instanceof HTMLTextAreaElement || element instanceof HTMLSelectElement) {
-								descriptor.name = "value:string"
-								break
+			// TODO: Using if/else because vite breaks the code while optimizing it for the build, convert to switch later
+			if (descriptor.directive === "class") {
+			} else if (descriptor.directive === "style") {
+			} else if (descriptor.directive === "on") {
+			} else if (descriptor.directive === "ref") {
+			} else if (descriptor.directive === "bind") {
+				switch (descriptor.name) {
+					case "value": {
+						if (element instanceof HTMLInputElement) {
+							switch (element.type) {
+								case "radio":
+								case "checkbox":
+									descriptor.name = "value:boolean"
+									break
+								case "range":
+								case "number":
+									descriptor.name = "value:number"
+									break
+								case "date":
+								case "datetime-local":
+								case "month":
+								case "time":
+								case "week":
+									descriptor.name = "value:date"
+									break
+								default:
+									descriptor.name = "value:string"
+									break
 							}
-
-							throw new Error(`${element.tagName} does not support binding to ${descriptor.name}`)
+							break
+						} else if (element instanceof HTMLTextAreaElement || element instanceof HTMLSelectElement) {
+							descriptor.name = "value:string"
+							break
 						}
-						default:
-							throw new Error(`Unknown binding key ${descriptor.name}`)
+
+						throw new Error(`${element.tagName} does not support binding to ${descriptor.name}`)
 					}
-					break
-				default:
-					unhandled("Unhandled directive type", descriptor.directive)
+					default:
+						throw new Error(`Unknown binding key ${descriptor.name}`)
+				}
+			} else {
+				unhandled("Unhandled directive type", descriptor.directive)
 			}
 		}
 	}
