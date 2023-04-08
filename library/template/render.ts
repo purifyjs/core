@@ -127,7 +127,7 @@ export function render<T extends TemplateValue[]>(template: HTMLTemplateElement,
 						}
 						break
 					default:
-						unhandled("Unhanded directive type", descriptor.directive)
+						unhandled(`Unhandled directive type`, descriptor.directive)
 				}
 			}
 		}

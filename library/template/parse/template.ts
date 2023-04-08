@@ -57,7 +57,7 @@ export function parseTemplate({ refDataMap, valueDescriptors, html }: TemplateDe
 					}
 					break
 				default:
-					unhandled("Unhanded directive type", descriptor.directive)
+					unhandled("Unhandled directive type", descriptor.directive)
 			}
 		}
 	}
