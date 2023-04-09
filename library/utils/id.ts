@@ -3,5 +3,5 @@ export function randomId() {
 }
 
 export function compileTimeId(): string {
-	throw new Error("This code should be compiler away.")
+	throw new Error("This code should be compiled away.")
 }
