@@ -25,7 +25,7 @@ export function masterTsPreprocessor() {
  */
 function preprocess(src) {
 	const htmlTag = findImportStatement(src, "master-ts/library/template", "html")
-	const cssTag = findImportStatement(src, "master-ts/library/template/css", "css")
+	const cssTag = findImportStatement(src, "master-ts/library/template", "css")
 
 	let htmlCachersCount = 0
 	{
@@ -58,7 +58,35 @@ function preprocess(src) {
 	// add the cachers to the top of the file
 	for (let i = 0; i < htmlCachersCount; i++) src = addToTop(src, `const __html${i} = ${createCachedHtmlStatement}()`)
 
+	// compile time randomIds
+	src = replaceCompileTimeRandomIds(src)
+
 	return src
+}
+
+let compileTimeIdCounter = 0
+
+/**
+ *
+ * @param {string} src
+ * @returns {string} replaced
+ */
+function replaceCompileTimeRandomIds(src) {
+	const randomMethodName = findImportStatement(src, "master-ts/library/utils/id", "compileTimeId")
+	let regex = new RegExp(`(?<!["'/\`])\\b${randomMethodName}\\s*\\(\\)(?![^{}]*\\})`, "g")
+
+	let result = src
+	let match = regex.exec(result)
+	while (match !== null) {
+		const matchedStr = match[0]
+		const start = match.index
+		const end = start + matchedStr.length
+		const replace = `"${(compileTimeIdCounter++).toString(36)}"`
+		result = replacePartOfString(result, start, end, replace)
+		match = regex.exec(result)
+	}
+
+	return result
 }
 
 /**

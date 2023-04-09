@@ -1,6 +1,6 @@
 import { assert } from "../../utils/assert"
 import { randomId } from "../../utils/id"
-import { HtmlParseStateType, TemplateHtmlParse } from "./html"
+import { HtmlPartStateType, HtmlDescriptor } from "./html"
 
 type ValueDescriptorType = "render-node" | "render-component" | "attribute" | "directive"
 export function checkValueDescriptorType<T extends ValueDescriptorType>(type: T, descriptor: ValueDescriptor): descriptor is ValueDescriptor<T> {
@@ -19,14 +19,14 @@ type ValueDescriptor<T extends ValueDescriptorType = ValueDescriptorType> = {
 	ref: string
 } & (T extends "attribute"
 	? {
-			name: string
-			quote: "'" | '"' | ""
-	  }
+		name: string
+		quote: "'" | '"' | ""
+	}
 	: T extends "directive"
 	? {
-			directive: DirectiveType
-			name: string
-	  }
+		directive: DirectiveType
+		name: string
+	}
 	: {})
 
 function createValueDescriptor<T extends ValueDescriptorType>(type: T, descriptor: Omit<ValueDescriptor<T>, "type">) {
@@ -50,7 +50,7 @@ export type TemplateDescriptor = {
 	refDataMap: Map<string, RefData>
 }
 
-export function parseTemplateDescriptor<T extends TemplateHtmlParse>(htmlParse: T): TemplateDescriptor {
+export function parseTemplateDescriptor<T extends HtmlDescriptor>(htmlParse: T): TemplateDescriptor {
 	let html = ""
 
 	try {
@@ -66,27 +66,27 @@ export function parseTemplateDescriptor<T extends TemplateHtmlParse>(htmlParse: 
 
 			if (!(i < valueDescriptors.length)) break
 
-			if (parsePart.state.type === HtmlParseStateType.Outer) {
+			if (parsePart.state.type === HtmlPartStateType.Outer) {
 				const ref = randomId()
 				html += `<x ref:${ref}></x>`
 				valueDescriptors[i] = createValueDescriptor("render-node", { ref })
 				continue
-			} else if (parsePart.state.type === HtmlParseStateType.TagInner && !parsePart.state.attributeName) {
+			} else if (parsePart.state.type === HtmlPartStateType.TagInner && !parsePart.state.attributeName) {
 				if (parsePart.state.tag === "x") {
 					const ref = parsePart.state.ref
 					valueDescriptors[i] = createValueDescriptor("render-component", { ref })
 					continue
 				}
-			} else if (parsePart.state.type > HtmlParseStateType.ATTR_VALUE_START && parsePart.state.type < HtmlParseStateType.ATTR_VALUE_END) {
+			} else if (parsePart.state.type > HtmlPartStateType.ATTR_VALUE_START && parsePart.state.type < HtmlPartStateType.ATTR_VALUE_END) {
 				const attributeNameParts = parsePart.state.attributeName.split(":")
 				const quote =
-					parsePart.state.type === HtmlParseStateType.AttributeValueUnquoted
+					parsePart.state.type === HtmlPartStateType.AttributeValueUnquoted
 						? ""
-						: parsePart.state.type === HtmlParseStateType.AttributeValueSingleQuoted
-						? "'"
-						: '"'
+						: parsePart.state.type === HtmlPartStateType.AttributeValueSingleQuoted
+							? "'"
+							: '"'
 				if (attributeNameParts.length === 2) {
-					if (parsePart.state.type !== HtmlParseStateType.AttributeValueUnquoted) throw new Error("Directive value must be unquoted")
+					if (parsePart.state.type !== HtmlPartStateType.AttributeValueUnquoted) throw new Error("Directive value must be unquoted")
 					html += `""`
 					const ref = parsePart.state.ref
 					const type = attributeNameParts[0]!

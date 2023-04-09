@@ -1,23 +1,23 @@
 import { randomId } from "../../utils/id"
 
-export type TemplateHtmlParse = {
-	parts: TemplateHtmlParsePart[]
+export type HtmlDescriptor = {
+	parts: HtmlPart[]
 }
 
-export type TemplateHtmlParsePart = {
+type HtmlPart = {
 	html: string
-	state: HtmlParseState
+	state: HtmlPartState
 }
 
-export type HtmlParseState = {
-	type: HtmlParseStateType
+type HtmlPartState = {
+	type: HtmlPartStateType
 	tag: string
 	ref: string
 	attributeName: string
 	attributeValue: string
 }
 
-export const enum HtmlParseStateType {
+export const enum HtmlPartStateType {
 	Outer,
 
 	TAG_START,
@@ -39,11 +39,11 @@ export const enum HtmlParseStateType {
 	ATTR_END,
 }
 
-export function parseTemplateHtml(arr: TemplateStringsArray): TemplateHtmlParse {
-	const parses: TemplateHtmlParsePart[] = new Array(arr.length)
+export function parseTemplateHtml(arr: TemplateStringsArray): HtmlDescriptor {
+	const parses: HtmlPart[] = new Array(arr.length)
 
-	const state: HtmlParseState = {
-		type: HtmlParseStateType.Outer,
+	const state: HtmlPartState = {
+		type: HtmlPartStateType.Outer,
 		tag: "",
 		ref: "",
 		attributeName: "",
@@ -74,59 +74,59 @@ export function parseTemplateHtml(arr: TemplateStringsArray): TemplateHtmlParse 
 	}
 }
 
-function processChar(char: string, state: HtmlParseState) {
+function processChar(char: string, state: HtmlPartState) {
 	let result = char
 	switch (state.type) {
-		case HtmlParseStateType.Outer:
+		case HtmlPartStateType.Outer:
 			if (char === "<") {
-				state.type = HtmlParseStateType.TagName
+				state.type = HtmlPartStateType.TagName
 				state.tag = ""
 				state.ref = randomId()
 				state.attributeName = ""
 				state.attributeValue = ""
 			}
 			break
-		case HtmlParseStateType.TagName:
+		case HtmlPartStateType.TagName:
 			if (state.tag === "" && char === "/") {
-				state.type = HtmlParseStateType.TagClose
+				state.type = HtmlPartStateType.TagClose
 				state.tag = ""
 			} else if (char === ">") {
-				state.type = HtmlParseStateType.Outer
+				state.type = HtmlPartStateType.Outer
 			} else if (/\s/.test(char)) {
-				state.type = HtmlParseStateType.TagInner
+				state.type = HtmlPartStateType.TagInner
 			} else state.tag += char
 			break
-		case HtmlParseStateType.TagInner:
-			if (char === ">") state.type = HtmlParseStateType.Outer
-			else if (/\s/.test(char)) state.type = HtmlParseStateType.TagInner
+		case HtmlPartStateType.TagInner:
+			if (char === ">") state.type = HtmlPartStateType.Outer
+			else if (/\s/.test(char)) state.type = HtmlPartStateType.TagInner
 			else {
-				state.type = HtmlParseStateType.AttributeName
+				state.type = HtmlPartStateType.AttributeName
 				state.attributeName = char
 				result = `ref:${state.ref} ${result}`
 			}
 			break
-		case HtmlParseStateType.TagClose:
+		case HtmlPartStateType.TagClose:
 			if (char === ">") {
-				state.type = HtmlParseStateType.Outer
+				state.type = HtmlPartStateType.Outer
 				state.tag = ""
 			} else state.tag += char
 			break
-		case HtmlParseStateType.AttributeName:
-			if (char === ">") state.type = HtmlParseStateType.Outer
-			else if (/\s/.test(char)) state.type = HtmlParseStateType.TagInner
+		case HtmlPartStateType.AttributeName:
+			if (char === ">") state.type = HtmlPartStateType.Outer
+			else if (/\s/.test(char)) state.type = HtmlPartStateType.TagInner
 			else if (char === "=") {
-				state.type = HtmlParseStateType.AttributeValueUnquoted
+				state.type = HtmlPartStateType.AttributeValueUnquoted
 				state.attributeValue = ""
 			} else state.attributeName += char
 			break
-		case HtmlParseStateType.AttributeValueUnquoted:
-			if (char === ">") state.type = HtmlParseStateType.Outer
-			else if (/\s/.test(char)) state.type = HtmlParseStateType.TagInner
+		case HtmlPartStateType.AttributeValueUnquoted:
+			if (char === ">") state.type = HtmlPartStateType.Outer
+			else if (/\s/.test(char)) state.type = HtmlPartStateType.TagInner
 			else if (char === '"') {
-				state.type = HtmlParseStateType.AttributeValueDoubleQuoted
+				state.type = HtmlPartStateType.AttributeValueDoubleQuoted
 				state.attributeValue = ""
 			} else if (char === "'") {
-				state.type = HtmlParseStateType.AttributeValueSingleQuoted
+				state.type = HtmlPartStateType.AttributeValueSingleQuoted
 				state.attributeValue = ""
 			} else {
 				throw new Error(`Unexpected character '${char}' in attribute value`)
@@ -134,12 +134,12 @@ function processChar(char: string, state: HtmlParseState) {
 				// Not needed, causes complexity in parsing.
 			}
 			break
-		case HtmlParseStateType.AttributeValueSingleQuoted:
-			if (char === "'") state.type = HtmlParseStateType.TagInner
+		case HtmlPartStateType.AttributeValueSingleQuoted:
+			if (char === "'") state.type = HtmlPartStateType.TagInner
 			else state.attributeValue += char
 			break
-		case HtmlParseStateType.AttributeValueDoubleQuoted:
-			if (char === '"') state.type = HtmlParseStateType.TagInner
+		case HtmlPartStateType.AttributeValueDoubleQuoted:
+			if (char === '"') state.type = HtmlPartStateType.TagInner
 			else state.attributeValue += char
 			break
 	}

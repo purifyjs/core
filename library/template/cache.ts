@@ -7,13 +7,10 @@ import { render } from "./render"
 /** 
 	@internal Use `html` instead. Preprocessor will replace `html` with this. This is internal API.
 */
-export function createCachedHtml() {
-	let cache: [HTMLTemplateElement, TemplateDescriptor] | null = null
+export function createCachedHtml(descriptor?: TemplateDescriptor, template?: HTMLTemplateElement) {
 	return (strings: TemplateStringsArray, ...values: TemplateValue[]) => {
-		if (!cache) {
-			const descriptor = parseTemplateDescriptor(parseTemplateHtml(strings))
-			cache = [parseTemplate(descriptor), descriptor]
-		}
-		return render(...cache, values)
+		descriptor ??= parseTemplateDescriptor(parseTemplateHtml(strings))
+		template ??= parseTemplate(descriptor)
+		return render(template, descriptor, values)
 	}
 }
