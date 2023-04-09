@@ -92,7 +92,7 @@ export function mountableNodeAssert<T extends Node>(node: T): asserts node is T 
 			else {
 				_onMountListeners.push(() => {
 					const cleanup = listener()
-					if (cleanup instanceof Function) _onUnmountListeners.push(cleanup)
+					if (typeof cleanup === "function") _onUnmountListeners.push(cleanup)
 				})
 			}
 		},
@@ -101,7 +101,7 @@ export function mountableNodeAssert<T extends Node>(node: T): asserts node is T 
 			else {
 				_onUnmountListeners.push(() => {
 					const cleanup = listener()
-					if (cleanup instanceof Function) _onMountListeners.push(cleanup)
+					if (typeof cleanup === "function") _onMountListeners.push(cleanup)
 				})
 			}
 		},

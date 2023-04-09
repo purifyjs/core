@@ -28,7 +28,7 @@ export function render<T extends TemplateValue[]>(template: HTMLTemplateElement,
 				for (const attribute of Array.from(element.attributes)) value.setAttribute(attribute.name, attribute.value)
 				element.replaceWith(value)
 			} else if (checkValueDescriptorType("attribute", descriptor)) {
-				if (value instanceof Function) values[index] = value = createOrGetDeriveOfFunction(value as () => unknown)
+				if (typeof value === "function") values[index] = value = createOrGetDeriveOfFunction(value as () => unknown)
 				if (value instanceof SignalReadable) {
 					if (descriptor.quote === "") {
 						mountableNodeAssert(element)
@@ -51,7 +51,7 @@ export function render<T extends TemplateValue[]>(template: HTMLTemplateElement,
 			} else if (checkValueDescriptorType("directive", descriptor)) {
 				switch (descriptor.directive) {
 					case "class":
-						if (value instanceof Function) value = createOrGetDeriveOfFunction(value as () => unknown)
+						if (typeof value === "function") value = createOrGetDeriveOfFunction(value as () => unknown)
 						if (value instanceof SignalReadable) {
 							mountableNodeAssert(element)
 							element.$subscribe(value, (v) => element.classList.toggle(descriptor.name, !!v), {
@@ -60,7 +60,7 @@ export function render<T extends TemplateValue[]>(template: HTMLTemplateElement,
 						} else element.classList.toggle(descriptor.name, !!value)
 						break
 					case "style":
-						if (value instanceof Function) value = createOrGetDeriveOfFunction(value as () => unknown)
+						if (typeof value === "function") value = createOrGetDeriveOfFunction(value as () => unknown)
 						if (value instanceof SignalReadable) {
 							mountableNodeAssert(element)
 							element.$subscribe(value, (v) => element.style.setProperty(descriptor.name, `${v}`), {
@@ -69,7 +69,7 @@ export function render<T extends TemplateValue[]>(template: HTMLTemplateElement,
 						} else element.style.setProperty(descriptor.name, `${value}`)
 						break
 					case "on":
-						if (!(value instanceof Function))
+						if (!(typeof value === "function"))
 							throw new Error(`${descriptor.type}:${descriptor.name} must be a function, but got ${nameOf(value)}.`)
 						mountableNodeAssert(element)
 						element.$onMount(() => element.addEventListener(descriptor.name, value as EventListener))
