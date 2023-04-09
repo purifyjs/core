@@ -16,6 +16,8 @@ export function lazyImport<M extends ObjUnknown>(module: Promise<M>) {
 	)
 
 	return proxy as {
-		[K in keyof M]: M[K] extends (...args: any) => any ? ((...params: Parameters<M[K]>) => ReturnType<M[K]> extends Promise<any> ? M[K] : Promise<M[K]>) : (() => Promise<M[K]>)
+		[K in keyof M]: M[K] extends (...args: any) => any
+			? (...params: Parameters<M[K]>) => ReturnType<M[K]> extends Promise<any> ? ReturnType<M[K]> : Promise<ReturnType<M[K]>>
+			: () => M[K] extends Promise<any> ? M[K] : Promise<M[K]>
 	}
 }

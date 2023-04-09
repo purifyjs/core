@@ -1,5 +1,5 @@
-import { Renderable, RenderSymbol } from "../template/renderable"
 import { createReadable, SignalReadable } from "../signal/readable"
+import { Renderable, RenderSymbol } from "../template/renderable"
 import type { Excludable } from "../utils/type"
 
 // TODO: Try to fix types, if posibble

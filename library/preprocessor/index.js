@@ -1,10 +1,9 @@
 import { parseLiterals } from "parse-literals"
 const fileRegex = /\.(ts)$/
 
-export function masterTsPreprocessor() {
+export function masterTsVitePlugin() {
 	return {
 		name: "transform-file",
-
 		transform(src, id) {
 			if (!fileRegex.test(id)) return
 			return {

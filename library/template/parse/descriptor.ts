@@ -1,6 +1,6 @@
 import { assert } from "../../utils/assert"
 import { randomId } from "../../utils/id"
-import { HtmlPartStateType, HtmlDescriptor } from "./html"
+import { HtmlDescriptor, HtmlPartStateType } from "./html"
 
 type ValueDescriptorType = "render-node" | "render-component" | "attribute" | "directive"
 export function checkValueDescriptorType<T extends ValueDescriptorType>(type: T, descriptor: ValueDescriptor): descriptor is ValueDescriptor<T> {
@@ -19,14 +19,14 @@ type ValueDescriptor<T extends ValueDescriptorType = ValueDescriptorType> = {
 	ref: string
 } & (T extends "attribute"
 	? {
-		name: string
-		quote: "'" | '"' | ""
-	}
+			name: string
+			quote: "'" | '"' | ""
+	  }
 	: T extends "directive"
 	? {
-		directive: DirectiveType
-		name: string
-	}
+			directive: DirectiveType
+			name: string
+	  }
 	: {})
 
 function createValueDescriptor<T extends ValueDescriptorType>(type: T, descriptor: Omit<ValueDescriptor<T>, "type">) {
@@ -83,8 +83,8 @@ export function parseTemplateDescriptor<T extends HtmlDescriptor>(htmlParse: T):
 					parsePart.state.type === HtmlPartStateType.AttributeValueUnquoted
 						? ""
 						: parsePart.state.type === HtmlPartStateType.AttributeValueSingleQuoted
-							? "'"
-							: '"'
+						? "'"
+						: '"'
 				if (attributeNameParts.length === 2) {
 					if (parsePart.state.type !== HtmlPartStateType.AttributeValueUnquoted) throw new Error("Directive value must be unquoted")
 					html += `""`
