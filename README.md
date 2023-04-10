@@ -4,9 +4,9 @@
 
 # MasterTS : A Breath of Fresh Air
 
-A straight and clean TypeScript tool for building user interfaces.
+A straight and clean TypeScript library for building user interfaces.
 
-MasterTS is a tool for building single-page applications (SPAs) using Signals, Web Components and TypeScript. It is designed to be lightweight and easy to use, with a focus on transparency and simplicity.
+MasterTS is a library for building single-page applications (SPAs) using Signals, Web Components and TypeScript. It is designed to be lightweight and easy to use, with a focus on transparency and simplicity.
 
 ### Warning
 

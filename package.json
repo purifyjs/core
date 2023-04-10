@@ -1,7 +1,4 @@
 {
 	"type": "module",
-	"name": "master-ts",
-	"dependencies": {
-		"parse-literals": "^1.2.1"
-	}
+	"name": "master-ts"
 }
