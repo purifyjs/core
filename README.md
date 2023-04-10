@@ -4,9 +4,9 @@
 
 # MasterTS : A Breath of Fresh Air
 
-A straight and clean TypeScript library for building user interfaces
+A straight and clean TypeScript tool for building user interfaces.
 
-MasterTS is a frontend library for building single-page applications (SPAs) using Signals, Web Components and TypeScript. It is designed to be lightweight and easy to use, with a focus on transparency and simplicity.
+MasterTS is a tool for building single-page applications (SPAs) using Signals, Web Components and TypeScript. It is designed to be lightweight and easy to use, with a focus on transparency and simplicity.
 
 ### Warning
 
@@ -19,6 +19,7 @@ npm i github:DeepDoge/master-ts -D
 ```
 
 ### Extensions
+
 Recommended extensions for inline html syntax highlight, intellij and formatting: [MasterTS Recommended Extensions](https://github.com/DeepDoge/master-ts-vite-demo/blob/master/.vscode/extensions.json)
 
 ### Documentation
@@ -34,7 +35,7 @@ For an example of how to use MasterTS, see the [MasterTS Vite Example](https://g
 ### Motivation
 
 There are many frontend libraries available for building SPAs, but most of them are either too complex or a mess of "features" that are just duct tape solutions.<br/>
-Many have good sides, and some are better than others, but still have bad sides.<br/>
+Many have good sides, and some are better than others, but still have bad sides.
 
 In React, reactivity is not great, most of the time you have to ask yourself "Will it re-render?".
 And Svelte's problem is the components. Components in Svelte have this nice reactivity thanks to their compiler.<br/>
@@ -47,17 +48,19 @@ Another problem with Svelte, React, and many other frameworks is that components
 MasterTS uses Web-Components like Lit, so a component is just another HTML Node that you can use and store in any way. It's not special and doesn't have any pitfalls.
 
 In SolidJS and React, we use TSX, which lets you define components in any way you want; they are just functions returning a component.<br/>
-MasterTS follows the same path; components can be defined and created in any way, so it's modular. 
+MasterTS follows the same path; components can be defined and created in any way, so it's modular. <br/>
+But also in MasterTS these functions can be async.
 
 Svelte expects you to rely on the compiler so much. It expects you to use `.svelte` file extension for your components, which is not really modular and free and doesn't have full TypeScript support, and when it has TypeScript support, it's not always great.<br/>
 In MasterTS, we use `.ts` files, so TypeScript is the first-class citizen and natively supported.<br/>
 
 So MasterTS is the combination of these (with some changes):
-- It gets signals from SolidJS but doesn't return it with a getter, setter tuple and makes it easy to detect at runtime.
-- It gets function-based components from React's TSX, and even more flexible.
-- It gets HTML template syntax and stores from Svelte, but stores are signals.
-- It uses Web-Components like Lit while also lets you use fragments without Web-Components.
-- It's just a TS library.
+
+-   It gets signals from SolidJS but doesn't return it with a getter, setter tuple and makes it easy to detect at runtime.
+-   It gets function-based components from React's TSX, and even more flexible.
+-   It gets HTML template syntax and stores from Svelte, but stores are signals.
+-   It uses Web-Components like Lit while also lets you use fragments without Web-Components.
+-   It's just a TS library.
 
 So, MasterTS is designed to be simple and easy to use, with a focus on transparency, simplicity, and modularity.
 
@@ -65,7 +68,7 @@ So, MasterTS is designed to be simple and easy to use, with a focus on transpare
 
 **Transparent:** It prioritizes not hiding things from you. Everything is where it should be.
 
-**Modular:** It doesn't tell you where and how to define things. Everything is easy to understand and combine. 
+**Modular:** It doesn't tell you where and how to define things. Everything is easy to understand and combine.
 
 ### Note
 
@@ -73,4 +76,4 @@ Initially, the goal of MasterTS was to create a library with resumable server-si
 
 ### Development
 
-If you wanna work on MasterTS, it is recommended to use the [MasterTS Workspace](https://github.com/DeepDoge/master-ts-workspace) for a better developer experience.
+If you wanna work on development of the MasterTS, it is recommended to use the [MasterTS Workspace](https://github.com/DeepDoge/master-ts-workspace) for a better developer experience.
