@@ -1,48 +1,54 @@
-import { createReadable, SignalReadable, SignalSubscription } from "../signal/readable"
+import { createReadable, SignalReadable, SignalSetter, SignalSubscription } from "../signal/readable"
 
-export type SignalDeriveDependencyAdder = {
-	<T>(signal: SignalReadable<T>): SignalReadable<T>
-}
 export type SignalDeriver<T> = {
 	(): T
 }
 
 export function createDerive<T>(deriver: SignalDeriver<T>, staticDependencies?: SignalReadable<any>[]): SignalReadable<T> {
-	const dependencies = new Set<SignalReadable<any>>(staticDependencies)
-	const dependencySubscriptions: SignalSubscription[] = []
+	let set: SignalSetter<T>
+	let update: () => void
+	let dependencyToSubscriptionMap: Map<SignalReadable<unknown>, SignalSubscription | null>
 
-	const self = createReadable<T>(null!, (set) => {
-		const addDependency: SignalDeriveDependencyAdder = (signal) => {
-			if (dependencies.has(signal)) return signal
-			// xx console.log("%cadded dependecy", "color:orange", signal.id, "to", self.id)
-			dependencies.add(signal)
-			dependencySubscriptions.push(signal.subscribe(() => update()))
-			return signal
+	if (staticDependencies) {
+		dependencyToSubscriptionMap = new Map<SignalReadable<unknown>, SignalSubscription | null>(
+			staticDependencies?.map((dependency) => [dependency, null])
+		)
+		update = () => {
+			const value = deriver()
+			set(value)
 		}
-
-		const update = staticDependencies
-			? () => {
-					const value = deriver()
-					set(value)
-			  }
-			: () => {
-					SignalReadable._SyncContext.push(new Set())
-					const value = deriver()
-
-					const syncContext = SignalReadable._SyncContext.pop()!
-					syncContext.delete(self as SignalReadable<unknown>)
-					syncContext.forEach(addDependency)
-
-					set(value)
-			  }
-
-		{
-			let i = 0
-			for (const dependency of dependencies) dependencySubscriptions[i++] = dependency.subscribe(() => update())
+	} else {
+		dependencyToSubscriptionMap = new Map<SignalReadable<unknown>, SignalSubscription>()
+		function addDependency(dependency: SignalReadable<unknown>) {
+			dependencyToSubscriptionMap.set(dependency, dependency.subscribe(update))
 		}
+		update = () => {
+			SignalReadable._SyncContextStack.push(new Set())
+			const value = deriver()
+			const syncContext = SignalReadable._SyncContextStack.pop()!
+			syncContext.delete(self as SignalReadable<unknown>)
+			for (const [dependency, subscription] of dependencyToSubscriptionMap.entries()) {
+				if (syncContext.has(dependency)) {
+					syncContext.delete(dependency)
+				} else {
+					subscription?.unsubscribe()
+					dependencyToSubscriptionMap.delete(dependency)
+				}
+			}
+			syncContext.forEach(addDependency)
+
+			set(value)
+		}
+	}
+
+	const self = createReadable<T>(null!, (_set) => {
+		dependencyToSubscriptionMap.delete(self as SignalReadable<unknown>)
+		set = _set
+		for (const dependency of dependencyToSubscriptionMap.keys()) dependencyToSubscriptionMap.set(dependency, dependency.subscribe(update))
 		update()
-
-		return () => dependencySubscriptions.forEach((subscription) => subscription.unsubscribe())
+		return () => {
+			for (const subscription of dependencyToSubscriptionMap.values()) subscription?.unsubscribe()
+		}
 	})
 	return self
 }

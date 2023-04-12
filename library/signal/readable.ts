@@ -26,7 +26,7 @@ export function createReadable<T>(...params: ConstructorParameters<typeof Signal
 }
 
 export class SignalReadable<T = unknown> implements Renderable<DocumentFragment> {
-	public static _SyncContext: Set<SignalReadable>[] = []
+	public static _SyncContextStack: Set<SignalReadable>[] = []
 	public readonly id
 	protected readonly _listeners: Set<SignalSubscriptionListener<T>>
 	protected _value: T
@@ -45,7 +45,7 @@ export class SignalReadable<T = unknown> implements Renderable<DocumentFragment>
 			this._activate()
 			setTimeout(() => this._checkActive(), 5000)
 		}
-		SignalReadable._SyncContext[SignalReadable._SyncContext.length - 1]?.add(this as SignalReadable<unknown>)
+		SignalReadable._SyncContextStack[SignalReadable._SyncContextStack.length - 1]?.add(this as SignalReadable<unknown>)
 		return this._value
 	}
 
