@@ -54,11 +54,8 @@ export class SignalReadable<T = unknown> implements Renderable<DocumentFragment>
 	}
 
 	protected readonly _checkActive = () => {
-		if (this._listeners.size) this._activate()
-		else this._deactivate()
+		if (this._listeners.size === 0) this._deactivate()
 	}
-
-	private _active = false
 
 	protected readonly _set: SignalSetter<T> = (value, silent) => {
 		this._value = value
@@ -66,19 +63,15 @@ export class SignalReadable<T = unknown> implements Renderable<DocumentFragment>
 	}
 
 	protected readonly _activate = () => {
-		if (this._active) return
 		if (!this._updater) return
 		if (this._cleaner) return
-		this._active = true
 		this._cleaner = this._updater(this._set, this.signal)
 		// xx console.log("%cactivated", "color:yellow", this.id, this._value)
 	}
 
 	protected readonly _deactivate = () => {
-		if (!this._active) return
 		if (!this._updater) return
 		if (!this._cleaner) return
-		this._active = false
 		this._cleaner()
 		this._cleaner = null
 		// xx console.log("%cdeactivated", "color:yellow", this.id, this._value)
