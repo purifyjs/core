@@ -9,10 +9,12 @@ export class SignalWritable<T> extends SignalReadable<T> {
 		super(value)
 	}
 
-	public readonly set = this._set
+	public set(value: T) {
+		this._set(value)
+	}
 
 	public override set ref(value: T) {
-		this._set(value)
+		this.set(value)
 	}
 
 	public override get ref() {

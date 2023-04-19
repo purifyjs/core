@@ -61,7 +61,6 @@ export class SignalReadable<T = unknown> implements Renderable<DocumentFragment>
 	private _active = false
 
 	protected readonly _set: SignalSetter<T> = (value, silent) => {
-		if (value === this._value) return
 		this._value = value
 		if (!silent) this.signal()
 	}
@@ -89,8 +88,8 @@ export class SignalReadable<T = unknown> implements Renderable<DocumentFragment>
 		// xx console.log("%csubscribed", "color:orange", listener.name, "to", this.id)
 		switch (options?.mode) {
 			case "once":
-				const onceCallback = () => {
-					listener(this.ref)
+				const onceCallback: SignalSubscriptionListener<T> = (...args) => {
+					listener(...args)
 					this._listeners.delete(onceCallback)
 				}
 				this._listeners.add(onceCallback)
@@ -117,7 +116,9 @@ export class SignalReadable<T = unknown> implements Renderable<DocumentFragment>
 		this._listeners.forEach((callback) => {
 			try {
 				callback(this.ref)
-			} catch {}
+			} catch (error) {
+				console.error(error)
+			}
 		})
 	}
 
@@ -130,7 +131,9 @@ export class SignalReadable<T = unknown> implements Renderable<DocumentFragment>
 			try {
 				const r = callback(this.ref)
 				if (r instanceof Promise) returns[i++] = r
-			} catch {}
+			} catch (error) {
+				console.error(error)
+			}
 		})
 		await Promise.all(returns)
 	}

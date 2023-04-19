@@ -1,6 +1,5 @@
 import { mountableNodeAssert } from "../mountable"
-import { createDerive } from "../signal/derive"
-import { SignalReadable } from "../signal/readable"
+import { createReadable, SignalReadable } from "../signal/readable"
 import { createWritable, SignalWritable } from "../signal/writable"
 import { valueToNode } from "../template/node"
 import { RenderSymbol } from "../template/renderable"
@@ -75,10 +74,20 @@ function eachOfSignalArray<T extends unknown[]>(each: SignalReadable<T>) {
 							nodes = cache.nodes
 						} else {
 							const indexSignal = createWritable(index)
-							// we need itemSignal because when array changes also the item should hcange even though item has the same key
-							// i mean this sounds correct but maybe it shouldn't change idk
-							// alternative is just using the item, not signal, and having a different key
-							const itemSignal = createDerive(() => each.ref[indexSignal.ref])
+							const currentValue = () => each.ref[indexSignal.ref]
+							const itemSignal = createReadable<T[number]>(currentValue(), (set) => {
+								let lastValue = currentValue()
+								function update() {
+									const value = currentValue()
+									if (value !== lastValue) {
+										set(value)
+										lastValue = value
+									}
+								}
+								update()
+								const subs = [each.subscribe(update), indexSignal.subscribe(update)]
+								return () => subs.forEach((sub) => sub.unsubscribe())
+							})
 							const value = _as ? _as(itemSignal, indexSignal) : itemSignal
 							const node = valueToNode(value)
 							nodes = node instanceof DocumentFragment ? Array.from(node.childNodes) : [node as ChildNode]
