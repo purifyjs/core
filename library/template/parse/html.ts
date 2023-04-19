@@ -103,7 +103,7 @@ function processChar(char: string, state: HtmlPartState): string {
 		case HtmlPartStateType.TagInner:
 			if (char === ">") {
 				state.type = HtmlPartStateType.Outer
-				if (state.addRef) result = `ref:${state.ref} >`
+				if (state.addRef) result = ` ref:${state.ref}>`
 			} else if (/\s/.test(char)) state.type = HtmlPartStateType.TagInner
 			else {
 				state.type = HtmlPartStateType.AttributeName
