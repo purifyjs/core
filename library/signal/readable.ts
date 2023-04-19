@@ -33,10 +33,10 @@ export class SignalReadable<T = unknown> implements Renderable<DocumentFragment>
 	protected _updater: SignalUpdater<T> | null
 	protected _cleaner: Function | null = null
 
-	constructor(updater: SignalUpdater<T> | null = null) {
+	constructor(updater: SignalUpdater<T> | null = null, initial: T | null = null) {
 		this.id = randomId()
 		this._listeners = new Set()
-		this._value = null!
+		this._value = initial!
 		this._updater = updater
 	}
 
@@ -88,14 +88,14 @@ export class SignalReadable<T = unknown> implements Renderable<DocumentFragment>
 		// xx console.log("%csubscribed", "color:orange", listener.name, "to", this.id)
 		switch (options?.mode) {
 			case "once":
-				const onceCallback: SignalSubscriptionListener<T> = (...args) => {
-					listener(...args)
+				const onceCallback = () => {
+					listener(this.ref)
 					this._listeners.delete(onceCallback)
 				}
 				this._listeners.add(onceCallback)
 				break
 			case "immediate":
-				listener(this.get())
+				listener(this.ref)
 			case "normal":
 			default:
 				this._listeners.add(listener)
@@ -115,10 +115,8 @@ export class SignalReadable<T = unknown> implements Renderable<DocumentFragment>
 		// xx console.log("%csignaling", "color:yellow", this.id, this._value)
 		this._listeners.forEach((callback) => {
 			try {
-				callback(this.get())
-			} catch (error) {
-				console.error(error)
-			}
+				callback(this.ref)
+			} catch {}
 		})
 	}
 
@@ -129,11 +127,9 @@ export class SignalReadable<T = unknown> implements Renderable<DocumentFragment>
 		let i = 0
 		this._listeners.forEach((callback) => {
 			try {
-				const r = callback(this.get())
+				const r = callback(this.ref)
 				if (r instanceof Promise) returns[i++] = r
-			} catch (error) {
-				console.error(error)
-			}
+			} catch {}
 		})
 		await Promise.all(returns)
 	}
