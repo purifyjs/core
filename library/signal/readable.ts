@@ -106,25 +106,7 @@ export class SignalReadable<T = unknown> implements Renderable<DocumentFragment>
 
 	public readonly signal = () => {
 		// xx console.log("%csignaling", "color:yellow", this.id, this._value)
-		this._listeners.forEach((callback) => {
-			try {
-				callback(this.get())
-			} catch {}
-		})
-	}
-
-	public readonly signalAsync = async () => {
-		// xx console.log("%csignaling async", "color:yellow", this.id, this._value)
-		// Giving a size to the array is faster than using push
-		const returns: Promise<unknown>[] = new Array(this._listeners.size)
-		let i = 0
-		this._listeners.forEach((callback) => {
-			try {
-				const r = callback(this.get())
-				if (r instanceof Promise) returns[i++] = r
-			} catch {}
-		})
-		await Promise.all(returns)
+		this._listeners.forEach((callback) => callback(this.get()))
 	}
 
 	public readonly [RenderSymbol] = () => {

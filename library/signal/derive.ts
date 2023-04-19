@@ -8,14 +8,23 @@ export function createDerive<T>(deriver: SignalDeriver<T>, staticDependencies?: 
 	let set: SignalSetter<T>
 	let update: () => void
 	let dependencyToSubscriptionMap: Map<SignalReadable<unknown>, SignalSubscription | null>
+	let updating = false
 
 	if (staticDependencies) {
 		dependencyToSubscriptionMap = new Map<SignalReadable<unknown>, SignalSubscription | null>(
 			staticDependencies?.map((dependency) => [dependency, null])
 		)
 		update = () => {
-			const value = deriver()
-			set(value)
+			if (updating) return
+			updating = true
+			try {
+				const value = deriver()
+				set(value)
+			} catch (error) {
+				throw error
+			} finally {
+				updating = false
+			}
 		}
 	} else {
 		dependencyToSubscriptionMap = new Map<SignalReadable<unknown>, SignalSubscription>()
@@ -23,21 +32,29 @@ export function createDerive<T>(deriver: SignalDeriver<T>, staticDependencies?: 
 			dependencyToSubscriptionMap.set(dependency, dependency.subscribe(update))
 		}
 		update = () => {
-			SignalReadable._SyncContextStack.push(new Set())
-			const value = deriver()
-			const syncContext = SignalReadable._SyncContextStack.pop()!
-			syncContext.delete(self as SignalReadable<unknown>)
-			for (const [dependency, subscription] of dependencyToSubscriptionMap.entries()) {
-				if (syncContext.has(dependency)) {
-					syncContext.delete(dependency)
-				} else {
-					subscription?.unsubscribe()
-					dependencyToSubscriptionMap.delete(dependency)
+			if (updating) return
+			updating = true
+			try {
+				SignalReadable._SyncContextStack.push(new Set())
+				const value = deriver()
+				const syncContext = SignalReadable._SyncContextStack.pop()!
+				syncContext.delete(self as SignalReadable<unknown>)
+				for (const [dependency, subscription] of dependencyToSubscriptionMap.entries()) {
+					if (syncContext.has(dependency)) {
+						syncContext.delete(dependency)
+					} else {
+						subscription?.unsubscribe()
+						dependencyToSubscriptionMap.delete(dependency)
+					}
 				}
-			}
-			syncContext.forEach(addDependency)
+				syncContext.forEach(addDependency)
 
-			set(value)
+				set(value)
+			} catch (error) {
+				throw error
+			} finally {
+				updating = false
+			}
 		}
 	}
 
