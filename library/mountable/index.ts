@@ -116,8 +116,7 @@ export function mountableNodeAssert<T extends Node>(node: T): asserts node is T 
 			let subscriptions: SignalSubscription[] = new Array(signals.length)
 
 			this.$onMount(() => {
-				for (let i = 0; i < signals.length; i++) subscriptions[i] = signals[i]!.subscribe(() => callback())
-				callback()
+				for (let i = 0; i < signals.length; i++) subscriptions[i] = signals[i]!.subscribe(callback)
 			})
 			this.$onUnmount(() => subscriptions.forEach((subscription) => subscription.unsubscribe()))
 		},
