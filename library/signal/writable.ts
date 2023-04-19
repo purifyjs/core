@@ -6,8 +6,7 @@ export function createWritable<T>(...params: ConstructorParameters<typeof Signal
 
 export class SignalWritable<T> extends SignalReadable<T> {
 	constructor(value: T) {
-		super()
-		this.set(value)
+		super(null, value)
 	}
 
 	public set(value: T) {

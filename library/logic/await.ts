@@ -45,17 +45,19 @@ function awaitPromise<Awaited>(promise: Promise<Awaited>): AwaitPromise<Awaited>
 		},
 		then(then?: (awaited: Awaited) => unknown) {
 			delete (this as Partial<typeof this>).then
-			return createReadable((set) => {
-				set(placeholder_ ? placeholder_() : null)
-				promise
-					.then((awaited) => (then ? then(awaited) : awaited))
-					.catch((error) => {
-						if (!error_) throw error
-						set(error_)
-					})
-					.then((result) => set(result))
-				return () => {}
-			}) as never
+			return createReadable(
+				(set) => {
+					promise
+						.then((awaited) => (then ? then(awaited) : awaited))
+						.catch((error) => {
+							if (!error_) throw error
+							set(error_)
+						})
+						.then((result) => set(result))
+					return () => {}
+				},
+				placeholder_ ? placeholder_() : null
+			) as never
 		},
 		[RenderSymbol]() {
 			return this.then()
@@ -80,32 +82,34 @@ function awaitPromiseSignal<Awaited>(promiseSignal: SignalReadable<Promise<Await
 		},
 		then(then?: (awaited: SignalReadable<Awaited>) => unknown) {
 			delete (this as Partial<typeof this>).then
-			return createReadable<unknown>((set) => {
-				set(placeholder_ ? placeholder_() : null)
-				let counter = 0
+			return createReadable<unknown>(
+				(set) => {
+					let counter = 0
 
-				let thenCache: unknown
-				const awaitedSignal = createWritable<Awaited>(null!)
+					let thenCache: unknown
+					const awaitedSignal = createWritable<Awaited>(null!)
 
-				return promiseSignal.subscribe(
-					async (promise) => {
-						const id = ++counter
-						try {
-							if (placeholder_ !== undefined) set(placeholder_())
-							const awaited = await promise
-							if (id !== counter) return
-							awaitedSignal.ref = awaited
-							set(then ? (thenCache ??= then(awaitedSignal)) : awaited)
-						} catch (error) {
-							if (id !== counter) return
-							assert<Error>(error)
-							if (!error_) throw error
-							set(error_(error))
-						}
-					},
-					{ mode: "immediate" }
-				).unsubscribe
-			}) as never
+					return promiseSignal.subscribe(
+						async (promise) => {
+							const id = ++counter
+							try {
+								if (placeholder_ !== undefined) set(placeholder_())
+								const awaited = await promise
+								if (id !== counter) return
+								awaitedSignal.ref = awaited
+								set(then ? (thenCache ??= then(awaitedSignal)) : awaited)
+							} catch (error) {
+								if (id !== counter) return
+								assert<Error>(error)
+								if (!error_) throw error
+								set(error_(error))
+							}
+						},
+						{ mode: "immediate" }
+					).unsubscribe
+				},
+				placeholder_ ? placeholder_() : null
+			) as never
 		},
 		[RenderSymbol]() {
 			return this.then()

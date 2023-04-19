@@ -10,5 +10,5 @@ export function createDeferred<T>(signal: SignalReadable<T>, timeout_ms: number 
 			},
 			{ mode: "immediate" }
 		).unsubscribe
-	})
+	}, signal.ref)
 }
