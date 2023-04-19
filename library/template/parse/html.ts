@@ -15,6 +15,7 @@ type HtmlPartState = {
 	ref: string
 	attributeName: string
 	attributeValue: string
+	addRef: boolean
 }
 
 export const enum HtmlPartStateType {
@@ -39,8 +40,8 @@ export const enum HtmlPartStateType {
 	ATTR_END,
 }
 
-export function parseTemplateHtml(arr: TemplateStringsArray): HtmlDescriptor {
-	const parses: HtmlPart[] = new Array(arr.length)
+export function parseTemplateHtml(templateStrings: TemplateStringsArray): HtmlDescriptor {
+	const parses: HtmlPart[] = new Array(templateStrings.length)
 
 	const state: HtmlPartState = {
 		type: HtmlPartStateType.Outer,
@@ -48,24 +49,26 @@ export function parseTemplateHtml(arr: TemplateStringsArray): HtmlDescriptor {
 		ref: "",
 		attributeName: "",
 		attributeValue: "",
+		addRef: false,
 	}
 
-	for (let i = 0; i < arr.length; i++) {
-		const parse = arr[i]!
-		let html = ""
+	for (let i = 0; i < templateStrings.length; i++) {
+		const templateString = templateStrings[i]!
+		let resultHtml = ""
 
-		for (let i = 0; i < parse.length; i++) {
-			const char = parse[i]!
+		state.addRef = true
+		for (let i = 0; i < templateString.length; i++) {
+			const char = templateString[i]!
 			try {
-				html += processChar(char, state)
+				resultHtml += processChar(char, state)
 			} catch (error) {
-				console.error("Error while parsing template:", error, "At:", html.slice(-256).trim())
+				console.error("Error while parsing template:", error, "At:", resultHtml.slice(-256).trim())
 				throw error
 			}
 		}
 
 		parses[i] = {
-			html,
+			html: resultHtml,
 			state: { ...state },
 		}
 	}
@@ -74,7 +77,7 @@ export function parseTemplateHtml(arr: TemplateStringsArray): HtmlDescriptor {
 	}
 }
 
-function processChar(char: string, state: HtmlPartState) {
+function processChar(char: string, state: HtmlPartState): string {
 	let result = char
 	switch (state.type) {
 		case HtmlPartStateType.Outer:
@@ -84,6 +87,7 @@ function processChar(char: string, state: HtmlPartState) {
 				state.ref = randomId()
 				state.attributeName = ""
 				state.attributeValue = ""
+				state.addRef = false
 			}
 			break
 		case HtmlPartStateType.TagName:
@@ -97,31 +101,35 @@ function processChar(char: string, state: HtmlPartState) {
 			} else state.tag += char
 			break
 		case HtmlPartStateType.TagInner:
-			if (char === ">") state.type = HtmlPartStateType.Outer
-			else if (/\s/.test(char)) state.type = HtmlPartStateType.TagInner
+			if (char === ">") {
+				state.type = HtmlPartStateType.Outer
+				if (state.addRef) result = `ref:${state.ref} >`
+			} else if (/\s/.test(char)) state.type = HtmlPartStateType.TagInner
 			else {
 				state.type = HtmlPartStateType.AttributeName
 				state.attributeName = char
-				result = `ref:${state.ref} ${result}`
 			}
 			break
 		case HtmlPartStateType.TagClose:
 			if (char === ">") {
 				state.type = HtmlPartStateType.Outer
-				state.tag = ""
 			} else state.tag += char
 			break
 		case HtmlPartStateType.AttributeName:
-			if (char === ">") state.type = HtmlPartStateType.Outer
-			else if (/\s/.test(char)) state.type = HtmlPartStateType.TagInner
+			if (char === ">") {
+				state.type = HtmlPartStateType.TagInner
+				return processChar(char, state)
+			} else if (/\s/.test(char)) state.type = HtmlPartStateType.TagInner
 			else if (char === "=") {
 				state.type = HtmlPartStateType.AttributeValueUnquoted
 				state.attributeValue = ""
 			} else state.attributeName += char
 			break
 		case HtmlPartStateType.AttributeValueUnquoted:
-			if (char === ">") state.type = HtmlPartStateType.Outer
-			else if (/\s/.test(char)) state.type = HtmlPartStateType.TagInner
+			if (char === ">") {
+				state.type = HtmlPartStateType.TagInner
+				return processChar(char, state)
+			} else if (/\s/.test(char)) state.type = HtmlPartStateType.TagInner
 			else if (char === '"') {
 				state.type = HtmlPartStateType.AttributeValueDoubleQuoted
 				state.attributeValue = ""

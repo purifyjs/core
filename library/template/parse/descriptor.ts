@@ -2,7 +2,7 @@ import { assert } from "../../utils/assert"
 import { randomId } from "../../utils/id"
 import { HtmlDescriptor, HtmlPartStateType } from "./html"
 
-type ValueDescriptorType = "render-node" | "render-component" | "attribute" | "directive"
+type ValueDescriptorType = "render-node" | "render-element" | "attribute" | "directive"
 export function checkValueDescriptorType<T extends ValueDescriptorType>(type: T, descriptor: ValueDescriptor): descriptor is ValueDescriptor<T> {
 	return descriptor.type === type
 }
@@ -74,7 +74,7 @@ export function parseTemplateDescriptor<T extends HtmlDescriptor>(htmlParse: T):
 			} else if (parsePart.state.type === HtmlPartStateType.TagInner && !parsePart.state.attributeName) {
 				if (parsePart.state.tag === "x") {
 					const ref = parsePart.state.ref
-					valueDescriptors[i] = createValueDescriptor("render-component", { ref })
+					valueDescriptors[i] = createValueDescriptor("render-element", { ref })
 					continue
 				}
 			} else if (parsePart.state.type > HtmlPartStateType.ATTR_VALUE_START && parsePart.state.type < HtmlPartStateType.ATTR_VALUE_END) {

@@ -22,8 +22,8 @@ export function render<T extends TemplateValue[]>(template: HTMLTemplateElement,
 
 			if (checkValueDescriptorType("render-node", descriptor)) {
 				element.replaceWith(valueToNode(value))
-			} else if (checkValueDescriptorType("render-component", descriptor)) {
-				if (!(value instanceof Component)) throw new Error(`Expected ${nameOf(Component)} at index "${index}", but got ${nameOf(value)}.`)
+			} else if (checkValueDescriptorType("render-element", descriptor)) {
+				if (!(value instanceof HTMLElement)) throw new Error(`Expected ${nameOf(Component)} at index "${index}", but got ${nameOf(value)}.`)
 				value.append(...Array.from(element.childNodes))
 				for (const attribute of Array.from(element.attributes)) value.setAttribute(attribute.name, attribute.value)
 				element.replaceWith(value)
