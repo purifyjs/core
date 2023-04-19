@@ -11,7 +11,7 @@ export class SignalWritable<T> extends SignalReadable<T> {
 	}
 
 	public set(value: T) {
-		this._set(value)
+		if (value !== this._value) this._set(value)
 	}
 
 	public override set ref(value: T) {
