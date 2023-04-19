@@ -86,6 +86,7 @@ export class SignalReadable<T = unknown> implements Renderable<DocumentFragment>
 
 	public readonly subscribe = (listener: SignalSubscriptionListener<T>, options?: SignalSubscriptionOptions): SignalSubscription => {
 		// xx console.log("%csubscribed", "color:orange", listener.name, "to", this.id)
+		this._activate()
 		switch (options?.mode) {
 			case "once":
 				const onceCallback = () => {
@@ -101,7 +102,6 @@ export class SignalReadable<T = unknown> implements Renderable<DocumentFragment>
 				this._listeners.add(listener)
 				break
 		}
-		this._checkActive()
 		return {
 			unsubscribe: () => {
 				// xx console.log("%cunsubscribed", "color:orange", listener.name, "from", this.id)
