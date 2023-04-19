@@ -41,7 +41,7 @@ export function createDerive<T>(deriver: SignalDeriver<T>, staticDependencies?: 
 		}
 	}
 
-	const self = createReadable<T>(null!, (_set) => {
+	const self = createReadable<T>((_set) => {
 		dependencyToSubscriptionMap.delete(self as SignalReadable<unknown>)
 		set = _set
 		for (const dependency of dependencyToSubscriptionMap.keys()) dependencyToSubscriptionMap.set(dependency, dependency.subscribe(update))

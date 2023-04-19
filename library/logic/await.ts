@@ -45,7 +45,8 @@ function awaitPromise<Awaited>(promise: Promise<Awaited>): AwaitPromise<Awaited>
 		},
 		then(then?: (awaited: Awaited) => unknown) {
 			delete (this as Partial<typeof this>).then
-			return createReadable(placeholder_ ? placeholder_() : null, (set) => {
+			return createReadable((set) => {
+				set(placeholder_ ? placeholder_() : null)
 				promise
 					.then((awaited) => (then ? then(awaited) : awaited))
 					.catch((error) => {
@@ -79,7 +80,8 @@ function awaitPromiseSignal<Awaited>(promiseSignal: SignalReadable<Promise<Await
 		},
 		then(then?: (awaited: SignalReadable<Awaited>) => unknown) {
 			delete (this as Partial<typeof this>).then
-			return createReadable<unknown>(placeholder_ ? placeholder_() : null, (set) => {
+			return createReadable<unknown>((set) => {
+				set(placeholder_ ? placeholder_() : null)
 				let counter = 0
 
 				let thenCache: unknown

@@ -60,7 +60,7 @@ function switchSignal<T>(value: SignalReadable<T>): SwitchSignal<T> {
 		[RenderSymbol]() {
 			delete (this as Partial<typeof this>).case
 			delete (this as Partial<typeof this>).default
-			return createReadable<unknown>(null, (set) => {
+			return createReadable<unknown>((set) => {
 				let isCurrentFallback = false
 				return value.subscribe(
 					(signalValue) => {

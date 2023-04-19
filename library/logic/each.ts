@@ -75,8 +75,9 @@ function eachOfSignalArray<T extends unknown[]>(each: SignalReadable<T>) {
 						} else {
 							const indexSignal = createWritable(index)
 							const currentValue = () => each.ref[indexSignal.ref]
-							const itemSignal = createReadable<T[number]>(currentValue(), (set) => {
+							const itemSignal = createReadable<T[number]>((set) => {
 								let lastValue = currentValue()
+								set(lastValue)
 								function update() {
 									const value = currentValue()
 									if (value !== lastValue) {
@@ -84,7 +85,6 @@ function eachOfSignalArray<T extends unknown[]>(each: SignalReadable<T>) {
 										lastValue = value
 									}
 								}
-								update()
 								const subs = [each.subscribe(update), indexSignal.subscribe(update)]
 								return () => subs.forEach((sub) => sub.unsubscribe())
 							})
