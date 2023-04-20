@@ -33,7 +33,7 @@ export class SignalReadable<T = unknown> implements Renderable<DocumentFragment>
 	protected _updater: SignalUpdater<T> | null
 	protected _cleaner: Function | null = null
 
-	constructor(updater: SignalUpdater<T> | null = null, initial: T | null = null) {
+	constructor(updater: SignalUpdater<T> | null = null, initial?: T) {
 		this.id = randomId()
 		this._listeners = new Set()
 		this._value = initial!
