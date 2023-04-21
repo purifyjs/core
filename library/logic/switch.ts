@@ -11,6 +11,7 @@ type Switch<TValue, TReturns = never> = {
 		then: TThen
 	): Switch<Excludable<TCase, Exclude<TValue, TCase>, TValue>, TReturns | ReturnType<TThen>>
 	default<TDefault extends Then<TValue>>(fallback: TDefault): Omit<Switch<never, TReturns | ReturnType<TDefault>>, string>
+	render(): TReturns
 } & Renderable<TReturns>
 
 type SwitchSignal<TValue, TReturns = never> = {
@@ -19,6 +20,7 @@ type SwitchSignal<TValue, TReturns = never> = {
 		then: TThen
 	): SwitchSignal<Excludable<TCase, Exclude<TValue, TCase>, TValue>, TReturns | ReturnType<TThen>>
 	default<TDefault extends Then<SignalReadable<TValue>>>(fallback: TDefault): Omit<SwitchSignal<never, TReturns | ReturnType<TDefault>>, string>
+	render(): SignalReadable<TReturns>
 } & Renderable<SignalReadable<TReturns>>
 
 function switchValue<T>(value: T): Switch<T> {
@@ -33,6 +35,9 @@ function switchValue<T>(value: T): Switch<T> {
 		default(fallback: Then<T>) {
 			fallbackCase = fallback
 			return this
+		},
+		render() {
+			return this[RenderSymbol]()
 		},
 		[RenderSymbol](): never {
 			const then = cases.get(value)
@@ -56,6 +61,9 @@ function switchSignal<T>(value: SignalReadable<T>): SwitchSignal<T> {
 			delete (this as Partial<typeof this>).default
 			fallbackCase = fallback
 			return this as never
+		},
+		render() {
+			return this[RenderSymbol]()
 		},
 		[RenderSymbol]() {
 			delete (this as Partial<typeof this>).case
