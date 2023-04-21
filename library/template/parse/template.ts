@@ -4,7 +4,7 @@ import { checkValueDescriptorType, TemplateDescriptor } from "./descriptor"
 export function parseTemplate({ refDataMap, valueDescriptors, html }: TemplateDescriptor) {
 	try {
 		const template = document.createElement("template")
-		template.innerHTML = html
+		template.innerHTML = html.trim()
 
 		for (let index = 0; index < valueDescriptors.length; index++) {
 			const descriptor = valueDescriptors[index]!
