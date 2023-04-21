@@ -152,5 +152,5 @@ function processChar(char: string, state: HtmlPartState): string {
 			break
 	}
 
-	return result
+	return result.trim()
 }
