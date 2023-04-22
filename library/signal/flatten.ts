@@ -7,6 +7,6 @@ export function flattenSignal<T extends SignalReadable<SignalReadable<any>>>(sig
 	return createDerive(() => {
 		let value: SignalReadable = signal
 		while (value.ref instanceof SignalReadable) value = value.ref
-		return value
+		return value.ref
 	}) as unknown as FlattenSignal<T>
 }
