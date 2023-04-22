@@ -14,7 +14,7 @@ export type SignalSubscriptionOptions = {
 }
 
 export type SignalSetter<T> = {
-	(value: T, silent?: boolean): void
+	(value: T): void
 }
 
 export type SignalUpdater<T> = {
@@ -57,9 +57,10 @@ export class SignalReadable<T = unknown> implements Renderable<DocumentFragment>
 		if (this._listeners.size === 0) this._deactivate()
 	}
 
-	protected readonly _set: SignalSetter<T> = (value, silent) => {
+	protected readonly _set: SignalSetter<T> = (value) => {
+		if (value === this._value) return
 		this._value = value
-		if (!silent) this.signal()
+		this.signal()
 	}
 
 	protected readonly _activate = () => {
