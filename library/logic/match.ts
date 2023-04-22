@@ -15,7 +15,7 @@ type Match<TValue, TReturns = unknown> = [TValue] extends [never]
 	  }
 
 type MatchSignal<TValue, TReturns = never> = [TValue] extends [never]
-	? Renderable<SignalReadable<TReturns>> & { render(): SignalReadable<TReturns> }
+	? Renderable<TReturns> & { render(): TReturns }
 	: {
 			case<TCase extends TValue, TThen extends Then<TCase>>(
 				value: TCase,
