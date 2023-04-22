@@ -85,6 +85,7 @@ function eachOfSignalArray<T extends unknown[]>(each: SignalReadable<T>) {
 								let lastValue = currentValue()
 								set(lastValue)
 								function update() {
+									if (indexSignal.ref >= eachValue.length) return // TODO: check if this fixed the issue
 									const value = currentValue()
 									if (value !== lastValue) {
 										set(value)
