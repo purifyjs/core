@@ -7,14 +7,14 @@ export type SignalSubscription = {
 	unsubscribe(): void
 }
 export type SignalSubscriptionListener<T> = {
-	(value: T): unknown
+	<U extends T>(value: U): unknown
 }
 export type SignalSubscriptionOptions = {
 	mode: "normal" | "once" | "immediate"
 }
 
 export type SignalSetter<T> = {
-	(value: T): void
+	<U extends T>(value: U): void
 }
 
 export type SignalUpdater<T> = {
