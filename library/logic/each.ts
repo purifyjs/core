@@ -4,6 +4,8 @@ import { createWritable, SignalWritable } from "../signal/writable"
 import { valueToNode } from "../template/node"
 import { Renderable, RenderSymbol } from "../template/renderable"
 
+// TODO: Rewrite this all, re-think it
+
 type KeyGetter<T> = (item: T, index: number) => unknown
 
 interface EachOfSignalArray<T extends unknown[]> extends Renderable<DocumentFragment> {
@@ -85,7 +87,7 @@ function eachOfSignalArray<T extends unknown[]>(each: SignalReadable<T>) {
 								let lastValue = currentValue()
 								set(lastValue)
 								function update() {
-									if (indexSignal.ref >= eachValue.length) return // TODO: check if this fixed the issue
+									if (indexSignal.ref >= eachValue.length) return
 									const value = currentValue()
 									if (value !== lastValue) {
 										set(value)
