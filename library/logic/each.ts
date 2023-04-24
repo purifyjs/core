@@ -115,7 +115,8 @@ function eachOfSignalArray<T extends unknown[]>(each: SignalReadable<T>) {
 						lastNode = newNodes[newNodes.length - 1]!
 					}
 
-					while (lastNode.nextSibling !== endComment) lastNode.nextSibling!.remove()
+					// TODO: find out why we don't have nextSibiling sometimes, why we are not in the dom
+					while (lastNode.nextSibling && lastNode.nextSibling !== endComment) lastNode.nextSibling.remove()
 
 					caches = newCaches
 					keyOrder = newKeyOrder
