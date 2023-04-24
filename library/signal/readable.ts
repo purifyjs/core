@@ -3,6 +3,8 @@ import { valueToNode } from "../template/node"
 import { Renderable, RenderSymbol } from "../template/renderable"
 import { randomId } from "../utils/id"
 
+// TODO: Rewrite this and also SignalWritable, Writable shouldnt have methods it doesnt need to. Also simplify the code more, you might put writable and readable in the same file too
+
 export type SignalSubscription = {
 	unsubscribe(): void
 }

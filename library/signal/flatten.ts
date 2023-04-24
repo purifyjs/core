@@ -1,6 +1,8 @@
 import { createDerive } from "./derive"
 import { SignalReadable } from "./readable"
 
+// TODO; Remove the need for this if posibble
+
 type FlattenSignal<T extends SignalReadable<any>> = T extends SignalReadable<SignalReadable<any>> ? FlattenSignal<T["ref"]> : T
 
 export function flattenSignal<T extends SignalReadable<SignalReadable<any>>>(signal: T) {
