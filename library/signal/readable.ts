@@ -105,9 +105,22 @@ export class SignalReadable<T = unknown> implements Renderable<DocumentFragment>
 		}
 	}
 
+	private _signaling = new Set<SignalSubscriptionListener<T>>()
+
 	public readonly signal = () => {
 		// xx console.log("%csignaling", "color:yellow", this.id, this._value)
-		this._listeners.forEach((callback) => callback(this.get()))
+		try {
+			this._listeners.forEach((callback) => {
+				if (this._signaling.has(callback)) return
+				this._signaling.add(callback)
+				callback(this.get())
+				this._signaling.delete(callback)
+			})
+		} catch (error) {
+			throw error
+		} finally {
+			this._signaling.clear()
+		}
 	}
 
 	public readonly [RenderSymbol] = () => {
