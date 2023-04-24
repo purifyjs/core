@@ -135,7 +135,8 @@ export class SignalReadable<T = unknown> implements Renderable<DocumentFragment>
 		startComment.$subscribe(
 			this,
 			(signalValue) => {
-				while (startComment.nextSibling !== endComment) startComment.nextSibling!.remove()
+				// TODO: find out why we don't have nextSibiling sometimes, why we are not in the dom
+				while (startComment.nextSibling && startComment.nextSibling !== endComment) startComment.nextSibling.remove()
 				endComment.before(valueToNode(signalValue))
 			},
 			{ mode: "immediate" }
