@@ -110,7 +110,7 @@ export class SignalReadable<T = unknown> implements Renderable<DocumentFragment>
 	public readonly signal = () => {
 		// xx console.log("%csignaling", "color:yellow", this.id, this._value)
 		if (this._signaling) {
-			console.warn("Infite loop avoided by ignoring signal call while it was already running.")
+			console.warn("Ignoring recursive signal call.")
 			return
 		}
 		this._signaling = true
