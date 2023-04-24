@@ -105,21 +105,21 @@ export class SignalReadable<T = unknown> implements Renderable<DocumentFragment>
 		}
 	}
 
-	private _signaling = new Set<SignalSubscriptionListener<T>>()
+	private _signaling = false
 
 	public readonly signal = () => {
 		// xx console.log("%csignaling", "color:yellow", this.id, this._value)
+		if (this._signaling) {
+			console.warn("Infite loop avoided by ignoring signal call while it was already running.")
+			return
+		}
+		this._signaling = true
 		try {
-			this._listeners.forEach((callback) => {
-				if (this._signaling.has(callback)) return
-				this._signaling.add(callback)
-				callback(this.get())
-				this._signaling.delete(callback)
-			})
+			this._listeners.forEach((callback) => callback(this.get()))
 		} catch (error) {
 			throw error
 		} finally {
-			this._signaling.clear()
+			this._signaling = false
 		}
 	}
 
