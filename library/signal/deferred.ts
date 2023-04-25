@@ -1,4 +1,4 @@
-import { createReadable, SignalReadable } from "../signal/readable"
+import { createReadable, SignalReadable } from "."
 
 export function createDeferred<T>(signal: SignalReadable<T>, timeout_ms: number = 500): SignalReadable<T> {
 	return createReadable<T>((set) => {

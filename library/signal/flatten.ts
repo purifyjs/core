@@ -1,5 +1,5 @@
 import { createDerive } from "./derive"
-import { SignalReadable } from "./readable"
+import { SignalReadable } from "."
 
 // TODO; Remove the need for this if posibble. posibble solution is. Maybe if a signal has a value as a signal, it might act as a bridge to it, this would solve other problems too
 

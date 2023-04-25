@@ -1,4 +1,4 @@
-import type { SignalReadable, SignalSubscription, SignalSubscriptionListener, SignalSubscriptionOptions } from "../signal/readable"
+import type { SignalReadable, SignalSubscription, SignalSubscriptionListener, SignalSubscriptionOptions } from "../signal"
 
 export type UnknownListenerWithCleanup = ListenerWithCleanup<Function | void>
 export type ListenerWithCleanup<R extends Function | void> = {

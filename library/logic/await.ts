@@ -1,5 +1,4 @@
-import { createReadable, SignalReadable } from "../signal/readable"
-import { createWritable } from "../signal/writable"
+import { createWritable, createReadable, SignalReadable } from "../signal"
 import { RenderSymbol } from "../template/renderable"
 import { assert } from "../utils/assert"
 

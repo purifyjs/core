@@ -1,6 +1,5 @@
 import { mountableNodeAssert } from "../mountable"
-import { createReadable, SignalReadable } from "../signal/readable"
-import { createWritable, SignalWritable } from "../signal/writable"
+import { createReadable, SignalReadable, createWritable, SignalWritable } from "../signal"
 import { valueToNode } from "../template/node"
 import { Renderable, RenderSymbol } from "../template/renderable"
 

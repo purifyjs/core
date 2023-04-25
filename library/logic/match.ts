@@ -1,4 +1,4 @@
-import { createReadable, SignalReadable } from "../signal/readable"
+import { createReadable, SignalReadable } from "../signal"
 import { Renderable, RenderSymbol } from "../template/renderable"
 import type { Excludable } from "../utils/type"
 

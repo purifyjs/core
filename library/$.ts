@@ -4,8 +4,8 @@ import { createMatch } from "./logic/match"
 import { createDeferred } from "./signal/deferred"
 import { createDerive } from "./signal/derive"
 import { flattenSignal } from "./signal/flatten"
-import { createReadable } from "./signal/readable"
-import { createWritable } from "./signal/writable"
+import { createReadable } from "./signal"
+import { createWritable } from "./signal"
 
 export const $ = {
 	writable: createWritable,
