@@ -1,4 +1,4 @@
-import { createReadable, SignalReadable, SignalSetter, SignalSubscription } from "../signal/readable"
+import { createReadable, SignalReadable, SignalSetter, SignalSubscription, SyncContextStackSymbol } from "../signal/readable"
 
 export type SignalDeriver<T> = {
 	(): T
@@ -35,9 +35,9 @@ export function createDerive<T>(deriver: SignalDeriver<T>, staticDependencies?: 
 			if (updating) return
 			updating = true
 			try {
-				SignalReadable._SyncContextStack.push(new Set())
+				SignalReadable[SyncContextStackSymbol].push(new Set())
 				const value = deriver()
-				const syncContext = SignalReadable._SyncContextStack.pop()!
+				const syncContext = SignalReadable[SyncContextStackSymbol].pop()!
 				syncContext.delete(self as SignalReadable<unknown>)
 				for (const [dependency, subscription] of dependencyToSubscriptionMap.entries()) {
 					if (syncContext.has(dependency)) {

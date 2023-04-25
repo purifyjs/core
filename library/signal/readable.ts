@@ -4,6 +4,7 @@ import { Renderable, RenderSymbol } from "../template/renderable"
 import { randomId } from "../utils/id"
 
 // TODO: Rewrite this and also SignalWritable, Writable shouldnt have methods it doesnt need to. Also simplify the code more, you might put writable and readable in the same file too
+// TODO: Avoid infinete loops with a warning message
 
 export type SignalSubscription = {
 	unsubscribe(): void
@@ -23,17 +24,23 @@ export type SignalUpdater<T> = {
 	(set: SignalSetter<T>, signal: SignalReadable<T>["signal"]): Function
 }
 
+type FlattenSignal<T extends SignalReadable<any>> = T extends SignalReadable<SignalReadable<any>> ? FlattenSignal<T["ref"]> : T
+
 export function createReadable<T>(...params: ConstructorParameters<typeof SignalReadable<T>>) {
-	return new SignalReadable<T>(...params)
+	return new SignalReadable<T>(...params) as FlattenSignal<SignalReadable<T>>
 }
 
+export const SyncContextStackSymbol = Symbol()
+
 export class SignalReadable<T = unknown> implements Renderable<DocumentFragment> {
-	public static _SyncContextStack: Set<SignalReadable>[] = []
+	public static [SyncContextStackSymbol]: Set<SignalReadable>[] = []
+
 	public readonly id
-	protected readonly _listeners: Set<SignalSubscriptionListener<T>>
-	protected _value: T
-	protected _updater: SignalUpdater<T> | null
-	protected _cleaner: Function | null = null
+	private readonly _listeners: Set<SignalSubscriptionListener<T>>
+	private _value: T
+	private _updater: SignalUpdater<T> | null
+	private _cleaner: Function | null = null
+	private forwards: { subscription: SignalSubscription | null; signal: SignalReadable<T> | null } = { signal: null, subscription: null }
 
 	constructor(updater: SignalUpdater<T> | null = null, initial?: T) {
 		this.id = randomId()
@@ -42,42 +49,31 @@ export class SignalReadable<T = unknown> implements Renderable<DocumentFragment>
 		this._updater = updater
 	}
 
-	public readonly get = () => {
+	public readonly get = (): T => {
 		if (this._updater && !this._cleaner) {
 			this._activate()
 			setTimeout(() => this._checkActive(), 5000)
 		}
-		SignalReadable._SyncContextStack[SignalReadable._SyncContextStack.length - 1]?.add(this as SignalReadable<unknown>)
+		SignalReadable[SyncContextStackSymbol][SignalReadable[SyncContextStackSymbol].length - 1]?.add(this as SignalReadable<unknown>)
+		if (this._value instanceof SignalReadable) return this._value.ref
 		return this._value
-	}
-
-	public get ref() {
-		return this.get()
-	}
-
-	protected readonly _checkActive = () => {
-		if (this._listeners.size === 0) this._deactivate()
 	}
 
 	protected readonly _set: SignalSetter<T> = (value) => {
 		if (value === this._value) return
 		this._value = value
+		this.forwards.subscription?.unsubscribe()
+		this.forwards.subscription ??= null
+		this.forwards.signal ??= null
+		if (value instanceof SignalReadable) {
+			this.forwards.signal = value
+			this.forwards.subscription = value.subscribe(this.signal)
+		}
 		this.signal()
 	}
 
-	protected readonly _activate = () => {
-		if (!this._updater) return
-		if (this._cleaner) return
-		this._cleaner = this._updater(this._set, this.signal)
-		// xx console.log("%cactivated", "color:yellow", this.id, this._value)
-	}
-
-	protected readonly _deactivate = () => {
-		if (!this._updater) return
-		if (!this._cleaner) return
-		this._cleaner()
-		this._cleaner = null
-		// xx console.log("%cdeactivated", "color:yellow", this.id, this._value)
+	public get ref() {
+		return this.get()
 	}
 
 	public readonly subscribe = (listener: SignalSubscriptionListener<T>, options?: SignalSubscriptionOptions): SignalSubscription => {
@@ -111,10 +107,7 @@ export class SignalReadable<T = unknown> implements Renderable<DocumentFragment>
 
 	public readonly signal = () => {
 		// xx console.log("%csignaling", "color:yellow", this.id, this._value)
-		if (this._signaling) {
-			console.warn("Ignoring recursive signal call.")
-			return
-		}
+		if (this._signaling) throw new Error("Avoided recursive signal")
 		this._signaling = true
 		try {
 			this._listeners.forEach((callback) => callback(this.get()))
@@ -123,6 +116,34 @@ export class SignalReadable<T = unknown> implements Renderable<DocumentFragment>
 		} finally {
 			this._signaling = false
 		}
+	}
+
+	protected readonly _checkActive = () => {
+		if (this._listeners.size === 0) this._deactivate()
+	}
+
+	protected readonly _activate = () => {
+		if (!this._updater) return
+		if (this._cleaner) return
+		this._cleaner = this._updater(this._set, this.signal)
+
+		if (this.forwards.signal) {
+			this.forwards.subscription = this.forwards.signal.subscribe(this.signal)
+		}
+		// xx console.log("%cactivated", "color:yellow", this.id, this._value)
+	}
+
+	protected readonly _deactivate = () => {
+		if (!this._updater) return
+		if (!this._cleaner) return
+		this._cleaner()
+		this._cleaner = null
+
+		if (this.forwards.subscription) {
+			this.forwards.subscription.unsubscribe()
+			this.forwards.subscription = null
+		}
+		// xx console.log("%cdeactivated", "color:yellow", this.id, this._value)
 	}
 
 	public readonly [RenderSymbol] = () => {
