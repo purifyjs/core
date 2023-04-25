@@ -5,6 +5,10 @@ import { randomId } from "../utils/id"
 
 // TODO: Rewrite this and also SignalWritable, Writable shouldnt have methods it doesnt need to. Also simplify the code more, you might put writable and readable in the same file too
 // TODO: Avoid infinete loops with a warning message
+// TODO: I probably have to rewrite all signals and logics
+// Not gonna use classes because they are less flexable with funky typescript stuff
+// might use Master-Ts composition because i still wanna use instanceof keyword
+// If i can make this like derive and remove the need for derive seperaterly that would be great, also easier to flow dependencies, which would let use stop infite loops easier
 
 export type SignalSubscription = {
 	unsubscribe(): void
@@ -24,10 +28,8 @@ export type SignalUpdater<T> = {
 	(set: SignalSetter<T>, signal: SignalReadable<T>["signal"]): Function
 }
 
-type FlattenSignal<T extends SignalReadable<any>> = T extends SignalReadable<SignalReadable<any>> ? FlattenSignal<T["ref"]> : T
-
 export function createReadable<T>(...params: ConstructorParameters<typeof SignalReadable<T>>) {
-	return new SignalReadable<T>(...params) as FlattenSignal<SignalReadable<T>>
+	return new SignalReadable<T>(...params)
 }
 
 export const SyncContextStackSymbol = Symbol()
