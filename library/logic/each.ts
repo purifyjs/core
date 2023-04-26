@@ -124,8 +124,10 @@ function eachOfSignalArray<T extends unknown[]>(each: SignalReadable<T>) {
 						console.log(startComment)
 						console.log(endComment)
 					}
-					while (lastNode.nextSibling && lastNode.nextSibling !== endComment)
-						lastNode.nextSibling.remove(), removedNode(lastNode.nextSibling)
+					while (lastNode.nextSibling && lastNode.nextSibling !== endComment) {
+						lastNode.nextSibling.remove()
+						removedNode(lastNode.nextSibling)
+					}
 
 					caches = newCaches
 					keyOrder = newKeyOrder

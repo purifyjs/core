@@ -32,8 +32,10 @@ export function valueToNode(value: unknown): Node {
 					console.log(startComment)
 					console.log(endComment)
 				}
-				while (startComment.nextSibling && startComment.nextSibling !== endComment)
-					startComment.nextSibling.remove(), removedNode(startComment.nextSibling), console.log(startComment.nextSibling)
+				while (startComment.nextSibling && startComment.nextSibling !== endComment) {
+					startComment.nextSibling.remove()
+					removedNode(startComment.nextSibling)
+				}
 				endComment.before(valueToNode(signalValue))
 			},
 			{ mode: "immediate" }
