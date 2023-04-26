@@ -93,7 +93,8 @@ class SignalBase<T = unknown> {
 		SignalBase.#signaling.delete(this)
 	}
 }
-export class SignalReadable<T = unknown> extends SignalBase<T> {
+export { SignalBase as SignalReadable }
+class SignalReadable<T = unknown> extends SignalBase<T> {
 	readonly #tryActivate: () => boolean
 	readonly #tryDeactivate: () => boolean
 	#cleaner: Function | null
@@ -144,7 +145,6 @@ export class SignalReadable<T = unknown> extends SignalBase<T> {
 export class SignalWritable<T> extends SignalBase<T> {
 	constructor(value: T) {
 		super(value)
-
 		this.set = this.set.bind(this)
 	}
 
