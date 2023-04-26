@@ -95,33 +95,29 @@ class SignalBase<T = unknown> {
 }
 export { SignalBase as SignalReadable }
 class SignalReadable<T = unknown> extends SignalBase<T> {
-	readonly #tryActivate: () => boolean
-	readonly #tryDeactivate: () => boolean
 	#cleaner: Function | null
-
-	static [Symbol.hasInstance](value: unknown): value is SignalReadable {
-		return value instanceof SignalBase
-	}
+	#updater: SignalUpdater<T>
 
 	constructor(updater: SignalUpdater<T>, initial?: T) {
 		super(initial!)
+		this.#updater = updater
 		this.#cleaner = null
-
-		this.#tryActivate = () => {
-			if (this.#cleaner) return false
-			this.#cleaner = updater(this.set, this.signal)
-			return true
-		}
-
-		this.#tryDeactivate = () => {
-			if (!this.#cleaner) return false
-			this.#cleaner()
-			this.#cleaner = null
-			return true
-		}
 
 		this.get = this.get.bind(this)
 		this.subscribe = this.subscribe.bind(this)
+	}
+
+	#tryActivate() {
+		if (this.#cleaner) return false
+		this.#cleaner = this.#updater(this.set, this.signal)
+		return true
+	}
+
+	#tryDeactivate() {
+		if (!this.#cleaner) return false
+		this.#cleaner()
+		this.#cleaner = null
+		return true
 	}
 
 	override get(): T {
