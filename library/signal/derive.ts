@@ -13,6 +13,7 @@ export function createDerive<T>(deriver: SignalDeriver<T>, staticDependencies?: 
 				set(deriver())
 			}
 			for (let i = 0; i < staticDependencies.length; i++) subscriptions[i] = staticDependencies[i]!.subscribe(update)
+			update()
 		}
 		deactivate = () => {
 			for (let i = 0; i < subscriptions.length; i++) {
