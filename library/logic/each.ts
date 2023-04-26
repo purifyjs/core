@@ -1,5 +1,5 @@
-import { MountableNode, mountableNodeAssert, TRY_EMIT_UNMOUNT } from "../mountable"
-import { createReadable, SignalReadable, createWritable, SignalWritable, isReadable } from "../signal"
+import { mountableNodeAssert, removedNode } from "../mountable"
+import { createReadable, createWritable, isReadable, SignalReadable, SignalWritable } from "../signal"
 import { valueToNode } from "../template/node"
 import { Renderable, RenderSymbol } from "../template/renderable"
 
@@ -112,8 +112,7 @@ function eachOfSignalArray<T extends unknown[]>(each: SignalReadable<T>) {
 						const newNodes = newCaches.get(newKey)!.nodes
 						const oldNodes = caches.get(oldKey)?.nodes
 
-						if (oldNodes && oldKey !== newKey && !newCaches.has(oldKey))
-							oldNodes.forEach((node) => ((node as unknown as MountableNode)[TRY_EMIT_UNMOUNT]?.(), node.remove()))
+						if (oldNodes && oldKey !== newKey && !newCaches.has(oldKey)) oldNodes.forEach((node) => (node.remove(), removedNode(node)))
 						if (lastNode.nextSibling !== newNodes[0]) lastNode.after(...newNodes)
 						lastNode = newNodes[newNodes.length - 1]!
 					}
@@ -126,7 +125,7 @@ function eachOfSignalArray<T extends unknown[]>(each: SignalReadable<T>) {
 						console.log(endComment)
 					}
 					while (lastNode.nextSibling && lastNode.nextSibling !== endComment)
-						(lastNode.nextSibling as unknown as MountableNode)[TRY_EMIT_UNMOUNT]?.(), lastNode.nextSibling.remove()
+						lastNode.nextSibling.remove(), removedNode(lastNode.nextSibling)
 
 					caches = newCaches
 					keyOrder = newKeyOrder

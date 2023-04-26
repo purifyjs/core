@@ -5,49 +5,47 @@ export type ListenerWithCleanup<R extends Function | void> = {
 	(): R
 }
 
-export const TRY_EMIT_MOUNT = Symbol("try-emit-mount")
-export const TRY_EMIT_UNMOUNT = Symbol("try-emit-unmount")
+const TRY_EMIT_MOUNT = Symbol("try-emit-mount")
+const TRY_EMIT_UNMOUNT = Symbol("try-emit-unmount")
 
 const NODE_IN_DOM = Symbol()
 type NODE_IN_DOM = typeof NODE_IN_DOM
-const NODE_NOT_IN_DOM = Symbol()
-type NODE_NOT_IN_DOM = typeof NODE_NOT_IN_DOM
+const NODE_UNKNOWN_PLACE = Symbol()
+type NODE_NOT_IN_DOM = typeof NODE_UNKNOWN_PLACE
 type NodePlace = NODE_IN_DOM | NODE_NOT_IN_DOM
 
-{
-	const mountUnmountObserver = new MutationObserver((mutations) => {
-		for (const mutation of mutations) {
-			Array.from(mutation.removedNodes).forEach(removedNode)
-			Array.from(mutation.addedNodes).forEach((node) => addedNode(node, NODE_NOT_IN_DOM))
-		}
-	})
-	mountUnmountObserver.observe(document, { childList: true, subtree: true })
-
-	const originalAttachShadow = Element.prototype.attachShadow
-	Element.prototype.attachShadow = function (options: ShadowRootInit) {
-		const shadowRoot = originalAttachShadow.call(this, options)
-		if (options.mode === "open") mountUnmountObserver.observe(shadowRoot, { childList: true, subtree: true })
-		return shadowRoot
+const mountUnmountObserver = new MutationObserver((mutations) => {
+	for (const mutation of mutations) {
+		Array.from(mutation.removedNodes).forEach(removedNode)
+		Array.from(mutation.addedNodes).forEach((node) => addedNode(node, NODE_UNKNOWN_PLACE))
 	}
+})
+mountUnmountObserver.observe(document, { childList: true, subtree: true })
 
-	function addedNode(node: Node, place: NodePlace) {
-		if (place === NODE_NOT_IN_DOM && getRootNode(node) !== document) return
-		if (isMountableNode(node)) node[TRY_EMIT_MOUNT]()
-		Array.from(node.childNodes).forEach((node) => addedNode(node, NODE_IN_DOM))
-		if (node instanceof HTMLElement) Array.from(node.shadowRoot?.childNodes ?? []).forEach((node) => addedNode(node, NODE_IN_DOM))
-	}
+const originalAttachShadow = Element.prototype.attachShadow
+Element.prototype.attachShadow = function (options: ShadowRootInit) {
+	const shadowRoot = originalAttachShadow.call(this, options)
+	if (options.mode === "open") mountUnmountObserver.observe(shadowRoot, { childList: true, subtree: true })
+	return shadowRoot
+}
 
-	function removedNode(node: Node) {
-		if (isMountableNode(node)) node[TRY_EMIT_UNMOUNT]()
-		Array.from(node.childNodes).forEach(removedNode)
-		if (node instanceof HTMLElement) Array.from(node.shadowRoot?.childNodes ?? []).forEach(removedNode)
-	}
+export function addedNode(node: Node, place: NodePlace = NODE_UNKNOWN_PLACE) {
+	if (place === NODE_UNKNOWN_PLACE && getRootNode(node) !== document) return
+	if (isMountableNode(node)) node[TRY_EMIT_MOUNT]()
+	Array.from(node.childNodes).forEach((node) => addedNode(node, NODE_IN_DOM))
+	if (node instanceof HTMLElement) Array.from(node.shadowRoot?.childNodes ?? []).forEach((node) => addedNode(node, NODE_IN_DOM))
+}
 
-	function getRootNode(node: Node): Node {
-		if (node instanceof ShadowRoot) return getRootNode(node.host)
-		if (node.parentNode) return getRootNode(node.parentNode)
-		return node
-	}
+export function removedNode(node: Node) {
+	if (isMountableNode(node)) node[TRY_EMIT_UNMOUNT]()
+	Array.from(node.childNodes).forEach(removedNode)
+	if (node instanceof HTMLElement) Array.from(node.shadowRoot?.childNodes ?? []).forEach(removedNode)
+}
+
+function getRootNode(node: Node): Node {
+	if (node instanceof ShadowRoot) return getRootNode(node.host)
+	if (node.parentNode) return getRootNode(node.parentNode)
+	return node
 }
 
 export type MountableNode = Node & {
