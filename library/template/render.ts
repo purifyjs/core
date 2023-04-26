@@ -1,9 +1,8 @@
 import type { TemplateValue } from "."
 import { Component } from "../component"
 import { mountableNodeAssert } from "../mountable"
+import { isReadable, isWritable, SignalWritable } from "../signal"
 import { createDerive, createOrGetDeriveOfFunction } from "../signal/derive"
-import { SignalReadable } from "../signal"
-import { SignalWritable } from "../signal"
 import { assert } from "../utils/assert"
 import { nameOf, typeOf } from "../utils/name"
 import { unhandled } from "../utils/unhandled"
@@ -29,7 +28,7 @@ export function render<T extends TemplateValue[]>(template: HTMLTemplateElement,
 				element.replaceWith(value)
 			} else if (checkValueDescriptorType("attribute", descriptor)) {
 				if (typeof value === "function") values[index] = value = createOrGetDeriveOfFunction(value as () => unknown)
-				if (value instanceof SignalReadable) {
+				if (isReadable(value)) {
 					if (descriptor.quote === "") {
 						mountableNodeAssert(element)
 						element.$subscribe(
@@ -52,7 +51,7 @@ export function render<T extends TemplateValue[]>(template: HTMLTemplateElement,
 				switch (descriptor.directive) {
 					case "class":
 						if (typeof value === "function") value = createOrGetDeriveOfFunction(value as () => unknown)
-						if (value instanceof SignalReadable) {
+						if (isReadable(value)) {
 							mountableNodeAssert(element)
 							element.$subscribe(value, (v) => element.classList.toggle(descriptor.name, !!v), {
 								mode: "immediate",
@@ -61,7 +60,7 @@ export function render<T extends TemplateValue[]>(template: HTMLTemplateElement,
 						break
 					case "style":
 						if (typeof value === "function") value = createOrGetDeriveOfFunction(value as () => unknown)
-						if (value instanceof SignalReadable) {
+						if (isReadable(value)) {
 							mountableNodeAssert(element)
 							element.$subscribe(value, (v) => element.style.setProperty(descriptor.name, `${v}`), {
 								mode: "immediate",
@@ -76,13 +75,13 @@ export function render<T extends TemplateValue[]>(template: HTMLTemplateElement,
 						element.$onUnmount(() => element.removeEventListener(descriptor.name, value as EventListener))
 						break
 					case "ref":
-						if (!(value instanceof SignalWritable))
-							throw new Error(`${descriptor.type}:${descriptor.name} must be a ${nameOf(SignalWritable)}, but got ${typeOf(value)}.`)
+						if (!isWritable(value))
+							throw new Error(`${descriptor.type}:${descriptor.name} must be a SignalWritable, but got ${typeOf(value)}.`)
 						value.set(element)
 						break
 					case "bind":
-						if (!(value instanceof SignalWritable))
-							throw new Error(`${descriptor.type}:${descriptor.name} must be a ${nameOf(SignalWritable)}, but got ${typeOf(value)}.`)
+						if (!isWritable(value))
+							throw new Error(`${descriptor.type}:${descriptor.name} must be a SignalWritable, but got ${typeOf(value)}.`)
 						const signal = value
 						assert<HTMLInputElement>(element)
 						switch (descriptor.name) {
@@ -97,6 +96,7 @@ export function render<T extends TemplateValue[]>(template: HTMLTemplateElement,
 								break
 							case "value:number":
 								{
+									assert<SignalWritable<number>>(signal)
 									const listener = () => (signal.ref = element.valueAsNumber)
 									mountableNodeAssert(element)
 									element.$onMount(() => element.addEventListener("input", listener))
@@ -106,6 +106,7 @@ export function render<T extends TemplateValue[]>(template: HTMLTemplateElement,
 								break
 							case "value:date":
 								{
+									assert<SignalWritable<Date | null>>(signal)
 									const listener = () => (signal.ref = element.valueAsDate)
 									mountableNodeAssert(element)
 									element.$onMount(() => element.addEventListener("input", listener))
@@ -115,6 +116,7 @@ export function render<T extends TemplateValue[]>(template: HTMLTemplateElement,
 								break
 							case "value:boolean":
 								{
+									assert<SignalWritable<boolean>>(signal)
 									const listener = () => (signal.ref = element.checked)
 									mountableNodeAssert(element)
 									element.$onMount(() => element.addEventListener("input", listener))
@@ -140,7 +142,7 @@ export function render<T extends TemplateValue[]>(template: HTMLTemplateElement,
 					parts!
 						.map((part) => {
 							const value = typeof part === "number" ? values[part] : part
-							return value instanceof SignalReadable ? value.ref : value
+							return isReadable(value) ? value.ref : value
 						})
 						.join("")
 				)

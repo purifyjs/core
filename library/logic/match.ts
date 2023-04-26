@@ -1,4 +1,4 @@
-import { createReadable, SignalReadable } from "../signal"
+import { createReadable, isReadable, SignalReadable } from "../signal"
 import { Renderable, RenderSymbol } from "../template/renderable"
 import type { Excludable } from "../utils/type"
 
@@ -82,6 +82,6 @@ export const createMatch: {
 	<T>(value: SignalReadable<T>): MatchSignal<T>
 	<T>(value: T): Match<T>
 } = <T>(value: T | SignalReadable<T>) => {
-	if (value instanceof SignalReadable<T>) return switchSignal(value) as never
+	if (isReadable(value)) return switchSignal(value) as never
 	return switchValue(value) as never
 }

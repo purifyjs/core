@@ -18,141 +18,130 @@ export type SignalUpdater<T> = {
 	(set: SignalSetter<T>, signal: SignalReadable<T>["signal"]): Function
 }
 
-export function createReadable<T>(...params: ConstructorParameters<typeof SignalReadable<T>>) {
-	return new SignalReadable<T>(...params)
-}
-
-export function createWritable<T>(...params: ConstructorParameters<typeof SignalWritable<T>>) {
-	return new SignalWritable<T>(...params)
-}
-
 /**
  * @internal
  */
-export const signalSyncContextStack: Set<SignalBase>[] = []
-class SignalBase<T = unknown> {
-	readonly id: string
-
-	readonly #listeners: Set<SignalSubscriptionListener<T>>
-	#value: T
-
-	constructor(initial: T) {
-		this.id = randomId()
-		this.#listeners = new Set()
-		this.#value = initial
-
-		this.get = this.get.bind(this)
-		this.set = this.set.bind(this)
-		this.subscribe = this.subscribe.bind(this)
-		this.signal = this.signal.bind(this)
-	}
-
-	get(): T {
-		if (signalSyncContextStack.length > 0) signalSyncContextStack[signalSyncContextStack.length - 1]!.add(this as SignalBase<unknown>)
-		return this.#value
-	}
-	protected set(value: T) {
-		if (this.#value === value) return
-		this.#value = value
-		this.signal()
-	}
-
-	get ref(): T {
-		return this.get()
-	}
-
-	subscribe(listener: SignalSubscriptionListener<T>, options?: SignalSubscriptionOptions): SignalSubscription {
-		switch (options?.mode) {
-			case "once":
-				const onceCallback = () => {
-					listener(this.get())
-					this.#listeners.delete(onceCallback)
-				}
-				this.#listeners.add(onceCallback)
-				break
-			case "immediate":
-				listener(this.get())
-			case "normal":
-			default:
-				this.#listeners.add(listener)
-				break
-		}
-		return {
-			unsubscribe: () => {
-				// xx console.log("%cunsubscribed", "color:orange", listener.name, "from", this.id)
-				this.#listeners.delete(listener)
-			},
-		}
-	}
-
-	static #signaling = new WeakSet<SignalBase>()
-	signal() {
-		if (SignalBase.#signaling.has(this)) throw new Error("Avoided recursive signalling.")
-		SignalBase.#signaling.add(this)
-		this.#listeners.forEach((callback) => callback(this.get()))
-		SignalBase.#signaling.delete(this)
-	}
+export const signalSyncContextStack: Set<SignalReadable>[] = []
+export type SignalReadable<T = unknown> = {
+	get id(): string
+	get(): T
+	get ref(): T
+	subscribe(listener: SignalSubscriptionListener<T>, options?: SignalSubscriptionOptions): SignalSubscription
+	signal(): void
 }
-export { SignalBase as SignalReadable }
-class SignalReadable<T = unknown> extends SignalBase<T> {
-	#cleaner: Function | null
-	#updater: SignalUpdater<T>
+export type SignalWritable<T = unknown> = SignalReadable<T> & {
+	set(value: T): void
+	set ref(value: T)
+}
+const readables = new WeakSet<SignalReadable>()
+const writables = new WeakSet<SignalWritable>()
 
-	constructor(updater: SignalUpdater<T>, initial?: T) {
-		super(initial!)
-		this.#updater = updater
-		this.#cleaner = null
+export function isWritable(value: unknown): value is SignalWritable {
+	return writables.has(value as SignalWritable)
+}
+export function isReadable(value: unknown): value is SignalReadable {
+	return readables.has(value as SignalReadable)
+}
 
-		this.get = this.get.bind(this)
-		this.subscribe = this.subscribe.bind(this)
+const signalling = new WeakSet<SignalReadable>()
+export function createWritable<T>(initial: T) {
+	const listeners = new Set<SignalSubscriptionListener<T>>()
+	let value = initial
+
+	const self: SignalWritable<T> = {
+		id: randomId(),
+		get() {
+			if (signalSyncContextStack.length > 0) signalSyncContextStack[signalSyncContextStack.length - 1]!.add(self)
+			return value
+		},
+		set(newValue) {
+			if (value === newValue) return
+			value = newValue
+			self.signal()
+		},
+		get ref() {
+			return self.get()
+		},
+		set ref(newValue) {
+			self.set(newValue)
+		},
+		subscribe(listener, options) {
+			switch (options?.mode) {
+				case "once":
+					const onceCallback = () => {
+						listener(self.get())
+						listeners.delete(onceCallback)
+					}
+					listeners.add(onceCallback)
+					break
+				case "immediate":
+					listener(self.get())
+				case "normal":
+				default:
+					listeners.add(listener)
+					break
+			}
+			return {
+				unsubscribe: () => {
+					// xx console.log("%cunsubscribed", "color:orange", listener.name, "from", this.id)
+					listeners.delete(listener)
+				},
+			}
+		},
+		signal() {
+			if (signalling.has(self)) throw new Error("Avoided recursive signalling.")
+			signalling.add(self)
+			listeners.forEach((callback) => callback(self.get()))
+			signalling.delete(self)
+		},
 	}
+	writables.add(self)
+	return self
+}
 
-	#tryActivate() {
-		if (this.#cleaner) return false
-		this.#cleaner = this.#updater(this.set, this.signal)
+export function createReadable<T>(updater: SignalUpdater<T>, initial?: T) {
+	const base = createWritable<T>(initial!)
+	let cleaner: Function | null = null
+
+	function tryActivate() {
+		if (cleaner) return false
+		cleaner = updater(base.set, self.signal)
 		return true
 	}
 
-	#tryDeactivate() {
-		if (!this.#cleaner) return false
-		this.#cleaner()
-		this.#cleaner = null
+	function tryDeactivate() {
+		if (!cleaner) return false
+		cleaner()
+		cleaner = null
 		return true
 	}
 
-	override get(): T {
-		if (this.#tryActivate()) setTimeout(this.#tryDeactivate, 5000)
-		return super.get()
+	const self: SignalReadable<T> = {
+		get id() {
+			return base.id
+		},
+		get() {
+			if (tryActivate()) setTimeout(tryDeactivate, 5000)
+			return base.get()
+		},
+		get ref() {
+			return self.get()
+		},
+		subscribe(...args) {
+			tryActivate()
+			const subscription = base.subscribe(...args)
+			return {
+				unsubscribe: () => {
+					// xx console.log("%cunsubscribed", "color:orange", listener.name, "from", this.id)
+					subscription.unsubscribe()
+					tryDeactivate()
+				},
+			}
+		},
+		signal() {
+			base.signal()
+		},
 	}
-
-	override subscribe(...args: Parameters<SignalBase<T>["subscribe"]>) {
-		this.#tryActivate()
-		const subscription = super.subscribe(...args)
-		return {
-			unsubscribe: () => {
-				// xx console.log("%cunsubscribed", "color:orange", listener.name, "from", this.id)
-				subscription.unsubscribe()
-				this.#tryDeactivate()
-			},
-		}
-	}
-}
-
-export class SignalWritable<T> extends SignalBase<T> {
-	constructor(value: T) {
-		super(value)
-		this.set = this.set.bind(this)
-	}
-
-	override set(value: T) {
-		super.set(value)
-	}
-
-	override set ref(value: T) {
-		this.set(value)
-	}
-
-	override get ref() {
-		return super.ref
-	}
+	readables.add(self)
+	return self
 }

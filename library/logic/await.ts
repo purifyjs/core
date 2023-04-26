@@ -1,4 +1,4 @@
-import { createWritable, createReadable, SignalReadable } from "../signal"
+import { createWritable, createReadable, SignalReadable, isReadable } from "../signal"
 import { RenderSymbol } from "../template/renderable"
 import { assert } from "../utils/assert"
 
@@ -120,6 +120,6 @@ export const createAwait: {
 	<Awaited>(promise: Promise<Awaited>): AwaitPromise<Awaited>
 	<Awaited>(promiseSignal: SignalReadable<Promise<Awaited>>): AwaitPromiseSignal<Awaited>
 } = (promise) => {
-	if (promise instanceof SignalReadable) return awaitPromiseSignal(promise)
+	if (isReadable(promise)) return awaitPromiseSignal(promise)
 	return awaitPromise(promise)
 }

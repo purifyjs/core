@@ -1,5 +1,5 @@
 import { mountableNodeAssert } from "../mountable"
-import { createReadable, SignalReadable, createWritable, SignalWritable } from "../signal"
+import { createReadable, SignalReadable, createWritable, SignalWritable, isReadable } from "../signal"
 import { valueToNode } from "../template/node"
 import { Renderable, RenderSymbol } from "../template/renderable"
 
@@ -141,6 +141,6 @@ export const createEach: {
 	<T extends unknown[]>(each: T): EachOfArray<T>
 	<T extends unknown[]>(each: SignalReadable<T>): EachOfSignalArray<T>
 } = (each) => {
-	if (each instanceof SignalReadable) return eachOfSignalArray(each) as never
+	if (isReadable(each)) return eachOfSignalArray(each) as never
 	return eachOfArray(each) as never
 }

@@ -1,5 +1,5 @@
 import { mountableNodeAssert } from "../mountable"
-import { SignalReadable } from "../signal"
+import { isReadable } from "../signal"
 import { createOrGetDeriveOfFunction } from "../signal/derive"
 import { isRenderable, RenderSymbol } from "./renderable"
 
@@ -17,7 +17,7 @@ export function valueToNode(value: unknown): Node {
 
 	if (typeof value === "function") return valueToNode(createOrGetDeriveOfFunction(value as () => unknown))
 
-	if (value instanceof SignalReadable) {
+	if (isReadable(value)) {
 		const fragment = document.createDocumentFragment()
 		const startComment = document.createComment(`signal ${value.id}`)
 		const endComment = document.createComment(`/signal ${value.id}`)
