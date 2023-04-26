@@ -96,6 +96,7 @@ export function createWritable<T>(initial: T) {
 		},
 	}
 	writables.add(self)
+	readables.add(self)
 	return self
 }
 
