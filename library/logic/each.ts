@@ -112,7 +112,11 @@ function eachOfSignalArray<T extends unknown[]>(each: SignalReadable<T>) {
 						const newNodes = newCaches.get(newKey)!.nodes
 						const oldNodes = caches.get(oldKey)?.nodes
 
-						if (oldNodes && oldKey !== newKey && !newCaches.has(oldKey)) oldNodes.forEach((node) => (node.remove(), removedNode(node)))
+						if (oldNodes && oldKey !== newKey && !newCaches.has(oldKey))
+							oldNodes.forEach((node) => {
+								node.remove()
+								removedNode(node)
+							})
 						if (lastNode.nextSibling !== newNodes[0]) lastNode.after(...newNodes)
 						lastNode = newNodes[newNodes.length - 1]!
 					}
@@ -125,8 +129,9 @@ function eachOfSignalArray<T extends unknown[]>(each: SignalReadable<T>) {
 						console.log(endComment)
 					}
 					while (lastNode.nextSibling && lastNode.nextSibling !== endComment) {
-						lastNode.nextSibling.remove()
-						removedNode(lastNode.nextSibling)
+						const node = lastNode.nextSibling
+						node.remove()
+						removedNode(node)
 					}
 
 					caches = newCaches
