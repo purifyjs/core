@@ -29,6 +29,7 @@ export type SignalReadable<T = unknown> = {
 	subscribe(listener: SignalSubscriptionListener<T>, options?: SignalSubscriptionOptions): SignalSubscription
 	signal(): void
 	get listenerCount(): number
+	listeners: Set<SignalSubscriptionListener<T>>
 }
 export type SignalWritable<T = unknown> = SignalReadable<T> & {
 	set(value: T): void
@@ -51,6 +52,7 @@ export function createWritable<T>(initial: T) {
 
 	const self: SignalWritable<T> = {
 		id: randomId(),
+		listeners,
 		get listenerCount() {
 			return listeners.size
 		},
@@ -129,6 +131,7 @@ export function createReadable<T>(updater: SignalUpdater<T>, initial?: T) {
 		get listenerCount() {
 			return base.listenerCount
 		},
+		listeners: base.listeners,
 		get() {
 			if (tryActivate()) setTimeout(tryDeactivate, 5000)
 			return base.get()
