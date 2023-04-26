@@ -1,6 +1,6 @@
 import { mountableNodeAssert } from "../mountable"
-import { createOrGetDeriveOfFunction } from "../signal/derive"
 import { SignalReadable } from "../signal"
+import { createOrGetDeriveOfFunction } from "../signal/derive"
 import { isRenderable, RenderSymbol } from "./renderable"
 
 const EMPTY_NODE = document.createDocumentFragment()
@@ -26,8 +26,12 @@ export function valueToNode(value: unknown): Node {
 		mountableNodeAssert(startComment)
 		startComment.$subscribe(
 			value,
-			(signalValue) => {
-				// TODO: find out why we don't have nextSibiling sometimes, why we are not in the dom
+			(signalValue: unknown) => {
+				if (!startComment.nextSibling) {
+					console.warn("THE WEIRD")
+					console.log(startComment)
+					console.log(endComment)
+				}
 				while (startComment.nextSibling && startComment.nextSibling !== endComment) startComment.nextSibling.remove()
 				endComment.before(valueToNode(signalValue))
 			},

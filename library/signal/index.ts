@@ -1,7 +1,5 @@
 import { randomId } from "../utils/id"
 
-// TODO: Avoid infinete loops with a warning message
-
 export type SignalSubscription = {
 	unsubscribe(): void
 }
@@ -28,6 +26,9 @@ export function createWritable<T>(...params: ConstructorParameters<typeof Signal
 	return new SignalWritable<T>(...params)
 }
 
+/**
+ * @internal
+ */
 export const signalSyncContextStack: Set<SignalBase>[] = []
 class SignalBase<T = unknown> {
 	readonly id: string
@@ -84,15 +85,22 @@ class SignalBase<T = unknown> {
 		}
 	}
 
+	static #signaling = new WeakSet<SignalBase>()
 	signal() {
+		if (SignalBase.#signaling.has(this)) throw new Error("Avoided recursive signalling.")
+		SignalBase.#signaling.add(this)
 		this.#listeners.forEach((callback) => callback(this.get()))
+		SignalBase.#signaling.delete(this)
 	}
 }
-export { SignalBase as SignalReadable }
-class SignalReadable<T = unknown> extends SignalBase<T> {
+export class SignalReadable<T = unknown> extends SignalBase<T> {
 	readonly #tryActivate: () => boolean
 	readonly #tryDeactivate: () => boolean
 	#cleaner: Function | null
+
+	static [Symbol.hasInstance](value: unknown): value is SignalReadable {
+		return value instanceof SignalBase
+	}
 
 	constructor(updater: SignalUpdater<T>, initial?: T) {
 		super(initial!)

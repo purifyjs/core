@@ -118,6 +118,12 @@ function eachOfSignalArray<T extends unknown[]>(each: SignalReadable<T>) {
 					}
 
 					// TODO: find out why we don't have nextSibiling sometimes, why we are not in the dom
+					if (!lastNode.nextSibling) {
+						console.warn("THE WEIRD")
+						console.log(lastNode)
+						console.log(startComment)
+						console.log(endComment)
+					}
 					while (lastNode.nextSibling && lastNode.nextSibling !== endComment) lastNode.nextSibling.remove()
 
 					caches = newCaches

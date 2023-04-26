@@ -1,40 +1,30 @@
 import { createReadable, SignalReadable, SignalSetter, SignalSubscription, signalSyncContextStack } from "."
 
-export type SignalDeriver<T> = {
-	(): T
-}
+export type SignalDeriver<T> = { (): T }
 
 export function createDerive<T>(deriver: SignalDeriver<T>, staticDependencies?: SignalReadable<any>[]): SignalReadable<T> {
-	let set: SignalSetter<T>
-	let update: () => void
-	let dependencyToSubscriptionMap: Map<SignalReadable<unknown>, SignalSubscription | null>
-	let updating = false
+	let activate: (set: SignalSetter<T>) => void
+	let deactivate: () => void
 
 	if (staticDependencies) {
-		dependencyToSubscriptionMap = new Map<SignalReadable<unknown>, SignalSubscription | null>(
-			staticDependencies?.map((dependency) => [dependency, null])
-		)
-		update = () => {
-			if (updating) return
-			updating = true
-			try {
-				const value = deriver()
-				set(value)
-			} catch (error) {
-				throw error
-			} finally {
-				updating = false
+		const subscriptions = new Array<SignalSubscription>(staticDependencies.length)
+		activate = (set: SignalSetter<T>) => {
+			function update() {
+				set(deriver())
+			}
+			for (let i = 0; i < staticDependencies.length; i++) subscriptions[i] = staticDependencies[i]!.subscribe(update)
+		}
+		deactivate = () => {
+			for (let i = 0; i < subscriptions.length; i++) {
+				subscriptions[i]!.unsubscribe()
+				delete subscriptions[i]
 			}
 		}
 	} else {
-		dependencyToSubscriptionMap = new Map<SignalReadable<unknown>, SignalSubscription>()
-		function addDependency(dependency: SignalReadable<unknown>) {
-			dependencyToSubscriptionMap.set(dependency, dependency.subscribe(update))
-		}
-		update = () => {
-			if (updating) return
-			updating = true
-			try {
+		const dependencyToSubscriptionMap = new Map<SignalReadable<unknown>, SignalSubscription>()
+
+		activate = (set: SignalSetter<T>) => {
+			function update() {
 				signalSyncContextStack.push(new Set())
 				const value = deriver()
 				const syncContext = signalSyncContextStack.pop()!
@@ -47,25 +37,22 @@ export function createDerive<T>(deriver: SignalDeriver<T>, staticDependencies?: 
 						dependencyToSubscriptionMap.delete(dependency)
 					}
 				}
-				syncContext.forEach(addDependency)
+				syncContext.forEach((dependency) => dependencyToSubscriptionMap.set(dependency, dependency.subscribe(update)))
 
 				set(value)
-			} catch (error) {
-				throw error
-			} finally {
-				updating = false
 			}
+			dependencyToSubscriptionMap.delete(self as SignalReadable<unknown>)
+			for (const dependency of dependencyToSubscriptionMap.keys()) dependencyToSubscriptionMap.set(dependency, dependency.subscribe(update))
+			update()
+		}
+		deactivate = () => {
+			for (const subscription of dependencyToSubscriptionMap.values()) subscription?.unsubscribe()
 		}
 	}
 
-	const self = createReadable<T>((_set) => {
-		dependencyToSubscriptionMap.delete(self as SignalReadable<unknown>)
-		set = _set
-		for (const dependency of dependencyToSubscriptionMap.keys()) dependencyToSubscriptionMap.set(dependency, dependency.subscribe(update))
-		update()
-		return () => {
-			for (const subscription of dependencyToSubscriptionMap.values()) subscription?.unsubscribe()
-		}
+	const self = createReadable<T>((set) => {
+		activate(set)
+		return deactivate
 	})
 	return self
 }
