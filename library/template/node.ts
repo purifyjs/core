@@ -1,4 +1,4 @@
-import { mountableNodeAssert } from "../mountable"
+import { MountableNode, mountableNodeAssert, TRY_EMIT_UNMOUNT } from "../mountable"
 import { isReadable } from "../signal"
 import { createOrGetDeriveOfFunction } from "../signal/derive"
 import { isRenderable, RenderSymbol } from "./renderable"
@@ -32,7 +32,8 @@ export function valueToNode(value: unknown): Node {
 					console.log(startComment)
 					console.log(endComment)
 				}
-				while (startComment.nextSibling && startComment.nextSibling !== endComment) startComment.nextSibling.remove()
+				while (startComment.nextSibling && startComment.nextSibling !== endComment)
+					(startComment.nextSibling as unknown as MountableNode)[TRY_EMIT_UNMOUNT]?.(), startComment.nextSibling.remove()
 				endComment.before(valueToNode(signalValue))
 			},
 			{ mode: "immediate" }

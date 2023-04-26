@@ -5,8 +5,8 @@ export type ListenerWithCleanup<R extends Function | void> = {
 	(): R
 }
 
-const EMIT_MOUNT = Symbol("emit-mount")
-const EMIT_UNMOUNT = Symbol("emit-unmount")
+export const TRY_EMIT_MOUNT = Symbol("try-emit-mount")
+export const TRY_EMIT_UNMOUNT = Symbol("try-emit-unmount")
 
 const NODE_IN_DOM = Symbol()
 type NODE_IN_DOM = typeof NODE_IN_DOM
@@ -22,6 +22,7 @@ type NodePlace = NODE_IN_DOM | NODE_NOT_IN_DOM
 		}
 	})
 	mountUnmountObserver.observe(document, { childList: true, subtree: true })
+
 	const originalAttachShadow = Element.prototype.attachShadow
 	Element.prototype.attachShadow = function (options: ShadowRootInit) {
 		const shadowRoot = originalAttachShadow.call(this, options)
@@ -31,13 +32,13 @@ type NodePlace = NODE_IN_DOM | NODE_NOT_IN_DOM
 
 	function addedNode(node: Node, place: NodePlace) {
 		if (place === NODE_NOT_IN_DOM && getRootNode(node) !== document) return
-		if (isMountableNode(node)) node[EMIT_MOUNT]()
+		if (isMountableNode(node)) node[TRY_EMIT_MOUNT]()
 		Array.from(node.childNodes).forEach((node) => addedNode(node, NODE_IN_DOM))
 		if (node instanceof HTMLElement) Array.from(node.shadowRoot?.childNodes ?? []).forEach((node) => addedNode(node, NODE_IN_DOM))
 	}
 
 	function removedNode(node: Node) {
-		if (isMountableNode(node)) node[EMIT_UNMOUNT]()
+		if (isMountableNode(node)) node[TRY_EMIT_UNMOUNT]()
 		Array.from(node.childNodes).forEach(removedNode)
 		if (node instanceof HTMLElement) Array.from(node.shadowRoot?.childNodes ?? []).forEach(removedNode)
 	}
@@ -51,8 +52,8 @@ type NodePlace = NODE_IN_DOM | NODE_NOT_IN_DOM
 
 export type MountableNode = Node & {
 	get $mounted(): boolean | null
-	[EMIT_MOUNT](): void
-	[EMIT_UNMOUNT](): void
+	[TRY_EMIT_MOUNT](): void
+	[TRY_EMIT_UNMOUNT](): void
 	$onMount<T extends UnknownListenerWithCleanup>(listener: T): void
 	$onUnmount<T extends UnknownListenerWithCleanup>(listener: T): void
 	$subscribe<T>(signal: SignalReadable<T>, listener: SignalSubscriptionListener<T>, options?: SignalSubscriptionOptions): void
@@ -69,39 +70,39 @@ export function isMountableNode<T extends Node>(node: T): node is T & MountableN
 export function mountableNodeAssert<T extends Node>(node: T): asserts node is T & MountableNode {
 	if (isMountableNode(node)) return
 	type Impl = Pick<MountableNode, Exclude<keyof MountableNode, keyof Node>>
-	let _mounted: boolean | null = null
-	const _onMountListeners: Function[] = []
-	const _onUnmountListeners: Function[] = []
+	let mounted: boolean | null = null
+	const onMountListeners: Function[] = []
+	const onUnmountListeners: Function[] = []
 
 	const impl: Impl = {
 		get $mounted() {
-			return _mounted
+			return mounted
 		},
-		[EMIT_MOUNT]() {
-			if (_mounted) return
-			_mounted = true
-			_onMountListeners.forEach((listener) => listener())
+		[TRY_EMIT_MOUNT]() {
+			if (mounted) return
+			mounted = true
+			onMountListeners.forEach((listener) => listener())
 		},
-		[EMIT_UNMOUNT]() {
-			if (!_mounted) return
-			_mounted = false
-			_onUnmountListeners.forEach((listener) => listener())
+		[TRY_EMIT_UNMOUNT]() {
+			if (!mounted) return
+			mounted = false
+			onUnmountListeners.forEach((listener) => listener())
 		},
 		$onMount(listener) {
-			if (_mounted === true) listener()?.()
+			if (mounted === true) listener()?.()
 			else {
-				_onMountListeners.push(() => {
+				onMountListeners.push(() => {
 					const cleanup = listener()
-					if (typeof cleanup === "function") _onUnmountListeners.push(cleanup)
+					if (typeof cleanup === "function") onUnmountListeners.push(cleanup)
 				})
 			}
 		},
 		$onUnmount(listener) {
-			if (_mounted === false) listener()?.()
+			if (mounted === false) listener()?.()
 			else {
-				_onUnmountListeners.push(() => {
+				onUnmountListeners.push(() => {
 					const cleanup = listener()
-					if (typeof cleanup === "function") _onMountListeners.push(cleanup)
+					if (typeof cleanup === "function") onMountListeners.push(cleanup)
 				})
 			}
 		},
