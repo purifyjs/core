@@ -127,6 +127,7 @@ export function createReadable<T>(updater: SignalUpdater<T>, initial?: T) {
 	}
 
 	function tryDeactivate() {
+		console.log("%ctry deactivate", "color:red", self.id, self.value)
 		if (!cleaner) return false
 		if (base.listenerCount > 0) return false
 		console.log("%cdeactivating", "color:red", self.id, self.value)
