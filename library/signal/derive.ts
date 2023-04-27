@@ -30,16 +30,18 @@ export function createDerive<T>(deriver: SignalDeriver<T>, staticDependencies?: 
 				const value = deriver()
 				const syncContext = signalSyncContextStack.pop()!
 				syncContext.delete(self)
+				const dependenciesToDelete = new Set<SignalReadable>()
 				for (const [dependency, subscription] of dependencyToSubscriptionMap.entries()) {
 					if (!syncContext.has(dependency)) {
 						subscription?.unsubscribe()
-						dependencyToSubscriptionMap.delete(dependency)
+						dependenciesToDelete.add(dependency)
 					}
 				}
-				syncContext.forEach(
-					(dependency) =>
-						!dependencyToSubscriptionMap.has(dependency) && dependencyToSubscriptionMap.set(dependency, dependency.subscribe(update))
-				)
+				dependenciesToDelete.forEach(dependencyToSubscriptionMap.delete)
+				syncContext.forEach((dependency) => {
+					if (dependencyToSubscriptionMap.has(dependency)) return
+					dependencyToSubscriptionMap.set(dependency, dependency.subscribe(update))
+				})
 
 				set(value)
 			}
