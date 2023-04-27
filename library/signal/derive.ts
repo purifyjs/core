@@ -25,6 +25,7 @@ export function createDerive<T>(deriver: SignalDeriver<T>, staticDependencies?: 
 		const dependencyToSubscriptionMap = new Map<SignalReadable<unknown>, SignalSubscription>()
 
 		activate = (set: SignalSetter<T>) => {
+			console.log("%cdeactivating derive", "color:green", self.id, Array.from(dependencyToSubscriptionMap))
 			function update() {
 				signalSyncContextStack.push(new Set())
 				const value = deriver()
@@ -50,7 +51,8 @@ export function createDerive<T>(deriver: SignalDeriver<T>, staticDependencies?: 
 			update()
 		}
 		deactivate = () => {
-			for (const subscription of dependencyToSubscriptionMap.values()) subscription?.unsubscribe()
+			console.log("%cdeactivating derive", "color:green", self.id, Array.from(dependencyToSubscriptionMap))
+			for (const subscription of dependencyToSubscriptionMap.values()) subscription.unsubscribe()
 			dependencyToSubscriptionMap.clear()
 		}
 	}
