@@ -45,8 +45,6 @@ export function createDerive<T>(deriver: SignalDeriver<T>, staticDependencies?: 
 					dependencyToSubscriptionMap.set(dependency, dependency.subscribe(update))
 				})
 
-				console.log(self.id, dependencyToSubscriptionMap)
-
 				set(value)
 			}
 			update()

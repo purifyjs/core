@@ -110,21 +110,14 @@ export function createReadable<T>(updater: SignalUpdater<T>, initial?: T) {
 	const base = createWritable<T>(initial!)
 	let cleaner: Function | null = null
 
-	let active = false
-
 	function tryActivate() {
 		if (cleaner) return false
-		if (active) console.error("WTF")
-		active = true
 		cleaner = updater(base.set, self.signal)
 		return true
 	}
 
 	function tryDeactivate() {
 		if (!cleaner) return false
-		if (base.listenerCount > 0) return false
-		if (!active) console.error("WTF")
-		active = false
 		cleaner()
 		cleaner = null
 		return true
