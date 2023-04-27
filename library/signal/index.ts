@@ -158,8 +158,8 @@ export function createReadable<T>(updater: SignalUpdater<T>, initial?: T) {
 			return self.get()
 		},
 		subscribe(...args) {
-			const subscription = base.subscribe(...args)
 			tryActivate()
+			const subscription = base.subscribe(...args)
 			return {
 				unsubscribe: () => {
 					subscription.unsubscribe()
