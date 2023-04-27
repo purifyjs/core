@@ -118,6 +118,7 @@ export function createReadable<T>(updater: SignalUpdater<T>, initial?: T) {
 
 	function tryDeactivate() {
 		if (!cleaner) return false
+		if (base.listenerCount > 0) return false
 		cleaner()
 		cleaner = null
 		return true
