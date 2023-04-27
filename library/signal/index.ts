@@ -24,7 +24,7 @@ export type SignalUpdater<T> = {
 export const signalSyncContextStack: Set<SignalReadable>[] = []
 export type SignalReadable<T = unknown> = {
 	get id(): string
-	get(): T
+	get(silent?: boolean): T
 	get ref(): T
 	get value(): T
 	subscribe(listener: SignalSubscriptionListener<T>, options?: SignalSubscriptionOptions): SignalSubscription
@@ -60,8 +60,8 @@ export function createWritable<T>(initial: T) {
 		get listenerCount() {
 			return listeners.size
 		},
-		get() {
-			if (signalSyncContextStack.length > 0) signalSyncContextStack[signalSyncContextStack.length - 1]!.add(self)
+		get(silent) {
+			if (!silent && signalSyncContextStack.length > 0) signalSyncContextStack[signalSyncContextStack.length - 1]!.add(self)
 			return value
 		},
 		set(newValue) {
@@ -150,9 +150,10 @@ export function createReadable<T>(updater: SignalUpdater<T>, initial?: T) {
 			return base.listenerCount
 		},
 		listeners: base.listeners,
-		get() {
+		get(silent) {
 			if (tryActivate()) setTimeout(tryDeactivate, 5000)
-			return base.get()
+			if (!silent && signalSyncContextStack.length > 0) signalSyncContextStack[signalSyncContextStack.length - 1]!.add(self)
+			return base.get(true)
 		},
 		get ref() {
 			return self.get()
