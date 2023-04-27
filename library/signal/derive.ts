@@ -10,7 +10,9 @@ export function createDerive<T>(deriver: SignalDeriver<T>, staticDependencies?: 
 		const subscriptions = new Array<SignalSubscription>(staticDependencies.length)
 		activate = (set: SignalSetter<T>) => {
 			function update() {
+				signalSyncContextStack.push(new Set())
 				set(deriver())
+				signalSyncContextStack.pop()
 			}
 			for (let i = 0; i < staticDependencies.length; i++) subscriptions[i] = staticDependencies[i]!.subscribe(update)
 			update()
