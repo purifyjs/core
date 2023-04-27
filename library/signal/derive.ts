@@ -31,7 +31,7 @@ export function createDerive<T>(deriver: SignalDeriver<T>, staticDependencies?: 
 				const syncContext = signalSyncContextStack.pop()!
 				syncContext.delete(self)
 				for (const [dependency, subscription] of dependencyToSubscriptionMap.entries()) {
-					if (syncContext.has(dependency)) {
+					if (dependencyToSubscriptionMap.has(dependency)) {
 						syncContext.delete(dependency)
 					} else {
 						subscription?.unsubscribe()
@@ -42,7 +42,6 @@ export function createDerive<T>(deriver: SignalDeriver<T>, staticDependencies?: 
 
 				set(value)
 			}
-			for (const dependency of dependencyToSubscriptionMap.keys()) dependencyToSubscriptionMap.set(dependency, dependency.subscribe(update))
 			update()
 		}
 		deactivate = () => {
