@@ -30,7 +30,10 @@ export function createDerive<T>(deriver: SignalDeriver<T>, staticDependencies?: 
 				signalSyncContextStack.push()
 				const value = deriver()
 				const syncContext = signalSyncContextStack.pop()!
-				if (syncContext !== _syncContext) throw new Error("Now thats unexpected")
+				if (syncContext !== _syncContext) {
+					console.warn(syncContext, _syncContext)
+					throw new Error("Now thats unexpected")
+				}
 				syncContext.delete(self)
 				const dependenciesToDelete = new Set<SignalReadable>()
 				for (const [dependency, subscription] of dependencyToSubscriptionMap.entries()) {
