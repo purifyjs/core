@@ -76,7 +76,6 @@ export function createWritable<T>(initial: T) {
 			self.set(newValue)
 		},
 		subscribe(listener, options) {
-			console.log("%csubscribed", "color:orange", listener, "from", self.id, self.value)
 			switch (options?.mode) {
 				case "once":
 					const onceCallback = () => {
@@ -92,10 +91,11 @@ export function createWritable<T>(initial: T) {
 					listeners.add(listener)
 					break
 			}
+			console.log("%csubscribed", "color:orange", listener, "from", self.id, self.value, [...listeners])
 			return {
 				unsubscribe: () => {
-					console.log("%cunsubscribed", "color:orange", listener, "from", self.id, self.value)
 					listeners.delete(listener)
+					console.log("%cunsubscribed", "color:orange", listener, "from", self.id, self.value, [...listeners])
 				},
 			}
 		},
