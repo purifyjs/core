@@ -26,27 +26,26 @@ export function createDerive<T>(deriver: SignalDeriver<T>, staticDependencies?: 
 
 		activate = (set: SignalSetter<T>) => {
 			function update() {
-				const _syncContext = new Set<SignalReadable<unknown>>()
-				signalSyncContextStack.push(_syncContext)
+				signalSyncContextStack.push(new Set())
 				const value = deriver()
 				const syncContext = signalSyncContextStack.pop()!
-				if (syncContext !== _syncContext) {
-					console.warn(syncContext, _syncContext)
-					throw new Error("Now thats unexpected")
-				}
 				syncContext.delete(self)
+
 				const dependenciesToDelete = new Set<SignalReadable>()
 				for (const [dependency, subscription] of dependencyToSubscriptionMap.entries()) {
 					if (!syncContext.has(dependency)) {
-						subscription?.unsubscribe()
+						subscription.unsubscribe()
 						dependenciesToDelete.add(dependency)
 					}
 				}
 				dependenciesToDelete.forEach((dependency) => dependencyToSubscriptionMap.delete(dependency))
+
 				syncContext.forEach((dependency) => {
 					if (dependencyToSubscriptionMap.has(dependency)) return
 					dependencyToSubscriptionMap.set(dependency, dependency.subscribe(update))
 				})
+
+				console.log(self.id, dependencyToSubscriptionMap)
 
 				set(value)
 			}
