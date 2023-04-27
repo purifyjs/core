@@ -151,7 +151,10 @@ export function createReadable<T>(updater: SignalUpdater<T>, initial?: T) {
 		},
 		listeners: base.listeners,
 		get() {
-			if (tryActivate()) setTimeout(tryDeactivate, 5000)
+			if (base.listenerCount === 0) {
+				tryActivate()
+				setTimeout(tryDeactivate, 5000)
+			}
 			return base.get()
 		},
 		get ref() {
