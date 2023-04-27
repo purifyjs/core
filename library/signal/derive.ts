@@ -26,8 +26,8 @@ export function createDerive<T>(deriver: SignalDeriver<T>, staticDependencies?: 
 
 		activate = (set: SignalSetter<T>) => {
 			function update() {
-				const _syncContext = new Set()
-				signalSyncContextStack.push()
+				const _syncContext = new Set<SignalReadable<unknown>>()
+				signalSyncContextStack.push(_syncContext)
 				const value = deriver()
 				const syncContext = signalSyncContextStack.pop()!
 				if (syncContext !== _syncContext) {
