@@ -101,7 +101,7 @@ export function createWritable<T>(initial: T) {
 		signal() {
 			if (signalling.has(self)) throw new Error("Avoided recursive signalling.")
 			signalling.add(self)
-			console.log("%csignalling", value, "color:blue", self.id, [...listeners])
+			console.log("%csignalling", "color:blue", value, self.id, [...listeners])
 			listeners.forEach((callback) => callback(self.get()))
 			signalling.delete(self)
 		},
