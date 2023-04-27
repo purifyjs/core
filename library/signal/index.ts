@@ -118,7 +118,9 @@ export function createReadable<T>(updater: SignalUpdater<T>, initial?: T) {
 	function tryActivate() {
 		if (cleaner) return false
 		console.log("%cactiving", "color:red", self.id)
+		signalSyncContextStack.push(new Set())
 		cleaner = updater(base.set, self.signal)
+		signalSyncContextStack.pop()
 		console.log("%cactiveted", "color:red", self.id)
 		return true
 	}
@@ -127,7 +129,9 @@ export function createReadable<T>(updater: SignalUpdater<T>, initial?: T) {
 		if (!cleaner) return false
 		if (base.listenerCount > 0) return false
 		console.log("%cdeactivating", "color:red", self.id)
+		signalSyncContextStack.push(new Set())
 		cleaner()
+		signalSyncContextStack.pop()
 		cleaner = null
 		console.log("%cdeactivated", "color:red", self.id)
 		return true
