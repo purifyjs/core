@@ -102,7 +102,7 @@ export function createWritable<T>(initial: T) {
 		signal() {
 			if (signalling.has(self)) throw new Error("Avoided recursive signalling.")
 			signalling.add(self)
-			console.log("%csignalling", "color:blue", value, self.id, [...listeners])
+			console.log("%csignalling", "color:blue", self.id, self.value, [...listeners])
 			listeners.forEach((callback) => callback(self.get()))
 			signalling.delete(self)
 		},
@@ -118,23 +118,23 @@ export function createReadable<T>(updater: SignalUpdater<T>, initial?: T) {
 
 	function tryActivate() {
 		if (cleaner) return false
-		console.log("%cactiving", "color:red", self.id)
+		console.log("%cactiving", "color:red", self.id, self.value)
 		signalSyncContextStack.push(new Set())
 		cleaner = updater(base.set, self.signal)
 		signalSyncContextStack.pop()
-		console.log("%cactiveted", "color:red", self.id)
+		console.log("%cactiveted", "color:red", self.id, self.value)
 		return true
 	}
 
 	function tryDeactivate() {
 		if (!cleaner) return false
 		if (base.listenerCount > 0) return false
-		console.log("%cdeactivating", "color:red", self.id)
+		console.log("%cdeactivating", "color:red", self.id, self.value)
 		signalSyncContextStack.push(new Set())
 		cleaner()
 		signalSyncContextStack.pop()
 		cleaner = null
-		console.log("%cdeactivated", "color:red", self.id)
+		console.log("%cdeactivated", "color:red", self.id, self.value)
 		return true
 	}
 
