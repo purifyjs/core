@@ -95,7 +95,7 @@ export function createWritable<T>(initial: T) {
 			return {
 				unsubscribe: () => {
 					listeners.delete(listener)
-					console.log("%cunsubscribed", "color:orange", listener, "from", self.id, self.value, [...listeners])
+					console.trace("%cunsubscribed", "color:orange", listener, "from", self.id, self.value, [...listeners])
 				},
 			}
 		},
