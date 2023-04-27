@@ -37,7 +37,7 @@ export function createDerive<T>(deriver: SignalDeriver<T>, staticDependencies?: 
 						dependenciesToDelete.add(dependency)
 					}
 				}
-				dependenciesToDelete.forEach(dependencyToSubscriptionMap.delete)
+				dependenciesToDelete.forEach((dependency) => dependencyToSubscriptionMap.delete(dependency))
 				syncContext.forEach((dependency) => {
 					if (dependencyToSubscriptionMap.has(dependency)) return
 					dependencyToSubscriptionMap.set(dependency, dependency.subscribe(update))
