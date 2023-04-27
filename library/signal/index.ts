@@ -26,11 +26,9 @@ export type SignalReadable<T = unknown> = {
 	get id(): string
 	get(silent?: boolean): T
 	get ref(): T
-	get value(): T
 	subscribe(listener: SignalSubscriptionListener<T>, options?: SignalSubscriptionOptions): SignalSubscription
 	signal(): void
 	get listenerCount(): number
-	listeners: Set<SignalSubscriptionListener<T>>
 }
 export type SignalWritable<T = unknown> = SignalReadable<T> & {
 	set(value: T): void
@@ -53,10 +51,6 @@ export function createWritable<T>(initial: T) {
 
 	const self: SignalWritable<T> = {
 		id: randomId(),
-		get value() {
-			return value
-		},
-		listeners,
 		get listenerCount() {
 			return listeners.size
 		},
@@ -91,18 +85,18 @@ export function createWritable<T>(initial: T) {
 					listeners.add(listener)
 					break
 			}
-			console.log("%csubscribed", "color:orange", listener, "from", self.id, self.value, [...listeners])
+			console.log("%csubscribed", "color:orange", listener, "from", self.id, value, [...listeners])
 			return {
 				unsubscribe: () => {
 					listeners.delete(listener)
-					console.log("%cunsubscribed", "color:orange", listener, "from", self.id, self.value, [...listeners])
+					console.log("%cunsubscribed", "color:orange", listener, "from", self.id, value, [...listeners])
 				},
 			}
 		},
 		signal() {
 			if (signalling.has(self)) throw new Error("Avoided recursive signalling.")
 			signalling.add(self)
-			console.log("%csignalling", "color:blue", self.id, self.value, [...listeners])
+			console.log("%csignalling", "color:blue", self.id, value, [...listeners])
 			listeners.forEach((callback) => callback(self.get()))
 			signalling.delete(self)
 		},
@@ -118,24 +112,24 @@ export function createReadable<T>(updater: SignalUpdater<T>, initial?: T) {
 
 	function tryActivate() {
 		if (cleaner) return false
-		console.log("%cactiving", "color:red", self.id, self.value)
+		console.log("%cactiving", "color:red", self.id)
 		signalSyncContextStack.push(new Set())
 		cleaner = updater(base.set, self.signal)
 		signalSyncContextStack.pop()
-		console.log("%cactiveted", "color:red", self.id, self.value)
+		console.log("%cactiveted", "color:red", self.id)
 		return true
 	}
 
 	function tryDeactivate() {
-		console.log("%ctry deactivate", "color:red", self.id, self.value, cleaner, base.listenerCount)
+		console.log("%ctry deactivate", "color:red", self.id, cleaner, base.listenerCount)
 		if (!cleaner) return false
 		if (base.listenerCount > 0) return false
-		console.log("%cdeactivating", "color:red", self.id, self.value)
+		console.log("%cdeactivating", "color:red", self.id)
 		signalSyncContextStack.push(new Set())
 		cleaner()
 		signalSyncContextStack.pop()
 		cleaner = null
-		console.log("%cdeactivated", "color:red", self.id, self.value)
+		console.log("%cdeactivated", "color:red", self.id)
 		return true
 	}
 
@@ -143,13 +137,9 @@ export function createReadable<T>(updater: SignalUpdater<T>, initial?: T) {
 		get id() {
 			return base.id
 		},
-		get value() {
-			return base.value
-		},
 		get listenerCount() {
 			return base.listenerCount
 		},
-		listeners: base.listeners,
 		get(silent) {
 			if (tryActivate()) setTimeout(tryDeactivate, 5000)
 			if (!silent && signalSyncContextStack.length > 0) signalSyncContextStack[signalSyncContextStack.length - 1]!.add(self)
@@ -163,7 +153,7 @@ export function createReadable<T>(updater: SignalUpdater<T>, initial?: T) {
 			const subscription = base.subscribe(listener, options)
 			return {
 				unsubscribe: () => {
-					console.log("%cunsubscribing readable", "color:orange", listener, "from", self.id, self.value, [...base.listeners])
+					console.log("%cunsubscribing readable", "color:orange", listener, "from", self.id)
 					subscription.unsubscribe()
 					tryDeactivate()
 				},
