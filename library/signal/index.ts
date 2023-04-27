@@ -93,7 +93,7 @@ export function createWritable<T>(initial: T) {
 			}
 			return {
 				unsubscribe: () => {
-					// xx console.log("%cunsubscribed", "color:orange", listener.name, "from", this.id)
+					console.log("%cunsubscribed", "color:orange", listener.name, "from", self.id)
 					listeners.delete(listener)
 				},
 			}
@@ -101,6 +101,7 @@ export function createWritable<T>(initial: T) {
 		signal() {
 			if (signalling.has(self)) throw new Error("Avoided recursive signalling.")
 			signalling.add(self)
+			console.log("%csignalling", "color:blue", self.id)
 			listeners.forEach((callback) => callback(self.get()))
 			signalling.delete(self)
 		},
@@ -116,15 +117,19 @@ export function createReadable<T>(updater: SignalUpdater<T>, initial?: T) {
 
 	function tryActivate() {
 		if (cleaner) return false
+		console.log("%cactiving", "color:red", self.id)
 		cleaner = updater(base.set, self.signal)
+		console.log("%cactiveted", "color:red", self.id)
 		return true
 	}
 
 	function tryDeactivate() {
 		if (!cleaner) return false
 		if (base.listenerCount > 0) return false
+		console.log("%cdeactivating", "color:red", self.id)
 		cleaner()
 		cleaner = null
+		console.log("%cdeactivated", "color:red", self.id)
 		return true
 	}
 
@@ -151,7 +156,6 @@ export function createReadable<T>(updater: SignalUpdater<T>, initial?: T) {
 			tryActivate()
 			return {
 				unsubscribe: () => {
-					// xx console.log("%cunsubscribed", "color:orange", listener.name, "from", this.id)
 					subscription.unsubscribe()
 					tryDeactivate()
 				},
