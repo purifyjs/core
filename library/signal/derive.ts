@@ -9,7 +9,7 @@ export function createDerive<T>(deriver: SignalDeriver<T>, staticDependencies?: 
 	if (staticDependencies) {
 		const subscriptions = new Array<SignalSubscription>(staticDependencies.length)
 		activate = (set: SignalSetter<T>) => {
-			console.log("%cactivating static derive", "color:green", self.id, Array.from(staticDependencies))
+			// xx console.log("%cactivating static derive", "color:green", self.id, Array.from(staticDependencies))
 			function update() {
 				signalSyncContextStack.push(new Set())
 				set(deriver())
@@ -19,7 +19,7 @@ export function createDerive<T>(deriver: SignalDeriver<T>, staticDependencies?: 
 			update()
 		}
 		deactivate = () => {
-			console.log("%cdeactivating static derive", "color:green", self.id, Array.from(staticDependencies))
+			// xx console.log("%cdeactivating static derive", "color:green", self.id, Array.from(staticDependencies))
 			for (let i = 0; i < subscriptions.length; i++) {
 				subscriptions[i]!.unsubscribe()
 				delete subscriptions[i]
@@ -29,7 +29,7 @@ export function createDerive<T>(deriver: SignalDeriver<T>, staticDependencies?: 
 		const dependencyToSubscriptionMap = new Map<SignalReadable<unknown>, SignalSubscription>()
 
 		activate = (set: SignalSetter<T>) => {
-			console.log("%cactivating derive", "color:green", self.id, Array.from(dependencyToSubscriptionMap))
+			// xx console.log("%cactivating derive", "color:green", self.id, Array.from(dependencyToSubscriptionMap))
 			function update() {
 				signalSyncContextStack.push(new Set())
 				const value = deriver()
@@ -55,7 +55,7 @@ export function createDerive<T>(deriver: SignalDeriver<T>, staticDependencies?: 
 			update()
 		}
 		deactivate = () => {
-			console.log("%cdeactivating derive", "color:green", self.id, Array.from(dependencyToSubscriptionMap))
+			// xx console.log("%cdeactivating derive", "color:green", self.id, Array.from(dependencyToSubscriptionMap))
 			for (const subscription of dependencyToSubscriptionMap.values()) subscription.unsubscribe()
 			dependencyToSubscriptionMap.clear()
 		}
