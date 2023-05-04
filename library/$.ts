@@ -1,11 +1,10 @@
 import { createAwait } from "./logic/await"
 import { createEach } from "./logic/each"
 import { createMatch } from "./logic/match"
+import { createReadable, createWritable } from "./signal"
 import { createDeferred } from "./signal/deferred"
 import { createDerive } from "./signal/derive"
 import { flattenSignal } from "./signal/flatten"
-import { createReadable } from "./signal"
-import { createWritable } from "./signal"
 
 export const $ = {
 	writable: createWritable,

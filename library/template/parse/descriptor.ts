@@ -7,7 +7,7 @@ export function checkValueDescriptorType<T extends ValueDescriptorType>(type: T,
 	return descriptor.type === type
 }
 
-type DirectiveType = typeof directiveTypes[number]
+type DirectiveType = (typeof directiveTypes)[number]
 const directiveTypes = ["class", "style", "on", "bind", "ref"] as const
 const directiveTypesSet = new Set(directiveTypes)
 function isDirectiveType(value: string): value is DirectiveType {

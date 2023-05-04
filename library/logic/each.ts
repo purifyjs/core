@@ -1,7 +1,7 @@
 import { mountableNodeAssert, removedNode } from "../mountable"
-import { createReadable, createWritable, isReadable, SignalReadable, SignalWritable } from "../signal"
+import { SignalReadable, SignalWritable, createReadable, createWritable, isReadable } from "../signal"
 import { valueToNode } from "../template/node"
-import { Renderable, RenderSymbol } from "../template/renderable"
+import { RenderSymbol, Renderable } from "../template/renderable"
 
 // TODO: Rewrite this all, re-think it
 // TODO: we can move rendering to SignalReadnable itself, it can render Maps in this way, and this would return a SignalReadable<Map<Foo, Bar>>

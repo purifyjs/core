@@ -1,7 +1,7 @@
 import { mountableNodeAssert, removedNode } from "../mountable"
 import { isReadable } from "../signal"
 import { createOrGetDeriveOfFunction } from "../signal/derive"
-import { isRenderable, RenderSymbol } from "./renderable"
+import { RenderSymbol, isRenderable } from "./renderable"
 
 const EMPTY_NODE = document.createDocumentFragment()
 
