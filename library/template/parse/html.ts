@@ -124,7 +124,6 @@ function processChar(char: string, state: HtmlPartState): string {
 				state.type = HtmlPartStateType.AttributeValueUnquoted
 				state.attributeValue = ""
 			} else state.attributeName += char
-			if (char === ":") state.addRef = true
 			break
 		case HtmlPartStateType.AttributeValueUnquoted:
 			if (char === ">") {
