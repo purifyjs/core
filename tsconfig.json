@@ -31,7 +31,6 @@
 		"noUncheckedIndexedAccess": true,
 		/* OTHER */
 		"preserveConstEnums": true,
-		"importsNotUsedAsValues": "error",
 		"forceConsistentCasingInFileNames": true,
 		"useDefineForClassFields": true,
 		/* ALLOW */
