@@ -2,20 +2,18 @@ import { mountableNodeAssert, removedNode } from "../mountable"
 import type { SignalReadable, SignalWritable } from "../signal"
 import { createReadable, createWritable, isReadable } from "../signal"
 import { valueToNode } from "../template/node"
-import type { Renderable } from "../template/renderable"
-import { RenderSymbol } from "../template/renderable"
 
 // TODO: Rewrite this all, re-think it
 // TODO: we can move rendering to SignalReadnable itself, it can render Maps in this way, and this would return a SignalReadable<Map<Foo, Bar>>
 
 type KeyGetter<T> = (item: T, index: number) => unknown
 
-interface EachOfSignalArray<T extends unknown[]> extends Renderable<DocumentFragment> {
+interface EachOfSignalArray<T extends unknown[]> {
 	key(getter: KeyGetter<T[number]>): Omit<this, "key">
 	as<R>(as?: (item: SignalReadable<T[number]>, index: SignalReadable<number>) => R): DocumentFragment
 }
 
-interface EachOfArray<T extends unknown[]> extends Renderable<T> {
+interface EachOfArray<T extends unknown[]> {
 	as<R>(as: (item: T[number], index: number) => R): R[]
 	as(): T
 }
@@ -25,15 +23,11 @@ function eachOfArray<T extends unknown[]>(each: T) {
 		as<R>(as?: (item: T[number], index: number) => R): R[] | T {
 			return as ? each.map((item, index) => as(item, index)) : each
 		},
-		[RenderSymbol]() {
-			return this.as()
-		},
 	} as EachOfArray<T>
 }
 
 function eachOfSignalArray<T extends unknown[]>(each: SignalReadable<T>) {
 	let _keyGetter: KeyGetter<T[number]>
-	let _as: ((item: SignalReadable<T[number]>, index: SignalReadable<number>) => unknown) | undefined
 
 	return {
 		key(keyGetter: KeyGetter<T[number]>) {
@@ -43,10 +37,7 @@ function eachOfSignalArray<T extends unknown[]>(each: SignalReadable<T>) {
 		},
 		as<R>(as?: (item: SignalReadable<T[number]>, index: SignalReadable<number>) => R) {
 			delete (this as Partial<typeof this>).as
-			_as = as
-			return this[RenderSymbol]()
-		},
-		[RenderSymbol]() {
+
 			_keyGetter ??= (_, index) => index
 			let caches = new Map<unknown, { nodes: ChildNode[]; indexSignal: SignalWritable<number> }>()
 			let keyOrder: unknown[] = []
@@ -91,7 +82,7 @@ function eachOfSignalArray<T extends unknown[]>(each: SignalReadable<T>) {
 								const subs = [each.subscribe(update), indexSignal.subscribe(update)]
 								return () => subs.forEach((sub) => sub.unsubscribe())
 							})
-							const value = _as ? _as(itemSignal, indexSignal) : itemSignal
+							const value = as ? as(itemSignal, indexSignal) : itemSignal
 							const node = valueToNode(value)
 							nodes = node instanceof DocumentFragment ? Array.from(node.childNodes) : [node as ChildNode]
 							newCaches.set(key, { nodes, indexSignal })
