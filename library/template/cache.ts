@@ -1,5 +1,6 @@
 import type { TemplateValue } from "."
-import { parseTemplateDescriptor, TemplateDescriptor } from "./parse/descriptor"
+import type { TemplateDescriptor } from "./parse/descriptor"
+import { parseTemplateDescriptor } from "./parse/descriptor"
 import { parseTemplateHtml } from "./parse/html"
 import { parseTemplate } from "./parse/template"
 import { render } from "./render"

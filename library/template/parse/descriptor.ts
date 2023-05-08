@@ -1,6 +1,7 @@
 import { assert } from "../../utils/assert"
 import { randomId } from "../../utils/id"
-import { HtmlDescriptor, HtmlPartStateType } from "./html"
+import type { HtmlDescriptor } from "./html"
+import { HtmlPartStateType } from "./html"
 
 type ValueDescriptorType = "render-node" | "render-element" | "attribute" | "directive"
 export function checkValueDescriptorType<T extends ValueDescriptorType>(type: T, descriptor: ValueDescriptor): descriptor is ValueDescriptor<T> {

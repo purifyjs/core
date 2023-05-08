@@ -1,4 +1,5 @@
-import { MountableNode, mountableNodeAssert } from "../mountable"
+import type { MountableNode } from "../mountable"
+import { mountableNodeAssert } from "../mountable"
 import { randomId } from "../utils/id"
 
 type TagName = `${string}-${string}${string[0]}`

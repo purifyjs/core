@@ -1,7 +1,9 @@
 import { mountableNodeAssert, removedNode } from "../mountable"
-import { SignalReadable, SignalWritable, createReadable, createWritable, isReadable } from "../signal"
+import type { SignalReadable, SignalWritable } from "../signal"
+import { createReadable, createWritable, isReadable } from "../signal"
 import { valueToNode } from "../template/node"
-import { RenderSymbol, Renderable } from "../template/renderable"
+import type { Renderable } from "../template/renderable"
+import { RenderSymbol } from "../template/renderable"
 
 // TODO: Rewrite this all, re-think it
 // TODO: we can move rendering to SignalReadnable itself, it can render Maps in this way, and this would return a SignalReadable<Map<Foo, Bar>>
@@ -10,23 +12,18 @@ type KeyGetter<T> = (item: T, index: number) => unknown
 
 interface EachOfSignalArray<T extends unknown[]> extends Renderable<DocumentFragment> {
 	key(getter: KeyGetter<T[number]>): Omit<this, "key">
-	as<R>(as?: (item: SignalReadable<T[number]>, index: SignalReadable<number>) => R): Omit<this, "as">
-	render(): DocumentFragment
+	as<R>(as?: (item: SignalReadable<T[number]>, index: SignalReadable<number>) => R): DocumentFragment
 }
 
 interface EachOfArray<T extends unknown[]> extends Renderable<T> {
 	as<R>(as: (item: T[number], index: number) => R): R[]
 	as(): T
-	render(): T
 }
 
 function eachOfArray<T extends unknown[]>(each: T) {
 	return {
 		as<R>(as?: (item: T[number], index: number) => R): R[] | T {
 			return as ? each.map((item, index) => as(item, index)) : each
-		},
-		render() {
-			return this[RenderSymbol]()
 		},
 		[RenderSymbol]() {
 			return this.as()
@@ -47,9 +44,6 @@ function eachOfSignalArray<T extends unknown[]>(each: SignalReadable<T>) {
 		as<R>(as?: (item: SignalReadable<T[number]>, index: SignalReadable<number>) => R) {
 			delete (this as Partial<typeof this>).as
 			_as = as
-			return this
-		},
-		render() {
 			return this[RenderSymbol]()
 		},
 		[RenderSymbol]() {
@@ -121,13 +115,6 @@ function eachOfSignalArray<T extends unknown[]>(each: SignalReadable<T>) {
 						lastNode = newNodes[newNodes.length - 1]!
 					}
 
-					// TODO: find out why we don't have nextSibiling sometimes, why we are not in the dom
-					if (!lastNode.nextSibling) {
-						console.warn("THE WEIRD")
-						console.log(lastNode)
-						console.log(startComment)
-						console.log(endComment)
-					}
 					while (lastNode.nextSibling && lastNode.nextSibling !== endComment) {
 						const node = lastNode.nextSibling
 						node.remove()

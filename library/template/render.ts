@@ -1,13 +1,15 @@
 import type { TemplateValue } from "."
 import { Component } from "../component"
 import { mountableNodeAssert } from "../mountable"
-import { isReadable, isWritable, SignalWritable } from "../signal"
+import type { SignalWritable } from "../signal"
+import { isReadable, isWritable } from "../signal"
 import { createDerive, createOrGetDeriveOfFunction } from "../signal/derive"
 import { assert } from "../utils/assert"
 import { nameOf, typeOf } from "../utils/name"
 import { unhandled } from "../utils/unhandled"
 import { valueToNode } from "./node"
-import { checkValueDescriptorType, TemplateDescriptor } from "./parse/descriptor"
+import type { TemplateDescriptor } from "./parse/descriptor"
+import { checkValueDescriptorType } from "./parse/descriptor"
 
 export function render<T extends TemplateValue[]>(template: HTMLTemplateElement, templateDescriptor: TemplateDescriptor, values: T): Node[] {
 	const fragment = template.content.cloneNode(true) as DocumentFragment

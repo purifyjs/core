@@ -1,5 +1,6 @@
 import { unhandled } from "../../utils/unhandled"
-import { checkValueDescriptorType, TemplateDescriptor } from "./descriptor"
+import type { TemplateDescriptor } from "./descriptor"
+import { checkValueDescriptorType } from "./descriptor"
 
 export function parseTemplate({ refDataMap, valueDescriptors, html }: TemplateDescriptor) {
 	try {

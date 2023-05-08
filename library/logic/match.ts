@@ -1,5 +1,7 @@
-import { createReadable, isReadable, SignalReadable } from "../signal"
-import { Renderable, RenderSymbol } from "../template/renderable"
+import type { SignalReadable } from "../signal"
+import { createReadable, isReadable } from "../signal"
+import type { Renderable } from "../template/renderable"
+import { RenderSymbol } from "../template/renderable"
 import type { Excludable } from "../utils/type"
 
 type Then<T> = (value: T) => unknown
