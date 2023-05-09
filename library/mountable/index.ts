@@ -30,7 +30,7 @@ Element.prototype.attachShadow = function (options: ShadowRootInit) {
 }
 
 export function addedNode(node: Node, place: NodePlace = NODE_UNKNOWN_PLACE) {
-	if (place === NODE_UNKNOWN_PLACE && getRootNode(node) !== document) return
+	if (place === NODE_UNKNOWN_PLACE && node.getRootNode({ composed: true }) !== document) return
 	if (isMountableNode(node)) node[TRY_EMIT_MOUNT]()
 	if (node instanceof HTMLElement) Array.from(node.shadowRoot?.childNodes ?? []).forEach((node) => addedNode(node, NODE_IN_DOM))
 	Array.from(node.childNodes).forEach((node) => addedNode(node, NODE_IN_DOM))
@@ -40,12 +40,6 @@ export function removedNode(node: Node) {
 	if (isMountableNode(node)) node[TRY_EMIT_UNMOUNT]()
 	if (node instanceof HTMLElement) Array.from(node.shadowRoot?.childNodes ?? []).forEach(removedNode)
 	Array.from(node.childNodes).forEach(removedNode)
-}
-
-function getRootNode(node: Node): Node {
-	if (node instanceof ShadowRoot) return getRootNode(node.host)
-	if (node.parentNode) return getRootNode(node.parentNode)
-	return node
 }
 
 export type MountableNode = Node & {
