@@ -27,11 +27,6 @@ export function valueToNode(value: unknown): Node {
 		startComment.$subscribe(
 			value,
 			(signalValue: unknown) => {
-				if (!startComment.nextSibling) {
-					console.warn("THE WEIRD")
-					console.log(startComment)
-					console.log(endComment)
-				}
 				while (startComment.nextSibling && startComment.nextSibling !== endComment) {
 					const node = startComment.nextSibling
 					node.remove()

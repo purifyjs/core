@@ -14,9 +14,9 @@ export function defineComponent(tagName: TagName = `x-${randomId()}`) {
 		}
 
 		public override set $html(nodes: Node[]) {
-			while (this.$root.firstChild) this.$root.removeChild(this.$root.firstChild)
-			this.$root.append(...nodes)
-			this.$root.adoptedStyleSheets = Component.$css ? [...ComponentBase.$globalCSS, Component.$css] : ComponentBase.$globalCSS
+			while (this.$shadowRoot.firstChild) this.$shadowRoot.removeChild(this.$shadowRoot.firstChild)
+			this.$shadowRoot.append(...nodes)
+			this.$shadowRoot.adoptedStyleSheets = Component.$css ? [...ComponentBase.$globalCSS, Component.$css] : ComponentBase.$globalCSS
 		}
 	}
 
@@ -28,16 +28,16 @@ export function defineComponent(tagName: TagName = `x-${randomId()}`) {
 export { ComponentBase as Component }
 class ComponentBase extends HTMLElement {
 	public static $globalCSS: CSSStyleSheet[] = []
-	public $root: ShadowRoot // needed to access shadowdom in chrome extensions, for some reason shadowRoot returns undefined in chrome extensions
+	public $shadowRoot: ShadowRoot // needed to access shadowdom in chrome extensions, for some reason shadowRoot returns undefined in chrome extensions
 
 	constructor() {
 		super()
-		this.$root = this.attachShadow({ mode: "open" })
+		this.$shadowRoot = this.attachShadow({ mode: "open" })
 	}
 
 	public set $html(nodes: Node[]) {
-		while (this.$root.firstChild) this.$root.removeChild(this.$root.firstChild)
-		this.$root.append(...nodes)
-		this.$root.adoptedStyleSheets = ComponentBase.$globalCSS
+		while (this.$shadowRoot.firstChild) this.$shadowRoot.removeChild(this.$shadowRoot.firstChild)
+		this.$shadowRoot.append(...nodes)
+		this.$shadowRoot.adoptedStyleSheets = ComponentBase.$globalCSS
 	}
 }
