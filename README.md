@@ -71,7 +71,3 @@ So, MasterTS is designed to be simple and easy to use, with a focus on transpare
 ### Note
 
 Initially, the goal of MasterTS was to create a library with resumable server-side rendering (SSR), similar to Qwik. While it was possible to achieve this, it became clear that significant sacrifices would need to be made in order to make it work correctly. Since MasterTS is intended for use with platforms like IPFS, which do not have a server or cloud infrastructure, it was decided that an SPA was sufficient for now. It is possible that additional features and changes will be made in the future.
-
-### Development
-
-If you wanna work on development of the MasterTS, it is recommended to use the [MasterTS Workspace](https://github.com/DeepDoge/master-ts-workspace) for a better developer experience.

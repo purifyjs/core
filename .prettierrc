@@ -1,0 +1,17 @@
+{
+	"overrides": [
+		{
+			"files": ["*"],
+			"options": {
+				"tabWidth": 4,
+				"useTabs": true,
+				"bracketSameLine": true,
+				"printWidth": 150,
+				"semi": false,
+				"arrowParens": "always",
+				"bracketSpacing": true
+			}
+		}
+	],
+	"plugins": ["prettier-plugin-organize-imports"]
+}

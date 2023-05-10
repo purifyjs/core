@@ -1,0 +1,37 @@
+{
+	"editor.formatOnSave": true,
+	"editor.codeActionsOnSave": {
+		"source.fixAll.eslint": true
+	},
+	"editor.defaultFormatter": "esbenp.prettier-vscode",
+	"todo-tree.general.tags": ["BUG", "FIXME", "TODO", "IMPORTANT", "NOTE", "[ ]", "[x]"],
+	"todo-tree.highlights.customHighlight": {
+		"BUG": {
+			"icon": "bug",
+			"iconColour": "#0dbd8b",
+			"background": "#fb4646"
+		},
+		"FIXME": {
+			"icon": "flame",
+			"iconColour": "#ff7427",
+			"background": "#fca87a"
+		},
+		"TODO": {
+			"background": "#76bcfa",
+			"iconColour": "#3386cd"
+		},
+		"NOTE": {
+			"icon": "note",
+			"iconColour": "#fff",
+			"background": "#fff"
+		},
+		"IMPORTANT": {
+			"icon": "stop",
+			"iconColour": "#ed4848",
+			"background": "#ee8888"
+		}
+	},
+	"todo-tree.highlights.defaultHighlight": {
+		"type": "tag"
+	}
+}
