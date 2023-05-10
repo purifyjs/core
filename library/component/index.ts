@@ -6,24 +6,17 @@ type TagName = `${string}-${string}${string[0]}`
 // TODO: Improve developer experiance for styles, we should get CSSStyleSheet as css not string, but im not sure how to add @layer with that.
 
 const componentLayerName = `component-${uniqueId()}`
-const globalLayerName = `global-${uniqueId()}`
 
 export function defineComponent(tagName: TagName = `x-${uniqueId()}`) {
 	class Component extends ComponentBase {
 		constructor() {
 			super()
-			MountableNode.make(this)
-			this.$shadowRoot.adoptedStyleSheets = [ComponentBase.$globalStyleSheet, Component.$styleSheet]
+			this.$shadowRoot.adoptedStyleSheets = [...ComponentBase.$globalStyleSheets, Component.$styleSheet]
 		}
 
 		private static $styleSheet = new CSSStyleSheet()
 		public static set $css(css: string) {
 			this.$styleSheet.replaceSync(`@layer ${componentLayerName}{${css}}`)
-		}
-
-		public set $html(nodes: Node[]) {
-			while (this.$shadowRoot.firstChild) this.$shadowRoot.removeChild(this.$shadowRoot.firstChild)
-			this.$shadowRoot.append(...nodes)
 		}
 	}
 
@@ -36,15 +29,16 @@ export { ComponentBase as Component }
 class ComponentBase extends HTMLElement {
 	public $shadowRoot: ShadowRoot // needed to access shadowdom in chrome extensions, for some reason shadowRoot returns undefined in chrome extensions
 
-	protected static $globalStyleSheet = new CSSStyleSheet()
-	public static set $globalCSS(css: string) {
-		this.$globalStyleSheet.replaceSync(
-			`@layer ${globalLayerName},${componentLayerName};\n@layer ${globalLayerName}{${css}}`
-		)
-	}
+	public static $globalStyleSheets: CSSStyleSheet[] = []
 
 	constructor() {
 		super()
+		MountableNode.make(this)
 		this.$shadowRoot = this.attachShadow({ mode: "open" })
+	}
+
+	public set $html(nodes: Node[]) {
+		while (this.$shadowRoot.firstChild) this.$shadowRoot.removeChild(this.$shadowRoot.firstChild)
+		this.$shadowRoot.append(...nodes)
 	}
 }
