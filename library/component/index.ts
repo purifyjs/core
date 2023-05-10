@@ -13,12 +13,12 @@ export function defineComponent(tagName: TagName = `x-${uniqueId()}`) {
 		constructor() {
 			super()
 			MountableNode.make(this)
-			this.$shadowRoot.adoptedStyleSheets = [ComponentBase.$globalStyleSheet, Component.$_css]
+			this.$shadowRoot.adoptedStyleSheets = [ComponentBase.$globalStyleSheet, Component.$styleSheet]
 		}
 
-		private static $_css = new CSSStyleSheet()
-		public static set $css(value: string) {
-			this.$_css.replaceSync(`@layer ${componentLayerName} { ${value} }`)
+		private static $styleSheet = new CSSStyleSheet()
+		public static set $css(css: string) {
+			this.$styleSheet.replaceSync(`@layer ${componentLayerName}{${css}}`)
 		}
 
 		public set $html(nodes: Node[]) {
@@ -36,16 +36,10 @@ export { ComponentBase as Component }
 class ComponentBase extends HTMLElement {
 	public $shadowRoot: ShadowRoot // needed to access shadowdom in chrome extensions, for some reason shadowRoot returns undefined in chrome extensions
 
-	private static $_globalStyleSheet = new CSSStyleSheet()
-	public static get $globalStyleSheet() {
-		return this.$_globalStyleSheet
-	}
-
-	private static $_globalCSS: string[] = []
-	public static $insertGlobalCSS(css: string) {
-		this.$_globalCSS.push(css)
-		this.$_globalStyleSheet.replaceSync(
-			`@layer ${globalLayerName}, ${componentLayerName}; @layer ${globalLayerName} { ${this.$_globalCSS.join("\n")} }`
+	protected static $globalStyleSheet = new CSSStyleSheet()
+	public static set $globalCSS(css: string) {
+		this.$globalStyleSheet.replaceSync(
+			`@layer ${globalLayerName},${componentLayerName};\n@layer ${globalLayerName}{${css}}`
 		)
 	}
 
