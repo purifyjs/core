@@ -3,9 +3,7 @@ import { uniqueId } from "../utils/id"
 
 type TagName = `${string}-${string}${string[0]}`
 
-// TODO: Improve developer experiance for styles, we should get CSSStyleSheet as css not string, but im not sure how to add @layer with that.
-
-const componentLayerName = `component-${uniqueId()}`
+const componentLayerName = `master-ts-component`
 
 export function defineComponent(tagName: TagName = `x-${uniqueId()}`) {
 	class Component extends ComponentBase {
