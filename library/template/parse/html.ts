@@ -1,4 +1,4 @@
-import { randomId } from "../../utils/id"
+import { uniqueId } from "../../utils/id"
 
 export type HtmlDescriptor = {
 	parts: HtmlPart[]
@@ -84,7 +84,7 @@ function processChar(char: string, state: HtmlPartState): string {
 			if (char === "<") {
 				state.type = HtmlPartStateType.TagName
 				state.tag = ""
-				state.ref = randomId()
+				state.ref = uniqueId()
 				state.attributeName = ""
 				state.attributeValue = ""
 				state.addRef = false

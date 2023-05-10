@@ -1,4 +1,4 @@
-import { randomId } from "../utils/id"
+import { uniqueId } from "../utils/id"
 
 export type SignalSubscription = {
 	unsubscribe(): void
@@ -50,7 +50,7 @@ export function createWritable<T>(initial: T) {
 	let value = initial
 
 	const self: SignalWritable<T> = {
-		id: randomId(),
+		id: uniqueId(),
 		get listenerCount() {
 			return listeners.size
 		},

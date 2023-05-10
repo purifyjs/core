@@ -1,5 +1,5 @@
 import { assert } from "../../utils/assert"
-import { randomId } from "../../utils/id"
+import { uniqueId } from "../../utils/id"
 import type { HtmlDescriptor } from "./html"
 import { HtmlPartStateType } from "./html"
 
@@ -68,7 +68,7 @@ export function parseTemplateDescriptor<T extends HtmlDescriptor>(htmlParse: T):
 			if (!(i < valueDescriptors.length)) break
 
 			if (parsePart.state.type === HtmlPartStateType.Outer) {
-				const ref = randomId()
+				const ref = uniqueId()
 				html += `<x ref:${ref}></x>`
 				valueDescriptors[i] = createValueDescriptor("render-node", { ref })
 				continue

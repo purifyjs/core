@@ -1,9 +1,9 @@
 import { MountableNode } from "../mountable"
-import { randomId } from "../utils/id"
+import { uniqueId } from "../utils/id"
 
 type TagName = `${string}-${string}${string[0]}`
 
-export function defineComponent(tagName: TagName = `x-${randomId()}`) {
+export function defineComponent(tagName: TagName = `x-${uniqueId()}`) {
 	class Component extends ComponentBase {
 		public static $css: CSSStyleSheet | null = null
 
