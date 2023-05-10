@@ -5,10 +5,11 @@ export function createDeferred<T>(signal: SignalReadable<T>, timeout_ms: number 
 		let timeout: number | null = null
 		return signal.subscribe(
 			(value) => {
+				set(value)
 				if (timeout) clearTimeout(timeout)
 				timeout = setTimeout(() => set(value), timeout_ms)
 			},
 			{ mode: "immediate" }
 		).unsubscribe
-	}, signal.get(true))
+	})
 }
