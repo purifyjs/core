@@ -1,4 +1,4 @@
-import { mountableNodeAssert, removedNode } from "../mountable"
+import { MountableNode } from "../mountable"
 import type { SignalReadable, SignalWritable } from "../signal"
 import { createReadable, createWritable, isReadable } from "../signal"
 import { valueToNode } from "../template/node"
@@ -48,7 +48,7 @@ function eachOfSignalArray<T extends unknown[]>(each: SignalReadable<T>) {
 			const fragment = document.createDocumentFragment()
 			fragment.append(startComment, endComment)
 
-			mountableNodeAssert(startComment)
+			MountableNode.make(startComment)
 			startComment.$subscribe(
 				each,
 				(eachValue) => {
@@ -100,7 +100,7 @@ function eachOfSignalArray<T extends unknown[]>(each: SignalReadable<T>) {
 						if (oldNodes && oldKey !== newKey && !newCaches.has(oldKey))
 							oldNodes.forEach((node) => {
 								node.remove()
-								removedNode(node)
+								MountableNode.removedNode(node)
 							})
 						if (lastNode.nextSibling !== newNodes[0]) lastNode.after(...newNodes)
 						lastNode = newNodes[newNodes.length - 1]!
@@ -109,7 +109,7 @@ function eachOfSignalArray<T extends unknown[]>(each: SignalReadable<T>) {
 					while (lastNode.nextSibling && lastNode.nextSibling !== endComment) {
 						const node = lastNode.nextSibling
 						node.remove()
-						removedNode(node)
+						MountableNode.removedNode(node)
 					}
 
 					caches = newCaches

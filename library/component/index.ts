@@ -1,5 +1,4 @@
-import type { MountableNode } from "../mountable"
-import { mountableNodeAssert } from "../mountable"
+import { MountableNode } from "../mountable"
 import { randomId } from "../utils/id"
 
 type TagName = `${string}-${string}${string[0]}`
@@ -10,7 +9,7 @@ export function defineComponent(tagName: TagName = `x-${randomId()}`) {
 
 		constructor() {
 			super()
-			mountableNodeAssert(this)
+			MountableNode.make(this)
 		}
 
 		public override set $html(nodes: Node[]) {

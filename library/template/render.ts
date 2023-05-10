@@ -1,6 +1,6 @@
 import type { TemplateValue } from "."
 import { Component } from "../component"
-import { mountableNodeAssert } from "../mountable"
+import { MountableNode } from "../mountable"
 import type { SignalWritable } from "../signal"
 import { isReadable, isWritable } from "../signal"
 import { createDerive, createOrGetDeriveOfFunction } from "../signal/derive"
@@ -32,7 +32,7 @@ export function render<T extends TemplateValue[]>(template: HTMLTemplateElement,
 				if (typeof value === "function") values[index] = value = createOrGetDeriveOfFunction(value as () => unknown)
 				if (isReadable(value)) {
 					if (descriptor.quote === "") {
-						mountableNodeAssert(element)
+						MountableNode.make(element)
 						element.$subscribe(
 							value,
 							(value) =>
@@ -54,7 +54,7 @@ export function render<T extends TemplateValue[]>(template: HTMLTemplateElement,
 					case "class":
 						if (typeof value === "function") value = createOrGetDeriveOfFunction(value as () => unknown)
 						if (isReadable(value)) {
-							mountableNodeAssert(element)
+							MountableNode.make(element)
 							element.$subscribe(value, (v) => element.classList.toggle(descriptor.name, !!v), {
 								mode: "immediate",
 							})
@@ -63,7 +63,7 @@ export function render<T extends TemplateValue[]>(template: HTMLTemplateElement,
 					case "style":
 						if (typeof value === "function") value = createOrGetDeriveOfFunction(value as () => unknown)
 						if (isReadable(value)) {
-							mountableNodeAssert(element)
+							MountableNode.make(element)
 							element.$subscribe(value, (v) => element.style.setProperty(descriptor.name, `${v}`), {
 								mode: "immediate",
 							})
@@ -72,7 +72,7 @@ export function render<T extends TemplateValue[]>(template: HTMLTemplateElement,
 					case "on":
 						if (!(typeof value === "function"))
 							throw new Error(`${descriptor.type}:${descriptor.name} must be a function, but got ${nameOf(value)}.`)
-						mountableNodeAssert(element)
+						MountableNode.make(element)
 						element.$onMount(() => element.addEventListener(descriptor.name, value as EventListener))
 						element.$onUnmount(() => element.removeEventListener(descriptor.name, value as EventListener))
 						break
@@ -90,7 +90,7 @@ export function render<T extends TemplateValue[]>(template: HTMLTemplateElement,
 							case "value:string":
 								{
 									const listener = () => (signal.ref = element.value)
-									mountableNodeAssert(element)
+									MountableNode.make(element)
 									element.$onMount(() => element.addEventListener("input", listener))
 									element.$onUnmount(() => element.removeEventListener("input", listener))
 									element.$subscribe(signal, (value) => (element.value = `${value}`), { mode: "immediate" })
@@ -100,7 +100,7 @@ export function render<T extends TemplateValue[]>(template: HTMLTemplateElement,
 								{
 									assert<SignalWritable<number>>(signal)
 									const listener = () => (signal.ref = element.valueAsNumber)
-									mountableNodeAssert(element)
+									MountableNode.make(element)
 									element.$onMount(() => element.addEventListener("input", listener))
 									element.$onUnmount(() => element.removeEventListener("input", listener))
 									element.$subscribe(signal, (value) => (element.valueAsNumber = value), { mode: "immediate" })
@@ -110,7 +110,7 @@ export function render<T extends TemplateValue[]>(template: HTMLTemplateElement,
 								{
 									assert<SignalWritable<Date | null>>(signal)
 									const listener = () => (signal.ref = element.valueAsDate)
-									mountableNodeAssert(element)
+									MountableNode.make(element)
 									element.$onMount(() => element.addEventListener("input", listener))
 									element.$onUnmount(() => element.removeEventListener("input", listener))
 									element.$subscribe(signal, (value) => (element.valueAsDate = value), { mode: "immediate" })
@@ -120,7 +120,7 @@ export function render<T extends TemplateValue[]>(template: HTMLTemplateElement,
 								{
 									assert<SignalWritable<boolean>>(signal)
 									const listener = () => (signal.ref = element.checked)
-									mountableNodeAssert(element)
+									MountableNode.make(element)
 									element.$onMount(() => element.addEventListener("input", listener))
 									element.$onUnmount(() => element.removeEventListener("input", listener))
 									element.$subscribe(signal, (value) => (element.checked = value), { mode: "immediate" })
@@ -139,7 +139,7 @@ export function render<T extends TemplateValue[]>(template: HTMLTemplateElement,
 		for (const [ref, { attributes }] of templateDescriptor.refDataMap) {
 			const element = fragment.querySelector(`[ref\\:${ref}]`) as HTMLElement
 			for (const [name, { parts }] of attributes) {
-				mountableNodeAssert(element)
+				MountableNode.make(element)
 				const signal = createDerive(() =>
 					parts!
 						.map((part) => {
