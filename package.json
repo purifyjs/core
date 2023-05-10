@@ -2,8 +2,7 @@
 	"type": "module",
 	"name": "master-ts",
 	"scripts": {
-		"format": "prettier -w ./",
-		"postinstall": "npm run format"
+		"format": "prettier -w ./"
 	},
 	"devDependencies": {
 		"@types/node": "^20.1.2"
