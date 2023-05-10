@@ -12,9 +12,7 @@ export type Template = {
 }
 
 export function css(strings: TemplateStringsArray, ...values: (string | number)[]) {
-	const sheet = new CSSStyleSheet()
-	sheet.replaceSync(strings.reduce((acc, str, i) => acc + str + (values[i] ?? ""), ""))
-	return sheet
+	return strings.reduce((acc, str, i) => acc + str + (values[i] ?? ""), "")
 }
 
 export function html<S extends TemplateStringsArray, T extends TemplateValue[]>(strings: S, ...values: T) {
