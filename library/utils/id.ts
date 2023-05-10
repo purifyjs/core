@@ -1,5 +1,4 @@
-let counters: Record<string, bigint> = {}
-export function uniqueId(prefix = "$-") {
-	counters[prefix] ??= 0n
-	return `${prefix}${(counters[prefix]++).toString(36)}`
+let counter: bigint = 0n
+export function uniqueId() {
+	return (counter++).toString(36).padStart(6, "0")
 }
