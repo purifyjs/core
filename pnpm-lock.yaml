@@ -1,1 +1,12 @@
 lockfileVersion: '6.0'
+
+devDependencies:
+  '@types/node':
+    specifier: ^20.1.2
+    version: 20.1.2
+
+packages:
+
+  /@types/node@20.1.2:
+    resolution: {integrity: sha512-CTO/wa8x+rZU626cL2BlbCDzydgnFNgc19h4YvizpTO88MFQxab8wqisxaofQJ/9bLGugRdWIuX/TbIs6VVF6g==}
+    dev: true

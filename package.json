@@ -1,4 +1,7 @@
 {
 	"type": "module",
-	"name": "master-ts"
+	"name": "master-ts",
+	"devDependencies": {
+		"@types/node": "^20.1.2"
+	}
 }
