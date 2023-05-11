@@ -7,10 +7,11 @@ export function defineComponent(tagName: TagName = `x-${uniqueId()}`) {
 	class Component extends ComponentBase {
 		constructor() {
 			super()
+			Component.$styleSheets ??= [...ComponentBase.$globalStyleSheets]
 			this.$shadowRoot.adoptedStyleSheets = Component.$styleSheets
 		}
 
-		public static $styleSheets: CSSStyleSheet[] = [...ComponentBase.$globalStyleSheets]
+		public static $styleSheets: CSSStyleSheet[]
 		public static set $css(css: CSSStyleSheet) {
 			this.$styleSheets.push(css)
 		}
