@@ -7,14 +7,15 @@ export function defineComponent(tagName: TagName = `x-${uniqueId()}`) {
 	class Component extends ComponentBase {
 		constructor() {
 			super()
-			this.$shadowRoot.adoptedStyleSheets = Component.$styleSheets
+			if (Component.#styleSheets.length === 0) Component.#styleSheets.push(...ComponentBase.$globalStyleSheets)
+			this.$shadowRoot.adoptedStyleSheets = Component.#styleSheets
 		}
 
-		private static $styleSheets: CSSStyleSheet[] = []
+		static #styleSheets: CSSStyleSheet[] = []
 
-		public static set $css(css: CSSStyleSheet) {
-			while (this.$styleSheets.pop());
-			this.$styleSheets.push(...ComponentBase.$globalStyleSheets, css)
+		static set $css(css: CSSStyleSheet) {
+			while (this.#styleSheets.pop());
+			this.#styleSheets.push(...ComponentBase.$globalStyleSheets, css)
 		}
 	}
 
@@ -25,9 +26,9 @@ export function defineComponent(tagName: TagName = `x-${uniqueId()}`) {
 
 export { ComponentBase as Component }
 class ComponentBase extends HTMLElement {
-	public $shadowRoot: ShadowRoot // needed to access shadowdom in chrome extensions, for some reason shadowRoot returns undefined in chrome extensions
+	$shadowRoot: ShadowRoot // needed to access shadowdom in chrome extensions, for some reason shadowRoot returns undefined in chrome extensions
 
-	public static $globalStyleSheets: CSSStyleSheet[] = []
+	static $globalStyleSheets: CSSStyleSheet[] = []
 
 	constructor() {
 		super()
@@ -35,7 +36,7 @@ class ComponentBase extends HTMLElement {
 		this.$shadowRoot = this.attachShadow({ mode: "open" })
 	}
 
-	public set $html(nodes: Node[]) {
+	set $html(nodes: Node[]) {
 		while (this.$shadowRoot.firstChild) this.$shadowRoot.removeChild(this.$shadowRoot.firstChild)
 		this.$shadowRoot.append(...nodes)
 	}
