@@ -3,29 +3,33 @@ import { uniqueId } from "../utils/id"
 
 type TagName = `${string}-${string}${string[0]}`
 
+// TODO: Make stylesheet stuff better for developer experience
+const EMPTY_STYLESHEET = new CSSStyleSheet()
+
 export function defineComponent(tagName: TagName = `x-${uniqueId()}`) {
+	let styleSheets: CSSStyleSheet[] | null = null
+	let componentStyleSheet = EMPTY_STYLESHEET
+
 	class Component extends ComponentBase {
 		constructor() {
 			super()
-			if (Component.#styleSheets.length === 0) Component.#styleSheets.push(...ComponentBase.$globalStyleSheets)
-			this.$shadowRoot.adoptedStyleSheets = Component.#styleSheets
+			this.$shadowRoot.adoptedStyleSheets = styleSheets ??= [...Component.$globalStyleSheets, componentStyleSheet]
 		}
 
-		static #styleSheets: CSSStyleSheet[] = []
-
-		static set $css(css: CSSStyleSheet) {
-			while (this.#styleSheets.pop());
-			this.#styleSheets.push(...ComponentBase.$globalStyleSheets, css)
+		static set $css(styleSheet: CSSStyleSheet) {
+			componentStyleSheet = styleSheet
 		}
 	}
 
 	customElements.define(tagName, Component)
 
-	return Component as unknown as Omit<typeof Component, "new"> & { new (): InstanceType<typeof Component> & MountableNode }
+	return Component as unknown as Omit<typeof Component, "new"> & {
+		new (): InstanceType<typeof Component> & MountableNode
+	}
 }
 
 export { ComponentBase as Component }
-class ComponentBase extends HTMLElement {
+abstract class ComponentBase extends HTMLElement {
 	$shadowRoot: ShadowRoot // needed to access shadowdom in chrome extensions, for some reason shadowRoot returns undefined in chrome extensions
 
 	static $globalStyleSheets: CSSStyleSheet[] = []
