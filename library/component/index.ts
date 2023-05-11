@@ -10,17 +10,11 @@ export function defineComponent(tagName: TagName = `x-${uniqueId()}`) {
 			this.$shadowRoot.adoptedStyleSheets = Component.$styleSheets
 		}
 
-		private static $_styleSheets: CSSStyleSheet[]
-		public static get $styleSheets() {
-			Component.$_styleSheets ??= [...ComponentBase.$globalStyleSheets]
-			return this.$_styleSheets
-		}
-		public static set $styleSheets(value: typeof this.$_styleSheets) {
-			this.$_styleSheets = value
-		}
+		private static $styleSheets: CSSStyleSheet[] = []
 
 		public static set $css(css: CSSStyleSheet) {
-			this.$styleSheets.push(css)
+			while (this.$styleSheets.pop());
+			this.$styleSheets.push(...ComponentBase.$globalStyleSheets, css)
 		}
 	}
 
