@@ -18,6 +18,7 @@ export function defineComponent(tagName: TagName = `x-${uniqueId()}`) {
 
 		static set $css(styleSheet: CSSStyleSheet) {
 			componentStyleSheet = styleSheet
+			if (styleSheets) styleSheets[styleSheets.length - 1] = styleSheet
 		}
 	}
 
