@@ -3,18 +3,16 @@ import { uniqueId } from "../utils/id"
 
 type TagName = `${string}-${string}${string[0]}`
 
-const componentLayerName = `master-ts-component`
-
 export function defineComponent(tagName: TagName = `x-${uniqueId()}`) {
 	class Component extends ComponentBase {
 		constructor() {
 			super()
-			this.$shadowRoot.adoptedStyleSheets = [...ComponentBase.$globalStyleSheets, Component.$styleSheet]
+			this.$shadowRoot.adoptedStyleSheets = Component.$styleSheets
 		}
 
-		private static $styleSheet = new CSSStyleSheet()
-		public static set $css(css: string) {
-			this.$styleSheet.replaceSync(`@layer ${componentLayerName}{${css}}`)
+		public static $styleSheets: CSSStyleSheet[] = []
+		public static set $css(css: CSSStyleSheet) {
+			this.$styleSheets.push(css)
 		}
 	}
 
