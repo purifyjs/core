@@ -16,10 +16,6 @@ Please note that MasterTS is currently a work in progress prototype and is not r
 
 [Install Instructions](https://github.com/DeepDoge/master-ts/releases)
 
-### Extensions
-
-Recommended extensions for inline html syntax highlight, intellij and formatting: [MasterTS Recommended Extensions](https://github.com/DeepDoge/master-ts-vite-demo/blob/master/.vscode/extensions.json)
-
 ### Documentation
 
 Too early for that, but gonna make one when I stop making breaking changes.<br/>
