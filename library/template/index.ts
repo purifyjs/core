@@ -10,10 +10,8 @@ export type TemplateValue =
 	| number
 	| boolean
 	| Node
-	| {
-			(): unknown
-			(event: Event, ...args: unknown[]): unknown
-	  }
+	| Function
+	| EventListener
 	| SignalReadable<TemplateValue>
 	| Renderable<TemplateValue>
 	| null
