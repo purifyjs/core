@@ -1,7 +1,9 @@
 import type { SignalReadable, SignalSetter, SignalSubscription } from "."
 import { createReadable, signalSyncContextStack } from "."
 
-export type SignalDeriver<T> = { (): T }
+export interface SignalDeriver<T> {
+	(): T
+}
 
 export function createDerive<T>(deriver: SignalDeriver<T>, staticDependencies?: SignalReadable<any>[]): SignalReadable<T> {
 	let activate: (set: SignalSetter<T>) => void

@@ -22,7 +22,7 @@ export type SignalUpdater<T> = {
  * @internal
  */
 export const signalSyncContextStack: Set<SignalReadable>[] = []
-export type SignalReadable<T = unknown> = {
+export interface SignalReadable<T = unknown> {
 	get id(): string
 	get(silent?: boolean): T
 	get ref(): T
@@ -30,7 +30,7 @@ export type SignalReadable<T = unknown> = {
 	signal(): void
 	get listenerCount(): number
 }
-export type SignalWritable<T = unknown> = SignalReadable<T> & {
+export interface SignalWritable<T = unknown> extends SignalReadable<T> {
 	set(value: T): void
 	set ref(value: T)
 }
