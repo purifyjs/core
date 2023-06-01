@@ -24,7 +24,9 @@ Until then check out the [Vite Example](#example)
 
 ### Example
 
-For an example of how to use MasterTS, see the [MasterTS Vite Example](https://github.com/DeepDoge/master-ts-vite-demo).
+- [MasterTS Vite Example](https://github.com/DeepDoge/master-ts-vite-demo).
+- [DeepDoge/eternis](https://github.com/DeepDoge/eternis)
+- [Chrome Extension](https://github.com/DeepDoge/youtube-custom-shortcuts)
 
 ### Motivation
 
