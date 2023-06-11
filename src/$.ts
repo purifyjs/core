@@ -6,7 +6,16 @@ import { createDeferred } from "./signal/deferred"
 import { createDerive } from "./signal/derive"
 import { flattenSignal } from "./signal/flatten"
 
-export const $ = {
+export const $: {
+	writable: typeof createWritable
+	readable: typeof createReadable
+	derive: typeof createDerive
+	deferred: typeof createDeferred
+	flatten: typeof flattenSignal
+	match: typeof createMatch
+	each: typeof createEach
+	await: typeof createAwait
+} = {
 	writable: createWritable,
 	readable: createReadable,
 	derive: createDerive,

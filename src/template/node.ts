@@ -1,4 +1,4 @@
-import { MountableNode } from "../mountable"
+import { Mountable } from "../mountable"
 import { isReadable } from "../signal"
 import { createOrGetDeriveOfFunction } from "../signal/derive"
 import { RenderSymbol, isRenderable } from "./renderable"
@@ -23,14 +23,14 @@ export function valueToNode(value: unknown): Node {
 		const endComment = document.createComment(`/signal ${value.id}`)
 		fragment.append(startComment, endComment)
 
-		MountableNode.make(startComment)
-		startComment.$subscribe(
+		const startCommentMountable = Mountable.of(startComment)
+		startCommentMountable.$subscribe(
 			value,
 			(signalValue: unknown) => {
 				while (startComment.nextSibling && startComment.nextSibling !== endComment) {
 					const node = startComment.nextSibling
 					node.remove()
-					MountableNode.removedNode(node)
+					Mountable.removedNode(node)
 				}
 				endComment.before(valueToNode(signalValue))
 			},
