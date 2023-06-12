@@ -1,7 +1,7 @@
-import { createReadable, type SignalReadable } from "."
+import { createSignalReadable, type SignalReadable } from "."
 
-export function createDeferred<T>(signal: SignalReadable<T>, timeout_ms: number = 500): SignalReadable<T> {
-	return createReadable<T>((set) => {
+export function createSignalDeferred<T>(signal: SignalReadable<T>, timeout_ms: number = 500): SignalReadable<T> {
+	return createSignalReadable<T>((set) => {
 		let timeout: NodeJS.Timeout | null = null
 		set(signal.get(true))
 		return signal.subscribe(

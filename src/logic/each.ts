@@ -1,6 +1,6 @@
-import { Mountable } from "../mountable"
+import { subscribe } from "../lifecycle"
 import type { SignalReadable, SignalWritable } from "../signal"
-import { createReadable, createWritable, isReadable } from "../signal"
+import { createSignalReadable, createSignalWritable, isSignalReadable } from "../signal"
 import { valueToNode } from "../template/node"
 
 // TODO: Rewrite this all, re-think it
@@ -48,8 +48,8 @@ function eachOfSignalArray<T extends unknown[]>(each: SignalReadable<T>) {
 			const fragment = document.createDocumentFragment()
 			fragment.append(startComment, endComment)
 
-			const mountable = Mountable.of(startComment)
-			mountable.$subscribe(
+			subscribe(
+				startComment,
 				each,
 				(eachValue) => {
 					let newCaches: typeof caches = new Map()
@@ -66,9 +66,9 @@ function eachOfSignalArray<T extends unknown[]>(each: SignalReadable<T>) {
 							newKeyOrder[index] = key
 							nodes = cache.nodes
 						} else {
-							const indexSignal = createWritable(index)
+							const indexSignal = createSignalWritable(index)
 							const currentValue = () => each.ref[indexSignal.ref]
-							const itemSignal = createReadable<T[number]>((set) => {
+							const itemSignal = createSignalReadable<T[number]>((set) => {
 								let lastValue = currentValue()
 								set(lastValue)
 								function update() {
@@ -100,7 +100,6 @@ function eachOfSignalArray<T extends unknown[]>(each: SignalReadable<T>) {
 						if (oldNodes && oldKey !== newKey && !newCaches.has(oldKey))
 							oldNodes.forEach((node) => {
 								node.remove()
-								Mountable.removedNode(node)
 							})
 						if (lastNode.nextSibling !== newNodes[0]) lastNode.after(...newNodes)
 						lastNode = newNodes[newNodes.length - 1]!
@@ -109,7 +108,6 @@ function eachOfSignalArray<T extends unknown[]>(each: SignalReadable<T>) {
 					while (lastNode.nextSibling && lastNode.nextSibling !== endComment) {
 						const node = lastNode.nextSibling
 						node.remove()
-						Mountable.removedNode(node)
 					}
 
 					caches = newCaches
@@ -127,6 +125,6 @@ export const createEach: {
 	<T extends unknown[]>(each: T): EachOfArray<T>
 	<T extends unknown[]>(each: SignalReadable<T>): EachOfSignalArray<T>
 } = (each) => {
-	if (isReadable(each)) return eachOfSignalArray(each) as never
+	if (isSignalReadable(each)) return eachOfSignalArray(each) as never
 	return eachOfArray(each) as never
 }

@@ -4,47 +4,34 @@
 		"module": "ESNext",
 		"lib": ["ESNext", "DOM"],
 		"moduleResolution": "Node",
-
-		/* Build */
 		"declaration": true,
 		"declarationDir": "dist",
 		"outDir": "dist",
-
 		"resolveJsonModule": true,
 		"isolatedModules": true,
 		"esModuleInterop": true,
 		"skipLibCheck": true,
-		"removeComments": false,
 
-		/* STRICT */
 		"strict": true,
 		"strictBindCallApply": true,
 		"strictFunctionTypes": true,
 		"strictNullChecks": true,
 		"strictPropertyInitialization": true,
 
-		/* NO IMPLICIT */
 		"noImplicitReturns": true,
 		"noImplicitAny": true,
 		"noImplicitOverride": true,
 		"noImplicitThis": true,
 
-		/* NO UNUSED */
 		"noUnusedLocals": true,
 		"noUnusedParameters": true,
 
-		/* NO UNCHECKED */
 		"useUnknownInCatchVariables": true,
 		"noUncheckedIndexedAccess": true,
 
-		/* OTHER */
 		"preserveConstEnums": true,
 		"forceConsistentCasingInFileNames": true,
-		"useDefineForClassFields": true,
-
-		/* ALLOW */
-		"noFallthroughCasesInSwitch": false,
-		"noPropertyAccessFromIndexSignature": false
+		"useDefineForClassFields": true
 	},
 	"include": ["src"]
 }

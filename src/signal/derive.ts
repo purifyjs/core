@@ -1,11 +1,11 @@
 import type { SignalReadable, SignalSetter, SignalSubscription } from "."
-import { createReadable, signalSyncContextStack } from "."
+import { createSignalReadable, signalSyncContextStack } from "."
 
 export interface SignalDeriver<T> {
 	(): T
 }
 
-export function createDerive<T>(deriver: SignalDeriver<T>, staticDependencies?: SignalReadable<any>[]): SignalReadable<T> {
+export function createSignalDerive<T>(deriver: SignalDeriver<T>, staticDependencies?: SignalReadable<any>[]): SignalReadable<T> {
 	let activate: (set: SignalSetter<T>) => void
 	let deactivate: () => void
 
@@ -64,7 +64,7 @@ export function createDerive<T>(deriver: SignalDeriver<T>, staticDependencies?: 
 		}
 	}
 
-	const self = createReadable<T>((set) => {
+	const self = createSignalReadable<T>((set) => {
 		activate(set)
 		return deactivate
 	})
@@ -87,7 +87,7 @@ const deriveOfFunctionCache = new WeakMap<SignalDeriver<unknown>, SignalReadable
  **/
 export function createOrGetDeriveOfFunction<T extends (...args: any) => any>(func: T): SignalReadable<ReturnType<T>> {
 	if (deriveOfFunctionCache.has(func)) return deriveOfFunctionCache.get(func)!
-	const computed = createDerive(() => func())
+	const computed = createSignalDerive(() => func())
 	deriveOfFunctionCache.set(func, computed)
 	return computed
 }

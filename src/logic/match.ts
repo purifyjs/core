@@ -1,5 +1,5 @@
 import type { SignalReadable } from "../signal"
-import { createReadable, isReadable } from "../signal"
+import { createSignalReadable, isSignalReadable } from "../signal"
 import type { Renderable } from "../template/renderable"
 import { RenderSymbol } from "../template/renderable"
 import type { Excludable } from "../utils/type"
@@ -62,7 +62,7 @@ function switchSignal<T>(value: SignalReadable<T>): MatchSignal<T> {
 		[RenderSymbol]() {
 			delete (this as Partial<typeof this>).case
 			delete (this as Partial<typeof this>).default
-			return createReadable<unknown>((set) => {
+			return createSignalReadable<unknown>((set) => {
 				let isCurrentFallback = false
 				return value.subscribe(
 					(signalValue) => {
@@ -84,6 +84,6 @@ export const createMatch: {
 	<T>(value: SignalReadable<T>): MatchSignal<T>
 	<T>(value: T): Match<T>
 } = <T>(value: T | SignalReadable<T>) => {
-	if (isReadable(value)) return switchSignal(value) as never
+	if (isSignalReadable(value)) return switchSignal(value) as never
 	return switchValue(value) as never
 }

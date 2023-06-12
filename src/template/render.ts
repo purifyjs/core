@@ -1,9 +1,9 @@
 import type { TemplateValue } from "."
 import { Component } from "../component"
-import { Mountable } from "../mountable"
+import { onMount, onUnmount, subscribe } from "../lifecycle"
 import type { SignalWritable } from "../signal"
-import { isReadable, isWritable } from "../signal"
-import { createDerive, createOrGetDeriveOfFunction } from "../signal/derive"
+import { isSignalReadable, isSignalWritable } from "../signal"
+import { createOrGetDeriveOfFunction, createSignalDerive } from "../signal/derive"
 import { assert } from "../utils/assert"
 import { nameOf, typeOf } from "../utils/name"
 import { unhandled } from "../utils/unhandled"
@@ -30,10 +30,10 @@ export function render<T extends TemplateValue[]>(template: HTMLTemplateElement,
 				element.replaceWith(value)
 			} else if (checkValueDescriptorType("attribute", descriptor)) {
 				if (typeof value === "function") values[index] = value = createOrGetDeriveOfFunction(value as () => TemplateValue)
-				if (isReadable(value)) {
+				if (isSignalReadable(value)) {
 					if (descriptor.quote === "") {
-						const mountable = Mountable.of(element)
-						mountable.$subscribe(
+						subscribe(
+							element,
 							value,
 							(value) =>
 								value === null ? element.removeAttribute(descriptor.name) : element.setAttribute(descriptor.name, `${value}`),
@@ -53,18 +53,16 @@ export function render<T extends TemplateValue[]>(template: HTMLTemplateElement,
 				switch (descriptor.directive) {
 					case "class":
 						if (typeof value === "function") value = createOrGetDeriveOfFunction(value as () => TemplateValue)
-						if (isReadable(value)) {
-							const mountable = Mountable.of(element)
-							mountable.$subscribe(value, (v) => element.classList.toggle(descriptor.name, !!v), {
+						if (isSignalReadable(value)) {
+							subscribe(element, value, (v) => element.classList.toggle(descriptor.name, !!v), {
 								mode: "immediate",
 							})
 						} else element.classList.toggle(descriptor.name, !!value)
 						break
 					case "style":
 						if (typeof value === "function") value = createOrGetDeriveOfFunction(value as () => TemplateValue)
-						if (isReadable(value)) {
-							const mountable = Mountable.of(element)
-							mountable.$subscribe(value, (v) => element.style.setProperty(descriptor.name, `${v}`), {
+						if (isSignalReadable(value)) {
+							subscribe(element, value, (v) => element.style.setProperty(descriptor.name, `${v}`), {
 								mode: "immediate",
 							})
 						} else element.style.setProperty(descriptor.name, `${value}`)
@@ -72,17 +70,17 @@ export function render<T extends TemplateValue[]>(template: HTMLTemplateElement,
 					case "on":
 						if (!(typeof value === "function"))
 							throw new Error(`${descriptor.type}:${descriptor.name} must be a function, but got ${nameOf(value)}.`)
-						const mountable = Mountable.of(element)
-						mountable.$onMount(() => element.addEventListener(descriptor.name, value as EventListener))
-						mountable.$onUnmount(() => element.removeEventListener(descriptor.name, value as EventListener))
+
+						onMount(element, () => element.addEventListener(descriptor.name, value as EventListener))
+						onUnmount(element, () => element.removeEventListener(descriptor.name, value as EventListener))
 						break
 					case "ref":
-						if (!isWritable(value))
+						if (!isSignalWritable(value))
 							throw new Error(`${descriptor.type}:${descriptor.name} must be a SignalWritable, but got ${typeOf(value)}.`)
 						value.set(element)
 						break
 					case "bind":
-						if (!isWritable(value))
+						if (!isSignalWritable(value))
 							throw new Error(`${descriptor.type}:${descriptor.name} must be a SignalWritable, but got ${typeOf(value)}.`)
 						const signal = value
 						assert<HTMLInputElement>(element)
@@ -90,40 +88,40 @@ export function render<T extends TemplateValue[]>(template: HTMLTemplateElement,
 							case "value:string":
 								{
 									const listener = () => (signal.ref = element.value)
-									const mountable = Mountable.of(element)
-									mountable.$onMount(() => element.addEventListener("input", listener))
-									mountable.$onUnmount(() => element.removeEventListener("input", listener))
-									mountable.$subscribe(signal, (value) => (element.value = `${value}`), { mode: "immediate" })
+
+									onMount(element, () => element.addEventListener("input", listener))
+									onUnmount(element, () => element.removeEventListener("input", listener))
+									subscribe(element, signal, (value) => (element.value = `${value}`), { mode: "immediate" })
 								}
 								break
 							case "value:number":
 								{
 									assert<SignalWritable<number>>(signal)
 									const listener = () => (signal.ref = element.valueAsNumber)
-									const mountable = Mountable.of(element)
-									mountable.$onMount(() => element.addEventListener("input", listener))
-									mountable.$onUnmount(() => element.removeEventListener("input", listener))
-									mountable.$subscribe(signal, (value) => (element.valueAsNumber = value), { mode: "immediate" })
+
+									onMount(element, () => element.addEventListener("input", listener))
+									onUnmount(element, () => element.removeEventListener("input", listener))
+									subscribe(element, signal, (value) => (element.valueAsNumber = value), { mode: "immediate" })
 								}
 								break
 							case "value:date":
 								{
 									assert<SignalWritable<Date | null>>(signal)
 									const listener = () => (signal.ref = element.valueAsDate)
-									const mountable = Mountable.of(element)
-									mountable.$onMount(() => element.addEventListener("input", listener))
-									mountable.$onUnmount(() => element.removeEventListener("input", listener))
-									mountable.$subscribe(signal, (value) => (element.valueAsDate = value), { mode: "immediate" })
+
+									onMount(element, () => element.addEventListener("input", listener))
+									onUnmount(element, () => element.removeEventListener("input", listener))
+									subscribe(element, signal, (value) => (element.valueAsDate = value), { mode: "immediate" })
 								}
 								break
 							case "value:boolean":
 								{
 									assert<SignalWritable<boolean>>(signal)
 									const listener = () => (signal.ref = element.checked)
-									const mountable = Mountable.of(element)
-									mountable.$onMount(() => element.addEventListener("input", listener))
-									mountable.$onUnmount(() => element.removeEventListener("input", listener))
-									mountable.$subscribe(signal, (value) => (element.checked = value), { mode: "immediate" })
+
+									onMount(element, () => element.addEventListener("input", listener))
+									onUnmount(element, () => element.removeEventListener("input", listener))
+									subscribe(element, signal, (value) => (element.checked = value), { mode: "immediate" })
 								}
 								break
 							default:
@@ -139,16 +137,15 @@ export function render<T extends TemplateValue[]>(template: HTMLTemplateElement,
 		for (const [ref, { attributes }] of templateDescriptor.refDataMap) {
 			const element = fragment.querySelector(`[ref\\:${ref}]`) as HTMLElement
 			for (const [name, { parts }] of attributes) {
-				const mountable = Mountable.of(element)
-				const signal = createDerive(() =>
+				const signal = createSignalDerive(() =>
 					parts!
 						.map((part) => {
 							const value = typeof part === "number" ? values[part] : part
-							return isReadable(value) ? value.ref : value
+							return isSignalReadable(value) ? value.ref : value
 						})
 						.join("")
 				)
-				mountable.$subscribe(signal, (value) => element.setAttribute(name, value), {
+				subscribe(element, signal, (value) => element.setAttribute(name, value), {
 					mode: "immediate",
 				})
 			}

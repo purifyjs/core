@@ -37,15 +37,15 @@ export interface SignalWritable<T = unknown> extends SignalReadable<T> {
 const readables = new WeakSet<SignalReadable>()
 const writables = new WeakSet<SignalWritable>()
 
-export function isWritable(value: unknown): value is SignalWritable {
+export function isSignalWritable(value: unknown): value is SignalWritable {
 	return writables.has(value as SignalWritable)
 }
-export function isReadable(value: unknown): value is SignalReadable {
+export function isSignalReadable(value: unknown): value is SignalReadable {
 	return readables.has(value as SignalReadable)
 }
 
 const signalling = new WeakSet<SignalReadable>()
-export function createWritable<T>(initial: T) {
+export function createSignalWritable<T>(initial: T) {
 	const listeners = new Set<SignalSubscriptionListener<T>>()
 	let value = initial
 
@@ -106,8 +106,8 @@ export function createWritable<T>(initial: T) {
 	return self
 }
 
-export function createReadable<T>(updater: SignalUpdater<T>, initial?: T) {
-	const base = createWritable<T>(initial!)
+export function createSignalReadable<T>(updater: SignalUpdater<T>, initial?: T) {
+	const base = createSignalWritable<T>(initial!)
 	let cleaner: Function | null = null
 
 	function tryActivate() {

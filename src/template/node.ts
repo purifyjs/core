@@ -1,5 +1,5 @@
-import { Mountable } from "../mountable"
-import { isReadable } from "../signal"
+import { subscribe } from "../lifecycle"
+import { isSignalReadable } from "../signal"
 import { createOrGetDeriveOfFunction } from "../signal/derive"
 import { RenderSymbol, isRenderable } from "./renderable"
 
@@ -17,20 +17,19 @@ export function valueToNode(value: unknown): Node {
 
 	if (typeof value === "function") return valueToNode(createOrGetDeriveOfFunction(value as () => unknown))
 
-	if (isReadable(value)) {
+	if (isSignalReadable(value)) {
 		const fragment = document.createDocumentFragment()
 		const startComment = document.createComment(`signal ${value.id}`)
 		const endComment = document.createComment(`/signal ${value.id}`)
 		fragment.append(startComment, endComment)
 
-		const startCommentMountable = Mountable.of(startComment)
-		startCommentMountable.$subscribe(
+		subscribe(
+			startComment,
 			value,
 			(signalValue: unknown) => {
 				while (startComment.nextSibling && startComment.nextSibling !== endComment) {
 					const node = startComment.nextSibling
 					node.remove()
-					Mountable.removedNode(node)
 				}
 				endComment.before(valueToNode(signalValue))
 			},

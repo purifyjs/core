@@ -1,5 +1,5 @@
 import type { SignalReadable } from "../signal"
-import { createReadable, createWritable, isReadable } from "../signal"
+import { createSignalReadable, createSignalWritable, isSignalReadable } from "../signal"
 import { RenderSymbol } from "../template/renderable"
 import { assert } from "../utils/assert"
 
@@ -45,7 +45,7 @@ function awaitPromise<Awaited>(promise: Promise<Awaited>): AwaitPromise<Awaited>
 		},
 		then(then?: (awaited: Awaited) => unknown) {
 			delete (this as Partial<typeof this>).then
-			return createReadable(
+			return createSignalReadable(
 				(set) => {
 					promise
 						.then((awaited) => (then ? then(awaited) : awaited))
@@ -82,12 +82,12 @@ function awaitPromiseSignal<Awaited>(promiseSignal: SignalReadable<Promise<Await
 		},
 		then(then?: (awaited: SignalReadable<Awaited>) => unknown) {
 			delete (this as Partial<typeof this>).then
-			return createReadable<unknown>(
+			return createSignalReadable<unknown>(
 				(set) => {
 					let counter = 0
 
 					let thenCache: unknown
-					const awaitedSignal = createWritable<Awaited>(null!)
+					const awaitedSignal = createSignalWritable<Awaited>(null!)
 
 					return promiseSignal.subscribe(
 						async (promise) => {
@@ -121,6 +121,6 @@ export const createAwait: {
 	<Awaited>(promise: Promise<Awaited>): AwaitPromise<Awaited>
 	<Awaited>(promiseSignal: SignalReadable<Promise<Awaited>>): AwaitPromiseSignal<Awaited>
 } = (promise) => {
-	if (isReadable(promise)) return awaitPromiseSignal(promise)
+	if (isSignalReadable(promise)) return awaitPromiseSignal(promise)
 	return awaitPromise(promise)
 }

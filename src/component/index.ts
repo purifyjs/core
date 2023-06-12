@@ -1,4 +1,3 @@
-import { Mountable } from "../mountable"
 import { uniqueId } from "../utils/id"
 
 type TagName = `${string}-${string}${string[0]}`
@@ -25,7 +24,7 @@ export function defineComponent(tagName: TagName = `x-${uniqueId()}`) {
 	customElements.define(tagName, Component)
 
 	return Component as unknown as Omit<typeof Component, "new"> & {
-		new (): InstanceType<typeof Component> & Mountable
+		new (): InstanceType<typeof Component>
 	}
 }
 
@@ -37,7 +36,6 @@ abstract class ComponentBase extends HTMLElement {
 
 	constructor() {
 		super()
-		Mountable.of(this)
 		this.$shadowRoot = this.attachShadow({ mode: "open" })
 	}
 

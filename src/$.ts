@@ -1,26 +1,26 @@
 import { createAwait } from "./logic/await"
 import { createEach } from "./logic/each"
 import { createMatch } from "./logic/match"
-import { createReadable, createWritable } from "./signal"
-import { createDeferred } from "./signal/deferred"
-import { createDerive } from "./signal/derive"
-import { flattenSignal } from "./signal/flatten"
+import { createSignalReadable, createSignalWritable } from "./signal"
+import { createSignalDeferred } from "./signal/deferred"
+import { createSignalDerive } from "./signal/derive"
+import { createSignalFlattened } from "./signal/flatten"
 
 export const $: {
-	writable: typeof createWritable
-	readable: typeof createReadable
-	derive: typeof createDerive
-	deferred: typeof createDeferred
-	flatten: typeof flattenSignal
+	writable: typeof createSignalWritable
+	readable: typeof createSignalReadable
+	derive: typeof createSignalDerive
+	deferred: typeof createSignalDeferred
+	flatten: typeof createSignalFlattened
 	match: typeof createMatch
 	each: typeof createEach
 	await: typeof createAwait
 } = {
-	writable: createWritable,
-	readable: createReadable,
-	derive: createDerive,
-	deferred: createDeferred,
-	flatten: flattenSignal,
+	writable: createSignalWritable,
+	readable: createSignalReadable,
+	derive: createSignalDerive,
+	deferred: createSignalDeferred,
+	flatten: createSignalFlattened,
 	match: createMatch,
 	each: createEach,
 	await: createAwait,
