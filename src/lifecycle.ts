@@ -53,7 +53,7 @@ Element.prototype.remove = function () {
 }
 
 function addedNode(node: Node) {
-	if (!isMounted(node)) return
+	if (node.getRootNode({ composed: true }) !== document) return
 	emitMount(node)
 	if (node instanceof HTMLElement) Array.from(node.shadowRoot?.childNodes ?? []).forEach((node) => addedNode(node))
 	Array.from(node.childNodes).forEach((node) => addedNode(node))
@@ -66,7 +66,8 @@ function removedNode(node: Node) {
 }
 
 function emitMount(node: Node) {
-	const mountable = mountableOf(node)
+	const mountable = mountables.get(node)
+	if (!mountable) return
 
 	if (mountable.mounted) return
 	mountable.mounted = true
@@ -74,15 +75,12 @@ function emitMount(node: Node) {
 }
 
 function emitUnmount(node: Node) {
-	const mountable = mountableOf(node)
+	const mountable = mountables.get(node)
+	if (!mountable) return
 
 	if (!mountable.mounted) return
 	mountable.mounted = false
 	mountable.listeners.unmount.forEach((listener) => listener())
-}
-
-export function isMounted(node: Node) {
-	return node.getRootNode({ composed: true }) === document
 }
 
 export type MountListener<R extends Function | void = Function | void> = {
