@@ -1,5 +1,5 @@
-import { isSignalReadable, type SignalReadable } from "."
-import { createSignalDerive } from "./derive"
+import { isSignalReadable, type SignalReadable } from "../signal.js"
+import { createSignalDerive } from "./derive.js"
 
 export type SignalFlattened<T extends SignalReadable<any>> = T extends SignalReadable<SignalReadable<any>> ? SignalFlattened<T["ref"]> : T
 

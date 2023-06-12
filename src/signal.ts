@@ -1,5 +1,5 @@
-import { onMount, onUnmount } from "../lifecycle"
-import { uniqueId } from "../utils/id"
+import { onMount, onUnmount } from "./lifecycle.js"
+import { uniqueId } from "./utils/id.js"
 
 export type SignalSubscription = {
 	unsubscribe(): void

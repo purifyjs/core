@@ -1,5 +1,5 @@
-import { assert } from "./assert"
-import type { ObjUnknown } from "./type"
+import { assert } from "./assert.js"
+import type { ObjUnknown } from "./type.js"
 
 export function lazyImport<M extends ObjUnknown>(module: Promise<M>) {
 	const proxy = new Proxy(

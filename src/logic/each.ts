@@ -1,6 +1,6 @@
-import type { SignalReadable, SignalWritable } from "../signal"
-import { createSignalReadable, createSignalWritable, isSignalReadable } from "../signal"
-import { valueToNode } from "../template/node"
+import type { SignalReadable, SignalWritable } from "../signal.js"
+import { createSignalReadable, createSignalWritable, isSignalReadable } from "../signal.js"
+import { valueToNode } from "../template/node.js"
 
 // TODO: Rewrite this all, re-think it
 // TODO: we can move rendering to SignalReadnable itself, it can render Maps in this way, and this would return a SignalReadable<Map<Foo, Bar>>

@@ -1,7 +1,7 @@
-import type { SignalReadable } from "../signal"
-import { createSignalReadable, createSignalWritable, isSignalReadable } from "../signal"
-import { RenderSymbol } from "../template/renderable"
-import { assert } from "../utils/assert"
+import type { SignalReadable } from "../signal.js"
+import { createSignalReadable, createSignalWritable, isSignalReadable } from "../signal.js"
+import { RenderSymbol } from "../template/renderable.js"
+import { assert } from "../utils/assert.js"
 
 type Placeholder = () => unknown
 type ErrorHandler = (error: Error) => unknown

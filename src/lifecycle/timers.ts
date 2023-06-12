@@ -1,4 +1,4 @@
-import { onMount } from "."
+import { onMount } from "../lifecycle.js"
 
 export function createTimeout$<T>(node: Node, callback: () => T, delay: number) {
 	onMount(node, () => {

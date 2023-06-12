@@ -1,5 +1,5 @@
-import { SignalReadable, SignalSubscription } from "."
-import { onMount, onUnmount } from "../lifecycle"
+import { onMount, onUnmount } from "../lifecycle.js"
+import { SignalReadable, SignalSubscription } from "../signal.js"
 
 export function createEffect<T extends SignalReadable<any>[]>(callback: () => any, signals: T): SignalSubscription {
 	const subscriptions: SignalSubscription[] = new Array(signals.length)
