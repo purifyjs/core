@@ -1,9 +1,6 @@
 {
 	"type": "module",
 	"name": "master-ts",
-	"exports": {
-		".": "./dist"
-	},
 	"scripts": {
 		"format": "prettier -w ./",
 		"build": "tsc",
