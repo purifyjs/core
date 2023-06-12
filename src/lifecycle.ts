@@ -1,5 +1,5 @@
 type Lifecycle = {
-	mounted: boolean
+	mounted: boolean | null
 	listeners: {
 		mount: Function[]
 		unmount: Function[]
@@ -12,7 +12,7 @@ function mountableOf(node: Node) {
 		mountables.set(
 			node,
 			(mountable = {
-				mounted: false,
+				mounted: null,
 				listeners: {
 					mount: [],
 					unmount: [],
