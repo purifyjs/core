@@ -56,7 +56,7 @@ export function parseTemplateDescriptor<T extends HtmlDescriptor>(htmlParse: T):
 
 	try {
 		const refDataMap: TemplateDescriptor["refDataMap"] = new Map()
-		const valueDescriptors: TemplateDescriptor["valueDescriptors"] = new Array(htmlParse.parts.length - 1)
+		const valueDescriptors: TemplateDescriptor["valueDescriptors"] = new Array(Math.max(0, htmlParse.parts.length - 1))
 
 		for (let i = 0; i < htmlParse.parts.length; i++) {
 			const parsePart = htmlParse.parts[i]!
