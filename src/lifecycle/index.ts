@@ -1,5 +1,3 @@
-import { SignalReadable, SignalSubscription, SignalSubscriptionListener, SignalSubscriptionOptions } from "../signal"
-
 type Lifecycle = {
 	mounted: boolean
 	listeners: {
@@ -113,36 +111,4 @@ export function onUnmount<T extends MountListener>(node: Node, listener: T) {
 			if (typeof cleanup === "function") mountable.listeners.mount.push(cleanup)
 		})
 	}
-}
-
-export function subscribe<T>(node: Node, signal: SignalReadable<T>, listener: SignalSubscriptionListener<T>, options?: SignalSubscriptionOptions) {
-	let subscription: SignalSubscription
-	onMount(node, () => {
-		subscription = signal.subscribe(listener, options)
-	})
-	onUnmount(node, () => subscription.unsubscribe())
-}
-
-export function createEffect<T extends SignalReadable<any>[]>(node: Node, callback: () => any, signals: T) {
-	let subscriptions: SignalSubscription[] = new Array(signals.length)
-
-	onMount(node, () => {
-		for (let i = 0; i < signals.length; i++) subscriptions[i] = signals[i]!.subscribe(callback)
-		callback()
-	})
-	onUnmount(node, () => subscriptions.forEach((subscription) => subscription.unsubscribe()))
-}
-
-export function createTimeout<T>(node: Node, callback: () => T, delay: number) {
-	onMount(node, () => {
-		const timeout = setTimeout(callback, delay)
-		return () => clearTimeout(timeout)
-	})
-}
-
-export function createInterval<T>(node: Node, callback: () => T, delay: number) {
-	onMount(node, () => {
-		const interval = setInterval(callback, delay)
-		return () => clearInterval(interval)
-	})
 }

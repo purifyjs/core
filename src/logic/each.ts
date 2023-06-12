@@ -1,4 +1,3 @@
-import { subscribe } from "../lifecycle"
 import type { SignalReadable, SignalWritable } from "../signal"
 import { createSignalReadable, createSignalWritable, isSignalReadable } from "../signal"
 import { valueToNode } from "../template/node"
@@ -48,9 +47,8 @@ function eachOfSignalArray<T extends unknown[]>(each: SignalReadable<T>) {
 			const fragment = document.createDocumentFragment()
 			fragment.append(startComment, endComment)
 
-			subscribe(
+			each.subscribe$(
 				startComment,
-				each,
 				(eachValue) => {
 					let newCaches: typeof caches = new Map()
 					let newKeyOrder: typeof keyOrder = new Array(eachValue.length)

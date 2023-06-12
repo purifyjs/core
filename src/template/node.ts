@@ -1,4 +1,3 @@
-import { subscribe } from "../lifecycle"
 import { isSignalReadable } from "../signal"
 import { createOrGetDeriveOfFunction } from "../signal/derive"
 import { RenderSymbol, isRenderable } from "./renderable"
@@ -23,9 +22,8 @@ export function valueToNode(value: unknown): Node {
 		const endComment = document.createComment(`/signal ${value.id}`)
 		fragment.append(startComment, endComment)
 
-		subscribe(
+		value.subscribe$(
 			startComment,
-			value,
 			(signalValue: unknown) => {
 				while (startComment.nextSibling && startComment.nextSibling !== endComment) {
 					const node = startComment.nextSibling

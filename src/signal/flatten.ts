@@ -1,7 +1,7 @@
 import { isSignalReadable, type SignalReadable } from "."
 import { createSignalDerive } from "./derive"
 
-type SignalFlattened<T extends SignalReadable<any>> = T extends SignalReadable<SignalReadable<any>> ? SignalFlattened<T["ref"]> : T
+export type SignalFlattened<T extends SignalReadable<any>> = T extends SignalReadable<SignalReadable<any>> ? SignalFlattened<T["ref"]> : T
 
 export function createSignalFlattened<T extends SignalReadable<SignalReadable<any>>>(signal: T) {
 	return createSignalDerive(() => {

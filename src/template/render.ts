@@ -1,6 +1,6 @@
 import type { TemplateValue } from "."
 import { Component } from "../component"
-import { onMount, onUnmount, subscribe } from "../lifecycle"
+import { onMount, onUnmount } from "../lifecycle"
 import type { SignalWritable } from "../signal"
 import { isSignalReadable, isSignalWritable } from "../signal"
 import { createOrGetDeriveOfFunction, createSignalDerive } from "../signal/derive"
@@ -32,9 +32,8 @@ export function render<T extends TemplateValue[]>(template: HTMLTemplateElement,
 				if (typeof value === "function") values[index] = value = createOrGetDeriveOfFunction(value as () => TemplateValue)
 				if (isSignalReadable(value)) {
 					if (descriptor.quote === "") {
-						subscribe(
+						value.subscribe$(
 							element,
-							value,
 							(value) =>
 								value === null ? element.removeAttribute(descriptor.name) : element.setAttribute(descriptor.name, `${value}`),
 							{ mode: "immediate" }
@@ -54,7 +53,7 @@ export function render<T extends TemplateValue[]>(template: HTMLTemplateElement,
 					case "class":
 						if (typeof value === "function") value = createOrGetDeriveOfFunction(value as () => TemplateValue)
 						if (isSignalReadable(value)) {
-							subscribe(element, value, (v) => element.classList.toggle(descriptor.name, !!v), {
+							value.subscribe$(element, (v) => element.classList.toggle(descriptor.name, !!v), {
 								mode: "immediate",
 							})
 						} else element.classList.toggle(descriptor.name, !!value)
@@ -62,7 +61,7 @@ export function render<T extends TemplateValue[]>(template: HTMLTemplateElement,
 					case "style":
 						if (typeof value === "function") value = createOrGetDeriveOfFunction(value as () => TemplateValue)
 						if (isSignalReadable(value)) {
-							subscribe(element, value, (v) => element.style.setProperty(descriptor.name, `${v}`), {
+							value.subscribe$(element, (v) => element.style.setProperty(descriptor.name, `${v}`), {
 								mode: "immediate",
 							})
 						} else element.style.setProperty(descriptor.name, `${value}`)
@@ -91,7 +90,7 @@ export function render<T extends TemplateValue[]>(template: HTMLTemplateElement,
 
 									onMount(element, () => element.addEventListener("input", listener))
 									onUnmount(element, () => element.removeEventListener("input", listener))
-									subscribe(element, signal, (value) => (element.value = `${value}`), { mode: "immediate" })
+									signal.subscribe$(element, (value) => (element.value = `${value}`), { mode: "immediate" })
 								}
 								break
 							case "value:number":
@@ -101,7 +100,7 @@ export function render<T extends TemplateValue[]>(template: HTMLTemplateElement,
 
 									onMount(element, () => element.addEventListener("input", listener))
 									onUnmount(element, () => element.removeEventListener("input", listener))
-									subscribe(element, signal, (value) => (element.valueAsNumber = value), { mode: "immediate" })
+									signal.subscribe$(element, (value) => (element.valueAsNumber = value), { mode: "immediate" })
 								}
 								break
 							case "value:date":
@@ -111,7 +110,7 @@ export function render<T extends TemplateValue[]>(template: HTMLTemplateElement,
 
 									onMount(element, () => element.addEventListener("input", listener))
 									onUnmount(element, () => element.removeEventListener("input", listener))
-									subscribe(element, signal, (value) => (element.valueAsDate = value), { mode: "immediate" })
+									signal.subscribe$(element, (value) => (element.valueAsDate = value), { mode: "immediate" })
 								}
 								break
 							case "value:boolean":
@@ -121,7 +120,7 @@ export function render<T extends TemplateValue[]>(template: HTMLTemplateElement,
 
 									onMount(element, () => element.addEventListener("input", listener))
 									onUnmount(element, () => element.removeEventListener("input", listener))
-									subscribe(element, signal, (value) => (element.checked = value), { mode: "immediate" })
+									signal.subscribe$(element, (value) => (element.checked = value), { mode: "immediate" })
 								}
 								break
 							default:
@@ -145,7 +144,7 @@ export function render<T extends TemplateValue[]>(template: HTMLTemplateElement,
 						})
 						.join("")
 				)
-				subscribe(element, signal, (value) => element.setAttribute(name, value), {
+				signal.subscribe$(element, (value) => element.setAttribute(name, value), {
 					mode: "immediate",
 				})
 			}

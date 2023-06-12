@@ -72,6 +72,7 @@ export function createSignalDerive<T>(deriver: SignalDeriver<T>, staticDependenc
 }
 
 const deriveOfFunctionCache = new WeakMap<SignalDeriver<unknown>, SignalReadable<any>>()
+
 /**
  * Same as createDerive, but specialized for functions.
  *
