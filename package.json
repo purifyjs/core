@@ -1,8 +1,13 @@
 {
 	"type": "module",
 	"name": "master-ts",
+	"exports": {
+		".": "./dist"
+	},
 	"scripts": {
-		"format": "prettier -w ./"
+		"format": "prettier -w ./",
+		"build": "tsc",
+		"postinstall": "npm run build"
 	},
 	"devDependencies": {
 		"@types/node": "^20.1.2",
