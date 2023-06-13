@@ -1,8 +1,8 @@
-import type { SignalReadable } from "../signal.js"
-import { createSignalReadable, isSignalReadable } from "../signal.js"
-import type { Renderable } from "../template/renderable.js"
-import { RenderSymbol } from "../template/renderable.js"
-import type { Excludable } from "../utils/type.js"
+import type { SignalReadable } from "../signal/index"
+import { createSignalReadable, isSignalReadable } from "../signal/index"
+import type { Renderable } from "../template/renderable"
+import { RenderSymbol } from "../template/renderable"
+import type { Excludable } from "../utils/type"
 
 type Then<T> = (value: T) => unknown
 type Match<TValue, TReturns = unknown> = {

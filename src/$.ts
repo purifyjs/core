@@ -1,13 +1,13 @@
-import { onMount, onUnmount } from "./lifecycle.js"
-import { createInterval$, createTimeout$ } from "./lifecycle/timers.js"
-import { createAwait } from "./logic/await.js"
-import { createEach } from "./logic/each.js"
-import { createMatch } from "./logic/match.js"
-import { createSignalReadable, createSignalWritable } from "./signal.js"
-import { createSignalDeferred } from "./signal/deferred.js"
-import { createSignalDerive } from "./signal/derive.js"
-import { createEffect, createEffect$ } from "./signal/effect.js"
-import { createSignalFlattened } from "./signal/flatten.js"
+import { onMount, onUnmount } from "./lifecycle/index"
+import { createInterval$, createTimeout$ } from "./lifecycle/timers"
+import { createAwait } from "./logic/await"
+import { createEach } from "./logic/each"
+import { createMatch } from "./logic/match"
+import { createSignalDeferred } from "./signal/deferred"
+import { createSignalDerive } from "./signal/derive"
+import { createEffect, createEffect$ } from "./signal/effect"
+import { createSignalFlattened } from "./signal/flatten"
+import { createSignalReadable, createSignalWritable } from "./signal/index"
 
 export const $: {
 	writable: typeof createSignalWritable

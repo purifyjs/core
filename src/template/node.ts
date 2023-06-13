@@ -1,6 +1,6 @@
-import { isSignalReadable } from "../signal.js"
-import { createOrGetDeriveOfFunction } from "../signal/derive.js"
-import { RenderSymbol, isRenderable } from "./renderable.js"
+import { createOrGetDeriveOfFunction } from "../signal/derive"
+import { isSignalReadable } from "../signal/index"
+import { RenderSymbol, isRenderable } from "./renderable"
 
 const EMPTY_NODE = document.createDocumentFragment()
 

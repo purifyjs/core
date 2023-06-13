@@ -2,9 +2,7 @@
 	"type": "module",
 	"name": "master-ts",
 	"scripts": {
-		"format": "prettier -w ./",
-		"build": "tsc",
-		"postinstall": "npm run build"
+		"format": "prettier -w ./"
 	},
 	"devDependencies": {
 		"@types/node": "^20.1.2",

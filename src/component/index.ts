@@ -1,4 +1,4 @@
-import { uniqueId } from "./utils/id.js"
+import { uniqueId } from "../utils/id"
 
 type TagName = `${string}-${string}${string[0]}`
 

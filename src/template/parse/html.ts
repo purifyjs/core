@@ -1,4 +1,4 @@
-import { uniqueId } from "../../utils/id.js"
+import { uniqueId } from "../../utils/id"
 
 export type HtmlDescriptor = {
 	parts: HtmlPart[]

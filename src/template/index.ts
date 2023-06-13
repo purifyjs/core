@@ -1,9 +1,9 @@
-import { SignalReadable } from "./signal.js"
-import { parseTemplateDescriptor } from "./template/parse/descriptor.js"
-import { parseTemplateHtml } from "./template/parse/html.js"
-import { parseTemplate } from "./template/parse/template.js"
-import { render } from "./template/render.js"
-import type { Renderable } from "./template/renderable.js"
+import { SignalReadable } from "../signal/index"
+import { parseTemplateDescriptor } from "./parse/descriptor"
+import { parseTemplateHtml } from "./parse/html"
+import { parseTemplate } from "./parse/template"
+import { render } from "./render"
+import type { Renderable } from "./renderable"
 
 export type TemplateValue =
 	| string

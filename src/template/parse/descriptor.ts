@@ -1,7 +1,7 @@
-import { assert } from "../../utils/assert.js"
-import { uniqueId } from "../../utils/id.js"
-import type { HtmlDescriptor } from "./html.js"
-import { HtmlPartStateType } from "./html.js"
+import { assert } from "../../utils/assert"
+import { uniqueId } from "../../utils/id"
+import type { HtmlDescriptor } from "./html"
+import { HtmlPartStateType } from "./html"
 
 type ValueDescriptorType = "render-node" | "render-element" | "attribute" | "directive"
 export function checkValueDescriptorType<T extends ValueDescriptorType>(type: T, descriptor: ValueDescriptor): descriptor is ValueDescriptor<T> {
