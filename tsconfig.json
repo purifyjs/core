@@ -26,5 +26,5 @@
 		"forceConsistentCasingInFileNames": true,
 		"useDefineForClassFields": true
 	},
-	"include": ["src"]
+	"include": ["library"]
 }
