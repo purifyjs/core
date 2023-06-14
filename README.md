@@ -1,8 +1,8 @@
 <p align="center">
-  <img src="https://ipfs.io/ipfs/QmW6Q7ifwuaR9HKSnNcwyXu8DsJVHrXHQ4w89paEJ9qRRx" />
+<img src="https://ipfs.io/ipfs/QmW6Q7ifwuaR9HKSnNcwyXu8DsJVHrXHQ4w89paEJ9qRRx" />
 </p>
 
-# MasterTS : A Breath of Fresh Air
+# MasterTS: A Breath of Fresh Air
 
 MasterTS is a clean and lightweight TypeScript library for building user interfaces, focusing on simplicity and modularity. It leverages Signals, Web Components, and TypeScript to create single-page applications (SPAs).
 
@@ -11,6 +11,12 @@ MasterTS is a clean and lightweight TypeScript library for building user interfa
 ## Install
 
 To install MasterTS, please refer to the [Install Instructions](https://github.com/DeepDoge/master-ts/releases) available in the repository.
+
+## Vite Plugin
+
+MasterTS is a UI building library. So you may wonder, why does a library have a "Vite" plugin? The truth is, you don't actually need this plugin for MasterTS to work. The plugin simply bakes your MasterTS code, including HTML templates, at build time to improve runtime performance.
+
+So it's recommended that you use [MasterTS Vite Plugin](https://github.com/DeepDoge/master-ts-vite-plugin)
 
 ## Documentation
 
