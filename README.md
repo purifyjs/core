@@ -25,7 +25,7 @@ Although documentation is not yet available, it will be created once breaking ch
 ## Examples
 
 - [MasterTS Vite Example](https://github.com/DeepDoge/master-ts-vite-demo): A demo project showcasing MasterTS with Vite.
-- [DeepDoge/eternis](https://github.com/DeepDoge/eternis): A project utilizing MasterTS.
+- [DeepDoge/eternis](https://github.com/DeepDoge/eternis): A project utilizing MasterTS. (Up to date with the latest version of the MasterTS) 
 - [Chrome Extension](https://github.com/DeepDoge/youtube-custom-shortcuts): A YouTube custom shortcuts extension.
 
 ## Motivation
