@@ -4,6 +4,15 @@ import type { Renderable } from "../template/renderable"
 import { RenderSymbol } from "../template/renderable"
 import type { Excludable } from "../utils/type"
 
+/* 
+	TODO: Ok so if the thing is an instance, then case should be the class type, and we should check if its the intance of it
+	if the thing is a value, like string, number, symbol, boolean, etc we just compare them
+	but dont know what to do if its just an object
+
+	or lets say if the case is a class type we check the instance or compare like value instanceof Foo | value === Foo
+	so case decides what to do, not the value
+*/
+
 type Then<T> = (value: T) => unknown
 type Match<TValue, TReturns = unknown> = {
 	case<TCase extends TValue, TThen extends Then<TCase>>(
