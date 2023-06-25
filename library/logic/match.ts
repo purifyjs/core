@@ -11,6 +11,10 @@ import type { Excludable } from "../utils/type"
 
 	or lets say if the case is a class type we check the instance or compare like value instanceof Foo | value === Foo
 	so case decides what to do, not the value
+
+	tbh i can actually have different functions such as
+	caseInstanceOf
+	caseTypeOf
 */
 
 type Then<T> = (value: T) => unknown
