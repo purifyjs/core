@@ -2,9 +2,6 @@ import type { SignalReadable, SignalWritable } from "../signal/index"
 import { createSignalReadable, createSignalWritable, isSignalReadable } from "../signal/index"
 import { valueToNode } from "../template/node"
 
-// TODO: Rewrite this all, re-think it
-// TODO: we can move rendering to SignalReadnable itself, it can render Maps in this way, and this would return a SignalReadable<Map<Foo, Bar>>
-
 type KeyGetter<T> = (item: T, index: number) => unknown
 
 interface EachOfSignalArray<T extends unknown[]> {

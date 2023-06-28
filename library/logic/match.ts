@@ -1,21 +1,57 @@
 import type { SignalReadable } from "../signal/index"
 import { createSignalReadable, isSignalReadable } from "../signal/index"
-import type { Renderable } from "../template/renderable"
-import { RenderSymbol } from "../template/renderable"
 import type { Excludable } from "../utils/type"
 
-/* 
-	TODO: Ok so if the thing is an instance, then case should be the class type, and we should check if its the intance of it
-	if the thing is a value, like string, number, symbol, boolean, etc we just compare them
-	but dont know what to do if its just an object
+type FromTypeString<T> = T extends "string"
+	? string
+	: T extends "number"
+	? number
+	: T extends "bigint"
+	? bigint
+	: T extends "boolean"
+	? boolean
+	: T extends "symbol"
+	? symbol
+	: T extends "undefined"
+	? undefined
+	: T extends "null"
+	? null
+	: T extends "object"
+	? object
+	: T extends "function"
+	? Function
+	: unknown
 
-	or lets say if the case is a class type we check the instance or compare like value instanceof Foo | value === Foo
-	so case decides what to do, not the value
+type ToTypeString<T> = T extends string
+	? "string"
+	: T extends number
+	? "number"
+	: T extends bigint
+	? "bigint"
+	: T extends boolean
+	? "boolean"
+	: T extends symbol
+	? "symbol"
+	: T extends undefined
+	? "undefined"
+	: T extends null
+	? "null"
+	: T extends object
+	? "object"
+	: T extends Function
+	? "function"
+	: "unknown"
 
-	tbh i can actually have different functions such as
-	caseInstanceOf
-	caseTypeOf
-*/
+const EqualOfSymbol = Symbol()
+type EqualOfSymbol = typeof EqualOfSymbol
+const InstanceOfSymbol = Symbol()
+type InstanceOfSymbol = typeof InstanceOfSymbol
+const TypeOfSymbol = Symbol()
+type TypeOfSymbol = typeof TypeOfSymbol
+
+type CaseType = EqualOfSymbol | TypeOfSymbol | InstanceOfSymbol
+
+type CaseChunk = { type: CaseType; map: Map<unknown, Then<unknown>> }
 
 type Then<T> = (value: T) => unknown
 type Match<TValue, TReturns = unknown> = {
@@ -23,68 +59,165 @@ type Match<TValue, TReturns = unknown> = {
 		value: TCase,
 		then: TThen
 	): Match<Excludable<TCase, Exclude<TValue, TCase>, TValue>, TReturns | ReturnType<TThen>>
+	caseTypeOf<TCaseTypeOf extends ToTypeString<TValue>, TThen extends Then<FromTypeString<TCaseTypeOf>>>(
+		value: TCaseTypeOf,
+		then: TThen
+	): Match<Exclude<TValue, FromTypeString<TCaseTypeOf>>, TReturns | ReturnType<TThen>>
+	caseInstanceOf<TCaseInstanceOf extends { new (...args: any): any }, TThen extends Then<InstanceType<TCaseInstanceOf>>>(
+		value: TCaseInstanceOf,
+		then: TThen
+	): Match<Exclude<TValue, InstanceType<TCaseInstanceOf>>, TReturns | ReturnType<TThen>>
 	default<TDefault extends Then<TValue>>(
 		fallback: [TValue] extends [never] ? void : TDefault
 	): TReturns | ([TValue] extends [never] ? never : ReturnType<TDefault>)
-} & ([TValue] extends [never] ? Renderable<TReturns> : {})
+}
+
+function switchValue<T>(value: T): Match<T> {
+	const caseChunks: CaseChunk[] = []
+	let fallbackCase: Then<T> | null = null
+
+	function addCase(type: CaseType, value: unknown, then: Then<unknown>) {
+		const last = caseChunks.length ? caseChunks[caseChunks.length - 1] : null
+
+		if (last && last.type === type) last.map.set(value, then)
+		else
+			caseChunks.push({
+				type,
+				map: new Map([[value, then]]),
+			})
+	}
+
+	return {
+		case(value, then) {
+			addCase(EqualOfSymbol, value, then as Then<unknown>)
+			return this as never
+		},
+		caseTypeOf(typeOf, then) {
+			addCase(TypeOfSymbol, typeOf, then as Then<unknown>)
+			return this as never
+		},
+		caseInstanceOf(instanceOf, then) {
+			addCase(InstanceOfSymbol, instanceOf, then as Then<unknown>)
+			return this as never
+		},
+		default(fallback: Then<T> | void) {
+			for (const key of Object.keys(this) as (keyof typeof this)[]) delete (this as Partial<typeof this>)[key]
+
+			fallbackCase = fallback ?? null
+
+			for (const caseChunk of caseChunks) {
+				switch (caseChunk.type) {
+					case EqualOfSymbol:
+						{
+							const then = caseChunk.map.get(value)
+							if (then) return then(value)
+						}
+						break
+					case InstanceOfSymbol:
+						{
+							const then = caseChunk.map.get((value as { new (): unknown })?.constructor)
+							if (then) return then(value)
+						}
+						break
+					case TypeOfSymbol:
+						{
+							const then = caseChunk.map.get(typeof value)
+							if (then) return then(value)
+						}
+						break
+				}
+			}
+			if (fallbackCase) return fallbackCase(value)
+			return null
+		},
+	}
+}
 
 type MatchSignal<TValue, TReturns = never> = {
 	case<TCase extends TValue, TThen extends Then<TCase>>(
 		value: TCase,
 		then: TThen
 	): MatchSignal<Excludable<TCase, Exclude<TValue, TCase>, TValue>, TReturns | ReturnType<TThen>>
+	caseTypeOf<TCaseTypeOf extends ToTypeString<TValue>, TThen extends Then<FromTypeString<TCaseTypeOf>>>(
+		value: TCaseTypeOf,
+		then: TThen
+	): MatchSignal<Exclude<TValue, FromTypeString<TCaseTypeOf>>, TReturns | ReturnType<TThen>>
+	caseInstanceOf<TCaseInstanceOf extends { new (...args: any): any }, TThen extends Then<InstanceType<TCaseInstanceOf>>>(
+		value: TCaseInstanceOf,
+		then: TThen
+	): MatchSignal<Exclude<TValue, InstanceType<TCaseInstanceOf>>, TReturns | ReturnType<TThen>>
 	default<TDefault extends Then<SignalReadable<TValue>>>(
 		fallback: [TValue] extends [never] ? void : TDefault
 	): SignalReadable<TReturns | ([TValue] extends [never] ? never : ReturnType<TDefault>)>
-} & ([TValue] extends [never] ? Renderable<SignalReadable<TReturns>> : {})
-
-function switchValue<T>(value: T): Match<T> {
-	const cases = new Map<unknown, Then<unknown>>()
-	let fallbackCase: Then<T> | null = null
-
-	return {
-		case(value, then) {
-			cases.set(value, then as Then<unknown>)
-			return this as never
-		},
-		default(fallback: Then<T> | void) {
-			fallbackCase = fallback ?? null
-			return (this as any)[RenderSymbol]()
-		},
-		[RenderSymbol]() {
-			const then = cases.get(value)
-			if (then) return then(value) as never
-			if (fallbackCase) return fallbackCase(value) as never
-			return null as never
-		},
-	}
 }
 
 function switchSignal<T>(value: SignalReadable<T>): MatchSignal<T> {
-	const cases = new Map<unknown, Then<unknown>>()
+	const caseChunks: CaseChunk[] = []
 	let fallbackCase: Then<SignalReadable<T>> | null = null
+
+	function addCase(type: CaseType, value: unknown, then: Then<unknown>) {
+		const last = caseChunks.length ? caseChunks[caseChunks.length - 1] : null
+
+		if (last && last.type === type) last.map.set(value, then)
+		else
+			caseChunks.push({
+				type,
+				map: new Map([[value, then]]),
+			})
+	}
+
 	return {
 		case(value, then) {
-			cases.set(value, then as Then<unknown>)
+			addCase(EqualOfSymbol, value, then as Then<unknown>)
+			return this as never
+		},
+		caseInstanceOf(instanceOf, then) {
+			addCase(InstanceOfSymbol, instanceOf, then as Then<unknown>)
+			return this as never
+		},
+		caseTypeOf(typeOf, then) {
+			addCase(TypeOfSymbol, typeOf, then as Then<unknown>)
 			return this as never
 		},
 		default(fallback) {
+			for (const key of Object.keys(this) as (keyof typeof this)[]) delete (this as Partial<typeof this>)[key]
+
 			fallbackCase = fallback ?? null
-			return (this as any)[RenderSymbol]()
-		},
-		[RenderSymbol]() {
-			delete (this as Partial<typeof this>).case
-			delete (this as Partial<typeof this>).default
+
 			return createSignalReadable<unknown>((set) => {
-				let isCurrentFallback = false
+				let isCurrentFallback: boolean
 				return value.subscribe(
 					(signalValue) => {
-						const then = cases.get(signalValue)
-						if (then) set(then(signalValue))
-						else if (fallbackCase) {
+						isCurrentFallback = false
+
+						for (const caseChunk of caseChunks) {
+							switch (caseChunk.type) {
+								case EqualOfSymbol:
+									{
+										const then = caseChunk.map.get(signalValue)
+										if (then) return set(then(signalValue))
+									}
+									break
+								case InstanceOfSymbol:
+									{
+										const then = caseChunk.map.get((signalValue as { new (): unknown })?.constructor)
+										if (then) return set(then(signalValue))
+									}
+									break
+								case TypeOfSymbol:
+									{
+										const then = caseChunk.map.get(typeof signalValue)
+										if (then) return set(then(signalValue))
+									}
+									break
+							}
+						}
+
+						if (fallbackCase) {
 							if (!isCurrentFallback) set(fallbackCase(value))
 						} else set(null)
-						isCurrentFallback = !then
+
+						isCurrentFallback = true
 					},
 					{ mode: "immediate" }
 				).unsubscribe

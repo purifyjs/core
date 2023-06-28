@@ -4,11 +4,14 @@ import { uniqueId } from "../utils/id"
 export type SignalSubscription = {
 	unsubscribe(): void
 }
-export type SignalSubscriptionListener<T> = {
-	<U extends T>(value: U): unknown
-}
-export type SignalSubscriptionOptions = {
-	mode: "normal" | "once" | "immediate"
+export namespace SignalSubscription {
+	export type Listener<T> = {
+		<U extends T>(value: U): unknown
+	}
+
+	export type Options = {
+		mode: "normal" | "once" | "immediate"
+	}
 }
 
 export type SignalSetter<T> = {
@@ -23,12 +26,13 @@ export type SignalUpdater<T> = {
  * @internal
  */
 export const signalSyncContextStack: Set<SignalReadable>[] = []
+
 export interface SignalReadable<T = unknown> {
 	get id(): string
 	get(silent?: boolean): T
 	get ref(): T
-	subscribe(listener: SignalSubscriptionListener<T>, options?: SignalSubscriptionOptions): SignalSubscription
-	subscribe$(node: Node, listener: SignalSubscriptionListener<T>, options?: SignalSubscriptionOptions): void
+	subscribe(listener: SignalSubscription.Listener<T>, options?: SignalSubscription.Options): SignalSubscription
+	subscribe$(node: Node, listener: SignalSubscription.Listener<T>, options?: SignalSubscription.Options): void
 	signal(): void
 	get listenerCount(): number
 }
@@ -48,7 +52,7 @@ export function isSignalReadable(value: unknown): value is SignalReadable {
 
 const signalling = new WeakSet<SignalReadable>()
 export function createSignalWritable<T>(initial: T) {
-	const listeners = new Set<SignalSubscriptionListener<T>>()
+	const listeners = new Set<SignalSubscription.Listener<T>>()
 	let value = initial
 
 	const self: SignalWritable<T> = {

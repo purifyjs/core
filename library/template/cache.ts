@@ -5,9 +5,6 @@ import { parseTemplateHtml } from "./parse/html"
 import { parseTemplate } from "./parse/template"
 import { render } from "./render"
 
-// TODO: Don't need to cache this later, preproccesor should parse it on build time once, without preproccesor it will just parse on runtime
-// Descriptor can be placed inside the code, and template can be placed to <head> in index.html
-
 /** 
 	@internal Use `html` instead. Preprocessor will replace `html` with this. This is internal API.
 */

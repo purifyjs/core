@@ -4,6 +4,8 @@
 		"source.fixAll.eslint": true
 	},
 	"editor.defaultFormatter": "esbenp.prettier-vscode",
+	"workbench.colorTheme": "Atom One Dark",
+	"workbench.iconTheme": "material-icon-theme",
 	"todo-tree.general.tags": ["BUG", "FIXME", "TODO", "IMPORTANT", "NOTE", "[ ]", "[x]"],
 	"todo-tree.highlights.customHighlight": {
 		"BUG": {

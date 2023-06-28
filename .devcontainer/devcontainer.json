@@ -13,7 +13,9 @@
 				"enhancedjs.html-in-template-string",
 				"eamodio.gitlens",
 				"esbenp.prettier-vscode",
-				"dbaeumer.vscode-eslint"
+				"dbaeumer.vscode-eslint",
+				"akamud.vscode-theme-onedark",
+				"PKief.material-icon-theme"
 			]
 		}
 	},

@@ -2,17 +2,16 @@ import { uniqueId } from "../utils/id"
 
 type TagName = `${string}-${string}${string[0]}`
 
-// TODO: Make stylesheet stuff better for developer experience
 const EMPTY_STYLESHEET = new CSSStyleSheet()
 
 export function defineComponent(tagName: TagName = `x-${uniqueId()}`) {
 	let styleSheets: CSSStyleSheet[] | null = null
 	let componentStyleSheet = EMPTY_STYLESHEET
 
-	class Component extends ComponentBase {
+	class component extends base {
 		constructor() {
 			super()
-			this.$shadowRoot.adoptedStyleSheets = styleSheets ??= [...Component.$globalStyleSheets, componentStyleSheet]
+			this.$shadowRoot.adoptedStyleSheets = styleSheets ??= [...component.$globalStyleSheets, componentStyleSheet]
 		}
 
 		static set $css(styleSheet: CSSStyleSheet) {
@@ -21,15 +20,17 @@ export function defineComponent(tagName: TagName = `x-${uniqueId()}`) {
 		}
 	}
 
-	customElements.define(tagName, Component)
+	customElements.define(tagName, component)
 
-	return Component as unknown as Omit<typeof Component, "new"> & {
-		new (): InstanceType<typeof Component>
+	type Component = Omit<typeof component, "new"> & {
+		new (): InstanceType<typeof component>
 	}
+
+	return component as unknown as Component
 }
 
-export { ComponentBase as Component }
-abstract class ComponentBase extends HTMLElement {
+export { base as Component }
+abstract class base extends HTMLElement {
 	$shadowRoot: ShadowRoot // needed to access shadowdom in chrome extensions, for some reason shadowRoot returns undefined in chrome extensions
 
 	static $globalStyleSheets: CSSStyleSheet[] = []

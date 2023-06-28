@@ -1,4 +1,4 @@
-type Lifecycle = {
+export type Lifecycle = {
 	mounted: boolean | null
 	listeners: {
 		mount: Function[]
