@@ -11,11 +11,8 @@
 				"Gruntfuggly.todo-tree",
 				"pushqrdx.inline-html",
 				"enhancedjs.html-in-template-string",
-				"eamodio.gitlens",
 				"esbenp.prettier-vscode",
-				"dbaeumer.vscode-eslint",
-				"akamud.vscode-theme-onedark",
-				"PKief.material-icon-theme"
+				"dbaeumer.vscode-eslint"
 			]
 		}
 	},
