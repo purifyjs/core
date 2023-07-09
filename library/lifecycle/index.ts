@@ -87,7 +87,7 @@ export type MountListener<R extends Function | void = Function | void> = {
 	(): R
 }
 
-export function onMount<T extends MountListener>(node: Node, listener: T) {
+export function onMount$<T extends MountListener>(node: Node, listener: T) {
 	const mountable = mountableOf(node)
 
 	if (mountable.mounted === true) listener()?.()
@@ -99,7 +99,7 @@ export function onMount<T extends MountListener>(node: Node, listener: T) {
 	}
 }
 
-export function onUnmount<T extends MountListener>(node: Node, listener: T) {
+export function onUnmount$<T extends MountListener>(node: Node, listener: T) {
 	const mountable = mountableOf(node)
 
 	if (mountable.mounted === false) listener()?.()

@@ -1,6 +1,5 @@
 import { unhandled } from "../../utils/unhandled"
 import type { TemplateDescriptor } from "./descriptor"
-import { checkValueDescriptorType } from "./descriptor"
 
 export function parseTemplate({ refDataMap, valueDescriptors, html }: TemplateDescriptor) {
 	try {
@@ -12,7 +11,7 @@ export function parseTemplate({ refDataMap, valueDescriptors, html }: TemplateDe
 			const element = template.content.querySelector(`[ref\\:${descriptor.ref}]`) as HTMLElement
 			if (!element) throw new Error(`Could not find outlet with ref "${descriptor.ref}". For type ${descriptor.type}`)
 
-			if (checkValueDescriptorType("directive", descriptor)) {
+			if (descriptor.type === "directive") {
 				// TODO: Using if/else because vite breaks the code while optimizing it for the build, convert to switch later
 				if (descriptor.directive === "class") {
 				} else if (descriptor.directive === "style") {

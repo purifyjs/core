@@ -1,4 +1,4 @@
-import { onMount, onUnmount } from "../lifecycle/index"
+import { onMount$, onUnmount$ } from "../lifecycle/index"
 import { uniqueId } from "../utils/id"
 
 export type SignalSubscription = {
@@ -101,10 +101,10 @@ export function createSignalWritable<T>(initial: T) {
 		},
 		subscribe$(node, listener, options) {
 			let subscription: SignalSubscription
-			onMount(node, () => {
+			onMount$(node, () => {
 				subscription = self.subscribe(listener, options)
 			})
-			onUnmount(node, () => subscription.unsubscribe())
+			onUnmount$(node, () => subscription.unsubscribe())
 		},
 		signal() {
 			if (signalling.has(self)) throw new Error("Avoided recursive signalling.")
@@ -174,10 +174,10 @@ export function createSignalReadable<T>(updater: SignalUpdater<T>, initial?: T) 
 		},
 		subscribe$(node, listener, options) {
 			let subscription: SignalSubscription
-			onMount(node, () => {
+			onMount$(node, () => {
 				subscription = self.subscribe(listener, options)
 			})
-			onUnmount(node, () => subscription.unsubscribe())
+			onUnmount$(node, () => subscription.unsubscribe())
 		},
 		signal() {
 			base.signal()

@@ -1,4 +1,5 @@
-import { onMount, onUnmount } from "./lifecycle/index"
+import { onEvent$ } from "./lifecycle/events"
+import { onMount$, onUnmount$ } from "./lifecycle/index"
 import { createInterval$, createTimeout$ } from "./lifecycle/timers"
 import { createAwait } from "./logic/await"
 import { createEach } from "./logic/each"
@@ -22,8 +23,9 @@ export const $: {
 	effect$: typeof createEffect$
 	timeout$: typeof createTimeout$
 	interval$: typeof createInterval$
-	onMount: typeof onMount
-	onUnmount: typeof onUnmount
+	onMount$: typeof onMount$
+	onUnmount$: typeof onUnmount$
+	onEvent$: typeof onEvent$
 } = {
 	writable: createSignalWritable,
 	readable: createSignalReadable,
@@ -37,6 +39,7 @@ export const $: {
 	effect$: createEffect$,
 	timeout$: createTimeout$,
 	interval$: createInterval$,
-	onMount: onMount,
-	onUnmount: onUnmount,
+	onMount$: onMount$,
+	onUnmount$: onUnmount$,
+	onEvent$: onEvent$,
 }

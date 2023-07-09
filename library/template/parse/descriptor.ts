@@ -1,12 +1,6 @@
-import { assert } from "../../utils/assert"
 import { uniqueId } from "../../utils/id"
 import type { HtmlDescriptor } from "./html"
 import { HtmlPartStateType } from "./html"
-
-type ValueDescriptorType = "render-node" | "render-element" | "attribute" | "directive"
-export function checkValueDescriptorType<T extends ValueDescriptorType>(type: T, descriptor: ValueDescriptor): descriptor is ValueDescriptor<T> {
-	return descriptor.type === type
-}
 
 type DirectiveType = (typeof directiveTypes)[number]
 const directiveTypes = ["class", "style", "on", "bind", "ref"] as const
@@ -15,26 +9,26 @@ function isDirectiveType(value: string): value is DirectiveType {
 	return directiveTypesSet.has(value as DirectiveType)
 }
 
-type ValueDescriptor<T extends ValueDescriptorType = ValueDescriptorType> = {
-	type: T
+type ValueDescriptor = {
 	ref: string
-} & (T extends "attribute"
-	? {
+} & (
+	| {
+			type: "render-node"
+	  }
+	| {
+			type: "render-element"
+	  }
+	| {
+			type: "attribute"
 			name: string
 			quote: "'" | '"' | ""
 	  }
-	: T extends "directive"
-	? {
+	| {
+			type: "directive"
 			directive: DirectiveType
 			name: string
 	  }
-	: {})
-
-function createValueDescriptor<T extends ValueDescriptorType>(type: T, descriptor: Omit<ValueDescriptor<T>, "type">) {
-	assert<ValueDescriptor<T>>(descriptor)
-	descriptor.type = type
-	return descriptor
-}
+)
 
 type RefData = {
 	attributes: Map<string, AttributeData>
@@ -70,12 +64,18 @@ export function parseTemplateDescriptor<T extends HtmlDescriptor>(htmlParse: T):
 			if (parsePart.state.type === HtmlPartStateType.Outer) {
 				const ref = uniqueId()
 				html += `<x ref:${ref}></x>`
-				valueDescriptors[i] = createValueDescriptor("render-node", { ref })
+				valueDescriptors[i] = {
+					type: "render-node",
+					ref,
+				}
 				continue
 			} else if (parsePart.state.type === HtmlPartStateType.TagInner && !parsePart.state.attributeName) {
 				if (parsePart.state.tag === "x") {
 					const ref = parsePart.state.ref
-					valueDescriptors[i] = createValueDescriptor("render-element", { ref })
+					valueDescriptors[i] = {
+						type: "render-element",
+						ref,
+					}
 					continue
 				}
 			} else if (parsePart.state.type > HtmlPartStateType.ATTR_VALUE_START && parsePart.state.type < HtmlPartStateType.ATTR_VALUE_END) {
@@ -87,13 +87,18 @@ export function parseTemplateDescriptor<T extends HtmlDescriptor>(htmlParse: T):
 						? "'"
 						: '"'
 				if (attributeNameParts.length === 2) {
-					if (parsePart.state.type !== HtmlPartStateType.AttributeValueUnquoted) throw new Error("Directive value must be unquoted")
+					if (quote !== "") throw new Error("Directive value must be unquoted")
 					html += `""`
 					const ref = parsePart.state.ref
 					const type = attributeNameParts[0]!
 					const name = attributeNameParts[1]!
 					if (!isDirectiveType(type)) throw new Error(`Unknown directive type "${type}".`)
-					valueDescriptors[i] = createValueDescriptor("directive", { ref, name, directive: type })
+					valueDescriptors[i] = {
+						type: "directive",
+						directive: type,
+						name,
+						ref,
+					}
 					continue
 				} else {
 					const ref = parsePart.state.ref
@@ -105,7 +110,12 @@ export function parseTemplateDescriptor<T extends HtmlDescriptor>(htmlParse: T):
 						if (!attributeData) refData.attributes.set(name, (attributeData = { indexes: [], parts: null }))
 						attributeData.indexes.push(i)
 					}
-					valueDescriptors[i] = createValueDescriptor("attribute", { name, quote, ref })
+					valueDescriptors[i] = {
+						type: "attribute",
+						name,
+						quote,
+						ref,
+					}
 					continue
 				}
 			}

@@ -1,5 +1,5 @@
 import { Component } from "../component/index"
-import { onMount, onUnmount } from "../lifecycle/index"
+import { onMount$, onUnmount$ } from "../lifecycle/index"
 import { createOrGetDeriveOfFunction, createSignalDerive } from "../signal/derive"
 import type { SignalWritable } from "../signal/index"
 import { isSignalReadable, isSignalWritable } from "../signal/index"
@@ -9,7 +9,6 @@ import { unhandled } from "../utils/unhandled"
 import type { TemplateValue } from "./index"
 import { valueToNode } from "./node"
 import type { TemplateDescriptor } from "./parse/descriptor"
-import { checkValueDescriptorType } from "./parse/descriptor"
 
 export function render<T extends TemplateValue[]>(template: HTMLTemplateElement, templateDescriptor: TemplateDescriptor, values: T): Node[] {
 	const fragment = template.content.cloneNode(true) as DocumentFragment
@@ -21,14 +20,14 @@ export function render<T extends TemplateValue[]>(template: HTMLTemplateElement,
 
 			let value = values[index] as unknown
 
-			if (checkValueDescriptorType("render-node", descriptor)) {
+			if (descriptor.type === "render-node") {
 				element.replaceWith(valueToNode(value))
-			} else if (checkValueDescriptorType("render-element", descriptor)) {
+			} else if (descriptor.type === "render-element") {
 				if (!(value instanceof Element)) throw new Error(`Expected ${nameOf(Component)} at index "${index}", but got ${nameOf(value)}.`)
 				value.append(...Array.from(element.childNodes))
 				for (const attribute of Array.from(element.attributes)) value.setAttribute(attribute.name, attribute.value)
 				element.replaceWith(value)
-			} else if (checkValueDescriptorType("attribute", descriptor)) {
+			} else if (descriptor.type === "attribute") {
 				if (typeof value === "function") values[index] = value = createOrGetDeriveOfFunction(value as () => TemplateValue)
 				if (isSignalReadable(value)) {
 					if (descriptor.quote === "") {
@@ -48,7 +47,7 @@ export function render<T extends TemplateValue[]>(template: HTMLTemplateElement,
 						// Handled at the end. Because this attribute can have multiple values.
 					}
 				}
-			} else if (checkValueDescriptorType("directive", descriptor)) {
+			} else if (descriptor.type === "directive") {
 				switch (descriptor.directive) {
 					case "class":
 						if (typeof value === "function") value = createOrGetDeriveOfFunction(value as () => TemplateValue)
@@ -70,8 +69,8 @@ export function render<T extends TemplateValue[]>(template: HTMLTemplateElement,
 						if (!(typeof value === "function"))
 							throw new Error(`${descriptor.type}:${descriptor.name} must be a function, but got ${nameOf(value)}.`)
 
-						onMount(element, () => element.addEventListener(descriptor.name, value as EventListener))
-						onUnmount(element, () => element.removeEventListener(descriptor.name, value as EventListener))
+						onMount$(element, () => element.addEventListener(descriptor.name, value as EventListener))
+						onUnmount$(element, () => element.removeEventListener(descriptor.name, value as EventListener))
 						break
 					case "ref":
 						if (!isSignalWritable(value))
@@ -88,8 +87,8 @@ export function render<T extends TemplateValue[]>(template: HTMLTemplateElement,
 								{
 									const listener = () => (signal.ref = element.value)
 
-									onMount(element, () => element.addEventListener("input", listener))
-									onUnmount(element, () => element.removeEventListener("input", listener))
+									onMount$(element, () => element.addEventListener("input", listener))
+									onUnmount$(element, () => element.removeEventListener("input", listener))
 									signal.subscribe$(element, (value) => (element.value = `${value}`), { mode: "immediate" })
 								}
 								break
@@ -98,8 +97,8 @@ export function render<T extends TemplateValue[]>(template: HTMLTemplateElement,
 									assert<SignalWritable<number>>(signal)
 									const listener = () => (signal.ref = element.valueAsNumber)
 
-									onMount(element, () => element.addEventListener("input", listener))
-									onUnmount(element, () => element.removeEventListener("input", listener))
+									onMount$(element, () => element.addEventListener("input", listener))
+									onUnmount$(element, () => element.removeEventListener("input", listener))
 									signal.subscribe$(element, (value) => (element.valueAsNumber = value), { mode: "immediate" })
 								}
 								break
@@ -108,8 +107,8 @@ export function render<T extends TemplateValue[]>(template: HTMLTemplateElement,
 									assert<SignalWritable<Date | null>>(signal)
 									const listener = () => (signal.ref = element.valueAsDate)
 
-									onMount(element, () => element.addEventListener("input", listener))
-									onUnmount(element, () => element.removeEventListener("input", listener))
+									onMount$(element, () => element.addEventListener("input", listener))
+									onUnmount$(element, () => element.removeEventListener("input", listener))
 									signal.subscribe$(element, (value) => (element.valueAsDate = value), { mode: "immediate" })
 								}
 								break
@@ -118,8 +117,8 @@ export function render<T extends TemplateValue[]>(template: HTMLTemplateElement,
 									assert<SignalWritable<boolean>>(signal)
 									const listener = () => (signal.ref = element.checked)
 
-									onMount(element, () => element.addEventListener("input", listener))
-									onUnmount(element, () => element.removeEventListener("input", listener))
+									onMount$(element, () => element.addEventListener("input", listener))
+									onUnmount$(element, () => element.removeEventListener("input", listener))
 									signal.subscribe$(element, (value) => (element.checked = value), { mode: "immediate" })
 								}
 								break
