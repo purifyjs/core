@@ -24,6 +24,7 @@ function mountableOf(node: Node) {
 	return mountable
 }
 
+// TODO: only on browser
 const mutationObserver = new MutationObserver((mutations) => {
 	for (const mutation of mutations) {
 		Array.from(mutation.removedNodes).forEach(removedNode)
