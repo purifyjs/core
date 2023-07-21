@@ -6,7 +6,7 @@ type KeyGetter<T> = (item: T, index: number) => unknown
 
 interface EachOfSignalArray<T extends unknown[]> {
 	key(getter: KeyGetter<T[number]>): Omit<this, "key">
-	as<R>(as?: (item: SignalReadable<T[number]>, index: SignalReadable<number>) => R): DocumentFragment
+	as<R>(as?: (item: SignalReadable<T[number]>, index: SignalReadable<number>) => R): Node[]
 }
 
 interface EachOfArray<T extends unknown[]> {
@@ -41,8 +41,7 @@ function eachOfSignalArray<T extends unknown[]>(each: SignalReadable<T>) {
 			const startComment = document.createComment("each")
 			const endComment = document.createComment("/each")
 
-			const fragment = document.createDocumentFragment()
-			fragment.append(startComment, endComment)
+			const nodes: Node[] = [startComment, endComment]
 
 			each.subscribe$(
 				startComment,
@@ -111,7 +110,7 @@ function eachOfSignalArray<T extends unknown[]>(each: SignalReadable<T>) {
 				{ mode: "immediate" }
 			)
 
-			return fragment
+			return nodes
 		},
 	} as EachOfSignalArray<T>
 }

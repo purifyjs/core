@@ -14,8 +14,6 @@ type FromTypeString<T> = T extends "string"
 	? symbol
 	: T extends "undefined"
 	? undefined
-	: T extends "null"
-	? null
 	: T extends "object"
 	? object
 	: T extends "function"
@@ -34,8 +32,6 @@ type ToTypeString<T> = T extends string
 	? "symbol"
 	: T extends undefined
 	? "undefined"
-	: T extends null
-	? "null"
 	: T extends object
 	? "object"
 	: T extends Function

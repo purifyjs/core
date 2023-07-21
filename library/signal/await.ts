@@ -1,7 +1,7 @@
-import type { SignalReadable } from "../signal/index"
-import { createSignalReadable, createSignalWritable, isSignalReadable } from "../signal/index"
 import { RenderSymbol } from "../template/renderable"
 import { assert } from "../utils/assert"
+import type { SignalReadable } from "./index"
+import { createSignalReadable, createSignalWritable, isSignalReadable } from "./index"
 
 type Placeholder = () => unknown
 type ErrorHandler = (error: Error) => unknown
