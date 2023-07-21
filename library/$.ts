@@ -2,13 +2,13 @@ import { onEvent$ } from "./lifecycle/events"
 import { onMount$, onUnmount$ } from "./lifecycle/index"
 import { createInterval$, createTimeout$ } from "./lifecycle/timers"
 import { createEach } from "./logic/each"
-import { createMatch } from "./logic/match"
 import { createAwait } from "./signal/await"
 import { createSignalDeferred } from "./signal/deferred"
 import { createSignalDerive } from "./signal/derive"
 import { createEffect, createEffect$ } from "./signal/effect"
 import { createSignalFlattened } from "./signal/flatten"
 import { createSignalReadable, createSignalWritable } from "./signal/index"
+import { createMatch } from "./signal/match"
 
 export const $: {
 	writable: typeof createSignalWritable
