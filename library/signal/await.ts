@@ -59,8 +59,8 @@ function awaitPromise<Awaited>(promise: Promise<Awaited>): AwaitPromise<Awaited>
 }
 
 function awaitPromiseSignal<Awaited>(promiseSignal: SignalReadable<Promise<Awaited>>): AwaitPromiseSignal<Awaited> {
-	let _until: Until | undefined
-	let _onrejected: Catch | undefined
+	let _until: Until | null = null
+	let _onrejected: Catch | null = null
 
 	return {
 		until(until) {
@@ -86,7 +86,7 @@ function awaitPromiseSignal<Awaited>(promiseSignal: SignalReadable<Promise<Await
 						async (promise) => {
 							const id = ++counter
 							try {
-								if (until !== undefined) set(until())
+								if (until) set(until())
 								const awaited = await promise
 								if (id !== counter) return
 								awaitedSignal.ref = awaited

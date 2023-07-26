@@ -20,7 +20,7 @@ function eachOfArray<T extends unknown[]>(each: T): EachOfArray<T> {
 }
 
 function eachOfSignalArray<T extends unknown[]>(each: SignalReadable<T>) {
-	let _keyGetter: KeyGetter<T[number]>
+	let _keyGetter: KeyGetter<T[number]> | null = null
 
 	return {
 		key(keyGetter: KeyGetter<T[number]>) {
@@ -28,7 +28,7 @@ function eachOfSignalArray<T extends unknown[]>(each: SignalReadable<T>) {
 			return this
 		},
 		as<R>(as: (item: SignalReadable<T[number]>, index: SignalReadable<number>) => R) {
-			const keyGetter = _keyGetter
+			const keyGetter = _keyGetter ?? ((item) => item)
 
 			const caches = new Map<unknown, { itemSignal: SignalReadable<T[number]>; indexSignal: SignalWritable<number>; value: R }>()
 
