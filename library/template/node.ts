@@ -38,8 +38,8 @@ export function valueToNode(value: unknown): Node {
 
 				if (Array.isArray(signalValue)) {
 					for (const item of signalValue) {
-						const itemStartComment = document.createComment(`signal ${value.id} item`)
-						const itemEndComment = document.createComment(`/signal ${value.id} item`)
+						const itemStartComment = document.createComment(`item`)
+						const itemEndComment = document.createComment(`/item`)
 
 						endComment.before(itemStartComment)
 						endComment.before(valueToNode(item))
