@@ -69,15 +69,14 @@ type Match<TValue, TReturns = unknown> = {
 }
 
 function switchValue<T>(value: T): Match<T> {
-	const caseChunks: CaseChunk[] = []
-	let fallbackCase: Then<T> | null = null
+	let _caseChunks: CaseChunk[] = []
 
 	function addCase(type: CaseType, value: unknown, then: Then<unknown>) {
-		const last = caseChunks.length ? caseChunks[caseChunks.length - 1] : null
+		const last = _caseChunks.length ? _caseChunks[_caseChunks.length - 1] : null
 
 		if (last && last.type === type) last.map.set(value, then)
 		else
-			caseChunks.push({
+			_caseChunks.push({
 				type,
 				map: new Map([[value, then]]),
 			})
@@ -86,20 +85,20 @@ function switchValue<T>(value: T): Match<T> {
 	return {
 		case(value, then) {
 			addCase(EqualOfSymbol, value, then as Then<unknown>)
-			return this as never
+			return this
 		},
 		caseTypeOf(typeOf, then) {
 			addCase(TypeOfSymbol, typeOf, then as Then<unknown>)
-			return this as never
+			return this
 		},
 		caseInstanceOf(instanceOf, then) {
 			addCase(InstanceOfSymbol, instanceOf, then as Then<unknown>)
-			return this as never
+			return this
 		},
 		default(fallback: Then<T> | void) {
-			for (const key of Object.keys(this) as (keyof typeof this)[]) delete (this as Partial<typeof this>)[key]
-
-			fallbackCase = fallback ?? null
+			const fallbackCase = fallback ?? null
+			const caseChunks = _caseChunks
+			_caseChunks = []
 
 			for (const caseChunk of caseChunks) {
 				switch (caseChunk.type) {
@@ -148,15 +147,14 @@ type MatchSignal<TValue, TReturns = never> = {
 }
 
 function switchSignal<T>(value: SignalReadable<T>): MatchSignal<T> {
-	const caseChunks: CaseChunk[] = []
-	let fallbackCase: Then<SignalReadable<T>> | null = null
+	let _caseChunks: CaseChunk[] = []
 
 	function addCase(type: CaseType, value: unknown, then: Then<unknown>) {
-		const last = caseChunks.length ? caseChunks[caseChunks.length - 1] : null
+		const last = _caseChunks.length ? _caseChunks[_caseChunks.length - 1] : null
 
 		if (last && last.type === type) last.map.set(value, then)
 		else
-			caseChunks.push({
+			_caseChunks.push({
 				type,
 				map: new Map([[value, then]]),
 			})
@@ -165,20 +163,20 @@ function switchSignal<T>(value: SignalReadable<T>): MatchSignal<T> {
 	return {
 		case(value, then) {
 			addCase(EqualOfSymbol, value, then as Then<unknown>)
-			return this as never
+			return this
 		},
 		caseInstanceOf(instanceOf, then) {
 			addCase(InstanceOfSymbol, instanceOf, then as Then<unknown>)
-			return this as never
+			return this
 		},
 		caseTypeOf(typeOf, then) {
 			addCase(TypeOfSymbol, typeOf, then as Then<unknown>)
-			return this as never
+			return this
 		},
 		default(fallback) {
-			for (const key of Object.keys(this) as (keyof typeof this)[]) delete (this as Partial<typeof this>)[key]
-
-			fallbackCase = fallback ?? null
+			const fallbackCase = fallback ?? null
+			const caseChunks = _caseChunks
+			_caseChunks = []
 
 			return createSignalReadable<unknown>((set) => {
 				let isCurrentFallback: boolean

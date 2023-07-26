@@ -25,10 +25,30 @@ export function valueToNode(value: unknown): Node {
 		value.subscribe$(
 			startComment,
 			(signalValue: unknown) => {
+				/* 
+					TODO: Modify this in a way that we don't need to remove all nodes.
+					We should only remove the nodes that are not in the new value.
+					Arrays handled in the same way too.
+				*/
+
 				while (startComment.nextSibling && startComment.nextSibling !== endComment) {
 					const node = startComment.nextSibling
 					node.remove()
 				}
+
+				if (Array.isArray(signalValue)) {
+					for (const item of signalValue) {
+						const itemStartComment = document.createComment(`signal ${value.id} item`)
+						const itemEndComment = document.createComment(`/signal ${value.id} item`)
+
+						endComment.before(itemStartComment)
+						endComment.before(valueToNode(item))
+						endComment.before(itemEndComment)
+					}
+
+					return
+				}
+
 				endComment.before(valueToNode(signalValue))
 			},
 			{ mode: "immediate" }

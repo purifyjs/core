@@ -1,10 +1,10 @@
 import { onEvent$ } from "./lifecycle/events"
 import { onMount$, onUnmount$ } from "./lifecycle/index"
 import { createInterval$, createTimeout$ } from "./lifecycle/timers"
-import { createEach } from "./logic/each"
 import { createAwait } from "./signal/await"
-import { createSignalDeferred } from "./signal/deferred"
+import { createSignalDeferred } from "./signal/defer"
 import { createSignalDerive } from "./signal/derive"
+import { createEach } from "./signal/each"
 import { createEffect, createEffect$ } from "./signal/effect"
 import { createSignalFlattened } from "./signal/flatten"
 import { createSignalReadable, createSignalWritable } from "./signal/index"
@@ -14,7 +14,7 @@ export const $: {
 	writable: typeof createSignalWritable
 	readable: typeof createSignalReadable
 	derive: typeof createSignalDerive
-	deferred: typeof createSignalDeferred
+	defer: typeof createSignalDeferred
 	flatten: typeof createSignalFlattened
 	match: typeof createMatch
 	each: typeof createEach
@@ -30,7 +30,7 @@ export const $: {
 	writable: createSignalWritable,
 	readable: createSignalReadable,
 	derive: createSignalDerive,
-	deferred: createSignalDeferred,
+	defer: createSignalDeferred,
 	flatten: createSignalFlattened,
 	match: createMatch,
 	each: createEach,
