@@ -30,6 +30,6 @@ Although documentation is not yet available, it will be created once breaking ch
 
 ## Motivation
 
-MasterTS aims to address the limitations of other frontend libraries for SPAs by combining the best features of SolidJS, React's TSX, and Svelte. It introduces signals for reactivity, treats components as HTMLElement(s), and offers native TypeScript support. The library prioritizes simplicity, transparency, and modularity, providing straightforward and easy-to-use solutions without unnecessary complexity.
+MasterTS aims to address the limitations of other frontend libraries for SPAs by combining the best features of SolidJS, React's TSX, and Svelte. It introduces signals for reactivity, treats components as HTMLElement(s), and offers native TypeScript support, predictable, uses function based Components like in JSX but not JSX. The library prioritizes simplicity, transparency, and modularity, providing straightforward and easy-to-use solutions without unnecessary complexity.
 
 MasterTS is a breath of fresh air in this mad world.
