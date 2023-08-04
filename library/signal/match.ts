@@ -14,10 +14,10 @@ type FromTypeString<T> = T extends "string"
 	? symbol
 	: T extends "undefined"
 	? undefined
-	: T extends "object"
-	? object
 	: T extends "function"
 	? Function
+	: T extends "object"
+	? object
 	: unknown
 
 type ToTypeString<T> = T extends string
@@ -32,10 +32,10 @@ type ToTypeString<T> = T extends string
 	? "symbol"
 	: T extends undefined
 	? "undefined"
-	: T extends object
-	? "object"
 	: T extends Function
 	? "function"
+	: T extends object
+	? "object"
 	: "unknown"
 
 const EqualOfSymbol = Symbol()
