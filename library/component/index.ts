@@ -4,7 +4,7 @@ type TagName = `${string}-${string}${string[0]}`
 
 const EMPTY_STYLESHEET = new CSSStyleSheet()
 
-export function defineComponent(tagName: TagName = `x-${uniqueId()}`): typeof ComponentBase {
+export function defineComponent(tagName: TagName = `x-${uniqueId()}`) {
 	let styleSheets: CSSStyleSheet[] | null = null
 	let componentStyleSheet = EMPTY_STYLESHEET
 
