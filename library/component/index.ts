@@ -4,7 +4,7 @@ type TagName = `${string}-${string}${string[0]}`
 
 const EMPTY_STYLESHEET = new CSSStyleSheet()
 
-export function defineComponent(tagName: TagName = `x-${uniqueId()}`) {
+export function defineComponent(tagName: TagName = `x-${uniqueId()}`): typeof ComponentBase {
 	let styleSheets: CSSStyleSheet[] | null = null
 	let componentStyleSheet = EMPTY_STYLESHEET
 
@@ -14,9 +14,12 @@ export function defineComponent(tagName: TagName = `x-${uniqueId()}`) {
 			this.$shadowRoot.adoptedStyleSheets = styleSheets ??= [...Component.$globalStyleSheets, componentStyleSheet]
 		}
 
-		static set $css(styleSheet: CSSStyleSheet) {
+		static override set $css(styleSheet: CSSStyleSheet) {
 			componentStyleSheet = styleSheet
 			if (styleSheets) styleSheets[styleSheets.length - 1] = styleSheet
+		}
+		static override get $css() {
+			return componentStyleSheet
 		}
 	}
 
@@ -39,5 +42,12 @@ abstract class ComponentBase extends HTMLElement {
 	set $html(nodes: Node[]) {
 		while (this.$shadowRoot.firstChild) this.$shadowRoot.removeChild(this.$shadowRoot.firstChild)
 		this.$shadowRoot.append(...nodes)
+	}
+
+	static get $css(): CSSStyleSheet {
+		throw new Error("Not implemented")
+	}
+	static set $css(_: CSSStyleSheet) {
+		throw new Error("Not implemented")
 	}
 }
