@@ -1,3 +1,4 @@
+import { defineComponent } from "./component/index"
 import { onEvent$ } from "./lifecycle/events"
 import { onMount$, onUnmount$ } from "./lifecycle/index"
 import { createInterval$, createTimeout$ } from "./lifecycle/timers"
@@ -11,6 +12,7 @@ import { createSignalReadable, createSignalWritable } from "./signal/index"
 import { createMatch } from "./signal/match"
 
 export const $: {
+	component: typeof defineComponent
 	writable: typeof createSignalWritable
 	readable: typeof createSignalReadable
 	derive: typeof createSignalDerive
@@ -27,6 +29,7 @@ export const $: {
 	onUnmount$: typeof onUnmount$
 	onEvent$: typeof onEvent$
 } = {
+	component: defineComponent,
 	writable: createSignalWritable,
 	readable: createSignalReadable,
 	derive: createSignalDerive,
