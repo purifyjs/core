@@ -28,8 +28,7 @@ export function defineComponent(tagName: TagName = `x-${uniqueId()}`) {
 	return Component
 }
 
-export { ComponentBase as Component }
-abstract class ComponentBase extends HTMLElement {
+export abstract class ComponentBase extends HTMLElement {
 	$shadowRoot: ShadowRoot // needed to access shadowdom in chrome extensions, for some reason shadowRoot returns undefined in chrome extensions
 
 	static $globalStyleSheets: CSSStyleSheet[] = []
