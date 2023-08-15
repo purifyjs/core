@@ -1,4 +1,3 @@
-import { Component } from "../component/index"
 import { onMount$, onUnmount$ } from "../lifecycle/index"
 import { createOrGetDeriveOfFunction, createSignalDerive } from "../signal/derive"
 import type { SignalWritable } from "../signal/index"
@@ -23,7 +22,7 @@ export function render<T extends TemplateValue[]>(template: HTMLTemplateElement,
 			if (descriptor.type === "render-node") {
 				element.replaceWith(valueToNode(value))
 			} else if (descriptor.type === "render-element") {
-				if (!(value instanceof Element)) throw new Error(`Expected ${nameOf(Component)} at index "${index}", but got ${nameOf(value)}.`)
+				if (!(value instanceof Element)) throw new Error(`Expected ${nameOf(Element)} at index "${index}", but got ${nameOf(value)}.`)
 				value.append(...Array.from(element.childNodes))
 				for (const attribute of Array.from(element.attributes)) value.setAttribute(attribute.name, attribute.value)
 				element.replaceWith(value)
