@@ -30,30 +30,31 @@ function eachOfSignalArray<T extends unknown[]>(each: SignalReadable<T>) {
 		as<R>(as: (item: SignalReadable<T[number]>, index: SignalReadable<number>) => R) {
 			const keyGetter = _keyGetter ?? ((item) => item)
 
-			const caches = new Map<unknown, { itemSignal: SignalReadable<T[number]>; indexSignal: SignalWritable<number>; value: R }>()
+			const caches = new Map<unknown, { itemSignal: SignalWritable<T[number]>; indexSignal: SignalWritable<number>; value: R }>()
 
 			return createSignalReadable<R[]>((set) => {
 				return each.subscribe(
-					(each) => {
-						const remove = new Set(caches.keys())
+					(items) => {
+						const toRemove = new Set(caches.keys())
 						set(
-							each.map((item, index) => {
+							items.map((item, index) => {
 								const key = keyGetter(item, index)
 								const cache = caches.get(key)
 								if (cache) {
-									remove.delete(key)
+									toRemove.delete(key)
 									cache.indexSignal.ref = index
+									cache.itemSignal.ref = item
 									return cache.value
 								}
 
 								const indexSignal = createSignalWritable(index)
-								const itemSignal = createSignalDerive(() => each[indexSignal.ref], [indexSignal])
+								const itemSignal = createSignalWritable(item)
 								const value = as(itemSignal, indexSignal)
 								caches.set(key, { itemSignal, indexSignal, value })
 								return value
 							})
 						)
-						remove.forEach((key) => caches.delete(key))
+						toRemove.forEach((key) => caches.delete(key))
 					},
 					{ mode: "immediate" }
 				).unsubscribe
