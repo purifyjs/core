@@ -73,9 +73,9 @@ type Prettify<T> = T extends object ? { [K in keyof T]: T[K] } & {} : T
 type DeepOptional<T> = T extends object ? { [K in keyof T]?: DeepOptional<T[K]> } & {} : T
 
 type Narrow<T, U> = Excludable<U> extends true ? Exclude<T, U> : T
-type NoNever<T> = T extends object ? ({ [K in keyof T]: [T[K]] extends [never] ? 0 : 1 }[keyof T] extends 1 ? T : never) : T
+type NoNever<T> = { [K in keyof T]: [T[K]] extends [never] ? 0 : 1 }[keyof T] extends 1 ? T : never
 type NarrowWithPattern<T, U> = Prettify<
-	U extends object ? (keyof U extends keyof T ? T & { [K in keyof U]: NarrowWithPattern<T[K], U[K]> } & {} : T) : Narrow<T, U>
+	U extends object ? NoNever<keyof U extends keyof T ? T & { [K in keyof U]: NarrowWithPattern<T[K], U[K]> } & {} : T> : Narrow<T, U>
 >
 
 function matchPattern<TValue, const TPattern extends DeepOptional<TValue>>(value: TValue, pattern: TPattern): value is TValue & TPattern {
@@ -110,13 +110,13 @@ namespace SwitchValueBuilder {
 
 function switchValue<TValue>(value: TValue): SwitchValueBuilder<TValue> {
 	const cases: {
-		pattern: Partial<TValue>
+		pattern: DeepOptional<TValue>
 		then: (value: TValue) => unknown
 	}[] = []
 
 	// Builder type is way too funky, so gotta act like it doesn't exist here
 	const result = {
-		match(pattern: Partial<TValue>, then: (value: TValue) => unknown) {
+		match(pattern: DeepOptional<TValue>, then: (value: TValue) => unknown) {
 			cases.push({ pattern, then })
 			return result
 		},
@@ -134,7 +134,7 @@ function switchValue<TValue>(value: TValue): SwitchValueBuilder<TValue> {
 }
 
 type SwitchValueSignalBuilder<TValue, TReturns = never> = {
-	match<const TPattern extends Partial<TValue>, TResult>(
+	match<const TPattern extends DeepOptional<TValue>, TResult>(
 		pattern: TPattern,
 		then: (value: SignalReadable<TValue & TPattern>) => TResult
 	): SwitchValueSignalBuilder<NarrowWithPattern<TValue, TPattern>, TReturns | TResult>
@@ -151,13 +151,13 @@ namespace SwitchValueSignalBuilder {
 
 function switchValueSignal<TValue>(signal: SignalReadable<TValue>): SwitchValueSignalBuilder<TValue> {
 	const cases: {
-		pattern: Partial<TValue>
+		pattern: DeepOptional<TValue>
 		then: (value: SignalReadable<TValue>) => unknown
 	}[] = []
 
 	// Builder type is way too funky, so gotta act like it doesn't exist here
 	const result = {
-		match(pattern: Partial<TValue>, then: (value: SignalReadable<TValue>) => unknown) {
+		match(pattern: DeepOptional<TValue>, then: (value: SignalReadable<TValue>) => unknown) {
 			cases.push({ pattern, then })
 			return result
 		},
