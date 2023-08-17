@@ -1,5 +1,5 @@
-import type { SignalReadable, SignalWritable } from "../index"
-import { createSignalReadable, createSignalWritable, isSignalReadable } from "../index"
+import type { SignalReadable, SignalWritable } from "./index"
+import { createSignalReadable, createSignalWritable, isSignalReadable } from "./index"
 
 type KeyGetter<T> = (item: T, index: number) => unknown
 

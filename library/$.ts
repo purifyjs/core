@@ -9,7 +9,7 @@ import { createEach } from "./signal/each"
 import { createEffect, createEffect$ } from "./signal/effect"
 import { createSignalFlattened } from "./signal/flatten"
 import { createSignalReadable, createSignalWritable } from "./signal/index"
-import { createMatch } from "./signal/utils/match"
+import { createMatch } from "./signal/match"
 
 export const $: {
 	component: typeof defineComponent

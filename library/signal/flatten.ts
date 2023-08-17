@@ -1,5 +1,5 @@
-import { isSignalReadable, type SignalReadable } from "../index"
 import { createSignalDerive } from "./derive"
+import { isSignalReadable, type SignalReadable } from "./index"
 
 type SignalFlatValue<T extends SignalReadable<any>> = T extends SignalReadable<any> ? SignalFlatValue<T["ref"]> : T
 

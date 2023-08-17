@@ -1,6 +1,6 @@
-import type { Excludable } from "../../utils/type"
-import type { SignalReadable } from "../index"
-import { createSignalReadable, isSignalReadable } from "../index"
+import type { Excludable } from "../utils/type"
+import type { SignalReadable } from "./index"
+import { createSignalReadable, isSignalReadable } from "./index"
 
 type FromTypeString<T> = T extends "string"
 	? string
