@@ -1,6 +1,8 @@
 import type { SignalReadable } from "./index"
 import { createSignalReadable, isSignalReadable } from "./index"
 
+// TODO: Make types better later, hardly works
+
 /* type FromTypeString<T> = T extends "string"
 	? string
 	: T extends "number"
@@ -90,11 +92,11 @@ function matchPattern<TValue, const TPattern extends DeepOptional<TValue>>(value
 	return true
 }
 
-type SwitchValueBuilder<TValue, TReturns = never> = {
+type SwitchValueBuilder<TValue, TPatternFull = never, TReturns = never> = {
 	match<const TPattern extends DeepOptional<TValue>, TResult>(
 		pattern: TPattern,
 		then: (value: TValue & TPattern) => TResult
-	): SwitchValueBuilder<NarrowWithPattern<TValue, TPattern>, TReturns | TResult>
+	): SwitchValueBuilder<TValue, TPatternFull & TPattern, TReturns | TResult>
 } & SwitchValueBuilder.Default<TValue, TReturns>
 namespace SwitchValueBuilder {
 	export type Default<TValue, TReturns> = [TValue] extends [never]
@@ -131,14 +133,12 @@ function switchValue<TValue>(value: TValue): SwitchValueBuilder<TValue> {
 	return result as never
 }
 
-type SwitchValueSignalBuilder<TValue, TReturns = never> = {
+type SwitchValueSignalBuilder<TValue, TPatternFull = never, TReturns = never> = {
 	match<const TPattern extends DeepOptional<TValue>, TResult>(
 		pattern: TPattern,
 		then: (value: SignalReadable<TValue & TPattern>) => TResult
-	): SwitchValueSignalBuilder<NarrowWithPattern<TValue, TPattern>, TReturns | TResult>
-	test: TValue
-	test2: TReturns
-} & SwitchValueSignalBuilder.Default<TValue, TReturns>
+	): SwitchValueSignalBuilder<TValue, TPattern, TReturns | TResult>
+} & SwitchValueSignalBuilder.Default<NarrowWithPattern<TValue, TPatternFull>, TReturns>
 namespace SwitchValueSignalBuilder {
 	export type Default<TValue, TReturns> = [TValue] extends [never]
 		? {
