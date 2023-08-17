@@ -75,7 +75,7 @@ type DeepOptional<T> = T extends object ? { [K in keyof T]?: DeepOptional<T[K]> 
 type Narrow<T, U> = Excludable<U> extends true ? Exclude<T, U> : T
 type NoNever<T> = T extends object ? ({ [K in keyof T]: [T[K]] extends [never] ? 0 : 1 }[keyof T] extends 1 ? T : never) : T
 type NarrowWithPattern<T, U> = Prettify<
-	NoNever<U extends object ? (keyof U extends keyof T ? T & { [K in keyof U]: NarrowWithPattern<T[K], U[K]> } & {} : T) : Narrow<T, U>>
+	U extends object ? (keyof U extends keyof T ? T & { [K in keyof U]: NarrowWithPattern<T[K], U[K]> } & {} : T) : Narrow<T, U>
 >
 
 function matchPattern<TValue, const TPattern extends DeepOptional<TValue>>(value: TValue, pattern: TPattern): value is TValue & TPattern {
@@ -96,7 +96,7 @@ type SwitchValueBuilder<TValue, TPatternFull = never, TReturns = never> = {
 	match<const TPattern extends DeepOptional<TValue>, TResult>(
 		pattern: TPattern,
 		then: (value: TValue & TPattern) => TResult
-	): SwitchValueBuilder<TValue, TPatternFull & TPattern, TReturns | TResult>
+	): SwitchValueBuilder<TValue, TPatternFull extends never ? TPattern : TPatternFull & TPattern, TReturns | TResult>
 } & SwitchValueBuilder.Default<TValue, TReturns>
 namespace SwitchValueBuilder {
 	export type Default<TValue, TReturns> = [TValue] extends [never]
@@ -134,10 +134,10 @@ function switchValue<TValue>(value: TValue): SwitchValueBuilder<TValue> {
 }
 
 type SwitchValueSignalBuilder<TValue, TPatternFull = never, TReturns = never> = {
-	match<const TPattern extends DeepOptional<TValue>, TResult>(
+	match<const TPattern extends Partial<TValue>, TResult>(
 		pattern: TPattern,
 		then: (value: SignalReadable<TValue & TPattern>) => TResult
-	): SwitchValueSignalBuilder<TValue, TPattern, TReturns | TResult>
+	): SwitchValueSignalBuilder<TValue, [TPatternFull] extends [never] ? TPattern : TPatternFull & TPattern, TReturns | TResult>
 } & SwitchValueSignalBuilder.Default<NarrowWithPattern<TValue, TPatternFull>, TReturns>
 namespace SwitchValueSignalBuilder {
 	export type Default<TValue, TReturns> = [TValue] extends [never]
