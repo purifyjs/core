@@ -1,8 +1,7 @@
-import type { Excludable } from "../utils/type"
 import type { SignalReadable } from "./index"
 import { createSignalReadable, isSignalReadable } from "./index"
 
-type FromTypeString<T> = T extends "string"
+/* type FromTypeString<T> = T extends "string"
 	? string
 	: T extends "number"
 	? number
@@ -15,7 +14,7 @@ type FromTypeString<T> = T extends "string"
 	: T extends "undefined"
 	? undefined
 	: T extends "function"
-	? Function
+	? (...args: unknown[]) => any
 	: T extends "object"
 	? object
 	: unknown
@@ -32,200 +31,164 @@ type ToTypeString<T> = T extends string
 	? "symbol"
 	: T extends undefined
 	? "undefined"
-	: T extends Function
+	: T extends (...args: unknown[]) => any
 	? "function"
 	: T extends object
 	? "object"
 	: "unknown"
+ */
+type Excludable<T> = T extends bigint
+	? bigint extends T
+		? false
+		: true
+	: T extends number
+	? number extends T
+		? false
+		: true
+	: T extends string
+	? string extends T
+		? false
+		: true
+	: T extends symbol
+	? symbol extends T
+		? false
+		: true
+	: T extends boolean
+	? boolean extends T
+		? false
+		: true
+	: T extends (...args: unknown[]) => any
+	? ((...args: unknown[]) => any) extends T
+		? false
+		: true
+	: T extends undefined
+	? true
+	: T extends null
+	? true
+	: false
 
-const EqualOfSymbol = Symbol()
-type EqualOfSymbol = typeof EqualOfSymbol
-const InstanceOfSymbol = Symbol()
-type InstanceOfSymbol = typeof InstanceOfSymbol
-const TypeOfSymbol = Symbol()
-type TypeOfSymbol = typeof TypeOfSymbol
+type DeepOptional<T> = T extends object ? { [K in keyof T]?: DeepOptional<T[K]> } : T
 
-type CaseType = EqualOfSymbol | TypeOfSymbol | InstanceOfSymbol
+type Narrow<T, U> = Excludable<U> extends true ? Exclude<T, U> : T
+type NarrowWithPattern<T, U> = U extends object ? (keyof U extends keyof T ? T & { [K in keyof U]: Narrow<T[K], U[K]> } : T) : Narrow<T, U>
 
-type CaseChunk = { type: CaseType; map: Map<unknown, Then<unknown>> }
-
-type Then<T> = (value: T) => unknown
-type Match<TValue, TReturns = never> = {
-	case<const TCase extends TValue, const TThen extends Then<TCase>>(
-		value: TCase,
-		then: TThen
-	): Match<Excludable<TCase, Exclude<TValue, TCase>, TValue>, TReturns | ReturnType<TThen>>
-	caseTypeOf<const TCaseTypeOf extends ToTypeString<TValue>, const TThen extends Then<FromTypeString<TCaseTypeOf>>>(
-		value: TCaseTypeOf,
-		then: TThen
-	): Match<Exclude<TValue, FromTypeString<TCaseTypeOf>>, TReturns | ReturnType<TThen>>
-	caseInstanceOf<const TCaseInstanceOf extends { new (...args: any): any }, const TThen extends Then<InstanceType<TCaseInstanceOf>>>(
-		value: TCaseInstanceOf,
-		then: TThen
-	): Match<Exclude<TValue, InstanceType<TCaseInstanceOf>>, TReturns | ReturnType<TThen>>
-	default<const TDefault extends Then<TValue>>(
-		fallback: [TValue] extends [never] ? void : TDefault
-	): TReturns | ([TValue] extends [never] ? never : ReturnType<TDefault>)
-}
-
-function switchValue<T>(value: T): Match<T> {
-	const caseChunks: CaseChunk[] = []
-	let fallbackCase: Then<T> | null = null
-
-	function addCase(type: CaseType, value: unknown, then: Then<unknown>) {
-		const last = caseChunks.length ? caseChunks[caseChunks.length - 1] : null
-
-		if (last && last.type === type) last.map.set(value, then)
-		else
-			caseChunks.push({
-				type,
-				map: new Map([[value, then]]),
-			})
-	}
-
-	return {
-		case(value, then) {
-			addCase(EqualOfSymbol, value, then as Then<unknown>)
-			return this as never
-		},
-		caseTypeOf(typeOf, then) {
-			addCase(TypeOfSymbol, typeOf, then as Then<unknown>)
-			return this as never
-		},
-		caseInstanceOf(instanceOf, then) {
-			addCase(InstanceOfSymbol, instanceOf, then as Then<unknown>)
-			return this as never
-		},
-		default(fallback: Then<T> | void) {
-			for (const key of Object.keys(this) as (keyof typeof this)[]) delete (this as Partial<typeof this>)[key]
-
-			fallbackCase = fallback ?? null
-
-			for (const caseChunk of caseChunks) {
-				switch (caseChunk.type) {
-					case EqualOfSymbol:
-						{
-							const then = caseChunk.map.get(value)
-							if (then) return then(value)
-						}
-						break
-					case InstanceOfSymbol:
-						{
-							const then = caseChunk.map.get((value as { new (): unknown })?.constructor)
-							if (then) return then(value)
-						}
-						break
-					case TypeOfSymbol:
-						{
-							const then = caseChunk.map.get(typeof value)
-							if (then) return then(value)
-						}
-						break
-				}
+function matchPattern<TValue, const TPattern extends DeepOptional<TValue>>(value: TValue, pattern: TPattern): value is TValue & TPattern {
+	if (typeof value !== typeof pattern) return false
+	const patternAsAny = pattern as any
+	if (typeof value === "object") {
+		if (value !== null) {
+			for (const key of Object.keys(patternAsAny) as (keyof TValue)[]) {
+				if (!(key in value)) return false
+				if (!matchPattern(value[key], patternAsAny[key])) return false
 			}
-			if (fallbackCase) return fallbackCase(value)
-			return null as any
-		},
-	}
+		}
+	} else return value === patternAsAny
+	return true
 }
 
-type MatchSignal<TValue, TReturns = never> = {
-	case<TCase extends TValue, TThen extends Then<TCase>>(
-		value: TCase,
-		then: TThen
-	): MatchSignal<Excludable<TCase, Exclude<TValue, TCase>, TValue>, TReturns | ReturnType<TThen>>
-	caseTypeOf<TCaseTypeOf extends ToTypeString<TValue>, TThen extends Then<FromTypeString<TCaseTypeOf>>>(
-		value: TCaseTypeOf,
-		then: TThen
-	): MatchSignal<Exclude<TValue, FromTypeString<TCaseTypeOf>>, TReturns | ReturnType<TThen>>
-	caseInstanceOf<TCaseInstanceOf extends { new (...args: any): any }, TThen extends Then<InstanceType<TCaseInstanceOf>>>(
-		value: TCaseInstanceOf,
-		then: TThen
-	): MatchSignal<Exclude<TValue, InstanceType<TCaseInstanceOf>>, TReturns | ReturnType<TThen>>
-	default<TDefault extends Then<SignalReadable<TValue>>>(
-		fallback: [TValue] extends [never] ? void : TDefault
-	): SignalReadable<TReturns | ([TValue] extends [never] ? never : ReturnType<TDefault>)>
+type SwitchValueBuilder<TValue, TReturns = never> = {
+	match<const TPattern extends DeepOptional<TValue>, TResult>(
+		pattern: TPattern,
+		then: (value: TValue & TPattern) => TResult
+	): SwitchValueBuilder<NarrowWithPattern<TValue, TPattern>, TReturns | TResult>
+} & SwitchValueBuilder.Default<TValue, TReturns>
+namespace SwitchValueBuilder {
+	export type Default<TValue, TReturns> = TValue extends never
+		? {
+				default(): TReturns
+		  }
+		: {
+				default<TDefault>(fallback: (value: TValue) => TDefault): TReturns | TDefault
+		  }
 }
 
-function switchSignal<T>(value: SignalReadable<T>): MatchSignal<T> {
-	const caseChunks: CaseChunk[] = []
-	let fallbackCase: Then<SignalReadable<T>> | null = null
+function switchValue<TValue>(value: TValue): SwitchValueBuilder<TValue> {
+	const cases: {
+		pattern: Partial<TValue>
+		then: (value: TValue) => unknown
+	}[] = []
 
-	function addCase(type: CaseType, value: unknown, then: Then<unknown>) {
-		const last = caseChunks.length ? caseChunks[caseChunks.length - 1] : null
+	// Builder type is way too funky, so gotta act like it doesn't exist here
+	const result = {
+		match(pattern: Partial<TValue>, then: (value: TValue) => unknown) {
+			cases.push({ pattern, then })
+			return result
+		},
+		default(fallback?: (value: TValue) => unknown) {
+			for (const case_ of cases) {
+				if (matchPattern(value, case_.pattern as any)) return case_.then(value)
+			}
 
-		if (last && last.type === type) last.map.set(value, then)
-		else
-			caseChunks.push({
-				type,
-				map: new Map([[value, then]]),
-			})
+			if (fallback) return fallback(value)
+			return null
+		},
 	}
+	// Yup, this is a hack, type is way to funky to get right
+	return result as never
+}
 
-	return {
-		case(value, then) {
-			addCase(EqualOfSymbol, value, then as Then<unknown>)
-			return this as never
-		},
-		caseInstanceOf(instanceOf, then) {
-			addCase(InstanceOfSymbol, instanceOf, then as Then<unknown>)
-			return this as never
-		},
-		caseTypeOf(typeOf, then) {
-			addCase(TypeOfSymbol, typeOf, then as Then<unknown>)
-			return this as never
-		},
-		default(fallback) {
-			for (const key of Object.keys(this) as (keyof typeof this)[]) delete (this as Partial<typeof this>)[key]
+type SwitchValueSignalBuilder<TValue, TReturns = never> = {
+	match<const TPattern extends DeepOptional<TValue>, TResult>(
+		pattern: TPattern,
+		then: (value: SignalReadable<TValue & TPattern>) => TResult
+	): SwitchValueSignalBuilder<NarrowWithPattern<TValue, TPattern>, TReturns | TResult>
+} & SwitchValueSignalBuilder.Default<TValue, TReturns>
+namespace SwitchValueSignalBuilder {
+	export type Default<TValue, TReturns> = TValue extends never
+		? {
+				default(): SignalReadable<TReturns>
+		  }
+		: {
+				default<TDefault>(fallback: (value: SignalReadable<TValue>) => TDefault): SignalReadable<TReturns | TDefault>
+		  }
+}
 
-			fallbackCase = fallback ?? null
+function switchValueSignal<TValue>(signal: SignalReadable<TValue>): SwitchValueSignalBuilder<TValue> {
+	const cases: {
+		pattern: Partial<TValue>
+		then: (value: SignalReadable<TValue>) => unknown
+	}[] = []
 
+	// Builder type is way too funky, so gotta act like it doesn't exist here
+	const result = {
+		match(pattern: Partial<TValue>, then: (value: SignalReadable<TValue>) => unknown) {
+			cases.push({ pattern, then })
+			return result
+		},
+		default(fallback?: (value: SignalReadable<TValue>) => unknown) {
 			return createSignalReadable<unknown>((set) => {
-				let isCurrentFallback: boolean
-				return value.subscribe(
-					(signalValue) => {
-						isCurrentFallback = false
+				let currentIndex = -1
 
-						for (const caseChunk of caseChunks) {
-							switch (caseChunk.type) {
-								case EqualOfSymbol:
-									{
-										const then = caseChunk.map.get(signalValue)
-										if (then) return set(then(signalValue))
-									}
-									break
-								case InstanceOfSymbol:
-									{
-										const then = caseChunk.map.get((signalValue as { new (): unknown })?.constructor)
-										if (then) return set(then(signalValue))
-									}
-									break
-								case TypeOfSymbol:
-									{
-										const then = caseChunk.map.get(typeof signalValue)
-										if (then) return set(then(signalValue))
-									}
-									break
+				return signal.subscribe(
+					(signalValue) => {
+						if (currentIndex >= 0 && matchPattern(signalValue, cases[currentIndex]!.pattern as any)) return
+
+						for (let i = 0; i < cases.length; i++) {
+							if (i === currentIndex) continue
+							const case_ = cases[i]!
+							if (matchPattern(signalValue, case_.pattern as any)) {
+								currentIndex = i
+								return set(case_.then(signal))
 							}
 						}
+						currentIndex = -1
 
-						if (fallbackCase) {
-							if (!isCurrentFallback) set(fallbackCase(value))
-						} else set(null)
-
-						isCurrentFallback = true
+						if (fallback) return set(fallback(signal))
+						throw new Error("No default case provided and no case matched, this is not supposed to happen")
 					},
 					{ mode: "immediate" }
 				).unsubscribe
-			}) as never
+			})
 		},
 	}
+	// Yup, this is a hack, type is way to funky to get right
+	return result as never
 }
 
-export const createMatch: {
-	<T>(value: SignalReadable<T>): MatchSignal<T>
-	<T>(value: T): Match<T>
+export const createSwitch: {
+	<T>(value: SignalReadable<T>): SwitchValueSignalBuilder<T>
+	<T>(value: T): SwitchValueBuilder<T>
 } = <T>(value: T | SignalReadable<T>) => {
-	if (isSignalReadable(value)) return switchSignal(value) as never
+	if (isSignalReadable(value)) return switchValueSignal(value) as never
 	return switchValue(value) as never
 }
