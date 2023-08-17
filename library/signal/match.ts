@@ -133,12 +133,12 @@ function switchValue<TValue>(value: TValue): SwitchValueBuilder<TValue> {
 	return result as never
 }
 
-type SwitchValueSignalBuilder<TValue, TPatternFull = never, TReturns = never> = {
+type SwitchValueSignalBuilder<TValue, TReturns = never> = {
 	match<const TPattern extends Partial<TValue>, TResult>(
 		pattern: TPattern,
 		then: (value: SignalReadable<TValue & TPattern>) => TResult
-	): SwitchValueSignalBuilder<TValue, [TPatternFull] extends [never] ? TPattern : TPatternFull & TPattern, TReturns | TResult>
-} & SwitchValueSignalBuilder.Default<NarrowWithPattern<TValue, TPatternFull>, TReturns>
+	): SwitchValueSignalBuilder<NarrowWithPattern<TValue, TPattern>, TReturns | TResult>
+} & SwitchValueSignalBuilder.Default<TValue, TReturns>
 namespace SwitchValueSignalBuilder {
 	export type Default<TValue, TReturns> = [TValue] extends [never]
 		? {
