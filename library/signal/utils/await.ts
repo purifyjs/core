@@ -1,7 +1,7 @@
-import { RenderSymbol } from "../template/renderable"
-import { assert } from "../utils/assert"
-import type { SignalReadable } from "./index"
-import { createSignalReadable, createSignalWritable, isSignalReadable } from "./index"
+import { RenderSymbol } from "../../template/renderable"
+import { assert } from "../../utils/assert"
+import type { SignalReadable } from "../index"
+import { createSignalReadable, createSignalWritable, isSignalReadable } from "../index"
 
 type Until = () => unknown
 type Catch = (error: Error) => unknown
