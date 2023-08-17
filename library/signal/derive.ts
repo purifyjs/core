@@ -5,7 +5,7 @@ export interface SignalDeriver<T> {
 	(): T
 }
 
-export function createSignalDerive<T>(deriver: SignalDeriver<T>, staticDependencies?: SignalReadable<any>[]): SignalReadable<T> {
+export function createSignalDerived<T>(deriver: SignalDeriver<T>, staticDependencies?: SignalReadable<any>[]): SignalReadable<T> {
 	let activate: (set: SignalSetter<T>) => void
 	let deactivate: () => void
 
@@ -88,7 +88,7 @@ const deriveOfFunctionCache = new WeakMap<SignalDeriver<unknown>, SignalReadable
  **/
 export function createOrGetDeriveOfFunction<T extends (...args: any) => any>(func: T): SignalReadable<ReturnType<T>> {
 	if (deriveOfFunctionCache.has(func)) return deriveOfFunctionCache.get(func)!
-	const computed = createSignalDerive(() => func())
+	const computed = createSignalDerived(() => func())
 	deriveOfFunctionCache.set(func, computed)
 	return computed
 }

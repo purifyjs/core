@@ -1,5 +1,5 @@
 import { onMount$, onUnmount$ } from "../lifecycle/index"
-import { createOrGetDeriveOfFunction, createSignalDerive } from "../signal/derive"
+import { createOrGetDeriveOfFunction, createSignalDerived } from "../signal/derive"
 import type { SignalWritable } from "../signal/index"
 import { isSignalReadable, isSignalWritable } from "../signal/index"
 import { assert } from "../utils/assert"
@@ -134,7 +134,7 @@ export function render<T extends TemplateValue[]>(template: HTMLTemplateElement,
 		for (const [ref, { attributes }] of templateDescriptor.refDataMap) {
 			const element = fragment.querySelector(`[ref\\:${ref}]`) as HTMLElement
 			for (const [name, { parts }] of attributes) {
-				const signal = createSignalDerive(() =>
+				const signal = createSignalDerived(() =>
 					parts!
 						.map((part) => {
 							const value = typeof part === "number" ? values[part] : part

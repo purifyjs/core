@@ -1,10 +1,10 @@
-import { createSignalDerive } from "./derive"
+import { createSignalDerived } from "./derive"
 import { isSignalReadable, type SignalReadable } from "./index"
 
 type SignalFlatValue<T extends SignalReadable<any>> = T extends SignalReadable<any> ? SignalFlatValue<T["ref"]> : T
 
 export function createSignalFlattened<T extends SignalReadable<SignalReadable<any>>>(signal: T) {
-	return createSignalDerive(() => {
+	return createSignalDerived(() => {
 		let value: SignalReadable = signal
 		while (isSignalReadable(value.ref)) value = value.ref
 		return value.ref

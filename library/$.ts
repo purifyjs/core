@@ -2,25 +2,25 @@ import { defineComponent } from "./component/index"
 import { onEvent$ } from "./lifecycle/events"
 import { onMount$, onUnmount$ } from "./lifecycle/index"
 import { createInterval$, createTimeout$ } from "./lifecycle/timers"
-import { createAwait } from "./signal/await"
+import { createSignalAwait } from "./signal/await"
 import { createSignalDeferred } from "./signal/defer"
-import { createSignalDerive } from "./signal/derive"
-import { createEach } from "./signal/each"
+import { createSignalDerived } from "./signal/derive"
+import { createSignalEach } from "./signal/each"
 import { createEffect, createEffect$ } from "./signal/effect"
 import { createSignalFlattened } from "./signal/flatten"
 import { createSignalReadable, createSignalWritable } from "./signal/index"
-import { createMatch } from "./signal/match"
+import { createSwitch } from "./signal/match"
 
 export const $: {
 	component: typeof defineComponent
 	writable: typeof createSignalWritable
 	readable: typeof createSignalReadable
-	derive: typeof createSignalDerive
+	derive: typeof createSignalDerived
 	defer: typeof createSignalDeferred
 	flatten: typeof createSignalFlattened
-	match: typeof createMatch
-	each: typeof createEach
-	await: typeof createAwait
+	switch: typeof createSwitch
+	each: typeof createSignalEach
+	await: typeof createSignalAwait
 	effect: typeof createEffect
 	effect$: typeof createEffect$
 	timeout$: typeof createTimeout$
@@ -32,12 +32,12 @@ export const $: {
 	component: defineComponent,
 	writable: createSignalWritable,
 	readable: createSignalReadable,
-	derive: createSignalDerive,
+	derive: createSignalDerived,
 	defer: createSignalDeferred,
 	flatten: createSignalFlattened,
-	match: createMatch,
-	each: createEach,
-	await: createAwait,
+	switch: createSwitch,
+	each: createSignalEach,
+	await: createSignalAwait,
 	effect: createEffect,
 	effect$: createEffect$,
 	timeout$: createTimeout$,

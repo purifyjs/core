@@ -1,119 +1,160 @@
 import { RenderSymbol } from "../template/renderable"
-import { assert } from "../utils/assert"
-import type { SignalReadable } from "./index"
+import type { SignalReadable, SignalWritable } from "./index"
 import { createSignalReadable, createSignalWritable, isSignalReadable } from "./index"
 
-type Until = () => unknown
-type Catch = (error: Error) => unknown
-
-type AwaitPromise<TAwaited, TReturns = never> = {
-	until<T extends Until>(until: T): AwaitPromise<TAwaited, TReturns | ReturnType<T>>
-	catch<T extends Catch>(onrejected: T): AwaitPromise<TAwaited, TReturns | ReturnType<T>>
-	then<T>(onfulfilled: (awaited: TAwaited) => T): SignalReadable<TReturns | T>
-	then(): SignalReadable<TReturns | TAwaited>
-	[RenderSymbol](): SignalReadable<TReturns | TAwaited>
-}
-type AwaitPromiseSignal<TAwaited, TOther = never> = {
-	until<T extends Until>(until: T): AwaitPromiseSignal<TAwaited, TOther | ReturnType<T>>
-	catch<T extends Catch>(onrejected: T): AwaitPromiseSignal<TAwaited, TOther | ReturnType<T>>
-	then<T>(onfulfilled: (awaited: SignalReadable<TAwaited>) => T): SignalReadable<TOther | T>
-	then(): SignalReadable<TOther | TAwaited>
-	[RenderSymbol](): SignalReadable<TOther | TAwaited>
-}
-
-function awaitPromise<Awaited>(promise: Promise<Awaited>): AwaitPromise<Awaited> {
-	let _until: Until | undefined
-	let _onrejected: Catch | undefined
-
-	return {
-		until(until) {
-			_until = until
-			return this
-		},
-		catch(onrejected) {
-			_onrejected = onrejected
-			return this
-		},
-		then(then?: (awaited: Awaited) => unknown) {
-			const until = _until
-			const onrejected = _onrejected
-
-			return createSignalReadable(
-				(set) => {
-					promise
-						.then((awaited) => (then ? then(awaited) : awaited))
-						.catch((error) => {
-							if (!onrejected) throw error
-							set(onrejected)
-						})
-						.then((result) => set(result))
-					return () => {}
-				},
-				until ? until() : null
-			) as never
-		},
-		[RenderSymbol]() {
-			return this.then()
-		},
+type AwaitPromiseBuilder<TValue> = {
+	until<TUntil>(until: () => TUntil): {
+		catch<TCatch>(onrejected: (reason: unknown) => TCatch): AwaitPromiseBuilder.Then<TValue, TUntil | TCatch>
+	} & AwaitPromiseBuilder.Then<TValue, TUntil>
+	catch<TCatch>(onrejected: (reason: unknown) => TCatch): {
+		until<TUntil>(until: () => TUntil): AwaitPromiseBuilder.Then<TValue, TUntil | TCatch>
+	} & AwaitPromiseBuilder.Then<TValue, null | TCatch>
+} & AwaitPromiseBuilder.Then<TValue, null>
+namespace AwaitPromiseBuilder {
+	export type Then<TValue, TOther> = {
+		then<TThen>(onfulfilled: (value: TValue) => TThen): SignalReadable<TOther | TThen>
+		then(): SignalReadable<TOther | TValue>
+		[RenderSymbol](): SignalReadable<TOther | TValue>
 	}
 }
 
-function awaitPromiseSignal<Awaited>(promiseSignal: SignalReadable<Promise<Awaited>>): AwaitPromiseSignal<Awaited> {
-	let _until: Until | null = null
-	let _onrejected: Catch | null = null
+function awaitPromise<TValue>(promise: Promise<TValue>): AwaitPromiseBuilder<TValue> {
+	function then<TUntil = never, TCatch = never>(
+		until?: () => TUntil,
+		onrejected?: (reason: unknown) => TCatch
+	): AwaitPromiseBuilder.Then<TValue, TUntil | TCatch> {
+		return {
+			then<TThen = TValue>(onfulfilled?: (value: TValue) => TThen) {
+				return createSignalReadable<TUntil | TCatch | TThen>((set) => {
+					if (until) set(until())
+					else set(null!)
+					promise
+						.then((value) => set(onfulfilled ? onfulfilled(value) : (value as any)))
+						.catch((reason) => set(onrejected ? onrejected(reason) : reason))
+					return () => {}
+				})
+			},
+			[RenderSymbol]() {
+				return this.then()
+			},
+		}
+	}
 
 	return {
 		until(until) {
-			_until = until
-			return this
+			return {
+				catch(onrejected) {
+					return then(until, onrejected)
+				},
+				...then(until),
+			}
 		},
 		catch(onrejected) {
-			_onrejected = onrejected
-			return this
+			return {
+				until(until) {
+					return then(until, onrejected)
+				},
+				...then(undefined, onrejected),
+			}
 		},
-		then(then?: (awaited: SignalReadable<Awaited>) => unknown) {
-			const until = _until
-			const onrejected = _onrejected
+		...then(),
+	}
+}
 
-			return createSignalReadable<unknown>(
-				(set) => {
-					let counter = 0
+type AwaitPromiseSignalBuilder<TValue> = {
+	until<TUntil>(until: () => TUntil): {
+		catch<TCatch>(onrejected: (reason: SignalReadable<unknown>) => TCatch): AwaitPromiseSignalBuilder.Then<TValue, TUntil | TCatch>
+	} & AwaitPromiseSignalBuilder.Then<TValue, TUntil>
+	catch<TCatch>(onrejected: (reason: SignalReadable<unknown>) => TCatch): {
+		until<TUntil>(until: () => TUntil): AwaitPromiseSignalBuilder.Then<TValue, TUntil | TCatch>
+	} & AwaitPromiseSignalBuilder.Then<TValue, null | TCatch>
+} & AwaitPromiseSignalBuilder.Then<TValue, null>
+namespace AwaitPromiseSignalBuilder {
+	export type Then<TValue, TOther> = {
+		then<TThen>(onfulfilled: (value: SignalReadable<TValue>) => TThen): SignalReadable<TOther | TThen>
+		then(): SignalReadable<TOther | TValue>
+		[RenderSymbol](): SignalReadable<TOther | TValue>
+	}
+}
 
-					let thenCache: unknown
-					const awaitedSignal = createSignalWritable<Awaited>(null!)
+function awaitPromiseSignal<TValue>(promiseSignal: SignalReadable<Promise<TValue>>): AwaitPromiseSignalBuilder<TValue> {
+	function then<TUntil = never, TCatch = never>(until?: () => TUntil, onrejected?: (reason: SignalReadable<unknown>) => TCatch) {
+		return {
+			then<TThen = TValue>(onfulfilled?: (value: SignalReadable<TValue>) => TThen) {
+				return createSignalReadable<TUntil | TCatch | TThen>((set) => {
+					let onrejectedSignal: SignalWritable<unknown> | null = null
+					let onfulfilledSignal: SignalWritable<TValue> | null = null
 
-					return promiseSignal.subscribe(
-						async (promise) => {
-							const id = ++counter
-							try {
-								if (until) set(until())
-								const awaited = await promise
-								if (id !== counter) return
-								awaitedSignal.ref = awaited
-								set(then ? (thenCache ??= then(awaitedSignal)) : awaited)
-							} catch (error) {
-								if (id !== counter) return
-								assert<Error>(error)
-								if (!onrejected) throw error
-								set(onrejected(error))
-							}
+					let onfulfilledResult: TThen | null = null
+					let onrejectedResult: TCatch | null = null
+
+					let promiseCache: Promise<TValue> | null = null
+					const subscription = promiseSignal.subscribe(
+						(promise) => {
+							promiseCache = promise
+
+							if (until) set(until())
+							else set(null!)
+
+							promise
+								.then((value) => {
+									if (promiseCache !== promise) return
+									if (onfulfilled) {
+										if (onfulfilledSignal) onfulfilledSignal.set(value)
+										else onfulfilledSignal = createSignalWritable(value)
+										set((onfulfilledResult ??= onfulfilled(onfulfilledSignal)))
+									} else {
+										set(value as any)
+									}
+								})
+								.catch((reason) => {
+									if (promiseCache !== promise) return
+									if (onrejected) {
+										if (onrejectedSignal) onrejectedSignal.set(reason)
+										else onrejectedSignal = createSignalWritable(reason)
+										set((onrejectedResult ??= onrejected(onrejectedSignal)))
+									}
+								})
+
+							return () => {}
 						},
 						{ mode: "immediate" }
-					).unsubscribe
+					)
+
+					return () => subscription.unsubscribe()
+				})
+			},
+			[RenderSymbol]() {
+				return this.then()
+			},
+		}
+	}
+
+	return {
+		until(until) {
+			return {
+				catch(onrejected) {
+					return then(until, onrejected)
 				},
-				until ? until() : null
-			) as never
+				...then(until),
+			}
 		},
-		[RenderSymbol]() {
-			return this.then()
+		catch(onrejected) {
+			return {
+				until(until) {
+					return then(until, onrejected)
+				},
+				...then(undefined, onrejected),
+			}
 		},
+		...then(),
 	}
 }
 
-export const createAwait: {
-	<Awaited>(promise: Promise<Awaited>): AwaitPromise<Awaited>
-	<Awaited>(promiseSignal: SignalReadable<Promise<Awaited>>): AwaitPromiseSignal<Awaited>
+export const createSignalAwait: {
+	<T>(promise: Promise<T>): AwaitPromiseBuilder<T>
+	<T>(promiseSignal: SignalReadable<Promise<T>>): AwaitPromiseSignalBuilder<T>
 } = (promise) => {
-	if (isSignalReadable(promise)) return awaitPromiseSignal(promise)
-	return awaitPromise(promise)
+	if (isSignalReadable(promise)) return awaitPromiseSignal(promise) as never
+	return awaitPromise(promise) as never
 }
