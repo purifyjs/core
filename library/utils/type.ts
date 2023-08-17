@@ -1,5 +1,4 @@
-const ERROR = Symbol("error")
-type ERROR = typeof ERROR
+declare const ERROR: unique symbol
 export type ErrorType<Message extends string> = { [ERROR]: Message }
 
 export type IsReadonly<T> = T extends { readonly [K in keyof T]: T[K] } ? true : false

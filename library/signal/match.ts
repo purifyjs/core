@@ -67,10 +67,14 @@ type Excludable<T> = T extends bigint
 	? true
 	: false
 
-type DeepOptional<T> = T extends object ? { [K in keyof T]?: DeepOptional<T[K]> } : T
+type Prettify<T> = T extends object ? { [K in keyof T]: T[K] } & {} : T
+type DeepOptional<T> = T extends object ? { [K in keyof T]?: DeepOptional<T[K]> } & {} : T
 
 type Narrow<T, U> = Excludable<U> extends true ? Exclude<T, U> : T
-type NarrowWithPattern<T, U> = U extends object ? (keyof U extends keyof T ? T & { [K in keyof U]: Narrow<T[K], U[K]> } : T) : Narrow<T, U>
+type NoNever<T> = T extends object ? ({ [K in keyof T]: [T[K]] extends [never] ? 0 : 1 }[keyof T] extends 1 ? T : never) : T
+type NarrowWithPattern<T, U> = Prettify<
+	NoNever<U extends object ? (keyof U extends keyof T ? T & { [K in keyof U]: NarrowWithPattern<T[K], U[K]> } & {} : T) : Narrow<T, U>>
+>
 
 function matchPattern<TValue, const TPattern extends DeepOptional<TValue>>(value: TValue, pattern: TPattern): value is TValue & TPattern {
 	if (typeof value !== typeof pattern) return false
@@ -93,7 +97,7 @@ type SwitchValueBuilder<TValue, TReturns = never> = {
 	): SwitchValueBuilder<NarrowWithPattern<TValue, TPattern>, TReturns | TResult>
 } & SwitchValueBuilder.Default<TValue, TReturns>
 namespace SwitchValueBuilder {
-	export type Default<TValue, TReturns> = TValue extends never
+	export type Default<TValue, TReturns> = [TValue] extends [never]
 		? {
 				default(): TReturns
 		  }
@@ -132,9 +136,11 @@ type SwitchValueSignalBuilder<TValue, TReturns = never> = {
 		pattern: TPattern,
 		then: (value: SignalReadable<TValue & TPattern>) => TResult
 	): SwitchValueSignalBuilder<NarrowWithPattern<TValue, TPattern>, TReturns | TResult>
+	test: TValue
+	test2: TReturns
 } & SwitchValueSignalBuilder.Default<TValue, TReturns>
 namespace SwitchValueSignalBuilder {
-	export type Default<TValue, TReturns> = TValue extends never
+	export type Default<TValue, TReturns> = [TValue] extends [never]
 		? {
 				default(): SignalReadable<TReturns>
 		  }
