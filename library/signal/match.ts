@@ -92,11 +92,11 @@ function matchPattern<TValue, const TPattern extends DeepOptional<TValue>>(value
 	return true
 }
 
-type SwitchValueBuilder<TValue, TPatternFull = never, TReturns = never> = {
+type SwitchValueBuilder<TValue, TReturns = never> = {
 	match<const TPattern extends DeepOptional<TValue>, TResult>(
 		pattern: TPattern,
 		then: (value: TValue & TPattern) => TResult
-	): SwitchValueBuilder<TValue, TPatternFull extends never ? TPattern : TPatternFull & TPattern, TReturns | TResult>
+	): SwitchValueBuilder<NarrowWithPattern<TValue, TPattern>, TReturns | TResult>
 } & SwitchValueBuilder.Default<TValue, TReturns>
 namespace SwitchValueBuilder {
 	export type Default<TValue, TReturns> = [TValue] extends [never]
