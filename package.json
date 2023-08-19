@@ -4,11 +4,11 @@
 	"scripts": {
 		"format": "prettier -w ./",
 		"test": "run-p test:*",
-		"test-dev": "run-p --race test-dev:*",
+		"test-watch": "run-p --race test-watch:*",
 		"test:types": "tsc --noEmit",
-		"test-dev:types": "tsc --watch --noEmit",
+		"test-watch:types": "tsc --watch --noEmit",
 		"test:node": "tsx --test library/**/*.test.ts",
-		"test-dev:node": "tsx --test --watch library/**/*.test.ts"
+		"test-watch:node": "tsx --test --watch library/**/*.test.ts"
 	},
 	"devDependencies": {
 		"@types/node": "^20.1.2",
