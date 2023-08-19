@@ -1,4 +1,4 @@
-import { strictEqual } from "node:assert"
+import { fail, strictEqual } from "node:assert"
 import { test } from "node:test"
 import { SignalReadable, createSignalWritable } from "."
 import { Brand } from "../utils/type"
@@ -118,10 +118,12 @@ test(describe(), () => {
 	const result = createSwitch(signal)
 		.match(null, (value) => {
 			value.ref satisfies null
+			fail(`value.ref is null, but it should be { foo: "foo" }`)
 			return "null" as const
 		})
 		.match({ [INSTANCEOF]: Error }, (value) => {
 			value.ref satisfies Error
+			fail(`value.ref is an error, but it should be { foo: "foo" }`)
 			return "error" as const
 		})
 		.default((value) => {

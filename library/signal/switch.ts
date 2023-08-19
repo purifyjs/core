@@ -115,17 +115,22 @@ type Narrow<TValue, TPattern> = INSTANCEOF extends keyof TPattern
 
 function matchPattern<TValue, const TPattern extends PatternOf<TValue>>(value: TValue, pattern: TPattern): value is TValue & TPattern {
 	if (typeof pattern === "object" && pattern !== null) {
-		for (const key of Object.keys(pattern as any) as (keyof TPattern)[]) {
-			const patternValue = pattern[key]
-			if (key === TYPEOF && patternValue !== typeof value) return false
-			if (key === INSTANCEOF && typeof patternValue === "function" && !(value instanceof patternValue)) return false
+		if (TYPEOF in pattern) {
+			if (pattern[TYPEOF] !== typeof value) return false
+		} else if (INSTANCEOF in pattern) {
+			if (typeof pattern[INSTANCEOF] !== "function") return false
+			if (!(value instanceof pattern[INSTANCEOF])) return false
+		} else {
+			for (const key of Object.keys(pattern) as (keyof TPattern)[]) {
+				const patternValue = pattern[key]
 
-			if (typeof value !== "object" || value === null) return false
-			if (!(key in value)) return false
-			return matchPattern(value[key as keyof TValue], patternValue as any)
+				if (typeof value !== "object" || value === null) return false
+				if (!(key in value)) return false
+				if (!matchPattern(value[key as keyof TValue], patternValue as any)) return false
+			}
 		}
+		return true
 	} else return value === (pattern as any)
-	return true
 }
 
 type SwitchValueBuilder<TValue, TReturns = never> = {
