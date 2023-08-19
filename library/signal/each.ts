@@ -32,33 +32,36 @@ function eachOfSignalArray<TSource extends unknown[]>(each: SignalReadable<TSour
 
 				return createSignalReadable<TResultItem[]>(
 					(set) =>
-						each.subscribe((sourceItems) => {
-							const toRemove = new Set(caches.keys())
+						each.subscribe(
+							(sourceItems) => {
+								const toRemove = new Set(caches.keys())
 
-							const items = sourceItems.map((sourceItem, index): TResultItem => {
-								const key = keyGetter(sourceItem, index)
-								toRemove.delete(key)
+								const items = sourceItems.map((sourceItem, index): TResultItem => {
+									const key = keyGetter(sourceItem, index)
+									toRemove.delete(key)
 
-								const cache = caches.get(key)
-								if (cache) {
-									cache.itemSignal.set(sourceItem)
-									cache.indexSignal.set(index)
-									return cache.value
-								}
+									const cache = caches.get(key)
+									if (cache) {
+										cache.itemSignal.set(sourceItem)
+										cache.indexSignal.set(index)
+										return cache.value
+									}
 
-								const itemSignal = createSignalWritable(sourceItem)
-								const indexSignal = createSignalWritable(index)
-								const value = as(itemSignal, indexSignal)
+									const itemSignal = createSignalWritable(sourceItem)
+									const indexSignal = createSignalWritable(index)
+									const value = as(itemSignal, indexSignal)
 
-								caches.set(key, { itemSignal, indexSignal, value })
+									caches.set(key, { itemSignal, indexSignal, value })
 
-								return value
-							})
+									return value
+								})
 
-							for (const key of toRemove) caches.delete(key)
+								for (const key of toRemove) caches.delete(key)
 
-							set(items)
-						}).unsubscribe
+								set(items)
+							},
+							{ mode: "immediate" }
+						).unsubscribe
 				)
 			},
 		}
