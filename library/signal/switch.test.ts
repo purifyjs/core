@@ -36,6 +36,25 @@ test("", () => {
 })
 
 test("", () => {
+	type MyId = Brand<"MyId", string>
+	function createMyId(id: string): MyId {
+		return id as MyId
+	}
+	const signal = createSignalWritable<MyId>(createMyId("yo!"))
+
+	function acceptMyId(id: MyId) {
+		return id
+	}
+
+	createSwitch(signal)
+		.match(createMyId("another"), (value) => value.ref satisfies MyId)
+		.default((value) => {
+			value.ref satisfies MyId
+			acceptMyId(value.ref)
+		})
+})
+
+test("", () => {
 	type Foo = {
 		type: "foo"
 		foo: string

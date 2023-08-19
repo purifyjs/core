@@ -2,66 +2,13 @@ import type { SignalReadable } from "."
 import { createSignalReadable, isSignalReadable } from "."
 import { DeepOptional } from "../utils/type"
 
-// TODO: Make types better later, hardly works
+// TODO: Make typing better
 
-/* type FromTypeString<T> = T extends "string"
-	? string
-	: T extends "number"
-	? number
-	: T extends "bigint"
-	? bigint
-	: T extends "boolean"
-	? boolean
-	: T extends "symbol"
-	? symbol
-	: T extends "undefined"
-	? undefined
-	: T extends "function"
-	? (...args: unknown[]) => any
-	: T extends "object"
-	? object
-	: unknown
-
-type ToTypeString<T> = T extends string
-	? "string"
-	: T extends number
-	? "number"
-	: T extends bigint
-	? "bigint"
-	: T extends boolean
-	? "boolean"
-	: T extends symbol
-	? "symbol"
-	: T extends undefined
-	? "undefined"
-	: T extends (...args: unknown[]) => any
-	? "function"
-	: T extends object
-	? "object"
-	: "unknown"
- */
-type Narrowable<T> = T extends bigint
-	? bigint extends T
-		? false
-		: true
-	: T extends number
-	? number extends T
-		? false
-		: true
-	: T extends string
-	? string extends T
-		? false
-		: true
-	: T extends symbol
-	? symbol extends T
-		? false
-		: true
-	: T extends boolean
-	? boolean extends T
-		? false
-		: true
-	: T extends (...args: unknown[]) => any
-	? ((...args: unknown[]) => any) extends T
+type Primitive = string | number | bigint | boolean | symbol | undefined | null | ((...args: unknown[]) => any)
+type Narrowable<T> = T extends object
+	? false
+	: T extends Primitive
+	? Primitive extends T
 		? false
 		: true
 	: T extends undefined
@@ -70,13 +17,11 @@ type Narrowable<T> = T extends bigint
 	? true
 	: false
 
-type _ = Narrowable<string | number>
-
 type Narrow<T, U> = Narrowable<U> extends true ? Exclude<T, U> : T
 type NoNever<T> = { [K in keyof T]: [T[K]] extends [never] ? 0 : 1 }[keyof T] extends 1 ? T : never
-type NarrowWithPattern<Type, Pattern> = Pattern extends object
-	? NoNever<keyof Pattern extends keyof Type ? Type & { [K in keyof Pattern]: NarrowWithPattern<Type[K], Pattern[K]> } : Type>
-	: Narrow<Type, Pattern>
+type NarrowWithPattern<Type, Pattern> = Pattern extends Primitive
+	? Narrow<Type, Pattern>
+	: NoNever<keyof Pattern extends keyof Type ? Type & { [K in keyof Pattern]: NarrowWithPattern<Type[K], Pattern[K]> } : Type>
 
 function matchPattern<TValue, const TPattern extends DeepOptional<TValue>>(value: TValue, pattern: TPattern): value is TValue & TPattern {
 	if (typeof value !== typeof pattern) return false
