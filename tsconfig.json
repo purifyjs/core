@@ -5,6 +5,8 @@
 		"lib": ["ESNext", "DOM"],
 		"noEmit": true,
 
+		"moduleResolution": "Node",
+
 		"strict": true,
 		"strictBindCallApply": true,
 		"strictFunctionTypes": true,
@@ -15,9 +17,6 @@
 		"noImplicitAny": true,
 		"noImplicitOverride": true,
 		"noImplicitThis": true,
-
-		"noUnusedLocals": true,
-		"noUnusedParameters": true,
 
 		"useUnknownInCatchVariables": true,
 		"noUncheckedIndexedAccess": true,

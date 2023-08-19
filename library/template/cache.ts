@@ -1,4 +1,4 @@
-import type { TemplateValue } from "./index"
+import type { TemplateValue } from "."
 import type { TemplateDescriptor } from "./parse/descriptor"
 import { parseTemplateDescriptor } from "./parse/descriptor"
 import { parseTemplateHtml } from "./parse/html"

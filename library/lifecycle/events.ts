@@ -1,4 +1,4 @@
-import { onMount$ } from "./index"
+import { onMount$ } from "."
 
 export function onEvent$<TNode extends Node>(node: TNode, ...args: Parameters<typeof node.addEventListener>) {
 	onMount$(node, () => {

@@ -1,5 +1,5 @@
-import type { SignalReadable, SignalWritable } from "./index"
-import { createSignalReadable, createSignalWritable, isSignalReadable } from "./index"
+import type { SignalReadable, SignalWritable } from "."
+import { createSignalReadable, createSignalWritable, isSignalReadable } from "."
 
 type EachOfArrayBuilder<TSource extends unknown[]> = {
 	as<TResultItem>(as: (item: TSource[number], index: number) => TResultItem): TResultItem[]
@@ -72,7 +72,7 @@ function eachOfSignalArray<TSource extends unknown[]>(each: SignalReadable<TSour
 	}
 }
 
-export const createSignalEach: {
+export const createEach: {
 	<T extends unknown[]>(each: T): EachOfArrayBuilder<T>
 	<T extends unknown[]>(each: SignalReadable<T>): EachOfSignalArrayBuilder<T>
 } = (each) => {

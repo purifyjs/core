@@ -5,3 +5,4 @@
 /.prettierrc
 /.eslintrc
 /*.md
+**/*.test.ts

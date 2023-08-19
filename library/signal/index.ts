@@ -1,4 +1,4 @@
-import { onMount$, onUnmount$ } from "../lifecycle/index"
+import { onMount$, onUnmount$ } from "../lifecycle"
 import { uniqueId } from "../utils/id"
 
 export type SignalSubscription = {

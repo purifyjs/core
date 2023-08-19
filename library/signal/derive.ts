@@ -1,5 +1,5 @@
-import type { SignalReadable, SignalSetter, SignalSubscription } from "./index"
-import { createSignalReadable, signalSyncContextStack } from "./index"
+import type { SignalReadable, SignalSetter, SignalSubscription } from "."
+import { createSignalReadable, signalSyncContextStack } from "."
 
 export interface SignalDeriver<T> {
 	(): T

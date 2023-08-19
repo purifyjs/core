@@ -1,5 +1,6 @@
-import type { SignalReadable } from "./index"
-import { createSignalReadable, isSignalReadable } from "./index"
+import type { SignalReadable } from "."
+import { createSignalReadable, isSignalReadable } from "."
+import { DeepOptional } from "../utils/type"
 
 // TODO: Make types better later, hardly works
 
@@ -39,7 +40,7 @@ type ToTypeString<T> = T extends string
 	? "object"
 	: "unknown"
  */
-type Excludable<T> = T extends bigint
+type Narrowable<T> = T extends bigint
 	? bigint extends T
 		? false
 		: true
@@ -69,14 +70,13 @@ type Excludable<T> = T extends bigint
 	? true
 	: false
 
-type Prettify<T> = T extends object ? { [K in keyof T]: T[K] } & {} : T
-type DeepOptional<T> = T extends object ? { [K in keyof T]?: DeepOptional<T[K]> } & {} : T
+type _ = Narrowable<string | number>
 
-type Narrow<T, U> = Excludable<U> extends true ? Exclude<T, U> : T
+type Narrow<T, U> = Narrowable<U> extends true ? Exclude<T, U> : T
 type NoNever<T> = { [K in keyof T]: [T[K]] extends [never] ? 0 : 1 }[keyof T] extends 1 ? T : never
-type NarrowWithPattern<T, U> = Prettify<
-	U extends object ? NoNever<keyof U extends keyof T ? T & { [K in keyof U]: NarrowWithPattern<T[K], U[K]> } & {} : T> : Narrow<T, U>
->
+type NarrowWithPattern<Type, Pattern> = Pattern extends object
+	? NoNever<keyof Pattern extends keyof Type ? Type & { [K in keyof Pattern]: NarrowWithPattern<Type[K], Pattern[K]> } : Type>
+	: Exclude<Type, Pattern>
 
 function matchPattern<TValue, const TPattern extends DeepOptional<TValue>>(value: TValue, pattern: TPattern): value is TValue & TPattern {
 	if (typeof value !== typeof pattern) return false

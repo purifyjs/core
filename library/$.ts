@@ -1,15 +1,15 @@
-import { defineComponent } from "./component/index"
+import { defineComponent } from "./component"
+import { onMount$, onUnmount$ } from "./lifecycle"
 import { onEvent$ } from "./lifecycle/events"
-import { onMount$, onUnmount$ } from "./lifecycle/index"
 import { createInterval$, createTimeout$ } from "./lifecycle/timers"
+import { createSignalReadable, createSignalWritable } from "./signal"
 import { createSignalAwait } from "./signal/await"
 import { createSignalDeferred } from "./signal/defer"
 import { createSignalDerived } from "./signal/derive"
-import { createSignalEach } from "./signal/each"
+import { createEach } from "./signal/each"
 import { createEffect, createEffect$ } from "./signal/effect"
 import { createSignalFlattened } from "./signal/flatten"
-import { createSignalReadable, createSignalWritable } from "./signal/index"
-import { createSwitch } from "./signal/match"
+import { createSwitch } from "./signal/switch"
 
 export const $: {
 	component: typeof defineComponent
@@ -19,7 +19,7 @@ export const $: {
 	defer: typeof createSignalDeferred
 	flatten: typeof createSignalFlattened
 	switch: typeof createSwitch
-	each: typeof createSignalEach
+	each: typeof createEach
 	await: typeof createSignalAwait
 	effect: typeof createEffect
 	effect$: typeof createEffect$
@@ -36,7 +36,7 @@ export const $: {
 	defer: createSignalDeferred,
 	flatten: createSignalFlattened,
 	switch: createSwitch,
-	each: createSignalEach,
+	each: createEach,
 	await: createSignalAwait,
 	effect: createEffect,
 	effect$: createEffect$,

@@ -1,4 +1,4 @@
-import { SignalReadable } from "../signal/index"
+import { SignalReadable } from "../signal"
 import { parseTemplateDescriptor } from "./parse/descriptor"
 import { parseTemplateHtml } from "./parse/html"
 import { parseTemplate } from "./parse/template"

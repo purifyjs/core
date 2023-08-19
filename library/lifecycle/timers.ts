@@ -1,4 +1,4 @@
-import { onMount$ } from "./index"
+import { onMount$ } from "."
 
 export function createTimeout$<T>(node: Node, callback: () => T, delay: number) {
 	onMount$(node, () => {

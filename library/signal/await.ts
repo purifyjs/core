@@ -1,6 +1,6 @@
+import type { SignalReadable, SignalWritable } from "."
+import { createSignalReadable, createSignalWritable, isSignalReadable } from "."
 import { RenderSymbol } from "../template/renderable"
-import type { SignalReadable, SignalWritable } from "./index"
-import { createSignalReadable, createSignalWritable, isSignalReadable } from "./index"
 
 type AwaitPromiseBuilder<TValue> = {
 	until<TUntil>(until: () => TUntil): {
