@@ -3,6 +3,8 @@ import { createSignalReadable, isSignalReadable } from "."
 import { DeepOptional } from "../utils/type"
 
 // TODO: Make typing better
+// TODO: Add instanceof support
+// TODO: Add typeof support
 
 type Primitive = string | number | bigint | boolean | symbol | undefined | null | ((...args: unknown[]) => any)
 type Narrowable<T> = T extends object
