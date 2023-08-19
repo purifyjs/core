@@ -76,7 +76,7 @@ type Narrow<T, U> = Narrowable<U> extends true ? Exclude<T, U> : T
 type NoNever<T> = { [K in keyof T]: [T[K]] extends [never] ? 0 : 1 }[keyof T] extends 1 ? T : never
 type NarrowWithPattern<Type, Pattern> = Pattern extends object
 	? NoNever<keyof Pattern extends keyof Type ? Type & { [K in keyof Pattern]: NarrowWithPattern<Type[K], Pattern[K]> } : Type>
-	: Exclude<Type, Pattern>
+	: Narrow<Type, Pattern>
 
 function matchPattern<TValue, const TPattern extends DeepOptional<TValue>>(value: TValue, pattern: TPattern): value is TValue & TPattern {
 	if (typeof value !== typeof pattern) return false
