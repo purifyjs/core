@@ -4,8 +4,10 @@ import { SignalReadable, createSignalWritable } from "."
 import { Brand } from "../utils/type"
 import { INSTANCEOF, TYPEOF, createSwitch } from "./switch"
 
-let count = 0
-const describe = () => `switch ${++count}`
+const describe = () => {
+	const line = new Error().stack!.split("\n")[2]!.split(":").at(-2)!.replace(/\D/g, "")
+	return `switch at line: ${line}`
+}
 
 test(describe(), () => {
 	const signal = createSignalWritable<string | null>("yo!")
@@ -25,17 +27,67 @@ test(describe(), () => {
 })
 
 test(describe(), () => {
+	const value = "yo!" as string | null
+
+	function toUpperCase(value: string) {
+		return value.toUpperCase()
+	}
+
+	const result = createSwitch(value)
+		.match(null, () => "value is null")
+		.default((value) => {
+			strictEqual(typeof value, "string", `value is not a string, but ${typeof value}`)
+			return toUpperCase(value)
+		})
+	result satisfies string
+	strictEqual(result, "YO!", `result.ref is not "YO!", but ${result} and signal.ref is ${value}`)
+})
+
+test(describe(), () => {
 	type MyId = Brand<"MyId", string>
 	function createMyId(id: string): MyId {
 		return id as MyId
 	}
 	const signal = createSignalWritable<MyId | null>(createMyId("yo!"))
 
-	createSwitch(signal)
-		.match(null, () => "value is null")
+	const result = createSwitch(signal)
+		.match(null, (value) => {
+			value.ref satisfies null
+			strictEqual(value.ref, null, `value.ref is not null, but ${value.ref}`)
+			return value.ref
+		})
 		.default((value) => {
 			value.ref satisfies MyId
+			strictEqual(value.ref, createMyId("yo!"), `value.ref is not "yo!", but ${value.ref}`)
+			return value.ref
 		})
+
+	result satisfies SignalReadable<MyId | null>
+
+	signal.ref = null
+	signal.ref = createMyId("yo!")
+})
+
+test(describe(), () => {
+	type MyId = Brand<"MyId", string>
+	function createMyId(id: string): MyId {
+		return id as MyId
+	}
+	const value = createMyId("yo!") as MyId | null
+
+	const result = createSwitch(value)
+		.match(null, (value) => {
+			value satisfies null
+			strictEqual(value, null, `value is not null, but ${value}`)
+			return value
+		})
+		.default((value) => {
+			value satisfies MyId
+			strictEqual(value, createMyId("yo!"), `value is not "yo!", but ${value}`)
+			return value
+		})
+
+	result satisfies MyId | null
 })
 
 test(describe(), () => {

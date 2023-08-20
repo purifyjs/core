@@ -12,22 +12,20 @@ export type TYPEOF = typeof TYPEOF
 export const INSTANCEOF = Symbol()
 export type INSTANCEOF = typeof INSTANCEOF
 
-type Exhaust<Type, Exhauster> = CanExhaust<Exhauster> extends true ? Exclude<Type, Exhauster> : Type
-
 // Since we supply match with a value, we get the type from the value, so value always has a valid value
 // But on type side we might now know the exact value that the match is supplied with.
 // So if the exhauster is a reference type or a non-literal primitive type,
 // 	we can't exhaust it, because we don't know the exact value
-type CanExhaust<Exhauster> = [Exhauster] extends [never]
+type CanExhaust<TExhauster> = [TExhauster] extends [never]
 	? false
 	: [
-			NotEquals<Exhauster, boolean>,
-			NotEquals<Exhauster, string>,
-			NotEquals<Exhauster, number>,
-			NotEquals<Exhauster, bigint>,
-			NotEquals<Exhauster, symbol>
+			NotEquals<TExhauster, boolean>,
+			NotEquals<TExhauster, string>,
+			NotEquals<TExhauster, number>,
+			NotEquals<TExhauster, bigint>,
+			NotEquals<TExhauster, symbol>
 	  ][number] extends true
-	? Exhauster extends ReferanceType
+	? TExhauster extends ReferanceType
 		? false
 		: true
 	: false
@@ -52,23 +50,24 @@ true satisfies CanExhaust<1n>
 
 // Exhaust with pattern lets use exhaust with the reference types and non-literal primitive types
 // 	with pattern matching
-type ExhaustWithPattern<Type, Pattern> = Pattern extends PrimitiveType
-	? Exhaust<Type, Pattern>
+type Exhaust<TType, TExhauster> = CanExhaust<TExhauster> extends true ? Exclude<TType, TExhauster> : TType
+type ExhaustWithPattern<TType, TPattern> = TPattern extends PrimitiveType
+	? Exhaust<TType, TPattern>
 	: NoNever<
-			keyof Pattern extends INSTANCEOF | TYPEOF
+			keyof TPattern extends INSTANCEOF | TYPEOF
 				? {
-						[K in keyof Pattern]: K extends INSTANCEOF
-							? Pattern[K] extends { new (...args: any[]): infer T }
-								? Exclude<Type, T>
+						[K in keyof TPattern]: K extends INSTANCEOF
+							? TPattern[K] extends { new (...args: any[]): infer T }
+								? Exclude<TType, T>
 								: never
 							: K extends TYPEOF
-							? Pattern[K] extends TypeString
-								? Exclude<Type, TypeStringToType<Pattern[K]>>
+							? TPattern[K] extends TypeString
+								? Exclude<TType, TypeStringToType<TPattern[K]>>
 								: never
 							: never
-				  }[keyof Pattern]
-				: keyof Pattern extends keyof Type
-				? Type & { [K in keyof Pattern]: ExhaustWithPattern<Type[K], Pattern[K]> }
+				  }[keyof TPattern]
+				: keyof TPattern extends keyof TType
+				? TType & { [K in keyof TPattern]: ExhaustWithPattern<TType[K], TPattern[K]> }
 				: never
 	  >
 

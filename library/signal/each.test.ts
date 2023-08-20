@@ -3,7 +3,12 @@ import { test } from "node:test"
 import { createSignalWritable } from "."
 import { createEach } from "./each"
 
-test(() => {
+const describe = () => {
+	const line = new Error().stack!.split("\n")[2]!.split(":").at(-2)!.replace(/\D/g, "")
+	return `each at line: ${line}`
+}
+
+test(describe(), () => {
 	const arr = createSignalWritable([1, 2, 3, 4, 5])
 
 	const each = createEach(arr).as((item) => item.ref.toString())
