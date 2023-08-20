@@ -1,6 +1,6 @@
 import type { SignalReadable } from "."
 import { createSignalReadable, isSignalReadable } from "."
-import { DeepOptional, Fn, NoNever, NotEquals, PrimitiveType, ReferanceType } from "../utils/type"
+import { DeepOptional, NoNever, NotEquals, PrimitiveType, ReferanceType, TypeString, TypeStringToType, TypeToTypeString } from "../utils/type"
 
 // TODO: Make typing better
 // TODO: Add instanceof support
@@ -8,27 +8,9 @@ import { DeepOptional, Fn, NoNever, NotEquals, PrimitiveType, ReferanceType } fr
 
 export const TYPEOF = Symbol()
 export type TYPEOF = typeof TYPEOF
+
 export const INSTANCEOF = Symbol()
 export type INSTANCEOF = typeof INSTANCEOF
-
-type TypeString = "string" | "number" | "bigint" | "boolean" | "symbol" | "undefined" | "object" | "function"
-type TypeStringToType<T extends TypeString> = T extends "string"
-	? string
-	: T extends "number"
-	? number
-	: T extends "bigint"
-	? bigint
-	: T extends "boolean"
-	? boolean
-	: T extends "symbol"
-	? symbol
-	: T extends "undefined"
-	? undefined
-	: T extends "object"
-	? object | null
-	: T extends "function"
-	? Fn
-	: unknown
 
 type Exhaust<Type, Exhauster> = CanExhaust<Exhauster> extends true ? Exclude<Type, Exhauster> : Type
 
@@ -90,18 +72,19 @@ type ExhaustWithPattern<Type, Pattern> = Pattern extends PrimitiveType
 				: never
 	  >
 
-type PatternOf<TValue> = TValue extends PrimitiveType
-	? TValue
-	: TValue extends object
-	?
-			| { [K in keyof TValue]?: PatternOf<TValue[K]> }
-			| {
-					[TYPEOF]: TypeString
-			  }
-			| {
-					[INSTANCEOF]: { new (...args: any[]): any }
-			  }
-	: TValue
+type PatternOf<TValue> =
+	| (TValue extends PrimitiveType
+			? TValue
+			: TValue extends object
+			?
+					| { [K in keyof TValue]?: PatternOf<TValue[K]> }
+					| {
+							[INSTANCEOF]: { new (...args: any[]): TValue }
+					  }
+			: TValue)
+	| {
+			[TYPEOF]: TypeToTypeString<TValue>
+	  }
 
 type Narrow<TValue, TPattern> = INSTANCEOF extends keyof TPattern
 	? TPattern[INSTANCEOF] extends { new (...args: any[]): infer T }

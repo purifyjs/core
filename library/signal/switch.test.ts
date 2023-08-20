@@ -138,6 +138,7 @@ test(describe(), () => {
 
 test(describe(), () => {
 	const signal = createSignalWritable<{ foo: string } | null | Error>(new Error())
+
 	const result = createSwitch(signal)
 		.match(null, (value) => {
 			value.ref satisfies null
