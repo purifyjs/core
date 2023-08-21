@@ -6,7 +6,7 @@ import { createSignalReadable, createSignalWritable } from "./signal"
 import { createSignalAwait } from "./signal/await"
 import { createSignalDeferred } from "./signal/defer"
 import { createSignalDerived } from "./signal/derive"
-import { createEach } from "./signal/each"
+import { createSignalEach } from "./signal/each"
 import { createEffect, createEffect$ } from "./signal/effect"
 import { createSignalFlattened } from "./signal/flatten"
 import { createSwitch } from "./signal/switch"
@@ -19,7 +19,7 @@ export const $: {
 	defer: typeof createSignalDeferred
 	flatten: typeof createSignalFlattened
 	switch: typeof createSwitch
-	each: typeof createEach
+	each: typeof createSignalEach
 	await: typeof createSignalAwait
 	effect: typeof createEffect
 	effect$: typeof createEffect$
@@ -36,7 +36,7 @@ export const $: {
 	defer: createSignalDeferred,
 	flatten: createSignalFlattened,
 	switch: createSwitch,
-	each: createEach,
+	each: createSignalEach,
 	await: createSignalAwait,
 	effect: createEffect,
 	effect$: createEffect$,

@@ -1,26 +1,18 @@
 import type { SignalReadable, SignalWritable } from "."
-import { createSignalReadable, createSignalWritable, isSignalReadable } from "."
+import { createSignalReadable, createSignalWritable } from "."
 
-type EachOfArrayBuilder<TSource extends unknown[]> = {
-	as<TResultItem>(as: (item: TSource[number], index: number) => TResultItem): TResultItem[]
-}
-
-function eachOfArray<TSource extends unknown[]>(each: TSource): EachOfArrayBuilder<TSource> {
-	return { as: each.map.bind(each) }
-}
-
-type EachOfSignalArrayBuilder<T extends unknown[]> = {
-	key(getter: EachOfSignalArrayBuilder.KeyGetter<T>): EachOfSignalArrayBuilder.As<T>
-} & EachOfSignalArrayBuilder.As<T>
-namespace EachOfSignalArrayBuilder {
+export type SignalEachBuilder<T extends unknown[]> = {
+	key(getter: SignalEachBuilder.KeyGetter<T>): SignalEachBuilder.As<T>
+} & SignalEachBuilder.As<T>
+export namespace SignalEachBuilder {
 	export type As<TSource extends unknown[]> = {
 		as<TResultItem>(as: (item: SignalReadable<TSource[number]>, index: SignalReadable<number>) => TResultItem): SignalReadable<TResultItem[]>
 	}
 	export type KeyGetter<T extends unknown[]> = (item: T[number], index: number) => unknown
 }
 
-function eachOfSignalArray<TSource extends unknown[]>(each: SignalReadable<TSource>): EachOfSignalArrayBuilder<TSource> {
-	function as(keyGetter: EachOfSignalArrayBuilder.KeyGetter<TSource>): EachOfSignalArrayBuilder.As<TSource> {
+export function createSignalEach<TSource extends unknown[]>(each: SignalReadable<TSource>): SignalEachBuilder<TSource> {
+	function as(keyGetter: SignalEachBuilder.KeyGetter<TSource>): SignalEachBuilder.As<TSource> {
 		return {
 			as<TResultItem>(as: (item: SignalReadable<TSource[number]>, index: SignalReadable<number>) => TResultItem): SignalReadable<TResultItem[]> {
 				const caches = new Map<
@@ -71,12 +63,4 @@ function eachOfSignalArray<TSource extends unknown[]>(each: SignalReadable<TSour
 		},
 		...as((item) => item),
 	}
-}
-
-export const createEach: {
-	<T extends unknown[]>(each: T): EachOfArrayBuilder<T>
-	<T extends unknown[]>(each: SignalReadable<T>): EachOfSignalArrayBuilder<T>
-} = (each) => {
-	if (isSignalReadable(each)) return eachOfSignalArray(each) as never
-	return eachOfArray(each) as never
 }

@@ -1,7 +1,7 @@
 import { strictEqual } from "node:assert"
 import { test } from "node:test"
 import { createSignalWritable } from "."
-import { createEach } from "./each"
+import { createSignalEach } from "./each"
 
 const describe = () => {
 	const line = new Error().stack!.split("\n")[2]!.split(":").at(-2)!.replace(/\D/g, "")
@@ -11,7 +11,7 @@ const describe = () => {
 test(describe(), () => {
 	const arr = createSignalWritable([1, 2, 3, 4, 5])
 
-	const each = createEach(arr).as((item) => item.ref.toString())
+	const each = createSignalEach(arr).as((item) => item.ref.toString())
 
 	each.ref satisfies string[]
 
