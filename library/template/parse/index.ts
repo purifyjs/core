@@ -1,10 +1,9 @@
-import { parseTemplateDescriptor } from "./descriptor";
-import { parseTemplate } from "./template";
-import { parseTemplateHtml } from "./html";
+import { parseTemplateDescriptor } from "./descriptor"
+import { parseTemplateHtml } from "./html"
+import { parseTemplate } from "./template"
 
-export namespace parse
-{
-    export const template = parseTemplate
-    export const descriptor = parseTemplateDescriptor
-    export const html = parseTemplateHtml
+export namespace parse {
+	export const template = parseTemplate
+	export const descriptor = parseTemplateDescriptor
+	export const html = parseTemplateHtml
 }

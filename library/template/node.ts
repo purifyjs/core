@@ -22,34 +22,72 @@ export function valueToNode(value: unknown): Node {
 		const endComment = document.createComment(`/signal ${value.id}`)
 		fragment.append(startComment, endComment)
 
+		const itemNodes = new WeakMap<ChildNode, { value: unknown; endComment: Comment }>()
+		function createItem(value: unknown): DocumentFragment {
+			const fragment = document.createDocumentFragment()
+			const itemStartComment = document.createComment(`item ${value}`)
+			const itemEndComment = document.createComment(`/item ${value}`)
+
+			fragment.append(itemStartComment)
+			fragment.append(valueToNode(value))
+			fragment.append(itemEndComment)
+
+			itemNodes.set(itemStartComment, { value, endComment: itemEndComment })
+
+			return fragment
+		}
+		function removeItem(itemStartComment: Comment & ChildNode) {
+			const { endComment: itemEndComment } = itemNodes.get(itemStartComment)!
+			while (itemStartComment.nextSibling !== itemEndComment) itemStartComment.nextSibling!.remove()
+			itemStartComment.remove()
+			itemEndComment.remove()
+		}
+
 		value.subscribe$(
 			startComment,
 			(signalValue: unknown) => {
-				/* 
-					TODO: Modify this in a way that we don't need to remove all nodes.
-					We should only remove the nodes that are not in the new value.
-					Arrays handled in the same way too.
-				*/
-
-				while (startComment.nextSibling && startComment.nextSibling !== endComment) {
-					const node = startComment.nextSibling
-					node.remove()
-				}
-
 				if (Array.isArray(signalValue)) {
-					for (const item of signalValue) {
-						const itemStartComment = document.createComment(`item`)
-						const itemEndComment = document.createComment(`/item`)
+					// TODO: This can be better.
+					let nextNode: ChildNode = startComment.nextSibling!
+					for (const value of signalValue) {
+						while (true) {
+							if (nextNode === endComment) {
+								endComment.before(createItem(value))
+								break
+							}
 
-						endComment.before(itemStartComment)
-						endComment.before(valueToNode(item))
-						endComment.before(itemEndComment)
+							const itemCache = itemNodes.get(nextNode)
+							if (itemCache) {
+								const itemCacheStartComment = nextNode as Comment & ChildNode
+								const { value: itemCacheValue, endComment: itemCacheEndComment } = itemCache
+
+								if (value === itemCacheValue) {
+									nextNode = itemCacheEndComment.nextSibling!
+									break
+								}
+
+								const itemFragment = createItem(value)
+								const itemFragmentLastChild = itemFragment.lastChild!
+
+								nextNode.before(itemFragment)
+								removeItem(itemCacheStartComment)
+
+								nextNode = itemFragmentLastChild.nextSibling!
+								break
+							}
+
+							nextNode = nextNode.nextSibling!
+						}
 					}
 
-					return
+					if (nextNode !== endComment) {
+						while (nextNode.nextSibling !== endComment) nextNode.nextSibling!.remove()
+						nextNode.remove()
+					}
+				} else {
+					while (startComment.nextSibling !== endComment) startComment.nextSibling!.remove()
+					endComment.before(valueToNode(signalValue))
 				}
-
-				endComment.before(valueToNode(signalValue))
 			},
 			{ mode: "immediate" }
 		)

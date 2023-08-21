@@ -32,8 +32,7 @@ export function render<T extends TemplateValue[]>(template: HTMLTemplateElement,
 					if (descriptor.quote === "") {
 						value.subscribe$(
 							element,
-							(value) =>
-								value === null ? element.removeAttribute(descriptor.name) : element.setAttribute(descriptor.name, `${value}`),
+							(value) => (value === null ? element.removeAttribute(descriptor.name) : element.setAttribute(descriptor.name, `${value}`)),
 							{ mode: "immediate" }
 						)
 					} else {

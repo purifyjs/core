@@ -22,9 +22,7 @@ namespace EachOfSignalArrayBuilder {
 function eachOfSignalArray<TSource extends unknown[]>(each: SignalReadable<TSource>): EachOfSignalArrayBuilder<TSource> {
 	function as(keyGetter: EachOfSignalArrayBuilder.KeyGetter<TSource>): EachOfSignalArrayBuilder.As<TSource> {
 		return {
-			as<TResultItem>(
-				as: (item: SignalReadable<TSource[number]>, index: SignalReadable<number>) => TResultItem
-			): SignalReadable<TResultItem[]> {
+			as<TResultItem>(as: (item: SignalReadable<TSource[number]>, index: SignalReadable<number>) => TResultItem): SignalReadable<TResultItem[]> {
 				const caches = new Map<
 					unknown,
 					{ itemSignal: SignalWritable<TSource[number]>; indexSignal: SignalWritable<number>; value: TResultItem }
