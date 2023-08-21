@@ -1,10 +1,10 @@
 import type { SignalReadable, SignalWritable } from "."
 import { createSignalReadable, createSignalWritable } from "."
 
-export type SignalEachBuilder<T extends unknown[]> = {
+type SignalEachBuilder<T extends unknown[]> = {
 	key(getter: SignalEachBuilder.KeyGetter<T>): SignalEachBuilder.As<T>
 } & SignalEachBuilder.As<T>
-export namespace SignalEachBuilder {
+namespace SignalEachBuilder {
 	export type As<TSource extends unknown[]> = {
 		as<TResultItem>(as: (item: SignalReadable<TSource[number]>, index: SignalReadable<number>) => TResultItem): SignalReadable<TResultItem[]>
 	}
