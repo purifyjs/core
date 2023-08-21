@@ -22,7 +22,8 @@ export function valueToNode(value: unknown): Node {
 		const endComment = document.createComment(`/signal ${value.id}`)
 		fragment.append(startComment, endComment)
 
-		const itemNodes = new WeakMap<ChildNode, { value: unknown; endComment: Comment }>()
+		type Item = { value: unknown; startComment: Comment; endComment: Comment }
+		const itemNodes = new WeakMap<ChildNode, Item>()
 		function createItem(value: unknown): DocumentFragment {
 			const fragment = document.createDocumentFragment()
 			const itemStartComment = document.createComment(`item ${value}`)
@@ -32,57 +33,68 @@ export function valueToNode(value: unknown): Node {
 			fragment.append(valueToNode(value))
 			fragment.append(itemEndComment)
 
-			itemNodes.set(itemStartComment, { value, endComment: itemEndComment })
+			itemNodes.set(itemStartComment, { value, startComment: itemStartComment, endComment: itemEndComment })
 
 			return fragment
 		}
-		function removeItem(itemStartComment: Comment & ChildNode) {
-			const { endComment: itemEndComment } = itemNodes.get(itemStartComment)!
-			while (itemStartComment.nextSibling !== itemEndComment) itemStartComment.nextSibling!.remove()
-			itemStartComment.remove()
-			itemEndComment.remove()
+		function removeItem(item: Item) {
+			while (item.startComment.nextSibling !== item.endComment) item.startComment.nextSibling!.remove()
+			item.startComment.remove()
+			item.endComment.remove()
 		}
 
 		value.subscribe$(
 			startComment,
 			(signalValue: unknown) => {
 				if (Array.isArray(signalValue)) {
-					// TODO: This can be better.
-					let nextNode: ChildNode = startComment.nextSibling!
-					for (const value of signalValue) {
+					let currentNode: ChildNode = startComment.nextSibling!
+					for (let currentIndex = 0; currentIndex < signalValue.length; currentIndex++) {
+						const nextIndex = currentIndex + 1
+						const currentValue = signalValue[currentIndex] as unknown
+
 						while (true) {
-							if (nextNode === endComment) {
-								endComment.before(createItem(value))
+							if (currentNode === endComment) {
+								endComment.before(createItem(currentValue))
 								break
 							}
 
-							const itemCache = itemNodes.get(nextNode)
-							if (itemCache) {
-								const itemCacheStartComment = nextNode as Comment & ChildNode
-								const { value: itemCacheValue, endComment: itemCacheEndComment } = itemCache
-
-								if (value === itemCacheValue) {
-									nextNode = itemCacheEndComment.nextSibling!
+							const currentItem = itemNodes.get(currentNode)
+							if (currentItem) {
+								if (currentValue === currentItem.value) {
+									currentNode = currentItem.endComment.nextSibling!
 									break
 								}
 
-								const itemFragment = createItem(value)
-								const itemFragmentLastChild = itemFragment.lastChild!
+								const nextItem = itemNodes.get(currentItem.endComment.nextSibling!)
 
-								nextNode.before(itemFragment)
-								removeItem(itemCacheStartComment)
+								if (nextItem && currentValue === nextItem.value) {
+									removeItem(currentItem)
+									currentNode = nextItem.endComment.nextSibling!
+								} else {
+									const newItemFragment = createItem(currentValue)
+									const newItemFragmentLastChild = newItemFragment.lastChild!
 
-								nextNode = itemFragmentLastChild.nextSibling!
+									currentItem.startComment.before(newItemFragment)
+
+									if (nextIndex >= signalValue.length || signalValue[nextIndex] !== currentItem.value) {
+										removeItem(currentItem)
+										currentNode = newItemFragmentLastChild.nextSibling!
+									} else {
+										currentIndex = nextIndex
+										currentNode = currentItem.endComment.nextSibling!
+									}
+								}
+
 								break
 							}
 
-							nextNode = nextNode.nextSibling!
+							currentNode = currentNode.nextSibling!
 						}
 					}
 
-					if (nextNode !== endComment) {
-						while (nextNode.nextSibling !== endComment) nextNode.nextSibling!.remove()
-						nextNode.remove()
+					if (currentNode !== endComment) {
+						while (currentNode.nextSibling !== endComment) currentNode.nextSibling!.remove()
+						currentNode.remove()
 					}
 				} else {
 					while (startComment.nextSibling !== endComment) startComment.nextSibling!.remove()
