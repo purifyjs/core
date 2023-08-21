@@ -13,7 +13,7 @@ export const INSTANCEOF = Symbol()
 export type INSTANCEOF = typeof INSTANCEOF
 
 // Since we supply match with a value, we get the type from the value, so value always has a valid value
-// But on type side we might now know the exact value that the match is supplied with.
+// But on type side we might not know the exact value that the match is supplied with.
 // So if the exhauster is a reference type or a non-literal primitive type,
 // 	we can't exhaust it, because we don't know the exact value
 type CanExhaust<TExhauster> = [TExhauster] extends [never]
