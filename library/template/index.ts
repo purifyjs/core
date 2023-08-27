@@ -1,7 +1,7 @@
-import { SignalReadable } from "../signal"
-import { parseTemplateDescriptor } from "./parse/descriptor"
-import { parseTemplateHtml } from "./parse/html"
-import { parseTemplate } from "./parse/template"
+import { SignalReadable, SignalWritable } from "../signal"
+import { TemplateShape } from "./parse/shape"
+import { createTemplateFromShape } from "./parse/template"
+import { TemplateTokenizer } from "./parse/tokenizer"
 import { render } from "./render"
 import type { Renderable } from "./renderable"
 
@@ -13,6 +13,7 @@ export type TemplateValue =
 	| Function
 	| EventListener
 	| SignalReadable<TemplateValue>
+	| SignalWritable<TemplateValue | Date>
 	| Renderable<TemplateValue>
 	| null
 	| TemplateValue[]
@@ -28,6 +29,6 @@ export function css(strings: TemplateStringsArray, ...values: (string | number)[
 }
 
 export function html<S extends TemplateStringsArray, T extends TemplateValue[]>(strings: S, ...values: T) {
-	const descriptor = parseTemplateDescriptor(parseTemplateHtml(strings))
-	return render(parseTemplate(descriptor), descriptor, values)
+	const shape = TemplateShape.parse(TemplateTokenizer.tokenize(strings))
+	return render(createTemplateFromShape(shape), shape, values)
 }

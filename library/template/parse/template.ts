@@ -1,67 +1,67 @@
 import { unhandled } from "../../utils/unhandled"
-import type { TemplateDescriptor } from "./descriptor"
+import { TemplateShape } from "./shape"
 
-export function parseTemplate({ refDataMap, valueDescriptors, html }: TemplateDescriptor) {
+export function createTemplateFromShape(shape: TemplateShape): HTMLTemplateElement {
 	try {
 		const template = document.createElement("template")
-		template.innerHTML = html.trim()
+		template.innerHTML = shape.html.trim()
 
-		for (let index = 0; index < valueDescriptors.length; index++) {
-			const descriptor = valueDescriptors[index]!
-			const element = template.content.querySelector(`[ref\\:${descriptor.ref}]`) as HTMLElement
-			if (!element) throw new Error(`Could not find outlet with ref "${descriptor.ref}". For type ${descriptor.type}`)
+		for (let index = 0; index < shape.items.length; index++) {
+			const item = shape.items[index]!
+			const element = template.content.querySelector(`[ref\\:${item.ref}]`) as HTMLElement
+			if (!element) throw new Error(`Could not find outlet with ref "${item.ref}". For type ${item.itemType}`)
 
-			if (descriptor.type === "directive") {
-				switch (descriptor.directive) {
-					case "class":
-					case "style":
-					case "on":
-					case "ref":
+			if (item.itemType === TemplateShape.ItemType.Directive) {
+				switch (item.directiveType) {
+					case TemplateShape.Directive.types.class:
+					case TemplateShape.Directive.types.style:
+					case TemplateShape.Directive.types.on:
+					case TemplateShape.Directive.types.ref:
 						break
-					case "bind": {
-						switch (descriptor.name) {
+					case TemplateShape.Directive.types.bind: {
+						switch (item.name) {
 							case "value": {
 								if (element instanceof HTMLInputElement) {
 									switch (element.type) {
 										case "radio":
 										case "checkbox":
-											descriptor.name = "value:boolean"
+											item.name = "value:boolean"
 											break
 										case "range":
 										case "number":
-											descriptor.name = "value:number"
+											item.name = "value:number"
 											break
 										case "date":
 										case "datetime-local":
 										case "month":
 										case "time":
 										case "week":
-											descriptor.name = "value:date"
+											item.name = "value:date"
 											break
 										default:
-											descriptor.name = "value:string"
+											item.name = "value:string"
 											break
 									}
 									break
 								} else if (element instanceof HTMLTextAreaElement || element instanceof HTMLSelectElement) {
-									descriptor.name = "value:string"
+									item.name = "value:string"
 									break
 								}
 
-								throw new Error(`${element.tagName} does not support binding to ${descriptor.name}`)
+								throw new Error(`${element.tagName} does not support binding to ${item.name}`)
 							}
 							default:
-								throw new Error(`Unknown binding key ${descriptor.name}`)
+								throw new Error(`Unknown binding key ${item.name}`)
 						}
 						break
 					}
 					default:
-						unhandled("Unhandled directive type", descriptor.directive)
+						unhandled("Unhandled directive type", item.directiveType)
 				}
 			}
 		}
 
-		for (const [ref, { attributes }] of refDataMap) {
+		for (const [ref, { attributes }] of shape.refDataMap) {
 			const element = template.content.querySelector(`[ref\\:${ref}]`) as HTMLElement
 
 			for (const [name, attribute] of attributes) {
@@ -81,7 +81,7 @@ export function parseTemplate({ refDataMap, valueDescriptors, html }: TemplateDe
 
 		return template
 	} catch (error) {
-		console.error("Error while parsing template:", error, "At:", html.slice(-256).trim())
+		console.error("Error while parsing template:", error, "At:", shape.html.slice(-256).trim())
 		throw error
 	}
 }

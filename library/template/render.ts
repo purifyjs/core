@@ -7,84 +7,79 @@ import { assert } from "../utils/assert"
 import { nameOf, typeOf } from "../utils/name"
 import { unhandled } from "../utils/unhandled"
 import { valueToNode } from "./node"
-import type { TemplateDescriptor } from "./parse/descriptor"
+import { TemplateShape } from "./parse/shape"
 
-export function render<T extends TemplateValue[]>(template: HTMLTemplateElement, templateDescriptor: TemplateDescriptor, values: T): Node[] {
+export function render(template: HTMLTemplateElement, shape: TemplateShape, values: TemplateValue[]): Node[] {
 	const fragment = template.content.cloneNode(true) as DocumentFragment
 
 	try {
 		for (let index = 0; index < values.length; index++) {
-			const descriptor = templateDescriptor.valueDescriptors[index]!
-			const element = fragment.querySelector(`[ref\\:${descriptor.ref}]`) as HTMLElement
+			const item = shape.items[index]!
+			const element = fragment.querySelector(`[ref\\:${item.ref}]`) as HTMLElement
 
-			let value = values[index] as unknown
+			let value = values[index]!
 
-			if (descriptor.type === "render-node") {
+			if (item.itemType === TemplateShape.ItemType.RenderNode) {
 				element.replaceWith(valueToNode(value))
-			} else if (descriptor.type === "render-element") {
+			} else if (item.itemType === TemplateShape.ItemType.RenderElement) {
 				if (!(value instanceof Element)) throw new Error(`Expected ${nameOf(Element)} at index "${index}", but got ${nameOf(value)}.`)
 				value.append(...Array.from(element.childNodes))
 				for (const attribute of Array.from(element.attributes)) value.setAttribute(attribute.name, attribute.value)
 				element.replaceWith(value)
-			} else if (descriptor.type === "attribute") {
+			} else if (item.itemType === TemplateShape.ItemType.Attribute) {
 				if (typeof value === "function") values[index] = value = createOrGetDeriveOfFunction(value as () => TemplateValue)
 				if (isSignalReadable(value)) {
-					if (descriptor.quote === "") {
+					if (item.quote === "") {
 						value.subscribe$(
 							element,
-							(value) => (value === null ? element.removeAttribute(descriptor.name) : element.setAttribute(descriptor.name, `${value}`)),
+							(value) => (value === null ? element.removeAttribute(item.name) : element.setAttribute(item.name, `${value}`)),
 							{ mode: "immediate" }
 						)
 					} else {
 						// Handled at the end. Because this attribute can have multiple values.
 					}
 				} else {
-					if (descriptor.quote === "")
-						value === null ? element.removeAttribute(descriptor.name) : element.setAttribute(descriptor.name, `${value}`)
+					if (item.quote === "") value === null ? element.removeAttribute(item.name) : element.setAttribute(item.name, `${value}`)
 					else {
 						// Handled at the end. Because this attribute can have multiple values.
 					}
 				}
-			} else if (descriptor.type === "directive") {
-				switch (descriptor.directive) {
-					case "class":
+			} else if (item.itemType === TemplateShape.ItemType.Directive) {
+				switch (item.directiveType) {
+					case TemplateShape.Directive.types.class:
 						if (typeof value === "function") value = createOrGetDeriveOfFunction(value as () => TemplateValue)
 						if (isSignalReadable(value)) {
-							value.subscribe$(element, (v) => element.classList.toggle(descriptor.name, !!v), {
+							value.subscribe$(element, (v) => element.classList.toggle(item.name, !!v), {
 								mode: "immediate",
 							})
-						} else element.classList.toggle(descriptor.name, !!value)
+						} else element.classList.toggle(item.name, !!value)
 						break
-					case "style":
+					case TemplateShape.Directive.types.style:
 						if (typeof value === "function") value = createOrGetDeriveOfFunction(value as () => TemplateValue)
 						if (isSignalReadable(value)) {
-							value.subscribe$(element, (v) => element.style.setProperty(descriptor.name, `${v}`), {
+							value.subscribe$(element, (v) => element.style.setProperty(item.name, `${v}`), {
 								mode: "immediate",
 							})
-						} else element.style.setProperty(descriptor.name, `${value}`)
+						} else element.style.setProperty(item.name, `${value}`)
 						break
-					case "on":
-						if (!(typeof value === "function"))
-							throw new Error(`${descriptor.type}:${descriptor.name} must be a function, but got ${nameOf(value)}.`)
+					case TemplateShape.Directive.types.on:
+						if (!(typeof value === "function")) throw new Error(`${item.itemType}:${item.name} must be a function, but got ${nameOf(value)}.`)
 
-						onMount$(element, () => element.addEventListener(descriptor.name, value as EventListener))
-						onUnmount$(element, () => element.removeEventListener(descriptor.name, value as EventListener))
+						onMount$(element, () => element.addEventListener(item.name, value as EventListener))
+						onUnmount$(element, () => element.removeEventListener(item.name, value as EventListener))
 						break
-					case "ref":
-						if (!isSignalWritable(value))
-							throw new Error(`${descriptor.type}:${descriptor.name} must be a SignalWritable, but got ${typeOf(value)}.`)
+					case TemplateShape.Directive.types.ref:
+						if (!isSignalWritable(value)) throw new Error(`${item.itemType}:${item.name} must be a SignalWritable, but got ${typeOf(value)}.`)
 						value.set(element)
 						break
-					case "bind":
-						if (!isSignalWritable(value))
-							throw new Error(`${descriptor.type}:${descriptor.name} must be a SignalWritable, but got ${typeOf(value)}.`)
+					case TemplateShape.Directive.types.bind:
+						if (!isSignalWritable(value)) throw new Error(`${item.itemType}:${item.name} must be a SignalWritable, but got ${typeOf(value)}.`)
 						const signal = value
 						assert<HTMLInputElement>(element)
-						switch (descriptor.name) {
+						switch (item.name) {
 							case "value:string":
 								{
 									const listener = () => (signal.ref = element.value)
-
 									onMount$(element, () => element.addEventListener("input", listener))
 									onUnmount$(element, () => element.removeEventListener("input", listener))
 									signal.subscribe$(element, (value) => (element.value = `${value}`), { mode: "immediate" })
@@ -94,7 +89,6 @@ export function render<T extends TemplateValue[]>(template: HTMLTemplateElement,
 								{
 									assert<SignalWritable<number>>(signal)
 									const listener = () => (signal.ref = element.valueAsNumber)
-
 									onMount$(element, () => element.addEventListener("input", listener))
 									onUnmount$(element, () => element.removeEventListener("input", listener))
 									signal.subscribe$(element, (value) => (element.valueAsNumber = value), { mode: "immediate" })
@@ -104,7 +98,6 @@ export function render<T extends TemplateValue[]>(template: HTMLTemplateElement,
 								{
 									assert<SignalWritable<Date | null>>(signal)
 									const listener = () => (signal.ref = element.valueAsDate)
-
 									onMount$(element, () => element.addEventListener("input", listener))
 									onUnmount$(element, () => element.removeEventListener("input", listener))
 									signal.subscribe$(element, (value) => (element.valueAsDate = value), { mode: "immediate" })
@@ -114,23 +107,22 @@ export function render<T extends TemplateValue[]>(template: HTMLTemplateElement,
 								{
 									assert<SignalWritable<boolean>>(signal)
 									const listener = () => (signal.ref = element.checked)
-
 									onMount$(element, () => element.addEventListener("input", listener))
 									onUnmount$(element, () => element.removeEventListener("input", listener))
 									signal.subscribe$(element, (value) => (element.checked = value), { mode: "immediate" })
 								}
 								break
 							default:
-								throw new Error(`Unknown binding key ${descriptor.name}.`)
+								throw new Error(`Unknown binding key ${item.name}.`)
 						}
 						break
 					default:
-						unhandled(`Unhandled directive type`, descriptor.directive)
+						unhandled(`Unhandled directive type`, item.directiveType)
 				}
 			}
 		}
 
-		for (const [ref, { attributes }] of templateDescriptor.refDataMap) {
+		for (const [ref, { attributes }] of shape.refDataMap) {
 			const element = fragment.querySelector(`[ref\\:${ref}]`) as HTMLElement
 			for (const [name, { parts }] of attributes) {
 				const signal = createSignalDerived(() =>
