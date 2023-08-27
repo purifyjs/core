@@ -1,7 +1,6 @@
 import { isSignalReadable } from "../signal"
 import { createOrGetDeriveOfFunction } from "../signal/derive"
 import { append, createComment, createFragment, createTextNode, insertBefore, isArray, isFunction, nextSibling, remove } from "../utils/bundleHelpers"
-import { RenderSymbol, isRenderable } from "./renderable"
 
 const EMPTY_NODE = createFragment()
 
@@ -107,8 +106,6 @@ export function valueToNode(value: unknown): Node {
 
 		return fragment
 	}
-
-	if (isRenderable(value)) return valueToNode(value[RenderSymbol]())
 
 	return createTextNode(`${value}`)
 }

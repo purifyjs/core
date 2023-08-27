@@ -1,6 +1,5 @@
 import type { SignalReadable, SignalWritable } from "."
 import { createSignalReadable, createSignalWritable, isSignalReadable } from "."
-import { RenderSymbol } from "../template/renderable"
 
 type AwaitPromiseBuilder<TValue> = {
 	until<TUntil>(until: () => TUntil): {
@@ -14,7 +13,6 @@ namespace AwaitPromiseBuilder {
 	export type Then<TValue, TOther> = {
 		then<TThen>(onfulfilled: (value: TValue) => TThen): SignalReadable<TOther | TThen>
 		then(): SignalReadable<TOther | TValue>
-		[RenderSymbol](): SignalReadable<TOther | TValue>
 	}
 }
 
@@ -33,9 +31,6 @@ function awaitPromise<TValue>(promise: Promise<TValue>): AwaitPromiseBuilder<TVa
 						.catch((reason) => set(onrejected ? onrejected(reason) : reason))
 					return () => {}
 				})
-			},
-			[RenderSymbol]() {
-				return this.then()
 			},
 		}
 	}
@@ -73,7 +68,6 @@ namespace AwaitPromiseSignalBuilder {
 	export type Then<TValue, TOther> = {
 		then<TThen>(onfulfilled: (value: SignalReadable<TValue>) => TThen): SignalReadable<TOther | TThen>
 		then(): SignalReadable<TOther | TValue>
-		[RenderSymbol](): SignalReadable<TOther | TValue>
 	}
 }
 
@@ -99,21 +93,17 @@ function awaitPromiseSignal<TValue>(promiseSignal: SignalReadable<Promise<TValue
 							promise
 								.then((value) => {
 									if (promiseCache !== promise) return
-									if (onfulfilled) {
-										if (onfulfilledSignal) onfulfilledSignal.set(value)
-										else onfulfilledSignal = createSignalWritable(value)
-										set((onfulfilledResult ??= onfulfilled(onfulfilledSignal)))
-									} else {
-										set(value as any)
-									}
+									if (!onfulfilled) return set(value as any)
+									if (onfulfilledSignal) onfulfilledSignal.set(value)
+									else onfulfilledSignal = createSignalWritable(value)
+									set((onfulfilledResult ??= onfulfilled(onfulfilledSignal)))
 								})
 								.catch((reason) => {
 									if (promiseCache !== promise) return
-									if (onrejected) {
-										if (onrejectedSignal) onrejectedSignal.set(reason)
-										else onrejectedSignal = createSignalWritable(reason)
-										set((onrejectedResult ??= onrejected(onrejectedSignal)))
-									}
+									if (!onrejected) return
+									if (onrejectedSignal) onrejectedSignal.set(reason)
+									else onrejectedSignal = createSignalWritable(reason)
+									set((onrejectedResult ??= onrejected(onrejectedSignal)))
 								})
 
 							return () => {}
@@ -123,9 +113,6 @@ function awaitPromiseSignal<TValue>(promiseSignal: SignalReadable<Promise<TValue
 
 					return () => subscription.unsubscribe()
 				})
-			},
-			[RenderSymbol]() {
-				return this.then()
 			},
 		}
 	}
