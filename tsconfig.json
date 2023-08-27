@@ -1,29 +1,17 @@
 {
 	"compilerOptions": {
-		"target": "ESNext",
-		"module": "ESNext",
-		"lib": ["ESNext", "DOM"],
+		"target": "ES2022",
+		"module": "CommonJS",
+		"lib": ["ES2023", "DOM"],
+		"moduleResolution": "Node",
 		"noEmit": true,
 
-		"moduleResolution": "Node",
-
-		"strict": true,
-		"strictBindCallApply": true,
-		"strictFunctionTypes": true,
-		"strictNullChecks": true,
-		"strictPropertyInitialization": true,
-
-		"noImplicitReturns": true,
-		"noImplicitAny": true,
-		"noImplicitOverride": true,
-		"noImplicitThis": true,
-
-		"useUnknownInCatchVariables": true,
-		"noUncheckedIndexedAccess": true,
-
-		"preserveConstEnums": true,
-		"forceConsistentCasingInFileNames": true,
-		"useDefineForClassFields": true
+		"forceConsistentCasingInFileNames": true /* Ensure that casing is correct in imports. */,
+		"strict": true /* Enable all strict type-checking options. */,
+		"useUnknownInCatchVariables": true /* Require type checking of catch clause variables */,
+		"noUncheckedIndexedAccess": true /* Include 'undefined' in index signature results */,
+		"noPropertyAccessFromIndexSignature": true,
+		"strictNullChecks": true /* Enable strict null checks. */
 	},
 	"include": ["library"]
 }

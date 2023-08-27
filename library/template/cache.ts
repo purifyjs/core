@@ -1,5 +1,5 @@
 import type { TemplateValue } from "."
-import { TemplateShape } from "./parse/shape"
+import type { TemplateShape } from "./parse/shape"
 import { render } from "./render"
 
 /** 

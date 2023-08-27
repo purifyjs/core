@@ -1,5 +1,5 @@
 import { uniqueId } from "../../utils/id"
-import { TemplateTokenizer } from "./tokenizer"
+import { TemplateToken } from "./tokenizer"
 
 export type TemplateShape = {
 	html: string
@@ -58,97 +58,97 @@ export namespace TemplateShape {
 		itemType: ItemType.RenderNode
 		ref: string
 	}
+}
 
-	export function parse(tokens: TemplateTokenizer.Token[]): TemplateShape {
-		let html = ""
+export function createTemplateShape(tokens: TemplateToken[]): TemplateShape {
+	let html = ""
 
-		try {
-			const refDataMap: TemplateShape["refDataMap"] = new Map()
-			const items: TemplateShape["items"] = new Array(Math.max(0, tokens.length - 1))
+	try {
+		const refDataMap: TemplateShape["refDataMap"] = new Map()
+		const items: TemplateShape["items"] = new Array(Math.max(0, tokens.length - 1))
 
-			for (let i = 0; i < tokens.length; i++) {
-				const parsePart = tokens[i]!
-				html += parsePart.html
+		for (let i = 0; i < tokens.length; i++) {
+			const parsePart = tokens[i]!
+			html += parsePart.html
 
-				let refData = refDataMap.get(parsePart.state.ref)
-				if (!refData) refDataMap.set(parsePart.state.ref, (refData = { attributes: new Map() }))
+			let refData = refDataMap.get(parsePart.state.ref)
+			if (!refData) refDataMap.set(parsePart.state.ref, (refData = { attributes: new Map() }))
 
-				if (!(i < items.length)) break
+			if (!(i < items.length)) break
 
-				if (parsePart.state.type === TemplateTokenizer.State.Type.Outer) {
-					const ref = uniqueId()
-					html += `<x ref:${ref}></x>`
+			if (parsePart.state.type === TemplateToken.State.Type.Outer) {
+				const ref = uniqueId()
+				html += `<x ref:${ref}></x>`
+				items[i] = {
+					itemType: TemplateShape.ItemType.RenderNode,
+					ref,
+				}
+				continue
+			} else if (parsePart.state.type === TemplateToken.State.Type.TagInner && !parsePart.state.attributeName) {
+				if (parsePart.state.tag === "x") {
+					const ref = parsePart.state.ref
 					items[i] = {
-						itemType: ItemType.RenderNode,
+						itemType: TemplateShape.ItemType.RenderElement,
 						ref,
 					}
 					continue
-				} else if (parsePart.state.type === TemplateTokenizer.State.Type.TagInner && !parsePart.state.attributeName) {
-					if (parsePart.state.tag === "x") {
-						const ref = parsePart.state.ref
-						items[i] = {
-							itemType: ItemType.RenderElement,
-							ref,
-						}
-						continue
-					}
-				} else if (
-					parsePart.state.type > TemplateTokenizer.State.Type.ATTR_VALUE_START &&
-					parsePart.state.type < TemplateTokenizer.State.Type.ATTR_VALUE_END
-				) {
-					const attributeNameParts = parsePart.state.attributeName.split(":")
-					const quote =
-						parsePart.state.type === TemplateTokenizer.State.Type.AttributeValueUnquoted
-							? ""
-							: parsePart.state.type === TemplateTokenizer.State.Type.AttributeValueSingleQuoted
-							? "'"
-							: '"'
-					if (attributeNameParts.length === 2) {
-						if (quote !== "") throw new Error("Directive value must be unquoted")
-						html += `""`
-						const ref = parsePart.state.ref
-						const type = attributeNameParts[0]!
-						const name = attributeNameParts[1]!
-						const directiveType = Directive.getType(type)
-						if (!directiveType) throw new Error(`Unknown directive type "${type}".`)
-						items[i] = {
-							itemType: ItemType.Directive,
-							directiveType,
-							name,
-							ref,
-						}
-						continue
-					} else {
-						const ref = parsePart.state.ref
-						const name = attributeNameParts[0]!
-						if (quote === "") html += `""`
-						else {
-							html += ref // using the tag ref as a separator or placeholder for the value
-							let attributeData = refData.attributes.get(name)
-							if (!attributeData) refData.attributes.set(name, (attributeData = { indexes: [], parts: null }))
-							attributeData.indexes.push(i)
-						}
-						items[i] = {
-							itemType: ItemType.Attribute,
-							name,
-							quote,
-							ref,
-						}
-						continue
-					}
 				}
-
-				throw new Error(`Unexpected value`)
+			} else if (
+				parsePart.state.type > TemplateToken.State.Type.ATTR_VALUE_START &&
+				parsePart.state.type < TemplateToken.State.Type.ATTR_VALUE_END
+			) {
+				const attributeNameParts = parsePart.state.attributeName.split(":")
+				const quote =
+					parsePart.state.type === TemplateToken.State.Type.AttributeValueUnquoted
+						? ""
+						: parsePart.state.type === TemplateToken.State.Type.AttributeValueSingleQuoted
+						? "'"
+						: '"'
+				if (attributeNameParts.length === 2) {
+					if (quote !== "") throw new Error("Directive value must be unquoted")
+					html += `""`
+					const ref = parsePart.state.ref
+					const type = attributeNameParts[0]!
+					const name = attributeNameParts[1]!
+					const directiveType = TemplateShape.Directive.getType(type)
+					if (!directiveType) throw new Error(`Unknown directive type "${type}".`)
+					items[i] = {
+						itemType: TemplateShape.ItemType.Directive,
+						directiveType,
+						name,
+						ref,
+					}
+					continue
+				} else {
+					const ref = parsePart.state.ref
+					const name = attributeNameParts[0]!
+					if (quote === "") html += `""`
+					else {
+						html += ref // using the tag ref as a separator or placeholder for the value
+						let attributeData = refData.attributes.get(name)
+						if (!attributeData) refData.attributes.set(name, (attributeData = { indexes: [], parts: null }))
+						attributeData.indexes.push(i)
+					}
+					items[i] = {
+						itemType: TemplateShape.ItemType.Attribute,
+						name,
+						quote,
+						ref,
+					}
+					continue
+				}
 			}
 
-			return {
-				items: items,
-				refDataMap,
-				html,
-			}
-		} catch (error) {
-			console.error("Error while parsing template:", error, "At:", html.slice(-256).trim())
-			throw error
+			throw new Error(`Unexpected value`)
 		}
+
+		return {
+			items: items,
+			refDataMap,
+			html,
+		}
+	} catch (error) {
+		console.error("Error while parsing template:", error, "At:", html.slice(-256).trim())
+		throw error
 	}
 }

@@ -1,7 +1,7 @@
 import { SignalReadable, SignalWritable } from "../signal"
-import { TemplateShape } from "./parse/shape"
+import { createTemplateShape } from "./parse/shape"
 import { createTemplateFromShape } from "./parse/template"
-import { TemplateTokenizer } from "./parse/tokenizer"
+import { tokenizeTemplate } from "./parse/tokenizer"
 import { render } from "./render"
 import type { Renderable } from "./renderable"
 
@@ -29,6 +29,6 @@ export function css(strings: TemplateStringsArray, ...values: (string | number)[
 }
 
 export function html<S extends TemplateStringsArray, T extends TemplateValue[]>(strings: S, ...values: T) {
-	const shape = TemplateShape.parse(TemplateTokenizer.tokenize(strings))
+	const shape = createTemplateShape(tokenizeTemplate(strings))
 	return render(createTemplateFromShape(shape), shape, values)
 }
