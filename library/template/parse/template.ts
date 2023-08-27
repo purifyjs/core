@@ -1,14 +1,15 @@
+import { createElement, getAttribute, querySelector } from "../../utils/bundleHelpers"
 import { unhandled } from "../../utils/unhandled"
 import type { TemplateShape } from "./shape"
 
 export function createTemplateFromShape(shape: TemplateShape): HTMLTemplateElement {
 	try {
-		const template = document.createElement("template")
+		const template = createElement("template")
 		template.innerHTML = shape.html
 
 		for (let index = 0; index < shape.items.length; index++) {
 			const item = shape.items[index]!
-			const element = template.content.querySelector(`[ref\\:${item.ref}]`) as HTMLElement
+			const element = querySelector(template.content, `[ref\\:${item.ref}]`) as HTMLElement
 			if (!element) throw new Error(`Could not find outlet with ref "${item.ref}". For type ${item.itemType}`)
 
 			if (item.itemType === "dir") {
@@ -62,10 +63,10 @@ export function createTemplateFromShape(shape: TemplateShape): HTMLTemplateEleme
 		}
 
 		for (const [ref, { attributes }] of shape.refDataMap) {
-			const element = template.content.querySelector(`[ref\\:${ref}]`) as HTMLElement
+			const element = querySelector(template.content, `[ref\\:${ref}]`) as HTMLElement
 
 			for (const [name, attribute] of attributes) {
-				const attributeTemplateString = element.getAttribute(name)
+				const attributeTemplateString = getAttribute(element, name)
 				if (!attributeTemplateString) throw new Error(`Could not find attribute "${name}" on element with ref "${ref}".`)
 				attribute.parts = attributeTemplateString
 					.split(ref)

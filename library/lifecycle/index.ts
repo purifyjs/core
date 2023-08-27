@@ -1,3 +1,5 @@
+import { arrayFrom, isFunction, isUndefined } from "../utils/bundleHelpers"
+
 export type Lifecycle = {
 	mounted: boolean | null
 	listeners: {
@@ -24,11 +26,11 @@ function mountableOf(node: Node) {
 	return mountable
 }
 
-if (typeof window !== "undefined") {
+if (!isUndefined(window)) {
 	const mutationObserver = new MutationObserver((mutations) => {
 		for (const mutation of mutations) {
-			Array.from(mutation.removedNodes).forEach(removedNode)
-			Array.from(mutation.addedNodes).forEach((node) => addedNode(node))
+			arrayFrom(mutation.removedNodes).forEach(removedNode)
+			arrayFrom(mutation.addedNodes).forEach((node) => addedNode(node))
 		}
 	})
 	mutationObserver.observe(document, { childList: true, subtree: true })
@@ -56,14 +58,14 @@ if (typeof window !== "undefined") {
 	function addedNode(node: Node) {
 		if (node.getRootNode({ composed: true }) !== document) return
 		emitMount(node)
-		if (node instanceof HTMLElement) Array.from(node.shadowRoot?.childNodes ?? []).forEach((node) => addedNode(node))
-		Array.from(node.childNodes).forEach((node) => addedNode(node))
+		if (node instanceof HTMLElement) arrayFrom(node.shadowRoot?.childNodes ?? []).forEach((node) => addedNode(node))
+		arrayFrom(node.childNodes).forEach((node) => addedNode(node))
 	}
 
 	function removedNode(node: Node) {
 		emitUnmount(node)
-		if (node instanceof HTMLElement) Array.from(node.shadowRoot?.childNodes ?? []).forEach(removedNode)
-		Array.from(node.childNodes).forEach(removedNode)
+		if (node instanceof HTMLElement) arrayFrom(node.shadowRoot?.childNodes ?? []).forEach(removedNode)
+		arrayFrom(node.childNodes).forEach(removedNode)
 	}
 
 	function emitMount(node: Node) {
@@ -96,7 +98,7 @@ export function onMount$<T extends MountListener>(node: Node, listener: T) {
 	else {
 		mountable.listeners.mount.push(() => {
 			const cleanup = listener()
-			if (typeof cleanup === "function") mountable.listeners.unmount.push(cleanup)
+			if (isFunction(cleanup)) mountable.listeners.unmount.push(cleanup)
 		})
 	}
 }
@@ -108,7 +110,7 @@ export function onUnmount$<T extends MountListener>(node: Node, listener: T) {
 	else {
 		mountable.listeners.unmount.push(() => {
 			const cleanup = listener()
-			if (typeof cleanup === "function") mountable.listeners.mount.push(cleanup)
+			if (isFunction(cleanup)) mountable.listeners.mount.push(cleanup)
 		})
 	}
 }

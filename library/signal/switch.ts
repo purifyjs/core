@@ -1,5 +1,6 @@
 import type { SignalReadable } from "."
 import { createSignalReadable, isSignalReadable } from "."
+import { isFunction, isNull, isObject } from "../utils/bundleHelpers"
 import { DeepOptional, NoNever, NotEquals, PrimitiveType, ReferanceType, TypeString, TypeStringToType, TypeToTypeString } from "../utils/type"
 
 // TODO: Make typing better
@@ -96,17 +97,17 @@ type Narrow<TValue, TPattern> = INSTANCEOF extends keyof TPattern
 	: TValue & TPattern
 
 function matchPattern<TValue, const TPattern extends PatternOf<TValue>>(value: TValue, pattern: TPattern): value is TValue & TPattern {
-	if (typeof pattern === "object" && pattern !== null) {
+	if (isObject(pattern) && !isNull(pattern)) {
 		if (TYPEOF in pattern) {
 			if (pattern[TYPEOF] !== typeof value) return false
 		} else if (INSTANCEOF in pattern) {
-			if (typeof pattern[INSTANCEOF] !== "function") return false
+			if (!isFunction(pattern[INSTANCEOF])) return false
 			if (!(value instanceof pattern[INSTANCEOF])) return false
 		} else {
 			for (const key of Object.keys(pattern) as (keyof TPattern)[]) {
 				const patternValue = pattern[key]
 
-				if (typeof value !== "object" || value === null) return false
+				if (!isObject(value) || isNull(value)) return false
 				if (!(key in value)) return false
 				if (!matchPattern(value[key as keyof TValue], patternValue as any)) return false
 			}

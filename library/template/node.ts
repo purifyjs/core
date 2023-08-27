@@ -1,104 +1,105 @@
 import { isSignalReadable } from "../signal"
 import { createOrGetDeriveOfFunction } from "../signal/derive"
+import { append, createComment, createFragment, createTextNode, insertBefore, isArray, isFunction, nextSibling, remove } from "../utils/bundleHelpers"
 import { RenderSymbol, isRenderable } from "./renderable"
 
-const EMPTY_NODE = document.createDocumentFragment()
+const EMPTY_NODE = createFragment()
 
 export function valueToNode(value: unknown): Node {
 	if (value === null) return EMPTY_NODE
 	if (value instanceof Node) return value
 
 	if (value instanceof Array) {
-		const fragment = document.createDocumentFragment()
-		fragment.append(...value.map((item) => valueToNode(item)))
+		const fragment = createFragment()
+		append(fragment, ...value.map((item) => valueToNode(item)))
 		return fragment
 	}
 
-	if (typeof value === "function") return valueToNode(createOrGetDeriveOfFunction(value as () => unknown))
+	if (isFunction(value)) return valueToNode(createOrGetDeriveOfFunction(value as () => unknown))
 
 	if (isSignalReadable(value)) {
-		const fragment = document.createDocumentFragment()
-		const startComment = document.createComment(`signal ${value.id}`)
-		const endComment = document.createComment(`/signal ${value.id}`)
-		fragment.append(startComment, endComment)
+		const fragment = createFragment()
+		const startComment = createComment(`signal ${value.id}`)
+		const endComment = createComment(`/signal ${value.id}`)
+		append(fragment, startComment, endComment)
 
 		type Item = { value: unknown; startComment: Comment; endComment: Comment }
 		const itemNodes = new WeakMap<ChildNode, Item>()
 		function createItem(value: unknown): DocumentFragment {
-			const fragment = document.createDocumentFragment()
-			const itemStartComment = document.createComment(`item ${value}`)
-			const itemEndComment = document.createComment(`/item ${value}`)
+			const fragment = createFragment()
+			const itemStartComment = createComment(`item ${value}`)
+			const itemEndComment = createComment(`/item ${value}`)
 
-			fragment.append(itemStartComment)
-			fragment.append(valueToNode(value))
-			fragment.append(itemEndComment)
+			append(fragment, itemStartComment)
+			append(fragment, valueToNode(value))
+			append(fragment, itemEndComment)
 
 			itemNodes.set(itemStartComment, { value, startComment: itemStartComment, endComment: itemEndComment })
 
 			return fragment
 		}
 		function removeItem(item: Item) {
-			while (item.startComment.nextSibling !== item.endComment) item.startComment.nextSibling!.remove()
-			item.startComment.remove()
-			item.endComment.remove()
+			while (nextSibling(item.startComment) !== item.endComment) remove(nextSibling(item.startComment)!)
+			remove(item.startComment)
+			remove(item.endComment)
 		}
 
 		value.subscribe$(
 			startComment,
 			(signalValue: unknown) => {
-				if (Array.isArray(signalValue)) {
-					let currentNode: ChildNode = startComment.nextSibling!
+				if (isArray(signalValue)) {
+					let currentNode: ChildNode = nextSibling(startComment)!
 					for (let currentIndex = 0; currentIndex < signalValue.length; currentIndex++) {
 						const nextIndex = currentIndex + 1
 						const currentValue = signalValue[currentIndex] as unknown
 
 						while (true) {
 							if (currentNode === endComment) {
-								endComment.before(createItem(currentValue))
+								insertBefore(endComment, createItem(currentValue))
 								break
 							}
 
 							const currentItem = itemNodes.get(currentNode)
 							if (currentItem) {
 								if (currentValue === currentItem.value) {
-									currentNode = currentItem.endComment.nextSibling!
+									currentNode = nextSibling(currentItem.endComment)!
 									break
 								}
 
-								const nextItem = itemNodes.get(currentItem.endComment.nextSibling!)
+								const nextItem = itemNodes.get(nextSibling(currentItem.endComment)!)
 
 								if (nextItem && currentValue === nextItem.value) {
 									removeItem(currentItem)
-									currentNode = nextItem.endComment.nextSibling!
+									currentNode = nextSibling(nextItem.endComment)!
 								} else {
 									const newItemFragment = createItem(currentValue)
 									const newItemFragmentLastChild = newItemFragment.lastChild!
 
-									currentItem.startComment.before(newItemFragment)
+									insertBefore(currentItem.startComment, newItemFragment)
 
 									if (nextIndex >= signalValue.length || signalValue[nextIndex] !== currentItem.value) {
 										removeItem(currentItem)
-										currentNode = newItemFragmentLastChild.nextSibling!
+										currentNode = nextSibling(newItemFragmentLastChild)!
 									} else {
 										currentIndex = nextIndex
-										currentNode = currentItem.endComment.nextSibling!
+										currentNode = nextSibling(currentItem.endComment)!
 									}
 								}
 
 								break
 							}
 
-							currentNode = currentNode.nextSibling!
+							currentNode = nextSibling(currentNode)!
 						}
 					}
 
 					if (currentNode !== endComment) {
-						while (currentNode.nextSibling !== endComment) currentNode.nextSibling!.remove()
-						currentNode.remove()
+						while (nextSibling(currentNode) !== endComment) remove(nextSibling(currentNode)!)
+						remove(currentNode)
 					}
 				} else {
-					while (startComment.nextSibling !== endComment) startComment.nextSibling!.remove()
-					endComment.before(valueToNode(signalValue))
+					while (nextSibling(startComment) !== endComment) remove(nextSibling(startComment)!)
+					insertBefore(endComment, valueToNode(signalValue))
 				}
 			},
 			{ mode: "immediate" }
@@ -109,5 +110,5 @@ export function valueToNode(value: unknown): Node {
 
 	if (isRenderable(value)) return valueToNode(value[RenderSymbol]())
 
-	return document.createTextNode(`${value}`)
+	return createTextNode(`${value}`)
 }
