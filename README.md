@@ -6,7 +6,7 @@
 
 MasterTS is a clean and lightweight TypeScript library for building user interfaces, focusing on simplicity and modularity. It leverages Signals, Web Components, and TypeScript to create single-page applications (SPAs).
 
-**Empty MasterTS+Vite project bundle size without gzip, without treeshaking, everything imported:** `7.5kb` 
+**Empty MasterTS+Vite project bundle size with gzip, without treeshaking, everything imported:** `5.75kb` 
 
 **Warning:** MasterTS is currently a work in progress prototype and is not suitable for production use.
 
