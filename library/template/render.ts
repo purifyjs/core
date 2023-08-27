@@ -1,4 +1,3 @@
-import type { TemplateValue } from "."
 import { onMount$, onUnmount$ } from "../lifecycle"
 import type { SignalWritable } from "../signal"
 import { isSignalReadable, isSignalWritable } from "../signal"
@@ -8,6 +7,7 @@ import { nameOf, typeOf } from "../utils/name"
 import { unhandled } from "../utils/unhandled"
 import { valueToNode } from "./node"
 import type { TemplateShape } from "./parse/shape"
+import type { TemplateValue } from "./types"
 
 export function render(template: HTMLTemplateElement, shape: TemplateShape, values: TemplateValue[]): Node[] {
 	const fragment = template.content.cloneNode(true) as DocumentFragment
