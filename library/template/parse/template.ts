@@ -4,7 +4,7 @@ import type { TemplateShape } from "./shape"
 export function createTemplateFromShape(shape: TemplateShape): HTMLTemplateElement {
 	try {
 		const template = document.createElement("template")
-		template.innerHTML = shape.html.trim()
+		template.innerHTML = shape.html
 
 		for (let index = 0; index < shape.items.length; index++) {
 			const item = shape.items[index]!
