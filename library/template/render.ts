@@ -46,7 +46,7 @@ export function render(template: HTMLTemplateElement, shape: TemplateShape, valu
 				}
 			} else if (item.itemType === TemplateShape.ItemType.Directive) {
 				switch (item.directiveType) {
-					case TemplateShape.Directive.types.class:
+					case TemplateShape.Directive.types.className:
 						if (typeof value === "function") value = createOrGetDeriveOfFunction(value as () => TemplateValue)
 						if (isSignalReadable(value)) {
 							value.subscribe$(element, (v) => element.classList.toggle(item.name, !!v), {

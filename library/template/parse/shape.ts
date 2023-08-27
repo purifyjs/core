@@ -38,19 +38,14 @@ export namespace TemplateShape {
 	export namespace Directive {
 		export type Type = (typeof types)[keyof typeof types]
 
-		const classType = Symbol()
-		const styleType = Symbol()
-		const onType = Symbol()
-		const bindType = Symbol()
-		const refType = Symbol()
+		export namespace types {
+			export const className = Symbol()
+			export const style = Symbol()
+			export const on = Symbol()
+			export const bind = Symbol()
+			export const ref = Symbol()
+		}
 
-		export const types = {
-			class: classType,
-			style: styleType,
-			on: onType,
-			bind: bindType,
-			ref: refType,
-		} as const
 		export function getType(value: string): Type | null {
 			return types[value as keyof typeof types] ?? null
 		}

@@ -13,7 +13,7 @@ export function createTemplateFromShape(shape: TemplateShape): HTMLTemplateEleme
 
 			if (item.itemType === TemplateShape.ItemType.Directive) {
 				switch (item.directiveType) {
-					case TemplateShape.Directive.types.class:
+					case TemplateShape.Directive.types.className:
 					case TemplateShape.Directive.types.style:
 					case TemplateShape.Directive.types.on:
 					case TemplateShape.Directive.types.ref:
