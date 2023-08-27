@@ -12,6 +12,8 @@ MasterTS is a clean and lightweight TypeScript library for building user interfa
 
 ## Install
 
+(BIG CHANGES HAPPENING SO MIGHT NOT WORK RIGHT, TRY OLDER VERSIONS)
+
 To install MasterTS, please refer to the [Install Instructions](https://github.com/DeepDoge/master-ts/releases) available in the repository.
 
 ## Vite Plugin
