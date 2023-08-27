@@ -7,7 +7,7 @@ import { assert } from "../utils/assert"
 import { nameOf, typeOf } from "../utils/name"
 import { unhandled } from "../utils/unhandled"
 import { valueToNode } from "./node"
-import { TemplateShape } from "./parse/shape"
+import type { TemplateShape } from "./parse/shape"
 
 export function render(template: HTMLTemplateElement, shape: TemplateShape, values: TemplateValue[]): Node[] {
 	const fragment = template.content.cloneNode(true) as DocumentFragment
@@ -19,14 +19,14 @@ export function render(template: HTMLTemplateElement, shape: TemplateShape, valu
 
 			let value = values[index]!
 
-			if (item.itemType === TemplateShape.ItemType.RenderNode) {
+			if (item.itemType === "node") {
 				element.replaceWith(valueToNode(value))
-			} else if (item.itemType === TemplateShape.ItemType.RenderElement) {
+			} else if (item.itemType === "el") {
 				if (!(value instanceof Element)) throw new Error(`Expected ${nameOf(Element)} at index "${index}", but got ${nameOf(value)}.`)
 				value.append(...Array.from(element.childNodes))
 				for (const attribute of Array.from(element.attributes)) value.setAttribute(attribute.name, attribute.value)
 				element.replaceWith(value)
-			} else if (item.itemType === TemplateShape.ItemType.Attribute) {
+			} else if (item.itemType === "attr") {
 				if (typeof value === "function") values[index] = value = createOrGetDeriveOfFunction(value as () => TemplateValue)
 				if (isSignalReadable(value)) {
 					if (item.quote === "") {
@@ -44,9 +44,9 @@ export function render(template: HTMLTemplateElement, shape: TemplateShape, valu
 						// Handled at the end. Because this attribute can have multiple values.
 					}
 				}
-			} else if (item.itemType === TemplateShape.ItemType.Directive) {
+			} else if (item.itemType === "dir") {
 				switch (item.directiveType) {
-					case TemplateShape.Directive.types.className:
+					case "class":
 						if (typeof value === "function") value = createOrGetDeriveOfFunction(value as () => TemplateValue)
 						if (isSignalReadable(value)) {
 							value.subscribe$(element, (v) => element.classList.toggle(item.name, !!v), {
@@ -54,7 +54,7 @@ export function render(template: HTMLTemplateElement, shape: TemplateShape, valu
 							})
 						} else element.classList.toggle(item.name, !!value)
 						break
-					case TemplateShape.Directive.types.style:
+					case "style":
 						if (typeof value === "function") value = createOrGetDeriveOfFunction(value as () => TemplateValue)
 						if (isSignalReadable(value)) {
 							value.subscribe$(element, (v) => element.style.setProperty(item.name, `${v}`), {
@@ -62,17 +62,17 @@ export function render(template: HTMLTemplateElement, shape: TemplateShape, valu
 							})
 						} else element.style.setProperty(item.name, `${value}`)
 						break
-					case TemplateShape.Directive.types.on:
+					case "on":
 						if (!(typeof value === "function")) throw new Error(`${item.itemType}:${item.name} must be a function, but got ${nameOf(value)}.`)
 
 						onMount$(element, () => element.addEventListener(item.name, value as EventListener))
 						onUnmount$(element, () => element.removeEventListener(item.name, value as EventListener))
 						break
-					case TemplateShape.Directive.types.ref:
+					case "ref":
 						if (!isSignalWritable(value)) throw new Error(`${item.itemType}:${item.name} must be a SignalWritable, but got ${typeOf(value)}.`)
 						value.set(element)
 						break
-					case TemplateShape.Directive.types.bind:
+					case "bind":
 						if (!isSignalWritable(value)) throw new Error(`${item.itemType}:${item.name} must be a SignalWritable, but got ${typeOf(value)}.`)
 						const signal = value
 						assert<HTMLInputElement>(element)

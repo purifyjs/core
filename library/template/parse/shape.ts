@@ -16,46 +16,34 @@ export namespace TemplateShape {
 		parts: (number | string)[] | null
 	}
 
-	export const enum ItemType {
-		Attribute,
-		Directive,
-		RenderElement,
-		RenderNode,
-	}
 	export type Item = Attribute | Directive | RenderElement | RenderNode
 	export type Attribute = {
-		itemType: ItemType.Attribute
+		itemType: "attr"
 		name: string
 		quote: "'" | '"' | ""
 		ref: string
 	}
 	export type Directive = {
-		itemType: ItemType.Directive
+		itemType: "dir"
 		directiveType: Directive.Type
 		name: string
 		ref: string
 	}
 	export namespace Directive {
-		export type Type = (typeof types)[keyof typeof types]
-
-		export namespace types {
-			export const className = Symbol()
-			export const style = Symbol()
-			export const on = Symbol()
-			export const bind = Symbol()
-			export const ref = Symbol()
-		}
-
-		export function getType(value: string): Type | null {
-			return types[value as keyof typeof types] ?? null
+		export type Type = (typeof types)[number]
+		export const types = ["class", "style", "on", "ref", "bind"] as const
+		const typesSet = new Set(types)
+		export function getType(type: string): Type | null {
+			if (typesSet.has(type as any)) return type as Type
+			return null
 		}
 	}
 	export type RenderElement = {
-		itemType: ItemType.RenderElement
+		itemType: "el"
 		ref: string
 	}
 	export type RenderNode = {
-		itemType: ItemType.RenderNode
+		itemType: "node"
 		ref: string
 	}
 }
@@ -80,7 +68,7 @@ export function createTemplateShape(tokens: TemplateToken[]): TemplateShape {
 				const ref = uniqueId()
 				html += `<x ref:${ref}></x>`
 				items[i] = {
-					itemType: TemplateShape.ItemType.RenderNode,
+					itemType: "node",
 					ref,
 				}
 				continue
@@ -88,7 +76,7 @@ export function createTemplateShape(tokens: TemplateToken[]): TemplateShape {
 				if (parsePart.state.tag === "x") {
 					const ref = parsePart.state.ref
 					items[i] = {
-						itemType: TemplateShape.ItemType.RenderElement,
+						itemType: "el",
 						ref,
 					}
 					continue
@@ -113,7 +101,7 @@ export function createTemplateShape(tokens: TemplateToken[]): TemplateShape {
 					const directiveType = TemplateShape.Directive.getType(type)
 					if (!directiveType) throw new Error(`Unknown directive type "${type}".`)
 					items[i] = {
-						itemType: TemplateShape.ItemType.Directive,
+						itemType: "dir",
 						directiveType,
 						name,
 						ref,
@@ -130,7 +118,7 @@ export function createTemplateShape(tokens: TemplateToken[]): TemplateShape {
 						attributeData.indexes.push(i)
 					}
 					items[i] = {
-						itemType: TemplateShape.ItemType.Attribute,
+						itemType: "attr",
 						name,
 						quote,
 						ref,

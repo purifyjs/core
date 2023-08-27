@@ -1,5 +1,5 @@
 import { unhandled } from "../../utils/unhandled"
-import { TemplateShape } from "./shape"
+import type { TemplateShape } from "./shape"
 
 export function createTemplateFromShape(shape: TemplateShape): HTMLTemplateElement {
 	try {
@@ -11,14 +11,14 @@ export function createTemplateFromShape(shape: TemplateShape): HTMLTemplateEleme
 			const element = template.content.querySelector(`[ref\\:${item.ref}]`) as HTMLElement
 			if (!element) throw new Error(`Could not find outlet with ref "${item.ref}". For type ${item.itemType}`)
 
-			if (item.itemType === TemplateShape.ItemType.Directive) {
+			if (item.itemType === "dir") {
 				switch (item.directiveType) {
-					case TemplateShape.Directive.types.className:
-					case TemplateShape.Directive.types.style:
-					case TemplateShape.Directive.types.on:
-					case TemplateShape.Directive.types.ref:
+					case "class":
+					case "style":
+					case "on":
+					case "ref":
 						break
-					case TemplateShape.Directive.types.bind: {
+					case "bind": {
 						switch (item.name) {
 							case "value": {
 								if (element instanceof HTMLInputElement) {

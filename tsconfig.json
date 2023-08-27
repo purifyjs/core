@@ -1,6 +1,6 @@
 {
 	"compilerOptions": {
-		"target": "ES2022",
+		"target": "ESNext",
 		"module": "CommonJS",
 		"lib": ["ES2023", "DOM"],
 		"moduleResolution": "Node",

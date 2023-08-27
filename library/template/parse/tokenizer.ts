@@ -37,6 +37,7 @@ export namespace TemplateToken {
 		}
 	}
 }
+
 export function tokenizeTemplate(templateStrings: TemplateStringsArray): TemplateToken[] {
 	const tokens: TemplateToken[] = new Array(templateStrings.length)
 
