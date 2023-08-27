@@ -1,14 +1,14 @@
 import { isSignalReadable } from "../signal"
 import { createOrGetDeriveOfFunction } from "../signal/derive"
-import { append, createComment, createFragment, createTextNode, insertBefore, isArray, isFunction, nextSibling, remove } from "../utils/bundleHelpers"
+import { append, createComment, createFragment, createTextNode, insertBefore, isFunction, isNull, nextSibling, remove } from "../utils/bundleHelpers"
 
 const EMPTY_NODE = createFragment()
 
 export function valueToNode(value: unknown): Node {
-	if (value === null) return EMPTY_NODE
+	if (isNull(value)) return EMPTY_NODE
 	if (value instanceof Node) return value
 
-	if (value instanceof Array) {
+	if (Array.isArray(value)) {
 		const fragment = createFragment()
 		append(fragment, ...value.map((item) => valueToNode(item)))
 		return fragment
@@ -46,7 +46,7 @@ export function valueToNode(value: unknown): Node {
 		value.subscribe$(
 			startComment,
 			(signalValue: unknown) => {
-				if (isArray(signalValue)) {
+				if (Array.isArray(signalValue)) {
 					let currentNode: ChildNode = nextSibling(startComment)!
 					for (let currentIndex = 0; currentIndex < signalValue.length; currentIndex++) {
 						const nextIndex = currentIndex + 1

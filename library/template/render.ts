@@ -8,6 +8,7 @@ import {
 	append,
 	arrayFrom,
 	isFunction,
+	isNull,
 	querySelector,
 	removeAttribute,
 	removeEventListener,
@@ -42,14 +43,14 @@ export function render(template: HTMLTemplateElement, shape: TemplateShape, valu
 					if (item.quote === "") {
 						value.subscribe$(
 							element,
-							(value) => (value === null ? removeAttribute(element, item.name) : setAttribute(element, item.name, `${value}`)),
+							(value) => (isNull(value) ? removeAttribute(element, item.name) : setAttribute(element, item.name, `${value}`)),
 							{ mode: "immediate" }
 						)
 					} else {
 						// Handled at the end. Because this attribute can have multiple values.
 					}
 				} else {
-					if (item.quote === "") value === null ? removeAttribute(element, item.name) : setAttribute(element, item.name, `${value}`)
+					if (item.quote === "") isNull(value) ? removeAttribute(element, item.name) : setAttribute(element, item.name, `${value}`)
 					else {
 						// Handled at the end. Because this attribute can have multiple values.
 					}

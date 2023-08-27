@@ -48,6 +48,6 @@ export abstract class ComponentBase extends HTMLElement {
 		throw new Error("Not implemented")
 	}
 	static set $css(_: CSSStyleSheet) {
-		throw new Error("Not implemented")
+		this.$css
 	}
 }

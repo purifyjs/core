@@ -98,13 +98,10 @@ export function isNull(value: any): value is null {
 	return value === null
 }
 export function isObject(value: any): value is object {
-	return typeof value === "object" && value !== null
+	return typeof value === "object"
 }
 export function isBigInt(value: any): value is bigint {
 	return typeof value === "bigint"
-}
-export function isArray(value: any): value is unknown[] {
-	return Array.isArray(value)
 }
 
 export function arrayFrom<T>(arrayLike: ArrayLike<T>): T[] {
