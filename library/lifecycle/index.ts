@@ -45,15 +45,15 @@ if (typeof window !== "undefined") {
 	// Need these for now, because MutationObserver callsback after the cycle is complete
 	// Which is not ideal at all, causes a lot of issues and errors
 	// TODO: find a better way to do this
-	const orignalRemove = Element.prototype.remove
+	const elementRemove = Element.prototype.remove
 	Element.prototype.remove = function () {
-		orignalRemove.call(this)
+		elementRemove.call(this)
 		removedNode(this)
 	}
 
-	const originlaremove2 = CharacterData.prototype.remove
+	const characterDataRemove = CharacterData.prototype.remove
 	CharacterData.prototype.remove = function () {
-		originlaremove2.call(this)
+		characterDataRemove.call(this)
 		removedNode(this)
 	}
 
