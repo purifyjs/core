@@ -2,7 +2,7 @@
  * @internal
  */
 export function nameOf(of: any) {
-	return `${of.name ?? of!.constructor.name ?? `${of}`}`
+	return `${of?.name ?? of?.constructor.name ?? `${of}`}`
 }
 
 /**
