@@ -9,8 +9,11 @@ export namespace TemplateToken {
 		type: TemplateToken.State.Type
 		tag: string
 		ref: string
-		attributeName: string
-		attributeValue: string
+		attributes: Record<string, string>
+		currentAttribute: {
+			name: string
+			value: string
+		}
 		addRef: boolean
 	}
 	export namespace State {
@@ -45,8 +48,8 @@ export function tokenizeTemplate(templateStrings: TemplateStringsArray): Templat
 		type: TemplateToken.State.Type.Outer,
 		tag: "",
 		ref: "",
-		attributeName: "",
-		attributeValue: "",
+		currentAttribute: { name: "", value: "" },
+		attributes: {},
 		addRef: false,
 	}
 
@@ -81,8 +84,9 @@ function processChar(char: string, state: TemplateToken.State): string {
 				state.type = TemplateToken.State.Type.TagName
 				state.tag = ""
 				state.ref = uniqueId()
-				state.attributeName = ""
-				state.attributeValue = ""
+				state.attributes = {}
+				state.currentAttribute.name = ""
+				state.currentAttribute.value = ""
 				state.addRef = false
 			}
 			break
@@ -103,7 +107,8 @@ function processChar(char: string, state: TemplateToken.State): string {
 			} else if (/\s/.test(char)) state.type = TemplateToken.State.Type.TagInner
 			else {
 				state.type = TemplateToken.State.Type.AttributeName
-				state.attributeName = char
+				state.currentAttribute.name = char
+				state.currentAttribute.value = ""
 			}
 			break
 		case TemplateToken.State.Type.TagClose:
@@ -114,24 +119,30 @@ function processChar(char: string, state: TemplateToken.State): string {
 		case TemplateToken.State.Type.AttributeName:
 			if (char === ">") {
 				state.type = TemplateToken.State.Type.TagInner
+				state.attributes[state.currentAttribute.name] = state.currentAttribute.value
 				return processChar(char, state)
-			} else if (/\s/.test(char)) state.type = TemplateToken.State.Type.TagInner
-			else if (char === "=") {
+			} else if (/\s/.test(char)) {
+				state.type = TemplateToken.State.Type.TagInner
+				state.attributes[state.currentAttribute.name] = state.currentAttribute.value
+			} else if (char === "=") {
 				state.type = TemplateToken.State.Type.AttributeValueUnquoted
-				state.attributeValue = ""
-			} else state.attributeName += char
+				state.currentAttribute.value = ""
+			} else state.currentAttribute.name += char
 			break
 		case TemplateToken.State.Type.AttributeValueUnquoted:
 			if (char === ">") {
 				state.type = TemplateToken.State.Type.TagInner
+				state.attributes[state.currentAttribute.name] = state.currentAttribute.value
 				return processChar(char, state)
-			} else if (/\s/.test(char)) state.type = TemplateToken.State.Type.TagInner
-			else if (char === '"') {
+			} else if (/\s/.test(char)) {
+				state.type = TemplateToken.State.Type.TagInner
+				state.attributes[state.currentAttribute.name] = state.currentAttribute.value
+			} else if (char === '"') {
 				state.type = TemplateToken.State.Type.AttributeValueDoubleQuoted
-				state.attributeValue = ""
+				state.currentAttribute.value = ""
 			} else if (char === "'") {
 				state.type = TemplateToken.State.Type.AttributeValueSingleQuoted
-				state.attributeValue = ""
+				state.currentAttribute.value = ""
 			} else {
 				throw new Error(`Unexpected character '${char}' in attribute value`)
 				// state.attribute_value += char
@@ -139,12 +150,16 @@ function processChar(char: string, state: TemplateToken.State): string {
 			}
 			break
 		case TemplateToken.State.Type.AttributeValueSingleQuoted:
-			if (char === "'") state.type = TemplateToken.State.Type.TagInner
-			else state.attributeValue += char
+			if (char === "'") {
+				state.type = TemplateToken.State.Type.TagInner
+				state.attributes[state.currentAttribute.name] = state.currentAttribute.value
+			} else state.currentAttribute.value += char
 			break
 		case TemplateToken.State.Type.AttributeValueDoubleQuoted:
-			if (char === '"') state.type = TemplateToken.State.Type.TagInner
-			else state.attributeValue += char
+			if (char === '"') {
+				state.type = TemplateToken.State.Type.TagInner
+				state.attributes[state.currentAttribute.name] = state.currentAttribute.value
+			} else state.currentAttribute.value += char
 			break
 	}
 

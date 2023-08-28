@@ -1,17 +1,20 @@
 import { uniqueId } from "../../utils/id"
+import { unhandled } from "../../utils/unhandled"
 import { TemplateToken } from "./tokenizer"
 
 export type TemplateShape = {
 	html: string
 	items: TemplateShape.Item[]
-	refDataMap: Map<string, TemplateShape.RefData>
+	refDatas: Map<string, TemplateShape.RefData>
 }
 export namespace TemplateShape {
 	export type RefData = {
-		attributes: Map<string, AttributeData>
+		tagName: TemplateToken["state"]["tag"]
+		attributes: TemplateToken["state"]["attributes"]
+		attributeValues: Map<string, AttributeValueData>
 	}
 
-	export type AttributeData = {
+	export type AttributeValueData = {
 		indexes: number[]
 		parts: (number | string)[] | null
 	}
@@ -52,19 +55,20 @@ export function createTemplateShape(tokens: TemplateToken[]): TemplateShape {
 	let html = ""
 
 	try {
-		const refDataMap: TemplateShape["refDataMap"] = new Map()
+		const refDatas: TemplateShape["refDatas"] = new Map()
 		const items: TemplateShape["items"] = new Array(Math.max(0, tokens.length - 1))
 
 		for (let i = 0; i < tokens.length; i++) {
-			const parsePart = tokens[i]!
-			html += parsePart.html
+			const token = tokens[i]!
+			html += token.html
 
-			let refData = refDataMap.get(parsePart.state.ref)
-			if (!refData) refDataMap.set(parsePart.state.ref, (refData = { attributes: new Map() }))
+			let refData = refDatas.get(token.state.ref)
+			if (!refData)
+				refDatas.set(token.state.ref, (refData = { attributeValues: new Map(), attributes: token.state.attributes, tagName: token.state.tag }))
 
 			if (!(i < items.length)) break
 
-			if (parsePart.state.type === TemplateToken.State.Type.Outer) {
+			if (token.state.type === TemplateToken.State.Type.Outer) {
 				const ref = uniqueId()
 				html += `<x ref:${ref}></x>`
 				items[i] = {
@@ -72,30 +76,27 @@ export function createTemplateShape(tokens: TemplateToken[]): TemplateShape {
 					ref,
 				}
 				continue
-			} else if (parsePart.state.type === TemplateToken.State.Type.TagInner && !parsePart.state.attributeName) {
-				if (parsePart.state.tag === "x") {
-					const ref = parsePart.state.ref
+			} else if (token.state.type === TemplateToken.State.Type.TagInner && Object.keys(token.state.attributes).length === 0) {
+				if (token.state.tag === "x") {
+					const ref = token.state.ref
 					items[i] = {
 						itemType: "el",
 						ref,
 					}
 					continue
 				}
-			} else if (
-				parsePart.state.type > TemplateToken.State.Type.ATTR_VALUE_START &&
-				parsePart.state.type < TemplateToken.State.Type.ATTR_VALUE_END
-			) {
-				const attributeNameParts = parsePart.state.attributeName.split(":")
+			} else if (token.state.type > TemplateToken.State.Type.ATTR_VALUE_START && token.state.type < TemplateToken.State.Type.ATTR_VALUE_END) {
+				const attributeNameParts = token.state.currentAttribute.name.split(":")
 				const quote =
-					parsePart.state.type === TemplateToken.State.Type.AttributeValueUnquoted
+					token.state.type === TemplateToken.State.Type.AttributeValueUnquoted
 						? ""
-						: parsePart.state.type === TemplateToken.State.Type.AttributeValueSingleQuoted
+						: token.state.type === TemplateToken.State.Type.AttributeValueSingleQuoted
 						? "'"
 						: '"'
 				if (attributeNameParts.length === 2) {
 					if (quote !== "") throw new Error("Directive value must be unquoted")
 					html += `""`
-					const ref = parsePart.state.ref
+					const ref = token.state.ref
 					const type = attributeNameParts[0]!
 					const name = attributeNameParts[1]!
 					const directiveType = TemplateShape.Directive.getType(type)
@@ -108,14 +109,14 @@ export function createTemplateShape(tokens: TemplateToken[]): TemplateShape {
 					}
 					continue
 				} else {
-					const ref = parsePart.state.ref
+					const ref = token.state.ref
 					const name = attributeNameParts[0]!
 					if (quote === "") html += `""`
 					else {
 						html += ref // using the tag ref as a separator or placeholder for the value
-						let attributeData = refData.attributes.get(name)
-						if (!attributeData) refData.attributes.set(name, (attributeData = { indexes: [], parts: null }))
-						attributeData.indexes.push(i)
+						let attributeValueData = refData.attributeValues.get(name)
+						if (!attributeValueData) refData.attributeValues.set(name, (attributeValueData = { indexes: [], parts: null }))
+						attributeValueData.indexes.push(i)
 					}
 					items[i] = {
 						itemType: "attr",
@@ -130,13 +131,92 @@ export function createTemplateShape(tokens: TemplateToken[]): TemplateShape {
 			throw new Error(`Unexpected value`)
 		}
 
-		return {
+		const self: TemplateShape = {
 			items: items,
-			refDataMap,
+			refDatas: refDatas,
 			html,
 		}
+		validate(self)
+		return self
 	} catch (error) {
 		console.error("Error while parsing template:", error, "At:", html.slice(-256).trim())
+		throw error
+	}
+}
+
+export function validate(shape: TemplateShape): void {
+	try {
+		for (let index = 0; index < shape.items.length; index++) {
+			const item = shape.items[index]!
+			const refData = shape.refDatas.get(item.ref)!
+
+			if (item.itemType === "dir") {
+				switch (item.directiveType) {
+					case "class":
+					case "style":
+					case "on":
+					case "ref":
+						break
+					case "bind": {
+						switch (item.name) {
+							case "value": {
+								if (refData.tagName === "input") {
+									switch (refData.attributes["type"]) {
+										case "radio":
+										case "checkbox":
+											item.name = "value:boolean"
+											break
+										case "range":
+										case "number":
+											item.name = "value:number"
+											break
+										case "date":
+										case "datetime-local":
+										case "month":
+										case "time":
+										case "week":
+											item.name = "value:date"
+											break
+										default:
+											item.name = "value:string"
+											break
+									}
+									break
+								} else if (refData.tagName === "textarea" || refData.tagName === "select") {
+									item.name = "value:string"
+									break
+								}
+
+								throw new Error(`${refData.tagName} does not support binding to ${item.name}`)
+							}
+							default:
+								throw new Error(`Unknown binding key ${item.name}`)
+						}
+						break
+					}
+					default:
+						unhandled("Unhandled directive type", item.directiveType)
+				}
+			}
+		}
+
+		for (const [ref, { attributeValues, attributes, tagName }] of shape.refDatas) {
+			for (const [name, attributeValue] of attributeValues) {
+				const attributeTemplateString = attributes[name]
+				if (!attributeTemplateString) throw new Error(`Could not find attribute "${name}" on element with ref "${ref}".`)
+				attributeValue.parts = attributeTemplateString
+					.split(ref)
+					.filter((s) => s)
+					.flatMap((part, index) => {
+						const valueIndex = attributeValue.indexes[index]
+						if (valueIndex === undefined)
+							throw new Error(`Could not find value index of ${index}th part of attribute "${name}" on element with ref "${ref}".`)
+						return [part, valueIndex]
+					})
+			}
+		}
+	} catch (error) {
+		console.error("Error while parsing template:", error, "At:", shape.html.slice(-256).trim())
 		throw error
 	}
 }

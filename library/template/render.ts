@@ -133,7 +133,7 @@ export function render(template: HTMLTemplateElement, shape: TemplateShape, valu
 			}
 		}
 
-		for (const [ref, { attributes }] of shape.refDataMap) {
+		for (const [ref, { attributeValues: attributes }] of shape.refDatas) {
 			const element = querySelector(fragment, `[ref\\:${ref}]`) as HTMLElement
 			for (const [name, { parts }] of attributes) {
 				const signal = createSignalDerived(() =>
