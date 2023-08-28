@@ -6,13 +6,12 @@
 
 MasterTS is a clean and lightweight TypeScript library for building user interfaces, focusing on simplicity and modularity. It leverages Signals, Web Components, and TypeScript to create single-page applications (SPAs).
 
-**Empty MasterTS+Vite project bundle size with gzip, everything imported:** `4.29kb`
+**Empty MasterTS+Vite project bundle size with gzip, everything imported:** `4.6kb`<br/>
+(Currently, working on some changes to make bundles size smaller, so this might not be accurate.)
 
 **Warning:** MasterTS is currently a work in progress prototype and is not suitable for production use.
 
 ## Install
-
-(BIG CHANGES HAPPENING SO MIGHT NOT WORK RIGHT, TRY OLDER VERSIONS)
 
 To install MasterTS, please refer to the [Install Instructions](https://github.com/DeepDoge/master-ts/releases) available in the repository.
 
