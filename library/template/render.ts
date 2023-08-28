@@ -1,4 +1,4 @@
-import { Template, templatify } from "."
+import { Template, toNode } from "."
 import { onMount$, onUnmount$ } from "../lifecycle"
 import type { SignalWritable } from "../signal"
 import { isSignalReadable, isSignalWritable } from "../signal"
@@ -30,7 +30,7 @@ export function render(template: HTMLTemplateElement, shape: TemplateShape, valu
 			let value = values[index]!
 
 			if (item.itemType === "node") {
-				element.replaceWith(templatify(value))
+				element.replaceWith(toNode(value))
 			} else if (item.itemType === "el") {
 				if (!(value instanceof Element)) throw new Error(`Expected ${nameOf(Element)} at index "${index}", but got ${nameOf(value)}.`)
 				append(value, ...arrayFrom(element.childNodes))
