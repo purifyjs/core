@@ -46,11 +46,6 @@ export function valueToNode(value: unknown): Node {
 			const fragment = createFragment()
 			const itemStartComment = createComment(`item ${id} of ${signal.id}`)
 			const itemEndComment = createComment(`/item ${id} of ${signal.id}`)
-			const orignalRemove = itemEndComment.remove
-			itemEndComment.remove = () => {
-				console.trace("remove", itemEndComment)
-				orignalRemove.call(itemEndComment)
-			}
 
 			append(fragment, itemStartComment)
 			append(fragment, valueToNode(value))
