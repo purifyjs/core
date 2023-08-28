@@ -76,7 +76,7 @@ export function createTemplateShape(tokens: TemplateToken[]): TemplateShape {
 					ref,
 				}
 				continue
-			} else if (token.state.type === TemplateToken.State.Type.TagInner && Object.keys(token.state.attributes).length === 0) {
+			} else if (token.state.type === TemplateToken.State.Type.TagInner && !token.state.currentAttribute.name) {
 				if (token.state.tag === "x") {
 					const ref = token.state.ref
 					items[i] = {
