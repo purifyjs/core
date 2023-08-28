@@ -1,4 +1,4 @@
-import { arrayFrom, isFunction, isUndefined } from "../utils/bundleHelpers"
+import { arrayFrom, isFunction } from "../utils/bundleHelpers"
 
 export type Lifecycle = {
 	mounted: boolean | null
@@ -26,7 +26,7 @@ function mountableOf(node: Node) {
 	return mountable
 }
 
-if (!isUndefined(window)) {
+if (typeof window !== "undefined") {
 	const mutationObserver = new MutationObserver((mutations) => {
 		for (const mutation of mutations) {
 			arrayFrom(mutation.removedNodes).forEach(removedNode)

@@ -41,7 +41,7 @@ export namespace TemplateToken {
 	}
 }
 
-export function tokenizeTemplate(templateStrings: TemplateStringsArray): TemplateToken[] {
+export function tokenizeTemplate(templateStrings: TemplateStringsArray | string[]): TemplateToken[] {
 	const tokens: TemplateToken[] = new Array(templateStrings.length)
 
 	const state: TemplateToken.State = {
