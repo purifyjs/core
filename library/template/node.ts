@@ -22,9 +22,9 @@ export function valueToNode(value: unknown): Node {
 		const endComment = createComment(`/signal ${value.id}`)
 		append(fragment, startComment, endComment)
 
-		type Item = { value: unknown; startComment: Comment; endComment: Comment }
+		type Item = { value: unknown; startComment: Comment; endComment: Comment; fragment: DocumentFragment }
 		const itemNodes = new WeakMap<ChildNode, Item>()
-		function createItem(value: unknown): DocumentFragment {
+		function createItem(value: unknown): Item {
 			const fragment = createFragment()
 			const itemStartComment = createComment(`item ${value}`)
 			const itemEndComment = createComment(`/item ${value}`)
@@ -33,10 +33,12 @@ export function valueToNode(value: unknown): Node {
 			append(fragment, valueToNode(value))
 			append(fragment, itemEndComment)
 
-			itemNodes.set(itemStartComment, { value, startComment: itemStartComment, endComment: itemEndComment })
+			const self: Item = { value, startComment: itemStartComment, endComment: itemEndComment, fragment }
+			itemNodes.set(itemStartComment, self)
 
-			return fragment
+			return self
 		}
+
 		function removeItem(item: Item) {
 			while (nextSibling(item.startComment) !== item.endComment) remove(nextSibling(item.startComment)!)
 			remove(item.startComment)
@@ -54,7 +56,8 @@ export function valueToNode(value: unknown): Node {
 
 						while (true) {
 							if (currentNode === endComment) {
-								insertBefore(endComment, createItem(currentValue))
+								const item = createItem(currentValue)
+								insertBefore(endComment, item.fragment)
 								break
 							}
 
@@ -71,14 +74,12 @@ export function valueToNode(value: unknown): Node {
 									removeItem(currentItem)
 									currentNode = nextSibling(nextItem.endComment)!
 								} else {
-									const newItemFragment = createItem(currentValue)
-									const newItemFragmentLastChild = newItemFragment.lastChild!
-
-									insertBefore(currentItem.startComment, newItemFragment)
+									const newItem = createItem(currentValue)
+									insertBefore(currentItem.endComment, newItem.fragment)
 
 									if (nextIndex >= signalValue.length || signalValue[nextIndex] !== currentItem.value) {
 										removeItem(currentItem)
-										currentNode = nextSibling(newItemFragmentLastChild)!
+										currentNode = nextSibling(newItem.endComment)!
 									} else {
 										currentIndex = nextIndex
 										currentNode = nextSibling(currentItem.endComment)!

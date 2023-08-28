@@ -102,7 +102,11 @@ export function createSignalWritable<T>(initial: T) {
 		subscribe$(node, listener, options) {
 			let subscription: SignalSubscription
 			onMount$(node, () => {
-				subscription = self.subscribe(listener, options)
+				// if node gets unmounted
+				// lifetime can't detect unmount until the next cycle
+				// so if before the next cycle, signal gets called and the listener gets called
+				// to avoid this, we check if the node is still connected before calling the listener
+				subscription = self.subscribe((...args) => node.isConnected && listener(...args), options)
 			})
 			onUnmount$(node, () => subscription.unsubscribe())
 		},
@@ -175,7 +179,7 @@ export function createSignalReadable<T>(updater: SignalUpdater<T>, initial?: T) 
 		subscribe$(node, listener, options) {
 			let subscription: SignalSubscription
 			onMount$(node, () => {
-				subscription = self.subscribe(listener, options)
+				subscription = self.subscribe((...args) => node.isConnected && listener(...args), options)
 			})
 			onUnmount$(node, () => subscription.unsubscribe())
 		},

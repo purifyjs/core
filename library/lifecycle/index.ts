@@ -8,7 +8,7 @@ export type Lifecycle = {
 	}
 }
 const mountables = new WeakMap<Node, Lifecycle>()
-function mountableOf(node: Node) {
+function mountableOf(node: Node): Readonly<Lifecycle> {
 	let mountable = mountables.get(node)
 	if (!mountable) {
 		mountables.set(
@@ -42,21 +42,8 @@ if (typeof window !== "undefined") {
 		return shadowRoot
 	}
 
-	const originalRemoveChild = Node.prototype.removeChild
-	Node.prototype.removeChild = function <T extends Node>(child: T) {
-		originalRemoveChild(child)
-		removedNode(child)
-		return child
-	}
-
-	const originalRemove = Element.prototype.remove
-	Element.prototype.remove = function () {
-		originalRemove.call(this)
-		removedNode(this)
-	}
-
 	function addedNode(node: Node) {
-		if (node.getRootNode({ composed: true }) !== document) return
+		if (!node.isConnected) return
 		emitMount(node)
 		if (node instanceof HTMLElement) arrayFrom(node.shadowRoot?.childNodes ?? []).forEach((node) => addedNode(node))
 		arrayFrom(node.childNodes).forEach((node) => addedNode(node))
