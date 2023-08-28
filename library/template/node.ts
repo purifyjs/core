@@ -1,6 +1,17 @@
 import { isSignalReadable } from "../signal"
 import { createOrGetDeriveOfFunction } from "../signal/derive"
-import { append, createComment, createFragment, createTextNode, insertBefore, isFunction, isNull, nextSibling, remove } from "../utils/bundleHelpers"
+import {
+	append,
+	arrayFrom,
+	createComment,
+	createFragment,
+	createTextNode,
+	insertBefore,
+	isFunction,
+	isNull,
+	nextSibling,
+	remove,
+} from "../utils/bundleHelpers"
 import { uniqueId } from "../utils/id"
 
 const EMPTY_NODE = createFragment()
@@ -8,6 +19,12 @@ const signalCommentRange = new WeakMap<Comment, Comment>()
 export function valueToNode(value: unknown): Node {
 	if (isNull(value)) return EMPTY_NODE
 	if (value instanceof Node) return value
+
+	if (value instanceof NodeList) {
+		const fragment = createFragment()
+		append(fragment, ...arrayFrom(value))
+		return fragment
+	}
 
 	if (Array.isArray(value)) {
 		const fragment = createFragment()
