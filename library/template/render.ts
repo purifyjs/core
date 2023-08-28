@@ -20,7 +20,7 @@ import { valueToNode } from "./node"
 import type { TemplateShape } from "./parse/shape"
 import type { TemplateValue } from "./types"
 
-export function render(template: HTMLTemplateElement, shape: TemplateShape, values: TemplateValue[]): Node[] {
+export function render(template: HTMLTemplateElement, shape: TemplateShape, values: TemplateValue[]): NodeListOf<ChildNode> {
 	const fragment = template.content.cloneNode(true) as DocumentFragment
 
 	try {
@@ -154,5 +154,5 @@ export function render(template: HTMLTemplateElement, shape: TemplateShape, valu
 		throw error
 	}
 
-	return arrayFrom(fragment.childNodes)
+	return fragment.childNodes
 }

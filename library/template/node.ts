@@ -1,18 +1,10 @@
-import { SignalReadable, isSignalReadable } from "../signal"
+import { isSignalReadable } from "../signal"
 import { createOrGetDeriveOfFunction } from "../signal/derive"
 import { append, createComment, createFragment, createTextNode, insertBefore, isFunction, isNull, nextSibling, remove } from "../utils/bundleHelpers"
 import { uniqueId } from "../utils/id"
 
 const EMPTY_NODE = createFragment()
-const signalNodes = new WeakMap<
-	SignalReadable,
-	{
-		startComment: Comment
-		endComment: Comment
-		fragment: DocumentFragment
-	}
->()
-const signalOfComment = new WeakMap<Comment, SignalReadable>()
+const signalCommentRange = new WeakMap<Comment, Comment>()
 export function valueToNode(value: unknown): Node {
 	if (isNull(value)) return EMPTY_NODE
 	if (value instanceof Node) return value
@@ -27,18 +19,13 @@ export function valueToNode(value: unknown): Node {
 
 	if (isSignalReadable(value)) {
 		const signal = value
-		const { startComment, endComment, fragment } =
-			signalNodes.get(signal) ??
-			signalNodes
-				.set(signal, {
-					startComment: createComment(`signal ${signal.id}`),
-					endComment: createComment(`/signal ${signal.id}`),
-					fragment: createFragment(),
-				})
-				.get(signal)!
-		signalOfComment.set(startComment, signal)
+		const fragment = createFragment()
+		const startComment = createComment(`signal ${signal.id}`)
+		const endComment = createComment(`/signal ${signal.id}`)
 		append(fragment, startComment, endComment)
+		signalCommentRange.set(startComment, endComment)
 
+		const fragmentOfSignalItems = new WeakMap<Comment, DocumentFragment>()
 		type Item = { value: unknown; startComment: Comment; endComment: Comment; fragment: DocumentFragment }
 		const itemNodes = new WeakMap<ChildNode, Readonly<Item>>()
 		function createItem(value: unknown): Readonly<Item> {
@@ -78,17 +65,24 @@ export function valueToNode(value: unknown): Node {
 						for (let index = 0; index < signalValue.length; index++) {
 							let value = signalValue[index] as unknown
 
-							if (value instanceof Node && signalOfComment.has(value as Comment)) {
-								const signalItem = signalNodes.get(signalOfComment.get(value as Comment)!)!
+							if (value instanceof Node && signalCommentRange.has(value as Comment)) {
+								const fragment =
+									fragmentOfSignalItems.get(value as Comment) ??
+									(() => {
+										const fragment = createFragment()
+										fragmentOfSignalItems.set(value as Comment, fragment)
+										return fragment
+									})()
+								const endComment = signalCommentRange.get(value as Comment)!
 
-								while (value !== signalItem.endComment) {
+								while (value !== endComment) {
 									if (!(value instanceof Node)) throw new Error("Expected Node")
-									append(signalItem.fragment, value)
+									append(fragment, value)
 									value = signalValue[++index] as Node
 									if (index >= signalValue.length) throw new Error("Expected end of signal")
 								}
-								append(signalItem.fragment, signalItem.endComment)
-								value = signalItem.fragment
+								append(fragment, endComment)
+								value = fragment
 							}
 							values.push(value)
 						}

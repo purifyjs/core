@@ -1,4 +1,4 @@
-import { append } from "../utils/bundleHelpers"
+import { append, arrayFrom } from "../utils/bundleHelpers"
 import { uniqueId } from "../utils/id"
 
 type TagName = `${string}-${string}${string[0]}`
@@ -39,9 +39,9 @@ export abstract class ComponentBase extends HTMLElement {
 		this.$shadowRoot = this.attachShadow({ mode: "open" })
 	}
 
-	set $html(nodes: Node[]) {
+	set $html(nodes: NodeListOf<ChildNode>) {
 		while (this.$shadowRoot.firstChild) this.$shadowRoot.removeChild(this.$shadowRoot.firstChild)
-		append(this.$shadowRoot, ...nodes)
+		append(this.$shadowRoot, ...arrayFrom(nodes))
 	}
 
 	static get $css(): CSSStyleSheet {
