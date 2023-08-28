@@ -1,7 +1,7 @@
 import { onMount$, onUnmount$ } from "../lifecycle"
 import type { SignalWritable } from "../signal"
 import { isSignalReadable, isSignalWritable } from "../signal"
-import { createOrGetDeriveOfFunction, createSignalDerived } from "../signal/derive"
+import { createOrGetDerivedSignalOfFunction, createSignalDerived } from "../signal/derive"
 import { assert } from "../utils/assert"
 import {
 	addEventListener,
@@ -16,11 +16,10 @@ import {
 } from "../utils/bundleHelpers"
 import { nameOf, typeOf } from "../utils/name"
 import { unhandled } from "../utils/unhandled"
-import { valueToNode } from "./node"
+import { Template, valueToNode } from "./node"
 import type { TemplateShape } from "./parse/shape"
-import type { TemplateValue } from "./types"
 
-export function render(template: HTMLTemplateElement, shape: TemplateShape, values: TemplateValue[]): NodeListOf<ChildNode> {
+export function render(template: HTMLTemplateElement, shape: TemplateShape, values: Template.Value[]): DocumentFragment {
 	const fragment = template.content.cloneNode(true) as DocumentFragment
 
 	try {
@@ -38,7 +37,7 @@ export function render(template: HTMLTemplateElement, shape: TemplateShape, valu
 				for (const attribute of arrayFrom(element.attributes)) setAttribute(value, attribute.name, attribute.value)
 				element.replaceWith(value)
 			} else if (item.itemType === "attr") {
-				if (isFunction(value)) values[index] = value = createOrGetDeriveOfFunction(value as () => TemplateValue)
+				if (isFunction(value)) values[index] = value = createOrGetDerivedSignalOfFunction(value as () => Template.Value)
 				if (isSignalReadable(value)) {
 					if (item.quote === "") {
 						value.subscribe$(
@@ -58,7 +57,7 @@ export function render(template: HTMLTemplateElement, shape: TemplateShape, valu
 			} else if (item.itemType === "dir") {
 				switch (item.directiveType) {
 					case "class":
-						if (isFunction(value)) value = createOrGetDeriveOfFunction(value as () => TemplateValue)
+						if (isFunction(value)) value = createOrGetDerivedSignalOfFunction(value as () => Template.Value)
 						if (isSignalReadable(value)) {
 							value.subscribe$(element, (v) => element.classList.toggle(item.name, !!v), {
 								mode: "immediate",
@@ -66,7 +65,7 @@ export function render(template: HTMLTemplateElement, shape: TemplateShape, valu
 						} else element.classList.toggle(item.name, !!value)
 						break
 					case "style":
-						if (isFunction(value)) value = createOrGetDeriveOfFunction(value as () => TemplateValue)
+						if (isFunction(value)) value = createOrGetDerivedSignalOfFunction(value as () => Template.Value)
 						if (isSignalReadable(value)) {
 							value.subscribe$(element, (v) => element.style.setProperty(item.name, `${v}`), {
 								mode: "immediate",
@@ -154,5 +153,5 @@ export function render(template: HTMLTemplateElement, shape: TemplateShape, valu
 		throw error
 	}
 
-	return fragment.childNodes
+	return fragment
 }

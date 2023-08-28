@@ -1,18 +1,26 @@
-import { isSignalReadable } from "../signal"
-import { createOrGetDeriveOfFunction } from "../signal/derive"
-import {
-	append,
-	arrayFrom,
-	createComment,
-	createFragment,
-	createTextNode,
-	insertBefore,
-	isFunction,
-	isNull,
-	nextSibling,
-	remove,
-} from "../utils/bundleHelpers"
+import { SignalReadable, SignalWritable, isSignalReadable } from "../signal"
+import { createOrGetDerivedSignalOfFunction } from "../signal/derive"
+import { append, createComment, createFragment, createTextNode, insertBefore, isFunction, isNull, nextSibling, remove } from "../utils/bundleHelpers"
 import { uniqueId } from "../utils/id"
+
+export type Template = {
+	strings: TemplateStringsArray
+	values: Template.Value[]
+}
+
+export namespace Template {
+	export type Value =
+		| string
+		| number
+		| boolean
+		| Node
+		| Function
+		| EventListener
+		| SignalReadable<Value>
+		| SignalWritable<Value | Date>
+		| null
+		| Value[]
+}
 
 const EMPTY_NODE = createFragment()
 const signalCommentRange = new WeakMap<Comment, Comment>()
@@ -20,19 +28,13 @@ export function valueToNode(value: unknown): Node {
 	if (isNull(value)) return EMPTY_NODE
 	if (value instanceof Node) return value
 
-	if (value instanceof NodeList) {
-		const fragment = createFragment()
-		append(fragment, ...arrayFrom(value))
-		return fragment
-	}
-
 	if (Array.isArray(value)) {
 		const fragment = createFragment()
 		append(fragment, ...value.map((item) => valueToNode(item)))
 		return fragment
 	}
 
-	if (isFunction(value)) return valueToNode(createOrGetDeriveOfFunction(value as () => unknown))
+	if (isFunction(value)) return valueToNode(createOrGetDerivedSignalOfFunction(value as () => unknown))
 
 	if (isSignalReadable(value)) {
 		const signal = value

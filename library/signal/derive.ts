@@ -86,7 +86,7 @@ const deriveOfFunctionCache = new WeakMap<SignalDeriver<unknown>, SignalReadable
  * @example
  * const double = m.deriveFromFunction((s) => s(foo).value * 2)
  **/
-export function createOrGetDeriveOfFunction<T extends (...args: any) => any>(func: T): SignalReadable<ReturnType<T>> {
+export function createOrGetDerivedSignalOfFunction<T extends (...args: any) => any>(func: T): SignalReadable<ReturnType<T>> {
 	if (deriveOfFunctionCache.has(func)) return deriveOfFunctionCache.get(func)!
 	const computed = createSignalDerived(() => func())
 	deriveOfFunctionCache.set(func, computed)

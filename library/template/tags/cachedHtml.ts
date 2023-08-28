@@ -1,7 +1,7 @@
 import { createElement } from "../../utils/bundleHelpers"
+import { Template } from "../node"
 import type { TemplateShape } from "../parse/shape"
 import { render } from "../render"
-import type { TemplateValue } from "../types"
 
 /** 
 	@internal Use `html` instead. Preprocessor will replace `html` with this. This is internal API.
@@ -9,7 +9,7 @@ import type { TemplateValue } from "../types"
 export function createCachedHtml(shape: TemplateShape) {
 	const template = createElement("template")
 	template.innerHTML = shape.html
-	return (_: TemplateStringsArray, ...values: TemplateValue[]) => {
+	return (_: TemplateStringsArray, ...values: Template.Value[]) => {
 		return render(template, shape, values)
 	}
 }
