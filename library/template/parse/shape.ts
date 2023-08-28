@@ -15,7 +15,7 @@ export namespace TemplateShape {
 	}
 
 	export type AttributeValueData = {
-		indexes: number[]
+		valueIndexes: number[]
 		parts: (number | string)[] | null
 	}
 
@@ -115,8 +115,8 @@ export function createTemplateShape(tokens: TemplateToken[]): TemplateShape {
 					else {
 						html += ref // using the tag ref as a separator or placeholder for the value
 						let attributeValueData = refData.attributeValues.get(name)
-						if (!attributeValueData) refData.attributeValues.set(name, (attributeValueData = { indexes: [], parts: null }))
-						attributeValueData.indexes.push(i)
+						if (!attributeValueData) refData.attributeValues.set(name, (attributeValueData = { valueIndexes: [], parts: null }))
+						attributeValueData.valueIndexes.push(i)
 					}
 					items[i] = {
 						itemType: "attr",
@@ -208,7 +208,7 @@ export function validate(shape: TemplateShape): void {
 					.split(ref)
 					.filter((s) => s)
 					.flatMap((part, index) => {
-						const valueIndex = attributeValue.indexes[index]
+						const valueIndex = attributeValue.valueIndexes[index]
 						if (valueIndex === undefined)
 							throw new Error(`Could not find value index of ${index}th part of attribute "${name}" on element with ref "${ref}".`)
 						return [part, valueIndex]

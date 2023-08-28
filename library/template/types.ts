@@ -1,5 +1,4 @@
 import { SignalReadable, SignalWritable } from "../signal"
-import type { Renderable } from "./renderable"
 
 export type TemplateValue =
 	| string
@@ -10,7 +9,6 @@ export type TemplateValue =
 	| EventListener
 	| SignalReadable<TemplateValue>
 	| SignalWritable<TemplateValue | Date>
-	| Renderable<TemplateValue>
 	| null
 	| TemplateValue[]
 export type Template = {

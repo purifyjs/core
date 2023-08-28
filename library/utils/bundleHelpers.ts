@@ -77,7 +77,7 @@ export function log(...args: any[]): void {
 }
 
 export function isFunction(value: any): value is Function {
-	return isFunction(value)
+	return typeof value === "function"
 }
 export function isString(value: any): value is string {
 	return typeof value === "string"
@@ -98,7 +98,7 @@ export function isNull(value: any): value is null {
 	return value === null
 }
 export function isObject(value: any): value is object {
-	return typeof value === "object"
+	return typeof value === "object" && value !== null
 }
 export function isBigInt(value: any): value is bigint {
 	return typeof value === "bigint"

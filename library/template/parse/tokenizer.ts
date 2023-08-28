@@ -85,8 +85,7 @@ function processChar(char: string, state: TemplateToken.State): string {
 				state.tag = ""
 				state.ref = uniqueId()
 				state.attributes = {}
-				state.currentAttribute.name = ""
-				state.currentAttribute.value = ""
+				state.currentAttribute = { name: "", value: "" }
 				state.addRef = false
 			}
 			break
@@ -101,14 +100,16 @@ function processChar(char: string, state: TemplateToken.State): string {
 			} else state.tag += char
 			break
 		case TemplateToken.State.Type.TagInner:
-			if (char === ">") {
+			if (char === "/") {
+				state.type = TemplateToken.State.Type.TagClose
+				state.tag = ""
+				if (state.addRef) result = ` ref:${state.ref} /`
+			} else if (char === ">") {
 				state.type = TemplateToken.State.Type.Outer
-				if (state.addRef) result = ` ref:${state.ref}>`
-			} else if (/\s/.test(char)) state.type = TemplateToken.State.Type.TagInner
-			else {
+				if (state.addRef) result = ` ref:${state.ref} >`
+			} else if (!/\s/.test(char)) {
 				state.type = TemplateToken.State.Type.AttributeName
-				state.currentAttribute.name = char
-				state.currentAttribute.value = ""
+				state.currentAttribute = { name: char, value: "" }
 			}
 			break
 		case TemplateToken.State.Type.TagClose:
