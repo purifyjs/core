@@ -42,6 +42,21 @@ if (typeof window !== "undefined") {
 		return shadowRoot
 	}
 
+	// Need these for now, because MutationObserver callsback after the cycle is complete
+	// Which is not ideal at all, causes a lot of issues and errors
+	// TODO: find a better way to do this
+	const orignalRemove = Element.prototype.remove
+	Element.prototype.remove = function () {
+		orignalRemove.call(this)
+		removedNode(this)
+	}
+
+	const originlaremove2 = CharacterData.prototype.remove
+	CharacterData.prototype.remove = function () {
+		originlaremove2.call(this)
+		removedNode(this)
+	}
+
 	function addedNode(node: Node) {
 		if (!node.isConnected) return
 		emitMount(node)

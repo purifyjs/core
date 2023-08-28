@@ -1,4 +1,4 @@
-import { onMount$, onUnmount$ } from "../lifecycle"
+import { onMount$ } from "../lifecycle"
 import { uniqueId } from "../utils/id"
 
 export type SignalSubscription = {
@@ -107,8 +107,8 @@ export function createSignalWritable<T>(initial: T) {
 				// so if before the next cycle, signal gets called and the listener gets called
 				// to avoid this, we check if the node is still connected before calling the listener
 				subscription = self.subscribe((...args) => node.isConnected && listener(...args), options)
+				return () => subscription.unsubscribe()
 			})
-			onUnmount$(node, () => subscription.unsubscribe())
 		},
 		signal() {
 			if (signalling.has(self)) throw new Error("Avoided recursive signalling.")
@@ -180,8 +180,8 @@ export function createSignalReadable<T>(updater: SignalUpdater<T>, initial?: T) 
 			let subscription: SignalSubscription
 			onMount$(node, () => {
 				subscription = self.subscribe((...args) => node.isConnected && listener(...args), options)
+				return () => subscription.unsubscribe()
 			})
-			onUnmount$(node, () => subscription.unsubscribe())
 		},
 		signal() {
 			base.signal()
