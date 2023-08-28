@@ -24,17 +24,17 @@ export namespace Template {
 
 const EMPTY_NODE = createFragment()
 const signalCommentRange = new WeakMap<Comment, Comment>()
-export function valueToNode(value: unknown): Node {
+export function templatify(value: unknown): Node {
 	if (isNull(value)) return EMPTY_NODE
 	if (value instanceof Node) return value
 
 	if (Array.isArray(value)) {
 		const fragment = createFragment()
-		append(fragment, ...value.map((item) => valueToNode(item)))
+		append(fragment, ...value.map((item) => templatify(item)))
 		return fragment
 	}
 
-	if (isFunction(value)) return valueToNode(createOrGetDerivedSignalOfFunction(value as () => unknown))
+	if (isFunction(value)) return templatify(createOrGetDerivedSignalOfFunction(value as () => unknown))
 
 	if (isSignalReadable(value)) {
 		const signal = value
@@ -54,7 +54,7 @@ export function valueToNode(value: unknown): Node {
 			const itemEndComment = createComment(`/item ${id} of ${signal.id}`)
 
 			append(fragment, itemStartComment)
-			append(fragment, valueToNode(value))
+			append(fragment, templatify(value))
 			append(fragment, itemEndComment)
 
 			const self: Item = { value: value, startComment: itemStartComment, endComment: itemEndComment, fragment }
@@ -156,7 +156,7 @@ export function valueToNode(value: unknown): Node {
 					}
 				} else {
 					while (nextSibling(startComment) !== endComment) remove(nextSibling(startComment)!)
-					insertBefore(endComment, valueToNode(signalValue))
+					insertBefore(endComment, templatify(signalValue))
 				}
 			},
 			{ mode: "immediate" }

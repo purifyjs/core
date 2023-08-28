@@ -1,5 +1,5 @@
+import { Template } from ".."
 import { createElement } from "../../utils/bundleHelpers"
-import { Template } from "../node"
 import type { TemplateShape } from "../parse/shape"
 import { render } from "../render"
 

@@ -1,4 +1,4 @@
-import { Template } from "../node"
+import { Template } from ".."
 import { createTemplateShape } from "../parse/shape"
 import { tokenizeTemplate } from "../parse/tokenizer"
 import { render } from "../render"
