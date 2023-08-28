@@ -1,10 +1,14 @@
 {
 	"compilerOptions": {
 		"target": "ESNext",
-		"module": "CommonJS",
-		"lib": ["ES2023", "DOM"],
+		"module": "ESNext",
+		"lib": ["DOM"],
 		"moduleResolution": "Node",
-		"noEmit": true,
+		"resolveJsonModule": true,
+		"isolatedModules": true,
+		"esModuleInterop": true,
+		"removeComments": true,
+		"sourceMap": true,
 
 		"forceConsistentCasingInFileNames": true /* Ensure that casing is correct in imports. */,
 		"strict": true /* Enable all strict type-checking options. */,
