@@ -1,38 +1,42 @@
-<p align="center">
-<img src="https://ipfs.io/ipfs/QmW6Q7ifwuaR9HKSnNcwyXu8DsJVHrXHQ4w89paEJ9qRRx" />
-</p>
+# What is this?
 
-# MasterTS: A Breath of Fresh Air
+This is an experimental, light, minimal and reactive UI building library with support for signals.
 
-MasterTS is a clean and lightweight TypeScript library for building user interfaces, focusing on simplicity and modularity. It leverages Signals, Web Components, and TypeScript to create single-page applications (SPAs).
+It adds templating and reactivity features to your vanilla js.
 
-**Empty MasterTS+Vite project bundle size with gzip, everything imported:** `4.6kb`<br/>
-(Currently, working on some changes to make bundle size smaller, so this might not be accurate.)
+# Update
 
-**Warning:** MasterTS is currently a work in progress prototype and is not suitable for production use.
+After adding some necessary logic, core library went up to 3kb from 2.4kb.
 
-## Install
+If anyone reading this can make the core library smaller or can find a new logic that would require less code without sacraficing features, it would be great.
 
-To install MasterTS, please refer to the [Install Instructions](https://github.com/DeepDoge/master-ts/releases) available in the repository.
+# Why?
 
-## Vite Plugin
+After, building my own UI building library, [master-ts](https://github.com/DeepDoge/master-ts),
+with some new inspiration from [VanJS](https://vanjs.org/), I decided to build a new UI building library.
 
-MasterTS is a UI building library. So you may wonder, why does a library have a "Vite" plugin? The truth is, you don't actually need this plugin for MasterTS to work. The plugin simply bakes your MasterTS code, including HTML templates, at build time to improve runtime performance.
+After, [master-ts](https://github.com/DeepDoge/master-ts), building this was easier than I thought.
+Since I already did it once, I just did it again here, but better and more clean.
 
-So it's recommended that you use [MasterTS Vite Plugin](https://github.com/DeepDoge/master-ts-vite-plugin)
+[VanJS](https://vanjs.org/) is minimal, that's what makes it good, but the bare minimum I'm looking for is a bit more than that.
 
-## Documentation
+Core of this library is the bare minimum I need in a core, not more, not less.
 
-Although documentation is not yet available, it will be created once breaking changes cease for a period of 2 months. In the meantime, you can explore the [Examples](#examples) provided.
+I was able to make the core library in 1 day, and I'm pretty happy with the result. Although, it takes 2.4kb minified(no gzip), compared to [VanJS](https://vanjs.org/)'s 1.7kb, I think it's worth it. And I believe there is still room for improvement, to make it smaller, and also better. So pretty good.
 
-## Examples
+I will add more features and tools to this library, but I will keep the core as it is.
 
--  [MasterTS Vite Example](https://github.com/DeepDoge/master-ts-vite-demo): A demo project showcasing MasterTS with Vite.
--  [DeepDoge/eternis](https://github.com/DeepDoge/eternis): A project utilizing MasterTS. (Up to date with the latest version of the MasterTS)
--  [Chrome Extension](https://github.com/DeepDoge/youtube-custom-shortcuts): A YouTube custom shortcuts extension.
+Core is just a one file. I'm gonna the add extra features to another file.<br/>
+These features will just be some built-in utilities. To make life easier.
 
-## Motivation
+For now I'm planning to add some more signal related features, such as `switch`, `each`, `deferred` and `await`.<br/>
+Also gonna add support for html string literal tags(this thing ` html`` `), like in [master-ts](https://github.com/DeepDoge/master-ts),
+it will parse html on runtime, but with a preprocessor, you can bake it into your bundle, so parse it on build time.
+So when preprocessor is used, it will just tree-shake all of the html parsing stuff.<br/>
+You can still use this thing `div({ "class:hello": toggleSignal }, ["Hello"])`, It's just you have choice now.
+Also probably gonna bake the html to that tho. <br/>
+None of these extra stuff, will be in the core file.<br/>
+So basically gonna cover all of [master-ts](https://github.com/DeepDoge/master-ts), but in a more minimal way.
 
-MasterTS aims to address the limitations of other frontend libraries for SPAs by combining the best features of SolidJS, React's TSX, and Svelte. It introduces signals for reactivity, treats components as HTMLElement(s), and offers native TypeScript support, predictable, uses function based Components like in JSX but not JSX. The library prioritizes simplicity, transparency, and modularity, providing straightforward and easy-to-use solutions without unnecessary complexity.
-
-MasterTS is a breath of fresh air in this mad world.
+If this experiment goes well, this library will be the new [master-ts](https://github.com/DeepDoge/master-ts).
+Same repo, just a big breaking change commit.

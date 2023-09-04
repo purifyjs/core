@@ -2,13 +2,19 @@
 	"compilerOptions": {
 		"target": "ESNext",
 		"module": "ESNext",
-		"lib": ["DOM"],
+		"lib": ["ES2023", "DOM"],
 		"moduleResolution": "Node",
 		"resolveJsonModule": true,
 		"isolatedModules": true,
 		"esModuleInterop": true,
-		"removeComments": true,
+		"noEmit": true,
+		"skipLibCheck": true,
+		"removeComments": false,
 		"sourceMap": true,
+		"baseUrl": "app",
+		"paths": {
+			"@/*": ["*"]
+		},
 
 		"forceConsistentCasingInFileNames": true /* Ensure that casing is correct in imports. */,
 		"strict": true /* Enable all strict type-checking options. */,
@@ -17,5 +23,5 @@
 		"noPropertyAccessFromIndexSignature": true,
 		"strictNullChecks": true /* Enable strict null checks. */
 	},
-	"include": ["library"]
+	"include": ["app", "lib"]
 }

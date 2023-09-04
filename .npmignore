@@ -1,8 +1,6 @@
-/.vscode
-/.devcontainer
-/.github
-/.gitignore
-/.prettierrc
-/.eslintrc
+/.*
 /*.md
-**/*.test.ts
+/app
+/vite.config.ts
+/index.html
+/CODE_OF_CONDUCT
