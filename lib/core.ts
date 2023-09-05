@@ -6,6 +6,7 @@
 
 let doc = document
 let isFunction = (value: any): value is Function => typeof value === "function"
+let isArray = (value: unknown): value is unknown[] => Array.isArray(value)
 let weakMap = WeakMap
 let startsWith = <const T extends string>(text: string, start: T): text is `${T}${string}` => text.startsWith(start)
 let timeout = setTimeout
@@ -201,9 +202,9 @@ let bindSignalAsFragment = <T>(signalOrFn: SignalOrFn<T>): DocumentFragment => {
 	let signalFragment = fragment(start, end)
 
 	// TODO: Make all of these smaller
-	type Item = { v: unknown; s: Comment; e: Comment; f: DocumentFragment }
+	type Item = { v: unknown; s: Comment; e: Comment }
 	let itemNodes = new weakMap<ChildNode, Readonly<Item>>()
-	let createItem = (value: unknown): Readonly<Item> => {
+	let createItem = (value: unknown, insertBefore: ChildNode): Readonly<Item> => {
 		let itemStart = createComment("")
 		let itemEnd = createComment("")
 
@@ -211,9 +212,9 @@ let bindSignalAsFragment = <T>(signalOrFn: SignalOrFn<T>): DocumentFragment => {
 			v: value,
 			s: itemStart,
 			e: itemEnd,
-			f: fragment(itemStart, toNode(value), itemEnd),
 		}
 		itemNodes.set(itemStart, self)
+		insertBefore.before(itemStart, toNode(value), itemEnd)
 
 		return self
 	}
@@ -224,41 +225,39 @@ let bindSignalAsFragment = <T>(signalOrFn: SignalOrFn<T>): DocumentFragment => {
 		item.e[REMOVE]()
 	}
 
+	// TODO: Someone help me make this shorter and more elegant
+	// TODO: Welp
 	signalFrom(signalOrFn)[FOLLOW$](
 		start,
 		(value: T) => {
-			if (!Array.isArray(value)) return clearBetween(start, end), end.before(toNode(value))
+			if (!isArray(value)) return clearBetween(start, end), end.before(toNode(value))
 
-			let currentNode: ChildNode = nextSibling(start)!
-			for (let currentIndex = 0; currentIndex < value.length; currentIndex++) {
+			let currentNode = nextSibling(start)!
+			nextValue: for (let currentIndex = 0; currentIndex < value.length; currentIndex++) {
 				let currentValue = value[currentIndex]
 				let nextIndex = currentIndex + 1
 
-				for (; ; currentNode = nextSibling(currentNode)!) {
-					if (currentNode === end) {
-						let item = createItem(currentValue)
-						end.before(item.f)
-						break
-					}
-
+				while (currentNode !== end) {
 					let currentItem = itemNodes.get(currentNode)
-					if (!currentItem) continue
-					if (currentValue === currentItem.v) currentNode = nextSibling(currentItem.e)!
-					else {
-						let nextItem = itemNodes.get(nextSibling(currentItem.e)!)
-						if (nextItem && currentValue === nextItem.v) {
-							removeItem(currentItem)
-							currentNode = nextSibling(nextItem.e)!
-						} else {
-							let newItem = createItem(currentValue)
-							currentItem.s.before(newItem.f)
-							nextIndex >= value.length || (value[nextIndex] as unknown) !== currentItem.v
-								? (removeItem(currentItem), (currentNode = nextSibling(newItem.e)!))
-								: ((currentIndex = nextIndex), (currentNode = nextSibling(currentItem.e)!))
+					if (currentItem) {
+						if (currentValue === currentItem.v) currentNode = nextSibling(currentItem.e)!
+						else {
+							let nextItem = itemNodes.get(nextSibling(currentItem.e)!)
+							if (nextItem && currentValue === nextItem.v) {
+								removeItem(currentItem)
+								currentNode = nextSibling(nextItem.e)!
+							} else {
+								let newItem = createItem(currentValue, currentItem.s)
+								nextIndex >= value.length || value[nextIndex] !== currentItem.v
+									? (removeItem(currentItem), (currentNode = nextSibling(newItem.e)!))
+									: ((currentIndex = nextIndex), (currentNode = nextSibling(currentItem.e)!))
+							}
 						}
+						continue nextValue
 					}
-					break
+					currentNode = nextSibling(currentNode)!
 				}
+				createItem(currentValue, end)
 			}
 
 			currentNode !== end && (clearBetween(currentNode, end), currentNode[REMOVE]())
@@ -272,7 +271,7 @@ let bindSignalAsFragment = <T>(signalOrFn: SignalOrFn<T>): DocumentFragment => {
 let toNode = (value: unknown): Node => {
 	return value === null
 		? EMPTY_NODE
-		: Array.isArray(value)
+		: isArray(value)
 		? fragment(...value.map(toNode))
 		: value instanceof Node
 		? value
