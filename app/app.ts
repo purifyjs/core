@@ -1,6 +1,6 @@
 import type { SignalOrValue } from "../lib/core"
 import { onConnected$, populate, signal, tagsNS } from "../lib/core"
-import { css, html, keyedCache } from "../lib/extra"
+import { css, each, html } from "../lib/extra"
 import { MyButton } from "./my-button"
 const { button, div } = tagsNS
 
@@ -41,8 +41,6 @@ function App() {
 		return html`<div class="item" style:background-color=${color}>${color}</div>`
 	}
 
-	const cache = keyedCache()
-
 	populate(
 		dom,
 		{},
@@ -60,7 +58,11 @@ function App() {
 		div(
 			{ class: "content" },
 			div({ class: "no-cache" }, () => colors.ref.map((color) => Item(color))),
-			div({ class: "with-cache" }, () => colors.ref.map((color) => cache.key(color, () => Item(color))))
+			div({ class: "with-cache" }, () =>
+				each(colors)
+					.key((item) => item)
+					.as((item) => Item(item))
+			)
 		)
 	)
 

@@ -72,10 +72,10 @@ export let css = (strings: TemplateStringsArray, ...values: string[]): CSSStyleS
 }
 
 export let keyedCache = () => {
-	const map = new Map<any, any>()
+	const map = new Map<unknown, unknown>()
 	return {
 		key: <T>(key: unknown, fn: () => T): T => {
-			if (map.has(key)) return map.get(key)
+			if (map.has(key)) return map.get(key) as T
 			const value = fn()
 			map.set(key, value)
 			return value
@@ -105,3 +105,35 @@ export let awaited = <T, F = null>(promise: Promise<T>, fallback?: (error?: Erro
 	fallback && promise.catch((error) => fallback(error))
 	return promiseSignal
 }
+
+export let each = <T>(arr: SignalOrFn<readonly T[]>) => ({
+	key: (getKey: (value: T, index: number) => unknown) => ({
+		as: <R>(transform: (value: T, index: number) => R) => {
+			const arrSignal = typeof arr === "function" ? derive(arr) : arr
+			const cache = new Map<unknown, R>()
+			return signal<readonly R[]>(
+				undefined!,
+				(set) =>
+					arrSignal.follow(
+						(arr) => {
+							const toRemove = new Set(cache.keys())
+							set(
+								arr.map((value, index) => {
+									const key = getKey(value, index)
+									if (cache.has(key)) {
+										toRemove.delete(key)
+										return cache.get(key)!
+									}
+									const result = transform(value, index)
+									cache.set(key, result)
+									return result
+								})
+							)
+							for (const key of toRemove) cache.delete(key)
+						},
+						{ mode: "immediate" }
+					).unfollow
+			)
+		},
+	}),
+})
