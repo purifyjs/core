@@ -32,4 +32,4 @@ The motivation behind "master-ts" is crystal clear: it's about embracing the pow
 
 So, why "master-ts"? Because it's time to bring back the spark to SPAs. Let's leave behind unnecessary complexities and rediscover the joy of coding with a library that's as dependable as it is fun to use.
 
--- Writen by ChatGPT
+— Writen by ChatGPT
