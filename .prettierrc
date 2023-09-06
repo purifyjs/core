@@ -1,15 +1,16 @@
 {
+	"tabWidth": 3,
+	"useTabs": true,
+	"bracketSameLine": true,
+	"printWidth": 120,
+	"semi": false,
+	"arrowParens": "always",
+	"bracketSpacing": true,
 	"overrides": [
 		{
-			"files": ["*"],
+			"files": ["./app/examples/*.ts"],
 			"options": {
-				"tabWidth": 3,
-				"useTabs": true,
-				"bracketSameLine": true,
-				"printWidth": 120,
-				"semi": false,
-				"arrowParens": "always",
-				"bracketSpacing": true
+				"printWidth": 80
 			}
 		}
 	],

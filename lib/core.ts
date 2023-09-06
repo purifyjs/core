@@ -108,7 +108,7 @@ export let isSignal: <U extends boolean = false>(
 	value: any
 ): value is Readonly<Signal<unknown>> => signals.has(value)
 
-let isSignalOrFn = <T>(value: any): value is SignalOrFn<T> => isSignal(value) || isFunction(value)
+export let isSignalOrFn = <T>(value: any): value is SignalOrFn<T> => isSignal(value) || isFunction(value)
 
 export let signalFrom = <T>(src: SignalOrFn<T>): Readonly<Signal<T>> => (isFunction(src) ? derive(src) : src)
 
@@ -344,6 +344,10 @@ export namespace TagsNS {
 
 	export type Attributes<T extends Element, TInputType extends HTMLInputElement["type"] = HTMLInputElement["type"]> = {
 		[key: string]: unknown
+	} & {
+		class?: string
+		style?: string
+		title?: string
 	} & {
 		[K in `class:${string}`]?: SignalOrValueOrFn<boolean>
 	} & (T extends HTMLElement
