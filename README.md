@@ -2,7 +2,7 @@
 <img width="auto" height="420px" src="https://ipfs.io/ipfs/QmebvcQHtoiJcs1PZHnrog4TccVQ2EMYWCt12m4BVt6rZA" />
 </p>
 
-A minimalist TypeScript library for supercharging your vanilla JavaScript applications with elegant and efficient user interfaces.
+A lightweight TypeScript library designed for creating Single Page Applications (SPAs) that supercharge vanilla JS. This lightweight library introduces powerful features, including a robust signaling system and seamless templating with full support for signals.
 
 ## Install
 
