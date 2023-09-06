@@ -1,26 +1,35 @@
 <p align="center">
 <img width="auto" height="420px" src="https://ipfs.io/ipfs/QmebvcQHtoiJcs1PZHnrog4TccVQ2EMYWCt12m4BVt6rZA" />
 </p>
-
+<p align="center">
 A lightweight TypeScript library designed for creating Single Page Applications (SPAs) that supercharge vanilla JS. This lightweight library introduces powerful features, including a robust signaling system and seamless templating with full support for signals.
+</p>
 
-## Install
+## Features ⚡
 
-To install master-ts, please refer to the [Install Instructions](https://github.com/DeepDoge/master-ts/releases) available in the repository.
+### Core
 
-## Vite Plugin
+-  Signals with `signal` and `derive` - all of reactivity is possible thanks to signals
+-  Templating with `TagsNS` - makes it easier to build dom elements within JS/TS
 
-Vite plugin doesn't support the latest version of master-ts atm.
+### Extra
 
-~~MasterTS is a UI building library. So you may wonder, why does a library have a "Vite" plugin? The truth is, you don't actually need this plugin for MasterTS to work. The plugin simply bakes your MasterTS code, including HTML templates, at build time to improve runtime performance.~~
+-  Templating tags `html` and `css` - write HTML and CSS within JS/TS
+-  `defer` - Deferring signals
+-  `each` - Map a array signal while memoizing results with a key for minimum DOM change
+-  `awaited` - Await a promise using signals
+-  `match` - Pattern matching for both signals and values
+-  `keyedCache` - Memoizing anything else you want using keys
 
-~~So it's recommended that you use [MasterTS Vite Plugin](https://github.com/DeepDoge/master-ts-vite-plugin)~~
+## Installation 🍙
 
-## Documentation
+[Install Instructions](https://github.com/DeepDoge/master-ts/releases)
+
+## Documentation 🍱
 
 Although documentation is not yet available, it will be once breaking changes cease for a period of 2 months.
 
-## Motivation
+## Motivation 🍣
 
 In the ever-evolving landscape of web development, we often see a lot of buzz around server-side rendering (SSR) frameworks and libraries. However, when it comes to single-page applications (SPAs), it feels like things have hit a bit of a standstill. Most SPA libraries have stopped growing, leaving developers like you on the hunt for a fresh and lightweight solution to elevate your vanilla JavaScript projects.
 
@@ -33,3 +42,11 @@ The motivation behind "master-ts" is crystal clear: it's about embracing the pow
 So, why "master-ts"? Because it's time to bring back the spark to SPAs. Let's leave behind unnecessary complexities and rediscover the joy of coding with a library that's as dependable as it is fun to use.
 
 — Writen by ChatGPT
+
+## Vite Plugin
+
+Vite plugin doesn't support the latest version of master-ts atm.
+
+~~MasterTS is a UI building library. So you may wonder, why does a library have a "Vite" plugin? The truth is, you don't actually need this plugin for MasterTS to work. The plugin simply bakes your MasterTS code, including HTML templates, at build time to improve runtime performance.~~
+
+~~So it's recommended that you use [MasterTS Vite Plugin](https://github.com/DeepDoge/master-ts-vite-plugin)~~
