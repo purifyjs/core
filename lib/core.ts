@@ -4,13 +4,13 @@
 	While keeping the readablity in an optimum level 
 */
 
-let doc = document
+let doc = (typeof window === "undefined" ? null : document) as Document
 let isFunction = (value: any): value is Function => typeof value === "function"
 let isArray = (value: unknown): value is unknown[] => Array.isArray(value)
 let weakMap = WeakMap
 let startsWith = <const T extends string>(text: string, start: T): text is `${T}${string}` => text.startsWith(start)
 let timeout = setTimeout
-let createComment = doc.createComment.bind(doc)
+let createComment = (...args: Parameters<typeof document.createComment>) => doc.createComment(...args)
 let clearBetween = (start: Node, end: Node) => {
 	while (start.nextSibling !== end) start.nextSibling![REMOVE]()
 }
@@ -31,37 +31,39 @@ export let onConnected$ = <T extends Node>(node: T, listener: Lifecycle.OnConnec
 	lifecycleListeners.get(node)?.push(lifecycleItem) ?? lifecycleListeners.set(node, [lifecycleItem])
 }
 
-let callFnOnTree = (node: Node, tupleIndex: Utils.Subtract<Lifecycle.Item["length"], 1>): void => {
-	lifecycleListeners.get(node)?.[FOR_EACH]((callbacks) => callbacks[tupleIndex]?.())
-	Array.from((node as Element).shadowRoot?.childNodes ?? [])[FOR_EACH]((childNode) =>
-		callFnOnTree(childNode, tupleIndex)
-	)
-	Array.from(node.childNodes)[FOR_EACH]((childNode) => callFnOnTree(childNode, tupleIndex))
-}
+if (doc) {
+	let callFnOnTree = (node: Node, tupleIndex: Utils.Subtract<Lifecycle.Item["length"], 1>): void => {
+		lifecycleListeners.get(node)?.[FOR_EACH]((callbacks) => callbacks[tupleIndex]?.())
+		Array.from((node as Element).shadowRoot?.childNodes ?? [])[FOR_EACH]((childNode) =>
+			callFnOnTree(childNode, tupleIndex)
+		)
+		Array.from(node.childNodes)[FOR_EACH]((childNode) => callFnOnTree(childNode, tupleIndex))
+	}
 
-let mutationObserver = new MutationObserver((mutations) =>
-	mutations[FOR_EACH](
-		(mutation) => (
-			mutation.addedNodes[FOR_EACH]((addedNode) => callFnOnTree(addedNode, 0)),
-			mutation.removedNodes[FOR_EACH]((removedNode) => callFnOnTree(removedNode, 1))
+	let mutationObserver = new MutationObserver((mutations) =>
+		mutations[FOR_EACH](
+			(mutation) => (
+				mutation.addedNodes[FOR_EACH]((addedNode) => callFnOnTree(addedNode, 0)),
+				mutation.removedNodes[FOR_EACH]((removedNode) => callFnOnTree(removedNode, 1))
+			)
 		)
 	)
-)
 
-let observe = <T extends Node>(root: T): T => (
-	mutationObserver.observe(root, {
-		characterData: true,
-		childList: true,
-		subtree: true,
-	}),
-	root
-)
+	let observe = <T extends Node>(root: T): T => (
+		mutationObserver.observe(root, {
+			characterData: true,
+			childList: true,
+			subtree: true,
+		}),
+		root
+	)
 
-let ATTACH_SHADOW = "attachShadow" as const
-observe(doc)
-let elementAttachShadow = Element.prototype[ATTACH_SHADOW]
-Element.prototype[ATTACH_SHADOW] = function (this, ...args) {
-	return observe(elementAttachShadow.apply(this, args))
+	let ATTACH_SHADOW = "attachShadow" as const
+	observe(doc)
+	let elementAttachShadow = Element.prototype[ATTACH_SHADOW]
+	Element.prototype[ATTACH_SHADOW] = function (this, ...args) {
+		return observe(elementAttachShadow.apply(this, args))
+	}
 }
 
 export type SignalOrValue<T> = T | Readonly<Signal<T>>
@@ -108,7 +110,7 @@ export let isSignal: <U extends boolean = false>(
 
 let isSignalOrFn = <T>(value: any): value is SignalOrFn<T> => isSignal(value) || isFunction(value)
 
-let signalFrom = <T>(src: SignalOrFn<T>): Readonly<Signal<T>> => (isFunction(src) ? derive(src) : src)
+export let signalFrom = <T>(src: SignalOrFn<T>): Readonly<Signal<T>> => (isFunction(src) ? derive(src) : src)
 
 export let signal: Signal.Builder = (currentValue, pong) => {
 	type T = typeof currentValue
@@ -270,7 +272,7 @@ let bindSignalAsFragment = <T>(signalOrFn: SignalOrFn<T>): DocumentFragment => {
 
 let toNode = (value: unknown): Node => {
 	return value === null
-		? EMPTY_NODE
+		? fragment()
 		: isArray(value)
 		? fragment(...value.map(toNode))
 		: value instanceof Node
@@ -289,7 +291,6 @@ export let fragment: Fragment.Builder = (...children) => {
 	result.append(...children.map(toNode))
 	return result
 }
-let EMPTY_NODE = fragment()
 
 type InputElement = HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
 type InputValueKeyMap<Type extends string> = Type extends keyof typeof inputValueKeyMap

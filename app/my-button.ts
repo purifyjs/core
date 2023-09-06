@@ -1,5 +1,5 @@
 import { fragment, tagsNS } from "../lib/core"
-import { css } from "../lib/extra"
+import { css } from "../lib/extra/css"
 
 const { slot } = tagsNS
 

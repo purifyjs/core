@@ -6,9 +6,9 @@
 		"dev": "vite --host",
 		"build": "vite build",
 		"preview": "vite preview --host",
-		"test": "tsc --noEmit && tsx --test ./src/**.test.ts ./lib/**.test.ts",
+		"test": "tsc --noEmit && tsx --test ./app/**.test.ts ./lib/*/**.test.ts",
 		"test:dev:tsc": "tsc --noEmit --watch",
-		"test:dev:tsx": "tsx --watch --test ./src/**.test.ts ./lib/**.test.ts",
+		"test:dev:tsx": "tsx --watch --test ./app/**.test.ts ./lib/**.test.ts",
 		"test:dev": "run-p --race test:dev:*"
 	},
 	"devDependencies": {

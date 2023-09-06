@@ -5,7 +5,7 @@
 		"lib": ["ES2023", "DOM"],
 		"moduleResolution": "Node",
 		"resolveJsonModule": true,
-		"isolatedModules": true,
+		// "isolatedModules": true,
 		"esModuleInterop": true,
 		"noEmit": true,
 		"skipLibCheck": true,

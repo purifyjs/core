@@ -1,6 +1,8 @@
 import type { SignalOrValue } from "../lib/core"
 import { onConnected$, populate, signal, tagsNS } from "../lib/core"
-import { css, each, html } from "../lib/extra"
+import { css } from "../lib/extra/css"
+import { each } from "../lib/extra/each"
+import { html } from "../lib/extra/html"
 import { MyButton } from "./my-button"
 const { button, div } = tagsNS
 
