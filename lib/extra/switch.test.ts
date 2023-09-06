@@ -1,8 +1,8 @@
 import { fail, strictEqual } from "node:assert"
 import { test } from "node:test"
-import { SignalReadable, createSignalWritable } from "."
-import { Brand } from "../utils/type"
-import { INSTANCEOF, TYPEOF, createSwitch } from "./switch"
+import type { Signal } from "../core"
+import { signal } from "../core"
+import { INSTANCEOF, TYPEOF, match } from "./switch"
 
 const describe = () => {
 	const line = new Error().stack!.split("\n")[2]!.split(":").at(-2)!.replace(/\D/g, "")
@@ -10,20 +10,20 @@ const describe = () => {
 }
 
 test(describe(), () => {
-	const signal = createSignalWritable<string | null>("yo!")
+	const signalValue = signal<string | null>("yo!")
 
 	function toUpperCase(value: string) {
 		return value.toUpperCase()
 	}
 
-	const result = createSwitch(signal)
-		.match(null, () => "value is null")
+	const result = match(signalValue)
+		.case(null, () => "value is null")
 		.default((value) => {
 			strictEqual(typeof value.ref, "string", `value is not a string, but ${typeof value.ref}`)
 			return toUpperCase(value.ref)
 		})
-	result satisfies SignalReadable<string>
-	strictEqual(result.ref, "YO!", `result.ref is not "YO!", but ${result.ref} and signal.ref is ${signal.ref}`)
+	result satisfies Readonly<Signal<string>>
+	strictEqual(result.ref, "YO!", `result.ref is not "YO!", but ${result.ref} and signal.ref is ${signalValue.ref}`)
 })
 
 test(describe(), () => {
@@ -33,8 +33,8 @@ test(describe(), () => {
 		return value.toUpperCase()
 	}
 
-	const result = createSwitch(value)
-		.match(null, () => "value is null")
+	const result = match(value)
+		.case(null, () => "value is null")
 		.default((value) => {
 			strictEqual(typeof value, "string", `value is not a string, but ${typeof value}`)
 			return toUpperCase(value)
@@ -44,14 +44,14 @@ test(describe(), () => {
 })
 
 test(describe(), () => {
-	type MyId = Brand<"MyId", string>
+	type MyId = Utils.Brand<"MyId", string>
 	function createMyId(id: string): MyId {
 		return id as MyId
 	}
-	const signal = createSignalWritable<MyId | null>(createMyId("yo!"))
+	const signalValue = signal<MyId | null>(createMyId("yo!"))
 
-	const result = createSwitch(signal)
-		.match(null, (value) => {
+	const result = match(signalValue)
+		.case(null, (value) => {
 			value.ref satisfies null
 			strictEqual(value.ref, null, `value.ref is not null, but ${value.ref}`)
 			return value.ref
@@ -62,21 +62,21 @@ test(describe(), () => {
 			return value.ref
 		})
 
-	result satisfies SignalReadable<MyId | null>
+	result satisfies Readonly<Signal<MyId | null>>
 
-	signal.ref = null
-	signal.ref = createMyId("yo!")
+	signalValue.ref = null
+	signalValue.ref = createMyId("yo!")
 })
 
 test(describe(), () => {
-	type MyId = Brand<"MyId", string>
+	type MyId = Utils.Brand<"MyId", string>
 	function createMyId(id: string): MyId {
 		return id as MyId
 	}
 	const value = createMyId("yo!") as MyId | null
 
-	const result = createSwitch(value)
-		.match(null, (value) => {
+	const result = match(value)
+		.case(null, (value) => {
 			value satisfies null
 			strictEqual(value, null, `value is not null, but ${value}`)
 			return value
@@ -91,22 +91,22 @@ test(describe(), () => {
 })
 
 test(describe(), () => {
-	type MyId = Brand<"MyId", string>
+	type MyId = Utils.Brand<"MyId", string>
 	function createMyId(id: string): MyId {
 		return id as MyId
 	}
-	const signal = createSignalWritable<MyId>(createMyId("yo!"))
+	const signalValue = signal<MyId>(createMyId("yo!"))
 
 	function acceptMyId(id: MyId) {
 		return id
 	}
 
-	createSwitch(signal)
-		.match(createMyId("another"), (value) => value.ref satisfies MyId)
+	match(signalValue)
+		.case(createMyId("another"), (value) => value.ref satisfies MyId)
 		.default((value) => {
 			value.ref satisfies MyId
 			acceptMyId(value.ref)
-		}) satisfies SignalReadable<MyId | void>
+		}) satisfies Readonly<Signal<MyId | void>>
 })
 
 test(describe(), () => {
@@ -127,53 +127,53 @@ test(describe(), () => {
 	}
 	type Value = Foo | Bar | Baz
 
-	const signal = createSignalWritable<Value>({ type: "foo", foo: "foo", common: "common" })
+	const signalValue = signal<Value>({ type: "foo", foo: "foo", common: "common" })
 
-	const result = createSwitch(signal)
-		.match({ type: "foo" }, (value) => {
+	const result = match(signalValue)
+		.case({ type: "foo" }, (value) => {
 			value.ref.foo satisfies string
 			value.ref.common satisfies string
 			return "foo" as const
 		})
-		.match({ type: "bar" }, (value) => {
+		.case({ type: "bar" }, (value) => {
 			value.ref.bar satisfies string
 			value.ref.common satisfies string
 			return "bar" as const
 		})
-		.match({ type: "baz" }, (value) => {
+		.case({ type: "baz" }, (value) => {
 			value.ref.baz satisfies string
 			value.ref.common satisfies number
 			return "baz" as const
 		})
 		.default()
 
-	result satisfies SignalReadable<"foo" | "bar" | "baz">
+	result satisfies Readonly<Signal<"foo" | "bar" | "baz">>
 
 	strictEqual(result.ref, "foo", `result.ref is not "foo", but ${result.ref}`)
 })
 
 test(describe(), () => {
-	const signal = createSignalWritable("foo")
+	const signalValue = signal("foo")
 
 	let value = "foo" as string
 
-	const result = createSwitch(signal)
-		.match(value, (value) => "foo" as const)
+	const result = match(signalValue)
+		.case(value, (value) => "foo" as const)
 		.default((value) => "other" as const)
 
-	result satisfies SignalReadable<"foo" | "other">
+	result satisfies Readonly<Signal<"foo" | "other">>
 	strictEqual(result.ref, "foo", `result.ref is not "foo", but ${result.ref}`)
 })
 
 test(describe(), () => {
-	const signal = createSignalWritable<{ foo: string } | null | Error>({ foo: "foo" })
-	const result = createSwitch(signal)
-		.match(null, (value) => {
+	const signalValue = signal<{ foo: string } | null | Error>({ foo: "foo" })
+	const result = match(signalValue)
+		.case(null, (value) => {
 			value.ref satisfies null
 			fail(`value.ref is null, but it should be { foo: "foo" }`)
 			return "null" as const
 		})
-		.match({ [INSTANCEOF]: Error }, (value) => {
+		.case({ [INSTANCEOF]: Error }, (value) => {
 			value.ref satisfies Error
 			fail(`value.ref is an error, but it should be { foo: "foo" }`)
 			return "error" as const
@@ -185,18 +185,18 @@ test(describe(), () => {
 			return value.ref
 		})
 
-	result satisfies SignalReadable<"null" | "error" | { foo: string }>
+	result satisfies Readonly<Signal<"null" | "error" | { foo: string }>>
 })
 
 test(describe(), () => {
-	const signal = createSignalWritable<{ foo: string } | null | Error>(new Error())
+	const signalValue = signal<{ foo: string } | null | Error>(new Error())
 
-	const result = createSwitch(signal)
-		.match(null, (value) => {
+	const result = match(signalValue)
+		.case(null, (value) => {
 			value.ref satisfies null
 			return "null" as const
 		})
-		.match({ [INSTANCEOF]: Error }, (value) => {
+		.case({ [INSTANCEOF]: Error }, (value) => {
 			value.ref satisfies Error
 			return "error" as const
 		})
@@ -207,19 +207,19 @@ test(describe(), () => {
 			return value.ref
 		})
 
-	result satisfies SignalReadable<"null" | "error" | { foo: string }>
+	result satisfies Readonly<Signal<"null" | "error" | { foo: string }>>
 	strictEqual(result.ref, "error", `result.ref is not "error", but ${result.ref}`)
 })
 
 test(describe(), () => {
-	const signal = createSignalWritable<"foo" | null | Error>("foo")
+	const signalValue = signal<"foo" | null | Error>("foo")
 
-	const result = createSwitch(signal)
-		.match(null, (value) => {
+	const result = match(signalValue)
+		.case(null, (value) => {
 			value.ref satisfies null
 			return "null" as const
 		})
-		.match({ [TYPEOF]: "string" }, (value) => {
+		.case({ [TYPEOF]: "string" }, (value) => {
 			value.ref satisfies "foo"
 			return value.ref
 		})

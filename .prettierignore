@@ -9,9 +9,10 @@ lerna-debug.log*
 
 .pnpm-store
 node_modules
-dist
 
 # OS generated files
 .DS_Store
 
 pnpm-lock.yaml
+
+generated

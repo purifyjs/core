@@ -1,11 +1,7 @@
-import type { SignalReadable } from "."
-import { createSignalReadable, isSignalReadable } from "."
-import { isFunction, isObject } from "../utils/bundleHelpers"
-import { DeepOptional, NoNever, NotEquals, PrimitiveType, ReferanceType, TypeString, TypeStringToType, TypeToTypeString } from "../utils/type"
+import type { Signal } from "../core"
+import { isSignal, signal } from "../core"
 
-// TODO: Make typing better
-// TODO: Add instanceof support
-// TODO: Add typeof support
+// TODO: Just copy pasted this from the old master-ts. Make it smaller and better later.
 
 export const TYPEOF = Symbol()
 export type TYPEOF = typeof TYPEOF
@@ -20,13 +16,13 @@ export type INSTANCEOF = typeof INSTANCEOF
 type CanExhaust<TExhauster> = [TExhauster] extends [never]
 	? false
 	: [
-			NotEquals<TExhauster, boolean>,
-			NotEquals<TExhauster, string>,
-			NotEquals<TExhauster, number>,
-			NotEquals<TExhauster, bigint>,
-			NotEquals<TExhauster, symbol>
+			Utils.NotEquals<TExhauster, boolean>,
+			Utils.NotEquals<TExhauster, number>,
+			Utils.NotEquals<TExhauster, bigint>,
+			Utils.NotEquals<TExhauster, string>,
+			Utils.NotEquals<TExhauster, symbol>
 	  ][number] extends true
-	? TExhauster extends ReferanceType
+	? TExhauster extends Utils.ReferanceType
 		? false
 		: true
 	: false
@@ -52,9 +48,9 @@ true satisfies CanExhaust<1n>
 // Exhaust with pattern lets use exhaust with the reference types and non-literal primitive types
 // 	with pattern matching
 type Exhaust<TType, TExhauster> = CanExhaust<TExhauster> extends true ? Exclude<TType, TExhauster> : TType
-type ExhaustWithPattern<TType, TPattern> = TPattern extends PrimitiveType
+type ExhaustWithPattern<TType, TPattern> = TPattern extends Utils.PrimitiveType
 	? Exhaust<TType, TPattern>
-	: NoNever<
+	: Utils.NoNever<
 			keyof TPattern extends INSTANCEOF | TYPEOF
 				? {
 						[K in keyof TPattern]: K extends INSTANCEOF
@@ -62,8 +58,8 @@ type ExhaustWithPattern<TType, TPattern> = TPattern extends PrimitiveType
 								? Exclude<TType, T>
 								: never
 							: K extends TYPEOF
-							? TPattern[K] extends TypeString
-								? Exclude<TType, TypeStringToType<TPattern[K]>>
+							? TPattern[K] extends Utils.TypeString
+								? Exclude<TType, Utils.TypeStringToType<TPattern[K]>>
 								: never
 							: never
 				  }[keyof TPattern]
@@ -73,7 +69,7 @@ type ExhaustWithPattern<TType, TPattern> = TPattern extends PrimitiveType
 	  >
 
 type PatternOf<TValue> =
-	| (TValue extends PrimitiveType
+	| (TValue extends Utils.PrimitiveType
 			? TValue
 			: TValue extends object
 			?
@@ -83,7 +79,7 @@ type PatternOf<TValue> =
 					  }
 			: TValue)
 	| {
-			[TYPEOF]: TypeToTypeString<TValue>
+			[TYPEOF]: Utils.TypeToTypeString<TValue>
 	  }
 
 type Narrow<TValue, TPattern> = INSTANCEOF extends keyof TPattern
@@ -91,17 +87,24 @@ type Narrow<TValue, TPattern> = INSTANCEOF extends keyof TPattern
 		? Extract<TValue, T>
 		: never
 	: TYPEOF extends keyof TPattern
-	? TPattern[TYPEOF] extends TypeString
-		? Extract<TValue, TypeStringToType<TPattern[TYPEOF]>>
+	? TPattern[TYPEOF] extends Utils.TypeString
+		? Extract<TValue, Utils.TypeStringToType<TPattern[TYPEOF]>>
 		: never
 	: TValue & TPattern
 
-function matchPattern<TValue, const TPattern extends PatternOf<TValue>>(value: TValue, pattern: TPattern): value is TValue & TPattern {
+function isObject(value: any): value is object {
+	return typeof value === "object" && value !== null
+}
+
+function matchPattern<TValue, const TPattern extends PatternOf<TValue>>(
+	value: TValue,
+	pattern: TPattern
+): value is TValue & TPattern {
 	if (isObject(pattern)) {
 		if (TYPEOF in pattern) {
 			if (pattern[TYPEOF] !== typeof value) return false
 		} else if (INSTANCEOF in pattern) {
-			if (!isFunction(pattern[INSTANCEOF])) return false
+			if (typeof pattern[INSTANCEOF] !== "function") return false
 			if (!(value instanceof pattern[INSTANCEOF])) return false
 		} else {
 			for (const key of Object.keys(pattern) as (keyof TPattern)[]) {
@@ -117,7 +120,7 @@ function matchPattern<TValue, const TPattern extends PatternOf<TValue>>(value: T
 }
 
 type SwitchValueBuilder<TValue, TReturns = never> = {
-	match<const TPattern extends PatternOf<TValue>, TResult>(
+	case<const TPattern extends PatternOf<TValue>, TResult>(
 		pattern: TPattern,
 		then: (value: Narrow<TValue, TPattern>) => TResult
 	): SwitchValueBuilder<ExhaustWithPattern<TValue, TPattern>, TReturns | TResult>
@@ -134,13 +137,13 @@ namespace SwitchValueBuilder {
 
 function switchValue<TValue>(value: TValue): SwitchValueBuilder<TValue> {
 	const cases: {
-		pattern: DeepOptional<TValue>
+		pattern: Utils.DeepOptional<TValue>
 		then: (value: TValue) => unknown
 	}[] = []
 
 	// Builder type is way too funky, so gotta act like it doesn't exist here
 	const result = {
-		match(pattern: DeepOptional<TValue>, then: (value: TValue) => unknown) {
+		case(pattern: Utils.DeepOptional<TValue>, then: (value: TValue) => unknown) {
 			cases.push({ pattern, then })
 			return result
 		},
@@ -158,38 +161,40 @@ function switchValue<TValue>(value: TValue): SwitchValueBuilder<TValue> {
 }
 
 type SwitchValueSignalBuilder<TValue, TReturns = never> = {
-	match<const TPattern extends PatternOf<TValue>, TResult>(
+	case<const TPattern extends PatternOf<TValue>, TResult>(
 		pattern: TPattern,
-		then: (value: SignalReadable<Narrow<TValue, TPattern>>) => TResult
+		then: (value: Readonly<Signal<Narrow<TValue, TPattern>>>) => TResult
 	): SwitchValueSignalBuilder<ExhaustWithPattern<TValue, TPattern>, TReturns | TResult>
 } & SwitchValueSignalBuilder.Default<TValue, TReturns>
 namespace SwitchValueSignalBuilder {
 	export type Default<TValue, TReturns> = [TValue] extends [never]
 		? {
-				default(): SignalReadable<TReturns>
+				default(): Readonly<Signal<TReturns>>
 		  }
 		: {
-				default<TDefault>(fallback: (value: SignalReadable<TValue>) => TDefault): SignalReadable<TReturns | TDefault>
+				default<TDefault>(
+					fallback: (value: Readonly<Signal<TValue>>) => TDefault
+				): Readonly<Signal<TReturns | TDefault>>
 		  }
 }
 
-function switchValueSignal<TValue>(signal: SignalReadable<TValue>): SwitchValueSignalBuilder<TValue> {
+function switchValueSignal<TValue>(valueSignal: Readonly<Signal<TValue>>): SwitchValueSignalBuilder<TValue> {
 	const cases: {
-		pattern: DeepOptional<TValue>
-		then: (value: SignalReadable<TValue>) => unknown
+		pattern: Utils.DeepOptional<TValue>
+		then: (value: Readonly<Signal<TValue>>) => unknown
 	}[] = []
 
 	// Builder type is way too funky, so gotta act like it doesn't exist here
 	const result = {
-		match(pattern: DeepOptional<TValue>, then: (value: SignalReadable<TValue>) => unknown) {
+		case(pattern: Utils.DeepOptional<TValue>, then: (value: Readonly<Signal<TValue>>) => unknown) {
 			cases.push({ pattern, then })
 			return result
 		},
-		default(fallback?: (value: SignalReadable<TValue>) => unknown) {
-			return createSignalReadable<unknown>((set) => {
+		default(fallback?: (value: Readonly<Signal<TValue>>) => unknown) {
+			return signal<unknown>(undefined, (set) => {
 				let currentIndex = -1
 
-				return signal.subscribe(
+				return valueSignal.follow(
 					(signalValue) => {
 						if (currentIndex >= 0 && matchPattern(signalValue, cases[currentIndex]!.pattern as any)) return
 
@@ -198,16 +203,16 @@ function switchValueSignal<TValue>(signal: SignalReadable<TValue>): SwitchValueS
 							const case_ = cases[i]!
 							if (matchPattern(signalValue, case_.pattern as any)) {
 								currentIndex = i
-								return set(case_.then(signal))
+								return set(case_.then(valueSignal))
 							}
 						}
 						currentIndex = -1
 
-						if (fallback) return set(fallback(signal))
+						if (fallback) return set(fallback(valueSignal))
 						throw new Error("No default case provided and no case matched, this is not supposed to happen")
 					},
 					{ mode: "immediate" }
-				).unsubscribe
+				).unfollow
 			})
 		},
 	}
@@ -215,10 +220,10 @@ function switchValueSignal<TValue>(signal: SignalReadable<TValue>): SwitchValueS
 	return result as never
 }
 
-export const createSwitch: {
-	<T>(value: SignalReadable<T>): SwitchValueSignalBuilder<T>
+export const match: {
+	<T>(value: Readonly<Signal<T>>): SwitchValueSignalBuilder<T>
 	<T>(value: T): SwitchValueBuilder<T>
-} = <T>(value: T | SignalReadable<T>) => {
-	if (isSignalReadable(value)) return switchValueSignal(value) as never
+} = <T>(value: T | Readonly<Signal<T>>) => {
+	if (isSignal(value)) return switchValueSignal(value) as never
 	return switchValue(value) as never
 }
