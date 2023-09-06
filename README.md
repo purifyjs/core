@@ -1,8 +1,6 @@
 <p align="center">
-<img src="https://ipfs.io/ipfs/QmebvcQHtoiJcs1PZHnrog4TccVQ2EMYWCt12m4BVt6rZA" />
+<img width="auto" height="420px" src="https://ipfs.io/ipfs/QmebvcQHtoiJcs1PZHnrog4TccVQ2EMYWCt12m4BVt6rZA" />
 </p>
-
-# master-ts
 
 A minimalist TypeScript library for supercharging your vanilla JavaScript applications with elegant and efficient user interfaces.
 
