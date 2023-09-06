@@ -387,7 +387,7 @@ export let tagsNS = new Proxy(
 ) as TagsNS
 
 let bindOrSet = <T>(element: Element, value: SignalOrValueOrFn<T>, then: (value: T) => void): void =>
-	isSignalOrFn(value) ? signalFrom(value)[FOLLOW$](element, then) : then(value)
+	isSignalOrFn(value) ? signalFrom(value)[FOLLOW$](element, then, FOLLOW_IMMEDIATE_OPTION) : then(value)
 
 let bindSignalAsValue = <T extends InputElement>(element: T, signal: Signal<InputValueTypeMap<T["type"]>>) => {
 	onConnected$(element, () => {

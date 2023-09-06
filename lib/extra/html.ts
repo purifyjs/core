@@ -8,7 +8,7 @@ export let html = (strings: TemplateStringsArray, ...values: TagsNS.AcceptedChil
 	let args = { p: placeholders, v: values, i: 0 } as const satisfies HydrateArgs
 	let template = tagsNS.template()
 	template.innerHTML = strings
-		.map((part, i) => part + (i < placeholders.length ? (placeholders[i] = uniqueId()) : ""))
+		.map((part, i) => part + (i < placeholders.length ? (placeholders[i] = `x${uniqueId()}`) : ""))
 		.join("")
 		.trim()
 	return Array.from(template.content.childNodes)
