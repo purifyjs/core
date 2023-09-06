@@ -1,42 +1,37 @@
-# What is this?
+<p align="center">
+<img src="https://ipfs.io/ipfs/QmebvcQHtoiJcs1PZHnrog4TccVQ2EMYWCt12m4BVt6rZA" />
+</p>
 
-This is an experimental, light, minimal and reactive UI building library with support for signals.
+# master-ts
 
-It adds templating and reactivity features to your vanilla js.
+A minimalist TypeScript library for supercharging your vanilla JavaScript applications with elegant and efficient user interfaces.
 
-# Update
+## Install
 
-After adding some necessary logic, core library went up to 3kb from 2.4kb.
+To install master-ts, please refer to the [Install Instructions](https://github.com/DeepDoge/master-ts/releases) available in the repository.
 
-If anyone reading this can make the core library smaller or can find a new logic that would require less code without sacraficing features, it would be great.
+## Vite Plugin
 
-# Why?
+Vite plugin doesn't support the latest version of master-ts atm.
 
-After, building my own UI building library, [master-ts](https://github.com/DeepDoge/master-ts),
-with some new inspiration from [VanJS](https://vanjs.org/), I decided to build a new UI building library.
+~~MasterTS is a UI building library. So you may wonder, why does a library have a "Vite" plugin? The truth is, you don't actually need this plugin for MasterTS to work. The plugin simply bakes your MasterTS code, including HTML templates, at build time to improve runtime performance.~~
 
-After, [master-ts](https://github.com/DeepDoge/master-ts), building this was easier than I thought.
-Since I already did it once, I just did it again here, but better and more clean.
+~~So it's recommended that you use [MasterTS Vite Plugin](https://github.com/DeepDoge/master-ts-vite-plugin)~~
 
-[VanJS](https://vanjs.org/) is minimal, that's what makes it good, but the bare minimum I'm looking for is a bit more than that.
+## Documentation
 
-Core of this library is the bare minimum I need in a core, not more, not less.
+Although documentation is not yet available, it will be once breaking changes cease for a period of 2 months.
 
-I was able to make the core library in 1 day, and I'm pretty happy with the result. Although, it takes 2.4kb minified(no gzip), compared to [VanJS](https://vanjs.org/)'s 1.7kb, I think it's worth it. And I believe there is still room for improvement, to make it smaller, and also better. So pretty good.
+## Motivation
 
-I will add more features and tools to this library, but I will keep the core as it is.
+In the ever-evolving landscape of web development, we often see a lot of buzz around server-side rendering (SSR) frameworks and libraries. However, when it comes to single-page applications (SPAs), it feels like things have hit a bit of a standstill. Most SPA libraries have stopped growing, leaving developers like you on the hunt for a fresh and lightweight solution to elevate your vanilla JavaScript projects.
 
-Core is just a one file. I'm gonna the add extra features to another file.<br/>
-These features will just be some built-in utilities. To make life easier.
+Enter "master-ts." This is more than just a library; it's your new secret weapon. While the world is racing toward SSR, "master-ts" is all about revitalizing SPAs to meet today's needs. Our aim is to end the search for a reliable, lightweight SPA library that can seriously amp up your vanilla JavaScript game.
 
-For now I'm planning to add some more signal related features, such as `switch`, `each`, `deferred` and `await`.<br/>
-Also gonna add support for html string literal tags(this thing ` html`` `), like in [master-ts](https://github.com/DeepDoge/master-ts),
-it will parse html on runtime, but with a preprocessor, you can bake it into your bundle, so parse it on build time.
-So when preprocessor is used, it will just tree-shake all of the html parsing stuff.<br/>
-You can still use this thing `div({ "class:hello": toggleSignal }, ["Hello"])`, It's just you have choice now.
-Also probably gonna bake the html to that tho. <br/>
-None of these extra stuff, will be in the core file.<br/>
-So basically gonna cover all of [master-ts](https://github.com/DeepDoge/master-ts), but in a more minimal way.
+Forget about those heavyweight frameworks; "master-ts" is your go-to for simplicity and efficiency. Whether you're a seasoned developer looking for a smoother workflow or a newcomer eager to dive into web development, "master-ts" has got your back.
 
-If this experiment goes well, this library will be the new [master-ts](https://github.com/DeepDoge/master-ts).
-Same repo, just a big breaking change commit.
+The motivation behind "master-ts" is crystal clear: it's about embracing the power of straightforward, efficient development. This isn't just another framework; it's a minimalist TypeScript library that makes building elegant user interfaces a breeze.
+
+So, why "master-ts"? Because it's time to bring back the spark to SPAs. Let's leave behind unnecessary complexities and rediscover the joy of coding with a library that's as dependable as it is fun to use.
+
+-- Writen by ChatGPT

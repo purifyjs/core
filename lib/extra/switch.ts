@@ -1,6 +1,8 @@
 import type { Signal } from "../core"
 import { isSignal, signal } from "../core"
 
+// TODO: Just copy pasted this from the old master-ts. Make it smaller and better later.
+
 export const TYPEOF = Symbol()
 export type TYPEOF = typeof TYPEOF
 
