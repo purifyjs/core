@@ -36,7 +36,7 @@ function App() {
 	return host
 }
 
-const style = await css`
+const style = css`
 	:host {
 		display: grid;
 		grid-auto-flow: row;

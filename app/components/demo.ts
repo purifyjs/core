@@ -21,7 +21,7 @@ export function DemoWrapper() {
 	return host
 }
 
-const style = await css`
+const style = css`
 	:host {
 		display: grid;
 		padding-block: 0.5em;

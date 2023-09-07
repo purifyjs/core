@@ -1,6 +1,6 @@
 import { css } from "../lib/extra/css"
 
-export const commonStyle = await css`
+export const commonStyle = css`
 	*,
 	*::before,
 	*::after {
@@ -9,7 +9,7 @@ export const commonStyle = await css`
 `
 
 document.adoptedStyleSheets.push(
-	await css`
+	css`
 		:root {
 			font-family: "Open Sans Light", Helvetica;
 			line-height: 1.5;

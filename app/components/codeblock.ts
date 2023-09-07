@@ -8,7 +8,7 @@ import prismThemeCss from "../libs/prism/style.css?inline"
 
 const { Prism } = window
 
-const prismThemeStyle = await css`
+const prismThemeStyle = css`
 	${prismThemeCss}
 `
 
@@ -31,7 +31,7 @@ export function Codeblock(code: string) {
 	return host
 }
 
-const style = await css`
+const style = css`
 	:host {
 	}
 

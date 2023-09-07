@@ -40,31 +40,31 @@ export function parseDocumentation(src: string) {
 function parseRegion(lines: string[], region: ParseDocumentation.Item.Region): number {
 	let index = 0
 
-	let currentItem: ParseDocumentation.Item | null = null
-
 	for (; index < lines.length; index++) {
 		const line = lines[index]!
-		if (line.startsWith("//#endregion")) {
-			return index + 1
-		}
-
-		if (!currentItem) {
-			const regionPrefix = "//#region" as const
-			if (line.startsWith(regionPrefix)) {
+		{
+			const prefix = "//#region" as const
+			const suffix = "//#endregion" as const
+			if (line.startsWith(suffix)) {
+				return index + 1
+			}
+			if (line.startsWith(prefix)) {
 				const innerRegion: ParseDocumentation.Item.Region = {
 					type: "region",
-					name: line.substring(regionPrefix.length).trim(),
+					name: line.substring(prefix.length).trim(),
 					items: []
 				}
 				index += parseRegion(lines.slice(++index), innerRegion)
 				region.items.push(innerRegion)
 				continue
 			}
-			const commentPrefix = "/*" as const
-			const commentSuffix = "*/" as const
-			if (line.startsWith(commentPrefix)) {
+		}
+		{
+			const prefix = "/*" as const
+			const suffix = "*/" as const
+			if (line.startsWith(prefix)) {
 				const start = index
-				untilEndWith(commentSuffix)
+				until((line) => line.trim().endsWith(suffix))
 				const end = index
 				region.items.push({
 					type: "comment",
@@ -72,61 +72,51 @@ function parseRegion(lines: string[], region: ParseDocumentation.Item.Region): n
 						.slice(start, end + 1)
 						.join("\n")
 						.trim()
-						.slice(commentPrefix.length, -commentSuffix.length)
+						.slice(prefix.length, -suffix.length)
 						.trim()
 				})
 				continue
 			}
-			if (line.startsWith("{")) {
+		}
+		{
+			const prefix = "code(() => {" as const
+			if (line.startsWith(prefix)) {
 				const start = index
-				untilStartsWith("}")
+				until((line) => line.trimEnd().endsWith("// end"))
 				const end = index
 				region.items.push({
 					type: "code",
-					content: lines
-						.slice(start, end + 1)
-						.join("\n")
-						.slice(1, -1)
+					content: lines.slice(start, end).join("\n").slice(prefix.length)
 				})
 				continue
 			}
-			const demoPrefix = "export function " as const
-			const demoSuffix = "}" as const
-			endDemo: if (line.startsWith(demoPrefix)) {
+		}
+		{
+			const prefix = "export const " as const
+			out: if (line.startsWith(prefix)) {
 				const start = index
-				untilStartsWith(demoSuffix)
+				until((line) => line.trimEnd().endsWith("// end"))
 				const end = index
 
-				const demoNameEnd = line.indexOf("(", demoPrefix.length)
-				if (demoNameEnd === -1) break endDemo
+				const demoNameEnd = line.indexOf("=", prefix.length)
+				if (demoNameEnd === -1) break out
 
-				const name = line.slice(demoPrefix.length, demoNameEnd).trim()
+				const name = line.slice(prefix.length, demoNameEnd).trim()
 
 				region.items.push({
 					type: "demo",
 					name,
-					content: lines
-						.slice(start, end + 1)
-						.join("\n")
-						.substring("export ".length)
+					content: lines.slice(start + 1, end).join("\n")
 				})
 				continue
 			}
-
-			continue
 		}
 	}
 
-	function untilEndWith(until: string) {
+	function until(until: (line: string) => boolean) {
 		for (; index < lines.length; index++) {
 			const line = lines[index]!
-			if (line.trim().endsWith(until)) return
-		}
-	}
-	function untilStartsWith(until: string) {
-		for (; index < lines.length; index++) {
-			const line = lines[index]!
-			if (line.startsWith(until)) return
+			if (until(line)) return
 		}
 	}
 

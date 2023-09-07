@@ -30,7 +30,7 @@ export function Heading<T extends HTMLHeadingElement>(host: T, id: string) {
 	return host
 }
 
-const style = await css`
+const style = css`
 	a {
 		color: inherit;
 		opacity: 0.5;

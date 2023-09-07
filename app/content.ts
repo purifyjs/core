@@ -1,11 +1,13 @@
 import { marked } from "marked"
-import { fragment, tagsNS } from "../lib/core"
+import { fragment, populate, tagsNS } from "../lib/core"
 import { css } from "../lib/extra/css"
 import { defineCustomTag } from "../lib/extra/custom-tags"
 import { html } from "../lib/extra/html"
 import { Codeblock } from "./components/codeblock"
+import { DemoWrapper } from "./components/demo"
 import { Heading } from "./components/heading"
-import usageRaw from "./doc.ts?raw"
+import * as docNS from "./doc"
+import docRaw from "./doc.ts?raw"
 import { parseDocumentation, type ParseDocumentation } from "./libs/parser"
 import { commonStyle } from "./styles"
 
@@ -18,14 +20,14 @@ export function Docs() {
 	dom.adoptedStyleSheets.push(commonStyle, documentStyle)
 
 	dom.append(
-		fragment(html` <div class="content">${parseDocumentation(usageRaw).map((item) => renderItem(item))}</div> `)
+		fragment(html` <div class="content">${parseDocumentation(docRaw).map((item) => renderItem(item))}</div> `)
 	)
 
 	return host
 }
 
 const markdownTag = defineCustomTag("x-markdown")
-function renderItem(item: ParseDocumentation.Item, parentId = "", depth = 0): HTMLElement {
+function renderItem(item: ParseDocumentation.Item, parentId = "", depth = 0): Node {
 	switch (item.type) {
 		case "region": {
 			const id = `${parentId}/${item.name.replace(/\s+/g, "-").toLowerCase()}`
@@ -47,15 +49,19 @@ function renderItem(item: ParseDocumentation.Item, parentId = "", depth = 0): HT
 		}
 		case "code":
 			return Codeblock(item.content)
-		case "demo":
-			return div({ class: "demo" }, "DEMO HERE, NOT IMPLEMENTED YET")
+		case "demo": {
+			return fragment(
+				Codeblock(item.content),
+				populate(DemoWrapper(), {}, (docNS[item.name as keyof typeof docNS] as any)())
+			)
+		}
 		default:
 			item satisfies never
 			throw new Error("Unknown item type")
 	}
 }
 
-export const documentStyle = await css`
+export const documentStyle = css`
 	:is(h1, h2, h3, h4, h5, h6):first-child {
 		margin-block-start: 0;
 	}
