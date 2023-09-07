@@ -1,4 +1,4 @@
-import { onConnected$ } from "../../lib/core"
+import { onConnected$ } from "@/../lib/core"
 
 const myNode = document.createComment("hello")
 onConnected$(myNode, () => {

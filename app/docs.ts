@@ -2,17 +2,25 @@ import { fragment, tagsNS } from "../lib/core"
 import { css } from "../lib/extra/css"
 import { defineCustomTag } from "../lib/extra/custom-tags"
 import { html } from "../lib/extra/html"
-import { Codeblock } from "./components/codeblock"
 import { Heading } from "./components/heading"
 import { Snippet } from "./components/snippet"
+import snipped_lifecycle from "./snippets/lifecycle.ts?raw"
+import snipped_signals_bind_follow from "./snippets/signals/bind-follow.ts?raw"
+import snipped_signals_create from "./snippets/signals/create.ts?raw"
+import snipped_signals_follow from "./snippets/signals/follow.ts?raw"
+import snipped_templates_fragment from "./snippets/templates/fragment.ts?raw"
+import snipped_templates_function from "./snippets/templates/function-based-templating.ts?raw"
+import snipped_templates_populate from "./snippets/templates/populate.ts?raw"
+import snipped_templates_string from "./snippets/templates/string-based-templating.ts?raw"
+import { commonStyle } from "./styles"
 
 const { h2, h3, h4 } = tagsNS
 
 const docsTag = defineCustomTag("x-docs")
-export async function Docs() {
+export function Docs() {
 	const host = docsTag()
 	const dom = host.attachShadow({ mode: "open" })
-	dom.adoptedStyleSheets.push(documentStyle)
+	dom.adoptedStyleSheets.push(commonStyle, documentStyle)
 
 	dom.append(
 		fragment(html`
@@ -40,15 +48,19 @@ export async function Docs() {
 							requirements.
 						</p>
 
-						${await Snippet("templates/function-based-templating", h4({}, "Function-Based Template:"))}
-						${await Snippet("templates/string-based-templating", h4({}, "Tagged Template Literal:"))}
+						<x ${Heading(h4(), "templates/function")}>Function-Based Template:</x>
+						${Snippet(snipped_templates_function)}
+
+						<x ${Heading(h4(), "templates/string")}>Tagged Template Literal:</x>
+						${Snippet(snipped_templates_string)}
 
 						<x ${Heading(h3(), "template-helpers")}>Template Helpers</x>
 
-						${await Snippet("populate", h4({}, "Populate:"))}
+						<x ${Heading(h4(), "populate")}>Populate:</x>
+						${Snippet(snipped_templates_populate)}
 
 						<x ${Heading(h4(), "template-helpers/fragment")}>Fragment:</x>
-						<x ${Codeblock(await import("./snippets/fragment?raw").then((m) => m.default))}></x>
+						${Snippet(snipped_templates_fragment)}
 						<p>
 							You can convert any template content into <code>DocumentFragment</code> using
 							<code>fragment()</code> function like shown above. Then you can easily append any template content
@@ -63,7 +75,7 @@ export async function Docs() {
 							<code>onConnected$()</code> function. When a function has <code>$</code> at the end of it's name,
 							that means that function is being binded to a <code>Node</code>'s lifecycle.
 						</p>
-						<x ${Codeblock(await import("./snippets/lifecycle?raw").then((m) => m.default))}></x>
+						${Snippet(snipped_lifecycle)}
 					</section>
 
 					<section>
@@ -76,14 +88,14 @@ export async function Docs() {
 
 						<x ${Heading(h4(), "signals/create")}>Create:</x>
 						<p>In the code below, we create a <code>${"Signal<string>"}</code>, and then mutate it.</p>
-						<x ${Codeblock(await import("./snippets/create-signal?raw").then((m) => m.default))}></x>
+						${Snippet(snipped_signals_create)}
 
 						<x ${Heading(h4(), "signals/follow")}>Follow:</x>
 						<p>
 							After following a signal manually, if you don't wanna follow the signal until the App exits, you
 							have to unfollow it manually
 						</p>
-						<x ${Codeblock(await import("./snippets/follow-signal?raw").then((m) => m.default))}></x>
+						${Snippet(snipped_signals_follow)}
 
 						<x ${Heading(h4(), "signals/bind-follow")}>Bind Follow:</x>
 						<p>
@@ -95,7 +107,7 @@ export async function Docs() {
 							<li>When <code>myNode</code> is connected to DOM, it will follow the signal</li>
 							<li>When <code>myNode</code> is disconnected from DOM, it will unfollow the signal</li>
 						</ol>
-						<x ${Codeblock(await import("./snippets/bind-follow?raw").then((m) => m.default))}></x>
+						${Snippet(snipped_signals_bind_follow)}
 					</section>
 				</section>
 			</div>
@@ -107,12 +119,39 @@ export async function Docs() {
 
 export const documentStyle = await css`
 	section {
-		margin-block: 2.5em;
+		padding: 1ch;
+		border-left: 0.1rem dashed var(--primary);
 		& + section {
 			margin-block-start: 5em;
 		}
 		&:has(+ section) {
 			margin-block-end: 5em;
+		}
+	}
+
+	section > .active:first-child {
+		text-decoration: underline;
+	}
+
+	section {
+		position: relative;
+
+		& > h2:first-child {
+			position: sticky;
+			top: 0;
+			background-color: var(--body);
+			padding-block: 0.5em;
+			margin: 0;
+			z-index: 2;
+		}
+
+		& > h3:first-child {
+			position: sticky;
+			top: 3rem;
+			background-color: var(--body);
+			padding-block: 0.5em;
+			margin: 0;
+			z-index: 1;
 		}
 	}
 

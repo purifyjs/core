@@ -1,6 +1,7 @@
 import { fragment, populate, signal } from "@/../lib/core"
 import { css } from "@/../lib/extra/css"
 import { html } from "@/../lib/extra/html"
+import { commonStyle } from "@/styles"
 
 const hash = signal(location.hash, (set) => {
 	const interval = setInterval(() => set(location.hash), 100)
@@ -8,14 +9,18 @@ const hash = signal(location.hash, (set) => {
 })
 
 export function Heading<T extends HTMLHeadingElement>(host: T, id: string) {
-	populate(host, { id, "style:text-decoration": () => (hash.ref === `#${id}` ? "underline" : "none") })
+	populate(host, {
+		class: "heading",
+		id,
+		"class:active": () => hash.ref === `#${id}`
+	})
 	const dom = host.attachShadow({ mode: "open" })
-	dom.adoptedStyleSheets.push(style)
+	dom.adoptedStyleSheets.push(commonStyle, style)
 
 	hash.follow$(
 		host,
 		(hash) => {
-			if (hash === `#${id}`) host.scrollIntoView({ inline: "start" })
+			if (hash === `#${id}`) host.scrollIntoView({ inline: "center" })
 		},
 		{ mode: "immediate" }
 	)
@@ -26,10 +31,6 @@ export function Heading<T extends HTMLHeadingElement>(host: T, id: string) {
 }
 
 const style = await css`
-	:host {
-		scroll-margin-top: 2ch;
-	}
-
 	a {
 		color: inherit;
 		opacity: 0.5;

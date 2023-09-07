@@ -1,4 +1,4 @@
-import { signal } from "../../lib/core"
+import { signal } from "@/../lib/core"
 
 // Create a signal with initial value
 const foo = signal("foo")

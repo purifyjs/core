@@ -1,35 +1,18 @@
+import "./styles"
+
 import { fragment } from "@/../lib/core"
 import { css } from "@/../lib/extra/css"
 import { html } from "@/../lib/extra/html"
-import { awaited } from "../lib/extra/awaited"
 import { defineCustomTag } from "../lib/extra/custom-tags"
 import { Docs } from "./docs"
 import { IPFS } from "./libs/ipfs"
-
-document.adoptedStyleSheets.push(
-	await css`
-		:root {
-			font-family: "Open Sans Light", Helvetica;
-			line-height: 1.5;
-			letter-spacing: 0.05ch;
-			color-scheme: dark;
-			scroll-behavior: smooth;
-			text-rendering: optimizeLegibility;
-			font-smooth: always;
-		}
-
-		:root {
-			--primary: #eb3f33;
-			--secondary: #a1e694;
-		}
-	`
-)
+import { commonStyle } from "./styles"
 
 const appTag = defineCustomTag("x-app")
 function App() {
 	const host = appTag()
 	const dom = host.attachShadow({ mode: "open" })
-	dom.adoptedStyleSheets.push(style)
+	dom.adoptedStyleSheets.push(commonStyle, style)
 
 	dom.append(
 		fragment(html`
@@ -44,7 +27,9 @@ function App() {
 					and seamless templating with full support for signals.
 				</p>
 			</header>
-			<main>${awaited(Docs().then((docs) => html` <x ${docs} class="docs"></x> `))}</main>
+			<main>
+				<x ${Docs()} class="docs"></x>
+			</main>
 		`)
 	)
 

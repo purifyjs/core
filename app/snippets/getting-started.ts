@@ -1,6 +1,6 @@
-import type { Signal } from "../../lib/core"
-import { signal } from "../../lib/core"
-import { html } from "../../lib/extra/html"
+import type { Signal } from "@/../lib/core"
+import { signal } from "@/../lib/core"
+import { html } from "@/../lib/extra/html"
 
 export function Hello() {
 	const world = signal("world")

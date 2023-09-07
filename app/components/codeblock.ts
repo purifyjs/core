@@ -1,7 +1,8 @@
 import { fragment } from "@/../lib/core"
 import { css } from "@/../lib/extra/css"
+import { defineCustomTag } from "@/../lib/extra/custom-tags"
 import { html } from "@/../lib/extra/html"
-import { defineCustomTag } from "../../lib/extra/custom-tags"
+import { commonStyle } from "@/styles"
 import "../libs/prism"
 import prismThemeCss from "../libs/prism/style.css?inline"
 
@@ -15,8 +16,7 @@ const codeblockTag = defineCustomTag("x-codeblock")
 export function Codeblock(code: string) {
 	const host = codeblockTag()
 	const dom = host.attachShadow({ mode: "open" })
-	dom.adoptedStyleSheets.push(style)
-	dom.adoptedStyleSheets.push(prismThemeStyle)
+	dom.adoptedStyleSheets.push(commonStyle, prismThemeStyle, style)
 
 	dom.append(
 		fragment(html`
@@ -44,7 +44,7 @@ const style = await css`
 		font-family: monospace;
 		tab-size: 3;
 		font-size: 0.95em;
-		background-color: hsl(0, 0%, 0%);
+		background-color: #121212;
 	}
 
 	pre {

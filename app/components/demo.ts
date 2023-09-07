@@ -1,13 +1,14 @@
 import { fragment } from "@/../lib/core"
 import { css } from "@/../lib/extra/css"
+import { defineCustomTag } from "@/../lib/extra/custom-tags"
 import { html } from "@/../lib/extra/html"
-import { defineCustomTag } from "../../lib/extra/custom-tags"
+import { commonStyle } from "@/styles"
 
 const demoTag = defineCustomTag("x-demo")
 export function DemoWrapper() {
 	const host = demoTag()
 	const dom = host.attachShadow({ mode: "open" })
-	dom.adoptedStyleSheets.push(style)
+	dom.adoptedStyleSheets.push(commonStyle, style)
 
 	dom.append(
 		fragment(html`

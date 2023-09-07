@@ -1,12 +1,8 @@
-import { tagsNS } from "../../../lib/core"
+import { tagsNS } from "@/../../lib/core"
 
 const { div, span } = tagsNS
 
-div(
-	{ class: "hello", "on:click": () => alert("Hello World") },
-	"Hello",
-	span({}, "World")
-)
+div({ class: "hello", "on:click": () => alert("Hello World") }, "Hello", span({}, "World"))
 
 /* 
 In the example above, you import `tagsNS` proxy, and you destructure `div` and `span` from it. 
