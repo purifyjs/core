@@ -144,28 +144,6 @@ export const documentStyle = await css`
 		text-decoration: underline;
 	}
 
-	section {
-		position: relative;
-
-		& > h2:first-child {
-			position: sticky;
-			top: 0;
-			background-color: var(--body);
-			padding-block: 0.5em;
-			margin: 0;
-			z-index: 2;
-		}
-
-		& > h3:first-child {
-			position: sticky;
-			top: 3rem;
-			background-color: var(--body);
-			padding-block: 0.5em;
-			margin: 0;
-			z-index: 1;
-		}
-	}
-
 	a {
 		color: var(--primary);
 	}

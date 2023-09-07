@@ -31,7 +31,7 @@ A lightweight TypeScript library designed for creating Single Page Applications 
 
 Work in progress
 
-[Currently Available Unfinished Documentation](https://ipfs.io/ipfs/QmbrigqyKGU77j8JXUnxipgZXwMHjTw9frRB16AYJ8y9Un)
+[Currently Available Unfinished Documentation](https://ipfs.io/ipfs/Qma4ZGCFWCKK3iEpyhhc9zVjZE8tPN6iv1UsPFLYyQQPQC)
 
 ## Motivation 🍣
 
