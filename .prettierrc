@@ -4,6 +4,7 @@
 	"bracketSameLine": true,
 	"printWidth": 120,
 	"semi": false,
+	"trailingComma": "none",
 	"arrowParens": "always",
 	"bracketSpacing": true,
 	"overrides": [

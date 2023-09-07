@@ -1,7 +1,7 @@
 import { fragment } from "@/../lib/core"
 import { css } from "@/../lib/extra/css"
 import { html } from "@/../lib/extra/html"
-import { defineCustomTag } from "../lib/extra/custom-tags"
+import { defineCustomTag } from "../../lib/extra/custom-tags"
 
 const demoTag = defineCustomTag("x-demo")
 export function DemoWrapper() {
@@ -20,7 +20,7 @@ export function DemoWrapper() {
 	return host
 }
 
-const style = css`
+const style = await css`
 	:host {
 		display: grid;
 		padding-block: 0.5em;

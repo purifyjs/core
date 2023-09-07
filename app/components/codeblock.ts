@@ -1,30 +1,22 @@
-import type { SignalOrValueOrFn } from "@/../lib/core"
-import { derive, fragment, isSignalOrFn, signalFrom } from "@/../lib/core"
+import { fragment } from "@/../lib/core"
 import { css } from "@/../lib/extra/css"
 import { html } from "@/../lib/extra/html"
-import { defineCustomTag } from "../lib/extra/custom-tags"
-import "./libs/prism"
-import prismThemeCss from "./libs/prism/style.css?inline"
+import { defineCustomTag } from "../../lib/extra/custom-tags"
+import "../libs/prism"
+import prismThemeCss from "../libs/prism/style.css?inline"
 
 const { Prism } = window
 
-const prismThemeStyle = new CSSStyleSheet()
-prismThemeStyle.replaceSync(prismThemeCss)
+const prismThemeStyle = await css`
+	${prismThemeCss}
+`
 
 const codeblockTag = defineCustomTag("x-codeblock")
-export function Codeblock(code: SignalOrValueOrFn<string>) {
+export function Codeblock(code: string) {
 	const host = codeblockTag()
 	const dom = host.attachShadow({ mode: "open" })
 	dom.adoptedStyleSheets.push(style)
 	dom.adoptedStyleSheets.push(prismThemeStyle)
-
-	const trimmedCode = derive(() => clearCode(isSignalOrFn(code) ? signalFrom(code).ref : code))
-
-	trimmedCode.follow$(
-		host,
-		(code) => (dom.querySelector("code")!.innerHTML = Prism.highlight(code, Prism.languages["js"]!, "typescript")),
-		{ mode: "immediate" }
-	)
 
 	dom.append(
 		fragment(html`
@@ -34,10 +26,12 @@ export function Codeblock(code: SignalOrValueOrFn<string>) {
 		`)
 	)
 
+	dom.querySelector("code")!.innerHTML = Prism.highlight(clearCode(code), Prism.languages["js"]!, "typescript")
+
 	return host
 }
 
-const style = css`
+const style = await css`
 	:host {
 	}
 
@@ -63,7 +57,7 @@ const style = css`
 
 function clearCode(code: string) {
 	// Split the code into lines
-	const lines = code.split("\n").filter((line) => !line.trim().startsWith("import "))
+	const lines = code.split("\n")
 
 	// Remove empty lines from the beginning and end
 	while (lines.length > 0 && !lines.at(0)!.trim()) {

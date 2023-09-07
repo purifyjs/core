@@ -33,6 +33,7 @@ export let onConnected$ = <T extends Node>(node: T, listener: Lifecycle.OnConnec
 
 if (doc) {
 	let callFnOnTree = (node: Node, tupleIndex: Utils.Subtract<Lifecycle.Item["length"], 1>): void => {
+		if (!node.isConnected) return
 		lifecycleListeners.get(node)?.[FOR_EACH]((callbacks) => callbacks[tupleIndex]?.())
 		Array.from((node as Element).shadowRoot?.childNodes ?? [])[FOR_EACH]((childNode) =>
 			callFnOnTree(childNode, tupleIndex)
@@ -229,10 +230,14 @@ let bindSignalAsFragment = <T>(signalOrFn: SignalOrFn<T>): DocumentFragment => {
 
 	// TODO: Someone help me make this shorter and more elegant
 	// TODO: Welp
+	let oldValue: unknown
 	signalFrom(signalOrFn)[FOLLOW$](
 		start,
 		(value: T) => {
-			if (!isArray(value)) return clearBetween(start, end), end.before(toNode(value))
+			if (!isArray(oldValue) || !isArray(value)) clearBetween(start, end)
+			oldValue = value
+
+			if (!isArray(value)) return end.before(toNode(value))
 
 			let currentNode = nextSibling(start)!
 			nextValue: for (let currentIndex = 0; currentIndex < value.length; currentIndex++) {
@@ -298,23 +303,6 @@ type InputValueKeyMap<Type extends string> = Type extends keyof typeof inputValu
 	: typeof VALUE
 type InputValueTypeMap<Type extends string> = HTMLInputElement[InputValueKeyMap<Type>]
 
-type ProbablyValidAttributesOfElement<T extends Element> = Partial<{
-	[K in Exclude<
-		Utils.Kebab<
-			Exclude<
-				Extract<
-					{
-						[K2 in keyof T]: T[K2] extends string ? K2 : never
-					}[keyof T],
-					string
-				>,
-				keyof Element
-			>
-		>,
-		`${string}-${string}`
-	>]: K extends keyof T ? T[K] : never
-}>
-
 let CHECKED = "checked" as const
 let VALUE = "value" as const
 let VALUE_AS_NUMBER = (VALUE + "AsNumber") as `${typeof VALUE}AsNumber`
@@ -371,8 +359,7 @@ export namespace TagsNS {
 					type?: TInputType
 					"bind:value"?: Signal<InputValueTypeMap<TInputType>>
 			  }
-			: {}) &
-		ProbablyValidAttributesOfElement<T>
+			: {})
 
 	export type Builder<T extends Element> = {
 		<TInputType extends HTMLInputElement["type"]>(
