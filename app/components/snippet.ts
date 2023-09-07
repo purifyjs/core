@@ -1,11 +1,13 @@
-import { fragment, tagsNS } from "@/../lib/core"
+import { tagsNS } from "@/../lib/core"
 import { marked } from "marked"
+import { defineCustomTag } from "../../lib/extra/custom-tags"
 import { html } from "../../lib/extra/html"
 import { Codeblock } from "./codeblock"
 import { Heading } from "./heading"
 
 const { div } = tagsNS
 
+const snippetTag = defineCustomTag("x-snippet")
 export async function Snippet(path: string, headingHost?: HTMLHeadingElement) {
 	const snippet = await import(`../snippets/${path}?raw`).then((m) => parseSnippet(m.default))
 	const content = snippet.map((item) => {
@@ -19,7 +21,7 @@ export async function Snippet(path: string, headingHost?: HTMLHeadingElement) {
 		}
 	})
 
-	return fragment(html` ${headingHost ? html`<x ${Heading(headingHost, path)}></x>` : null} ${content} `)
+	return snippetTag({}, html` ${headingHost ? html`<x ${Heading(headingHost, path)}></x>` : null} ${content} `)
 }
 
 function parseSnippet(code: string) {

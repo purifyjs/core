@@ -11,9 +11,8 @@ document.adoptedStyleSheets.push(
 	await css`
 		:root {
 			font-family: "Open Sans Light", Helvetica;
-			font-size: 0.75rem;
 			line-height: 1.5;
-			letter-spacing: 0.1rem;
+			letter-spacing: 0.05ch;
 			color-scheme: dark;
 			scroll-behavior: smooth;
 			text-rendering: optimizeLegibility;

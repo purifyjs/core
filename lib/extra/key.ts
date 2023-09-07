@@ -6,6 +6,6 @@ export let keyedCache = () => {
 			const value = fn()
 			map.set(key, value)
 			return value
-		},
+		}
 	}
 }

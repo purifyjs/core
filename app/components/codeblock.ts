@@ -42,7 +42,7 @@ const style = await css`
 
 		padding: 0.5em;
 		font-family: monospace;
-		tab-size: 4;
+		tab-size: 3;
 		font-size: 0.85em;
 		background-color: hsl(0, 0%, 0%);
 	}

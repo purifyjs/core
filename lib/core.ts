@@ -54,7 +54,7 @@ if (doc) {
 		mutationObserver.observe(root, {
 			characterData: true,
 			childList: true,
-			subtree: true,
+			subtree: true
 		}),
 		root
 	)
@@ -142,11 +142,11 @@ export let signal: Signal.Builder = (currentValue, pong) => {
 			{
 				[UNFOLLOW]() {
 					followers.delete(follower), followers.size || passive()
-				},
+				}
 			}
 		),
 		[FOLLOW$]: (node, ...args) => onConnected$(node, () => self[FOLLOW](...args)[UNFOLLOW]),
-		asReadonly: () => self,
+		asReadonly: () => self
 	}
 	signals.add(self)
 	return self
@@ -214,7 +214,7 @@ let bindSignalAsFragment = <T>(signalOrFn: SignalOrFn<T>): DocumentFragment => {
 		let self: Item = {
 			v: value,
 			s: itemStart,
-			e: itemEnd,
+			e: itemEnd
 		}
 		itemNodes.set(itemStart, self)
 		insertBefore.before(itemStart, toNode(value), itemEnd)
@@ -316,7 +316,7 @@ let inputValueKeyMap = {
 	"datetime-local": VALUE_AS_DATE,
 	month: VALUE_AS_DATE,
 	time: VALUE_AS_DATE,
-	week: VALUE_AS_DATE,
+	week: VALUE_AS_DATE
 } as const
 
 let getInputValueKey = <Type extends keyof typeof inputValueKeyMap | (string & {})>(type: Type) =>
@@ -373,7 +373,7 @@ export let tagsNS = new Proxy(
 	{
 		get: (_, tagName: string) =>
 			((...args: Parameters<TagsNS.Builder<HTMLElement>>) =>
-				populate(doc.createElement(tagName), ...args)) as TagsNS.Builder<HTMLElement>,
+				populate(doc.createElement(tagName), ...args)) as TagsNS.Builder<HTMLElement>
 	}
 ) as TagsNS
 

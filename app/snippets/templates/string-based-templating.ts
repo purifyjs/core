@@ -1,6 +1,10 @@
 import { html } from "../../../lib/extra/html"
 
-html` <div class="hello" on:click=${() => alert("Hello World")}>Hello <span>World</span></div> `
+html`
+	<div class="hello" on:click=${() => alert("Hello World")}>
+		Hello <span>World</span>
+	</div>
+`
 
 /* 
 In example above, you import `html`, and you use a tagged template literal syntax to define your HTML structure.

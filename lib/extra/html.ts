@@ -57,7 +57,7 @@ let hydrate = (node: Node, args: HydrateArgs): TagsNS.AcceptedChild[] => {
 					Array.from(node.childNodes)
 						.map((childNode) => hydrate(childNode, args))
 						.flat()
-				),
+				)
 		  ]
 		: [node]
 }

@@ -154,7 +154,7 @@ function switchValue<TValue>(value: TValue): SwitchValueBuilder<TValue> {
 
 			if (fallback) return fallback(value)
 			return null
-		},
+		}
 	}
 	// Yup, this is a hack, type is way to funky to get right
 	return result as never
@@ -214,7 +214,7 @@ function switchValueSignal<TValue>(valueSignal: Readonly<Signal<TValue>>): Switc
 					{ mode: "immediate" }
 				).unfollow
 			})
-		},
+		}
 	}
 	// Yup, this is a hack, type is way to funky to get right
 	return result as never

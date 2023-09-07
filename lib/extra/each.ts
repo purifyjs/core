@@ -34,6 +34,6 @@ export let each = <T>(arr: SignalOrFn<T[]>) => ({
 						{ mode: "immediate" }
 					).unfollow
 			)
-		},
-	}),
+		}
+	})
 })
