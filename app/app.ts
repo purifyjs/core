@@ -1,11 +1,10 @@
-import { fragment, tagsNS } from "@/../lib/core"
+import { fragment } from "@/../lib/core"
 import { css } from "@/../lib/extra/css"
 import { html } from "@/../lib/extra/html"
 import { awaited } from "../lib/extra/awaited"
+import { defineCustomTag } from "../lib/extra/custom-tags"
 import { Docs } from "./docs"
 import { IPFS } from "./libs/ipfs"
-
-const { div } = tagsNS
 
 document.adoptedStyleSheets.push(
 	await css`
@@ -26,8 +25,9 @@ document.adoptedStyleSheets.push(
 	`
 )
 
+const appTag = defineCustomTag("x-app")
 function App() {
-	const host = div()
+	const host = appTag()
 	const dom = host.attachShadow({ mode: "open" })
 	dom.adoptedStyleSheets.push(style)
 
@@ -44,8 +44,7 @@ function App() {
 					and seamless templating with full support for signals.
 				</p>
 			</header>
-
-			${awaited(Docs().then((docs) => html` <x ${docs} class="docs"></x> `))}
+			<main>${awaited(Docs().then((docs) => html` <x ${docs} class="docs"></x> `))}</main>
 		`)
 	)
 
@@ -56,12 +55,9 @@ const style = await css`
 	:host {
 		display: grid;
 		grid-auto-flow: row;
+		grid-template-columns: minmax(0, 60em);
+		justify-content: center;
 		padding-block-end: 25vh;
-	}
-
-	* {
-		margin: 0;
-		padding: 0;
 	}
 
 	img {
@@ -92,4 +88,4 @@ const style = await css`
 	}
 `
 
-document.body.append(await App())
+document.body.append(App())
