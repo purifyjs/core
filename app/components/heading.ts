@@ -20,7 +20,7 @@ export function Heading<T extends HTMLHeadingElement>(host: T, id: string) {
 	hash.follow$(
 		host,
 		(hash) => {
-			if (hash === `#${id}`) host.scrollIntoView({ inline: "center" })
+			if (hash === `#${id}`) host.scrollIntoView({ block: "center", inline: "nearest" })
 		},
 		{ mode: "immediate" }
 	)

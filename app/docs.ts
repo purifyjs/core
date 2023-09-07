@@ -86,28 +86,35 @@ export function Docs() {
 							changes and enable efficient DOM manipulations.
 						</p>
 
-						<x ${Heading(h4(), "signals/create")}>Create:</x>
-						<p>In the code below, we create a <code>${"Signal<string>"}</code>, and then mutate it.</p>
-						${Snippet(snipped_signals_create)}
+						<section>
+							<x ${Heading(h4(), "signals/create")}>Create:</x>
+							<p>In the code below, we create a <code>${"Signal<string>"}</code>, and then mutate it.</p>
+							${Snippet(snipped_signals_create)}
+						</section>
 
-						<x ${Heading(h4(), "signals/follow")}>Follow:</x>
-						<p>
-							After following a signal manually, if you don't wanna follow the signal until the App exits, you
-							have to unfollow it manually
-						</p>
-						${Snippet(snipped_signals_follow)}
+						<section>
+							<x ${Heading(h4(), "signals/follow")}>Follow:</x>
+							<p>
+								After following a signal manually, if you don't wanna follow the signal until the App exits, you
+								have to unfollow it manually
+							</p>
+							${Snippet(snipped_signals_follow)}
+						</section>
 
-						<x ${Heading(h4(), "signals/bind-follow")}>Bind Follow:</x>
-						<p>
-							You can bind a follow to a life cycle of a <code>Node</code>. This way you don't have to unfollow
-							manually. This follows naming convention mentioned in <a href="#life-cycle">Life Cycle</a> section.
-						</p>
-						<p>The code below will do two things:</p>
-						<ol>
-							<li>When <code>myNode</code> is connected to DOM, it will follow the signal</li>
-							<li>When <code>myNode</code> is disconnected from DOM, it will unfollow the signal</li>
-						</ol>
-						${Snippet(snipped_signals_bind_follow)}
+						<section>
+							<x ${Heading(h4(), "signals/bind-follow")}>Bind Follow:</x>
+							<p>
+								You can bind a follow to a life cycle of a <code>Node</code>. This way you don't have to
+								unfollow manually. This follows naming convention mentioned in
+								<a href="#life-cycle">Life Cycle</a> section.
+							</p>
+							<p>The code below will do two things:</p>
+							<ol>
+								<li>When <code>myNode</code> is connected to DOM, it will follow the signal</li>
+								<li>When <code>myNode</code> is disconnected from DOM, it will unfollow the signal</li>
+							</ol>
+							${Snippet(snipped_signals_bind_follow)}
+						</section>
 					</section>
 				</section>
 			</div>
@@ -120,7 +127,7 @@ export function Docs() {
 export const documentStyle = await css`
 	section {
 		padding: 1ch;
-		border-left: 0.1rem dashed var(--primary);
+		border-left: 0.25rem solid var(--primary);
 		& + section {
 			margin-block-start: 5em;
 		}
@@ -165,9 +172,10 @@ export const documentStyle = await css`
 
 	:not(pre) > code {
 		font-style: monospace;
+		font-size: inherit;
+		letter-spacing: 1;
 		background-color: hsl(0, 0%, 25%);
 		color: var(--secondary);
 		padding-inline: 0.1ch;
-		font-size: 0.8em;
 	}
 `
