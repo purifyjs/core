@@ -22,6 +22,7 @@ A lightweight TypeScript library designed for creating Single Page Applications 
 -  `awaited` - Await a promise using signals
 -  `match` - Pattern matching for both signals and values
 -  `keyedCache` - Memoizing anything else you want using keys
+-  `defineCustomTag` - Shortcut to define empty custom elements easily
 
 ## Installation 🍙
 
