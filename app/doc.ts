@@ -109,7 +109,7 @@ changes and enable efficient DOM manipulations.
 
 //#region Create:
 /*
-In the code below, we create a <code>${"Signal<string>"}</code>, and then mutate it.
+In the code below, we create a `Signal<string>`, and then mutate it.
 */
 {
 	// Create a signal with the initial value "foo"
