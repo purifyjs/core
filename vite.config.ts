@@ -1,7 +1,8 @@
 import { defineConfig } from "vite"
+import { viteSingleFile } from "vite-plugin-singlefile"
 
 export default defineConfig({
-	plugins: [],
+	plugins: [viteSingleFile()],
 	build: {
 		target: "esnext"
 	},
