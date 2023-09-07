@@ -4,7 +4,7 @@ import { fragment } from "@/../lib/core"
 import { css } from "@/../lib/extra/css"
 import { html } from "@/../lib/extra/html"
 import { defineCustomTag } from "../lib/extra/custom-tags"
-import { Docs } from "./docs"
+import { Docs } from "./content"
 import { IPFS } from "./libs/ipfs"
 import { commonStyle } from "./styles"
 

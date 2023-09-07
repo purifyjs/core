@@ -9,7 +9,7 @@
 	"bracketSpacing": true,
 	"overrides": [
 		{
-			"files": ["./app/snippets/*.ts", "./app/snippets/**/*.ts"],
+			"files": ["./app/doc.ts"],
 			"options": {
 				"printWidth": 80
 			}
