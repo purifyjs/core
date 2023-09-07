@@ -125,6 +125,10 @@ export function Docs() {
 }
 
 export const documentStyle = await css`
+	:is(h1, h2, h3, h4, h5, h6):first-child {
+		margin-block-start: 0;
+	}
+
 	section {
 		padding: 1ch;
 		border-left: 0.25rem solid var(--primary);
