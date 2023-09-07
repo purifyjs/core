@@ -1,5 +1,5 @@
 <p align="center">
-<img width="420px" height="auto" src="https://ipfs.io/ipfs/QmRZXurxmTZwQC2GPrdNidPJ3PS4SrXSFqkeeoV24DXt4e" />
+<img width="420px" height="auto" src="https://ipfs.io/ipfs/QmRzB62LaAwh8JFMSr6PDtedodBuSX9yZbScLwNjPUcn9z" />
 </p>
 <p align="center">
 A lightweight TypeScript library designed for creating Single Page Applications (SPAs) that supercharge vanilla JS. This lightweight library introduces powerful features, including a robust signaling system and seamless templating with full support for signals.

@@ -103,16 +103,6 @@ export function Docs() {
 
 						<section>
 							<x ${Heading(h4(), "signals/bind-follow")}>Bind Follow:</x>
-							<p>
-								You can bind a follow to a life cycle of a <code>Node</code>. This way you don't have to
-								unfollow manually. This follows naming convention mentioned in
-								<a href="#life-cycle">Life Cycle</a> section.
-							</p>
-							<p>The code below will do two things:</p>
-							<ol>
-								<li>When <code>myNode</code> is connected to DOM, it will follow the signal</li>
-								<li>When <code>myNode</code> is disconnected from DOM, it will unfollow the signal</li>
-							</ol>
 							${Snippet(snipped_signals_bind_follow)}
 						</section>
 					</section>
@@ -130,8 +120,8 @@ export const documentStyle = await css`
 	}
 
 	section {
-		padding: 1ch;
-		border-left: 0.25rem solid var(--primary);
+		padding: 0.4em;
+		border-left: 0.1em solid var(--primary);
 		& + section {
 			margin-block-start: 5em;
 		}

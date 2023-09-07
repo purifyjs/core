@@ -1,6 +1,10 @@
 import { onConnected$, signal } from "@/../lib/core"
 
 /* 
+You can bind a follow to a life cycle of a <code>Node</code>. This way you don't have to
+unfollow manually. This follows naming convention mentioned in
+[Life Cycle](#life-cycle) section.
+
 The code below will do two things:
 
 1. When `myNode` is connected to DOM, it will follow the signal
