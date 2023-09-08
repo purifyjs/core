@@ -33,7 +33,7 @@ export let onConnected$ = <T extends Node>(node: T, listener: Lifecycle.OnConnec
 
 if (doc) {
 	let callFnOnTree = (node: Node, tupleIndex: Utils.Subtract<Lifecycle.Item["length"], 1>): void => {
-		if (!node.isConnected) return
+		if (tupleIndex === 0 && !node.isConnected) return
 		lifecycleListeners.get(node)?.[FOR_EACH]((callbacks) => callbacks[tupleIndex]?.())
 		Array.from((node as Element).shadowRoot?.childNodes ?? [])[FOR_EACH]((childNode) =>
 			callFnOnTree(childNode, tupleIndex)
