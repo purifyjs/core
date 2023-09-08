@@ -2,9 +2,8 @@
 <img width="420px" height="auto" src="https://ipfs.io/ipfs/QmRZXurxmTZwQC2GPrdNidPJ3PS4SrXSFqkeeoV24DXt4e" />
 </p>
 <p align="center">
-A lightweight TypeScript library designed for creating Single Page Applications (SPAs) that goes hand in
-hand with browser's native APIs. This lightweight library introduces powerful features, including a
-robust signaling system and seamless templating with full support for signals.
+A lightweight TypeScript library designed for creating Single Page Applications (SPAs) 
+that is complimentary to browser's native APIs.
 </p>
 
 ## Features ⚡
