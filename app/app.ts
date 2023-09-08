@@ -23,7 +23,7 @@ function App() {
 				<h1 style:position="absolute" style:scale="0">master-ts</h1>
 				<p>
 					A lightweight TypeScript library designed for creating SPAs, that is complementary to the browser's
-					native APIs
+					native APIs. Small yet powerful. Simple yet still useful.
 				</p>
 			</header>
 			<main>

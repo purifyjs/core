@@ -3,7 +3,7 @@
 </p>
 <p align="center">
 	A lightweight TypeScript library designed for creating SPAs, that is complementary to the browser's
-	native APIs
+	native APIs. Small yet powerful. Simple yet still useful.
 </p>
 
 ## Features ⚡
@@ -35,7 +35,7 @@
 
 Work in progress
 
-[Currently Available Unfinished Documentation](https://ipfs.io/ipfs/QmY5CBiTLqgQugbqUkUmcVvVidq9i1GD4RbWsVSdAK4kz1)
+[Currently Available Unfinished Documentation](https://ipfs.io/ipfs/QmXiJTiwBYNjiKt5eW5RF6Pd8wdrtxe1hRNff5rxbNeTyt)
 
 ## Motivation 🍣
 
@@ -61,23 +61,12 @@ Do whatever you want, in the way you want, and **master-ts** will work with you.
 
 ## Philosophy 🍜
 
--  **Lightweight** - The core library is only 3kb no-gzip, and the extra library is only 2.5kb no-gzip.
+-  **Lightweight** - It's only 2.6kb minified and gzipped.
 -  **Complementary** - It's designed to be complementary to the browser's native APIs, not to replace them.
 -  **Minimal** - It's designed to be minimal, and only focus on SPAs.
 -  **Simple** - It's designed to be simple, and easy to learn.
 -  **Flexible** - It's designed to be flexible, and work with other libraries and frameworks.
 -  **TypeScript** - It's designed to be used with TypeScript, and leverage the power of TypeScript.
-
-## Why SPAs? 🍛
-
-SSR has been doing a comeback recently, and it's great. But it's not for everyone.
-You can build an app made with **master-ts** into a single HTML file using [vite-plugin-singlefile](https://github.com/richardtallent/vite-plugin-singlefile) npm package, which bundles all of your code into a single file. Which is great because you can just double click the file and it will open in your browser. It's just magical.
-And it's possible because of SPAs.
-
-SPAs are easy to deploy, easy to share, and easy to use which makes them great for protocols like IPFS.
-They are portable, and can be used anywhere.
-
-It's also great for building desktop apps using WebViews.
 
 ## Vite Plugin
 

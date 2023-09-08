@@ -472,7 +472,7 @@ Well because once you append a `DocumentFragment` to the DOM, it will be emptied
 Which makes the reference to it useless. So it makes things like memoized toggling impossible or at least very hard.
 
 Another reason is, `DocumentFragment` can only hold `Node`s. Which means you can't append a `signal` to a `DocumentFragment`.<br/>
-And if you render the `signal` before appending it to the `DocumentFragment` create ghost nodes in the DOM
+And if you render the `signal` before appending it to the `DocumentFragment`, you will create ghost nodes in the DOM
 that would mean nothing if the `signal` changes.
 
 That's why returning an `Array` of `Node`s over a `DocumentFragment` decided to be a better option.
