@@ -26,7 +26,7 @@ export namespace Lifecycle {
 
 let lifecycleListeners = new weakMap<Node, Lifecycle.Item[]>()
 export let onConnected$ = <T extends Node>(node: T, listener: Lifecycle.OnConnected): void => {
-	let lifecycleItem: Lifecycle.Item = [() => (lifecycleItem[1] ??= listener()!)]
+	let lifecycleItem: Lifecycle.Item = [() => (lifecycleItem[1] = listener()!)]
 	node.isConnected && lifecycleItem[0]()
 	lifecycleListeners.get(node)?.push(lifecycleItem) ?? lifecycleListeners.set(node, [lifecycleItem])
 }
