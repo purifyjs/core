@@ -37,17 +37,45 @@ Work in progress
 
 ## Motivation 🍣
 
-In the ever-evolving landscape of web development, we often see a lot of buzz around server-side rendering (SSR) frameworks and libraries. However, when it comes to single-page applications (SPAs), it feels like things have hit a bit of a standstill. Most SPA libraries have stopped growing, leaving developers like you on the hunt for a fresh and lightweight solution to elevate your vanilla JavaScript projects.
+These days, frameworks are getting more and more complex. They are getting more and more opinionated, some are getting their own languages.
+And most importantly, they are trying to do everything at once SSR, SSG, SPA, HMR, etc.
 
-Enter "master-ts." This is more than just a library; it's your new secret weapon. While the world is racing toward SSR, "master-ts" is all about revitalizing SPAs to meet today's needs. Our aim is to end the search for a reliable, lightweight SPA library that can seriously amp up your vanilla JavaScript game.
+Meanwhile, native browser APIs are getting better and better, and **master-ts** is designed to be complementary to native browser APIs, not to replace them. It's designed to be lightweight, and leverage the power of TypeScript to make it easier to build SPAs.
 
-Forget about those heavyweight frameworks; "master-ts" is your go-to for simplicity and efficiency. Whether you're a seasoned developer looking for a smoother workflow or a newcomer eager to dive into web development, "master-ts" has got your back.
+By only focusing on SPAs, **master-ts** is able work better with the browser's native APIs.
+This also makes it easier to learn, and easier to use with other libraries and frameworks. If you know vanilla JS you know **master-ts**
 
-The motivation behind "master-ts" is crystal clear: it's about embracing the power of straightforward, efficient development. This isn't just another framework; it's a minimalist TypeScript library that makes building elegant user interfaces a breeze.
+**master-ts** doesn't tell you how to build a component, how to mount a component, or what is a component. Because these things are not meant to be this complicated. Define a function, create an `Element` or `Node`, throw it into the DOM any way you want, and you are done. Put a `signal` in it, and it will be reactive. Remove it from the DOM, append it back, again multiple times, and it will still work.
 
-So, why "master-ts"? Because it's time to bring back the spark to SPAs. Let's leave behind unnecessary complexities and rediscover the joy of coding with a library that's as dependable as it is fun to use.
+It gives you the freedom to build your app however you want:
 
-— Writen by ChatGPT
+-  Wanna use Shadow DOM? Go ahead.
+-  Wanna use Custom Elements? Go ahead.
+-  Wanna use fragments with CSS `@scoped`? Go ahead.
+-  Wanna use history API? Go ahead.
+-  Wanna use hash router? Go ahead.
+
+Do whatever you want, in the way you want, and **master-ts** will work with you.
+
+## Philosophy 🍜
+
+-  **Lightweight** - The core library is only 3kb no-gzip, and the extra library is only 2.5kb no-gzip.
+-  **Complementary** - It's designed to be complementary to the browser's native APIs, not to replace them.
+-  **Minimal** - It's designed to be minimal, and only focus on SPAs.
+-  **Simple** - It's designed to be simple, and easy to learn.
+-  **Flexible** - It's designed to be flexible, and work with other libraries and frameworks.
+-  **TypeScript** - It's designed to be used with TypeScript, and leverage the power of TypeScript.
+
+## Why SPAs? 🍛
+
+SSR has been doing a comeback recently, and it's great. But it's not for everyone.
+You can build an app made with **master-ts** into a single HTML file using [`vite-plugin-singlefile`](https://github.com/richardtallent/vite-plugin-singlefile) npm package, which bundles all of your code into a single file. Which is great because you can just double click the file and it will open in your browser. It's just magical.
+And it's possible because of SPAs.
+
+SPAs are easy to deploy, easy to share, and easy to use which makes them great for protocols like IPFS.
+They are portable, and can be used anywhere.
+
+It's also great for building desktop apps using WebViews.
 
 ## Vite Plugin
 
