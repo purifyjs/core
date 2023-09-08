@@ -1,5 +1,5 @@
 <p align="center">
-	<img width="420px" height="auto" src="https://ipfs.io/ipfs/QmRZXurxmTZwQC2GPrdNidPJ3PS4SrXSFqkeeoV24DXt4e" />
+	<img width="240px" height="auto" src="https://ipfs.io/ipfs/QmRZXurxmTZwQC2GPrdNidPJ3PS4SrXSFqkeeoV24DXt4e" />
 </p>
 <p align="center">
 	A lightweight TypeScript library designed for creating SPAs, that is complementary to the browser's
