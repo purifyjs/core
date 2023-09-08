@@ -2,8 +2,7 @@
 <img width="420px" height="auto" src="https://ipfs.io/ipfs/QmRZXurxmTZwQC2GPrdNidPJ3PS4SrXSFqkeeoV24DXt4e" />
 </p>
 <p align="center">
-A lightweight TypeScript library designed for creating Single Page Applications (SPAs) 
-that is complimentary to browser's native APIs.
+A lightweight TypeScript library designed for creating SPAs that is complementary to the browser's native APIs
 </p>
 
 ## Features ⚡
