@@ -43,7 +43,7 @@ const style = css`
 		padding: 0.5em;
 		font-family: monospace;
 		tab-size: 3;
-		font-size: 0.95em;
+		font-size: 1.15em;
 		background-color: #121212;
 	}
 

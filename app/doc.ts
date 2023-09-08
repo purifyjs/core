@@ -1,3 +1,4 @@
+import type { Signal } from "../lib/core"
 import { derive, fragment, signal, tagsNS } from "../lib/core"
 import { css } from "../lib/extra/css"
 import { defineCustomTag } from "../lib/extra/custom-tags"
@@ -306,7 +307,7 @@ code(() => {
 /* 
 There are few important things to note about derived signals:
 -  They won't be calculated until they have at least one follower.
--  They asynchronusly notify their followers, so they won't get updated immediately.
+-  They update asynchronously, which means they won't update immediately after one of their dependencies changes.
 */
 
 /* 
@@ -331,6 +332,35 @@ export const derivedSignalMemoizationExample = code(() => {
 	return html` <button on:click=${runAlert}>Run Alert</button> `
 })
 
+//#endregion
+
+//#region Read-only Signals
+/* 
+As you may have noticed [#Derived Signals](#/usage/signals/derived-signals) returns a read-only signal.
+
+**master-ts** has read-only signals, hurry!🎊<br/>
+But its probably not what you think it is. 
+
+Good thing about being a TypeScript only library is we can do stuff with types that would normally require runtime logic.
+
+Yes, read-only signals are just signals with a read-only type.
+
+Let's see an example:
+*/
+code(() => {
+	const count: Readonly<Signal<number>> = signal(0)
+	// @ts-expect-error
+	count.ref = 10 // Error: Cannot assign to 'ref' because it is a read-only property.
+	// end
+})
+/* As an easier way you can also do this: */
+code(() => {
+	// `asReadonly()` returns the same signal with the read-only type
+	const count = signal(0).asReadonly()
+	// @ts-expect-error
+	count.ref = 10 // Error: Cannot assign to 'ref' because it is a read-only property.
+	// end
+})
 //#endregion
 
 //#endregion

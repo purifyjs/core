@@ -86,7 +86,13 @@ function parseRegion(lines: string[], region: ParseDocumentation.Item.Region): n
 				const end = index
 				region.items.push({
 					type: "code",
-					content: lines.slice(start, end).join("\n").slice(prefix.length)
+					content: lines
+						.slice(start, end)
+						.join("\n")
+						.slice(prefix.length)
+						.split("\n")
+						.filter((line) => !line.trimStart().startsWith("// @"))
+						.join("\n")
 				})
 				continue
 			}
@@ -106,7 +112,12 @@ function parseRegion(lines: string[], region: ParseDocumentation.Item.Region): n
 				region.items.push({
 					type: "demo",
 					name,
-					content: lines.slice(start + 1, end).join("\n")
+					content: lines
+						.slice(start + 1, end)
+						.join("\n")
+						.split("\n")
+						.filter((line) => !line.trimStart().startsWith("// @"))
+						.join("\n")
 				})
 				continue
 			}
