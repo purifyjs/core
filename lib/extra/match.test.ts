@@ -2,7 +2,7 @@ import { fail, strictEqual } from "node:assert"
 import { test } from "node:test"
 import type { Signal } from "../core"
 import { signal } from "../core"
-import { INSTANCEOF, TYPEOF, match } from "./switch"
+import { INSTANCEOF, TYPEOF, match } from "./match"
 
 const describe = () => {
 	const line = new Error().stack!.split("\n")[2]!.split(":").at(-2)!.replace(/\D/g, "")

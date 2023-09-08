@@ -1,7 +1,10 @@
 import type { Signal } from "../lib/core"
-import { derive, fragment, signal, tagsNS } from "../lib/core"
+import { derive, fragment, onConnected$, signal, tagsNS } from "../lib/core"
+import { awaited } from "../lib/extra/awaited"
 import { css } from "../lib/extra/css"
 import { defineCustomTag } from "../lib/extra/custom-tags"
+import { defer } from "../lib/extra/defer"
+import { each } from "../lib/extra/each"
 import { html } from "../lib/extra/html"
 
 function code<T extends Utils.Fn>(block: T): () => ReturnType<T> {
@@ -107,15 +110,15 @@ export const example = code(() => {
 	return Hello()
 })
 
-//#region Signals
-//#region Signal Basics
+//#region Signals Basics
 /*
 Signals are a part of the core of **master-ts**. 
 They are the most basic building block of **master-ts** reactivity. 
 */
 
+//#region Basic Signal
 /* 
-Signals are a wrapper around a value that notifies its followers when the value changes.<br/>
+A Signal is a wrapper around a value that notifies its followers when the value changes.<br/>
 So it's a way to follow the changes of a value.
 */
 
@@ -237,7 +240,7 @@ code(() => {
 //#region Binding following to a Node
 /*
 You can also follow a signal using the `follow$()` function.
-Which follows the naming convention mentioned in the [Lifecycle](#/usage/lifecycle).
+Which follows the naming convention mentioned in the [#Lifecycle](#/usage/lifecycle).
 
 The function `follow$()` will bind your follower to the lifecycle of a `Node`.
 This way you don't have to unfollow a signal manually.
@@ -269,7 +272,7 @@ export const follow$Example = code(() => {
 
 //#endregion
 
-//#region Derived Signals
+//#region Derived Signal
 /*
 You can create a derived signal using the `derive()` function, which takes a function as its argument.<br/>
 The function will be called every time one of the signals that are used inside the function changes.<br/>
@@ -334,11 +337,11 @@ export const derivedSignalMemoizationExample = code(() => {
 
 //#endregion
 
-//#region Read-only Signals
+//#region Read-only Signal
 /* 
 As you may have noticed [#Derived Signals](#/usage/signals/derived-signals) returns a read-only signal.
 
-**master-ts** has read-only signals, hurry!🎊<br/>
+**master-ts** has read-only signals, hurray!🎊<br/>
 But its probably not what you think it is. 
 
 Good thing about being a TypeScript only library is we can do stuff with types that would normally require runtime logic.
@@ -361,6 +364,277 @@ code(() => {
 	count.ref = 10 // Error: Cannot assign to 'ref' because it is a read-only property.
 	// end
 })
+//#endregion
+
+//#endregion
+
+//#region Lifecycle
+/*
+**master-ts** provides you with a function called `onConnected$()` to follow the lifecycle of a `Node`.<br/>
+`$` at the end of the function name is a convention to indicate that the function follows the lifecycle of a `Node`.
+You can see the same naming convention used at the 
+[#Binding following to a Node](#/usage/signals-basics/basic-signal/following-signals/binding-following-to-a-node) section.
+
+`onConnected$()` takes a `Node` as its first argument and a function as its second argument.<br/>
+The function will be called when the `Node` is connected to the DOM.<br/>
+Also, you can return a cleanup function from the function you provide to `onConnected$()`.<br/>
+The cleanup function will be called when the `Node` is disconnected from the DOM.
+
+Let's see an example:
+*/
+export const onConnected$Example = code(() => {
+	const node = document.createTextNode("Hello World")
+
+	onConnected$(node, () => {
+		alert("node is connected to the DOM")
+		return () => alert("node is disconnected from the DOM")
+	})
+
+	// end
+
+	const toggle = signal(false)
+	return html`
+		<button on:click=${() => (toggle.ref = !toggle.ref)}>
+			${() => (toggle.ref ? "Remove" : "Append")} ${"`node`"}
+		</button>
+		<div>${() => (toggle.ref ? node : null)}</div>
+	`
+})
+//#endregion
+
+//#region Templates
+/*
+ **master-ts** provides you with a set of functions and types to make your DOM templating easier.
+ */
+
+//#region HTML Templates
+/*
+In **master-ts** there is two ways to create HTML templates:
+- Using the `html` template literal tag.
+- And using the `tagsNS` `Proxy` namespace. Which is a part of the core of **master-ts**.
+
+Let's see an example of both:
+*/
+export const htmlTemplateExample = code(() => {
+	const { div, button } = tagsNS
+
+	const foo = signal(0)
+	const bar = signal(0)
+
+	const example1 = div(
+		{ class: "hello" },
+		div({}, "Foo:", foo),
+		div({}, "Bar:", bar),
+		div(
+			{ class: "actions" },
+			button({ "on:click": () => foo.ref++ }, "Increment Foo"),
+			" ",
+			button({ "on:click": () => bar.ref++ }, "Increment Bar")
+		)
+	)
+
+	const example2 = html`
+		<div class="hello">
+			<div>Foo: ${foo}</div>
+			<div>Bar: ${bar}</div>
+			<div class="actions">
+				<button on:click=${() => foo.ref++}>Increment Foo</button>
+				<button on:click=${() => bar.ref++}>Increment Bar</button>
+			</div>
+		</div>
+	`
+
+	return html`
+		<div>Example 1:</div>
+		${example1}
+		<hr />
+		<div>Example 2:</div>
+		${example2}
+	`
+
+	// end
+})
+
+/*
+As you can see both examples are the same. But there is a few things to note:
+- `html` template literal tag always returns an `Array` of `Node`s. While `tagsNS` `Proxy` namespace returns the `Node` itself.
+- `tagsNS` has better TypeScript support. Which means you get better type checking and auto-completion.
+*/
+
+//#region Why does `html` Template Literal Tag returns an Array and not a DocumentFragment?
+/*
+You may be wondering why `html` template literal tag returns an `Array` of `Node`s and not a `DocumentFragment`?
+Well because once you append a `DocumentFragment` to the DOM, it will be emptied.
+Which makes the reference to it useless. So it makes things like memoized toggling impossible or at least very hard.
+
+Another reason is, `DocumentFragment` can only hold `Node`s. Which means you can't append a `signal` to a `DocumentFragment`.<br/>
+And if you render the `signal` before appending it to the `DocumentFragment` create ghost nodes in the DOM
+that would mean nothing if the `signal` changes.
+
+That's why returning an `Array` of `Node`s over a `DocumentFragment` decided to be a better option.
+*/
+//#endregion
+
+//#endregion
+
+//#region Advanced Signals
+
+//#region Deffered Signal
+/*
+Deffered signals are signals that are updated after their source signal has stopped changing for a specific amount of time.
+
+This is useful when you want to update a signal after a user has stopped typing for example.
+
+You can create a deffered signal using the `defer()` function:
+*/
+export const deferredSignalExample = code(() => {
+	const text = signal("Change me!")
+	const defferedTextDefault = defer(text) // default timeout is 250ms
+	const defferedTextOneSecond = defer(text, 1000)
+
+	// end
+
+	return html`
+		<input type="text" bind:value=${text} />
+		<div><b>Text:</b> ${text}</div>
+		<div><b>Deffered Text (Default):</b> ${defferedTextDefault}</div>
+		<div><b>Deffered Text (1s):</b> ${defferedTextOneSecond}</div>
+	`
+})
+//#endregion
+
+//#region Awaited Signal
+/*
+Awaited signals are derived from `Promise`s. They are signals that are updated when the `Promise` resolves.
+
+You can create an awaited signal using the `awaited()` function:
+*/
+export const awaitedSignalExample = code(() => {
+	const text = signal("change me!")
+
+	async function upperCase(text: string) {
+		await new Promise((resolve) => setTimeout(resolve, 1000))
+		return text.toUpperCase()
+	}
+
+	// You can mix derived signals with awaited signals
+	const awaitedPromise = derive(() => awaited(upperCase(text.ref)), [text])
+
+	// end
+
+	return html`
+		<input type="text" bind:value=${text} />
+		<div><b>Text:</b> ${text}</div>
+		<div><b>Awaited Promise:</b> ${awaitedPromise}</div>
+	`
+})
+/* 
+You can also provide a second argument to the `awaited()` function which will be used as the initial value of the awaited signal:
+*/
+export const awaitedSignalInitialValueExample = code(() => {
+	const text = signal("change me!")
+
+	async function upperCase(text: string) {
+		await new Promise((resolve) => setTimeout(resolve, 1000))
+		return text.toUpperCase()
+	}
+
+	const awaitedPromise = derive(() => awaited(upperCase(text.ref), "loading..."), [text])
+
+	// end
+
+	return html`
+		<input type="text" bind:value=${text} />
+		<div><b>Text:</b> ${text}</div>
+		<div><b>Awaited Promise:</b> ${awaitedPromise}</div>
+	`
+})
+//#endregion
+
+//#region Each Signal
+/*
+Each signals are derived from `Array`s. They are signals that maps and memoizes the values of an array each time the array changes.
+*/
+function randomId() {
+	return Math.random().toString(36).slice(2)
+}
+export const eachSignalExample = code(() => {
+	function createItem(text: string) {
+		return {
+			id: randomId(),
+			text
+		}
+	}
+
+	const items = signal([
+		createItem("foo"),
+		createItem("bar"),
+		createItem("baz"),
+		createItem("qux"),
+		createItem("quux"),
+		createItem("corge"),
+		createItem("grault"),
+		createItem("garply"),
+		createItem("waldo"),
+		createItem("fred")
+	])
+
+	function randomlyMoveItem() {
+		const index = Math.floor(Math.random() * items.ref.length)
+		const item = items.ref[index]!
+		items.ref.splice(index, 1)
+		items.ref.splice(Math.floor(Math.random() * items.ref.length), 0, item)
+		items.ping()
+	}
+
+	const itemsWithRandomText = each(items)
+		.key((item, index) => item.id)
+		.as(
+			(item, index) => html`
+				<div>${() => item.ref.text} - ${index} ${randomId()}</div>
+			`
+		)
+
+	return html`
+		<div>
+			<button on:click=${randomlyMoveItem}>Randomly Move Item</button>
+		</div>
+		<div>${itemsWithRandomText}</div>
+	`
+
+	// end
+})
+/* 
+Ok, let's understand what's going on up there.
+
+We have created a signal called `items` which is an array of objects with `id` and `text` properties.
+
+Then we map the `items` signal to a new signal called `itemsWithRandomText` using the `each()` function.<br/>
+There is a few things going on here:
+- We use the `key()` function to memoize the items using their `id` property.
+This way when the `items` array changes, the items with the same `id` won't be re-rendered 
+meaning the function inside `as()` won't be called again for those items.
+- If you noticed unlike the `key()` function, inside the `as()` function `item` and `index` arguments are signals.
+Reason for that is even though `key` is the same for an `item`, `item` itself and index of the `item` can change.<br/>
+So function inside `as()` won't called again for the same `key` but `item` and `index` can change.<br/>
+
+Proof of function inside `as()` won't be called again for the same `key` is; 
+When you click the `Randomly Move Item` button, `${randomId()}` inside the `as()` function won't change.
+
+If you inspect the DOM of the Example above you will see that when you click the `Randomly Move Item` button,
+minimum number of DOM nodes are changed. This is thanks to how master-ts templates handle signal arrays.
+As long as you are giving the same items to an array template is gonna do its best to not change the DOM.
+
+So `each()` itself doesn't do any DOM manipulation. It just maps signal of an array while memoizing the items based on the `key` you provide.
+It's basically a memoized version of `Array.prototype.map()` for signals.
+
+*/
+//#endregion
+
+//#region Match Signal
+/*
+ */
+
 //#endregion
 
 //#endregion

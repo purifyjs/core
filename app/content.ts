@@ -62,8 +62,12 @@ function renderItem(item: ParseDocumentation.Item, parentId = "", depth = 0): No
 }
 
 export const documentStyle = css`
-	:is(h1, h2, h3, h4, h5, h6):first-child {
-		margin-block-start: 0;
+	:is(h1, h2, h3, h4, h5, h6) {
+		text-wrap: balance;
+
+		&:first-child {
+			margin-block-start: 0;
+		}
 	}
 
 	section {
@@ -96,7 +100,7 @@ export const documentStyle = css`
 
 	:not(pre) > code {
 		font-style: monospace;
-		font-size: inherit;
+		font-size: 1.25em;
 		letter-spacing: 1;
 		background-color: hsl(0, 0%, 25%);
 		color: var(--secondary);
