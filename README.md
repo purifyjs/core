@@ -69,7 +69,7 @@ Do whatever you want, in the way you want, and **master-ts** will work with you.
 ## Why SPAs? 🍛
 
 SSR has been doing a comeback recently, and it's great. But it's not for everyone.
-You can build an app made with **master-ts** into a single HTML file using [`vite-plugin-singlefile`](https://github.com/richardtallent/vite-plugin-singlefile) npm package, which bundles all of your code into a single file. Which is great because you can just double click the file and it will open in your browser. It's just magical.
+You can build an app made with **master-ts** into a single HTML file using [vite-plugin-singlefile](https://github.com/richardtallent/vite-plugin-singlefile) npm package, which bundles all of your code into a single file. Which is great because you can just double click the file and it will open in your browser. It's just magical.
 And it's possible because of SPAs.
 
 SPAs are easy to deploy, easy to share, and easy to use which makes them great for protocols like IPFS.
