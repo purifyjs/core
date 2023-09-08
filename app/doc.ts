@@ -1,5 +1,4 @@
-import type { Signal } from "../lib/core"
-import { fragment, onConnected$, populate, signal, tagsNS } from "../lib/core"
+import { derive, fragment, signal, tagsNS } from "../lib/core"
 import { css } from "../lib/extra/css"
 import { defineCustomTag } from "../lib/extra/custom-tags"
 import { html } from "../lib/extra/html"
@@ -15,6 +14,17 @@ To install master-ts follow the [Installation Instructions](https://github.com/D
 //#endregion
 
 //#region Usage
+
+/* 
+**master-ts** designed to go hand in hand with browser's native APIs.
+**master-ts** provides a set of functions and types to make your life easier when working with DOM.
+
+**master-ts** focuses on two primary areas:
+- **Reactivity**: Provides you with signal related functions and types to make your DOM reactive.
+- **Templates**: Provides you with a set of functions and types to make your DOM templating easier.
+
+Let's first get an idea of how a code that uses **master-ts** looks like:
+*/
 
 export const example = code(() => {
 	const { div } = tagsNS
@@ -32,10 +42,11 @@ export const example = code(() => {
 			fragment(html`
 				<div class="hello">
 					<div>Hello</div>
-					<input type="text" bind:value=${world} />
-					<button on:click=${() => alert(`Hello ${world.ref}`)}>
-						Hello ${world}
-					</button>
+					<form
+						on:submit=${(e) => (e.preventDefault(), alert(`Hello ${world.ref}`))}>
+						<input type="text" bind:value=${world} />
+						<button>Hello ${world}</button>
+					</form>
 				</div>
 				<div class="counts">
 					<div>Counter</div>
@@ -68,9 +79,9 @@ export const example = code(() => {
 
 		dom.append(
 			fragment(html`
-				<button on:click=${() => (count.ref += 1)}>+</button>
-				<span>${count}</span>
-				<button on:click=${() => (count.ref -= 1)}>-</button>
+				<button on:click=${() => count.ref++}>+</button>
+				${count}
+				<button on:click=${() => count.ref--}>-</button>
 			`)
 		)
 
@@ -95,180 +106,230 @@ export const example = code(() => {
 	return Hello()
 })
 
-//#region Templates
-/* 
-In **master-ts**, there are two primary ways to define templates for your content. 
-Both approaches serve the same purpose of structuring and rendering your HTML elements 
-but offer different syntax options. 
-You can choose the one that best fits your coding style and project requirements.
-*/
-
-//#region Function-Based Template:
-code(() => {
-	const { div, span } = tagsNS
-	div(
-		{ class: "hello", "on:click": () => alert("Hello World") },
-		"Hello",
-		span({}, "World")
-	)
-	// end
-})
-
-/* 
-In the example above, you import `tagsNS` proxy, and you destructure `div` and `span` from it. 
-You then create the DOM elements using a function call and provide the element's attributes, directives, and content as arguments. 
-This approach is more function-oriented and requires you to explicitly call functions to create elements.
-*/
-//#endregion
-
-//#region Tagged Template Literal:
-code(() => {
-	html`
-		<div class="hello" on:click=${() => alert("Hello World")}>
-			Hello <span>World</span>
-		</div>
-	`
-	// end
-})
-
-/* 
-In example above, you import `html`, and you use a tagged template literal syntax to define your HTML structure.
-This approach allows you to write HTML-like code within a template string and use `${}` to insert dynamic values or
-expressions. It's more akin to writing HTML directly with embedded JavaScript expressions. One important point is
-a tagged template literal will always returns an array of contents. The code above will return the array `[HTMLDivElement]`.
-*/
-
-/* 
-One important point is a tagged template literal will always returns an array of contents. 
-The code above will return the array `[HTMLDivElement]`.
-*/
-//#endregion
-//#endregion
-
-//#region Template Helpers
-//#region Populate:
-/* 
-You can also use `populate()` to populate an already exisiting DOM element with attributes, directives, and content.
-*/
-code(() => {
-	const { div, span } = tagsNS
-
-	const myDiv = div()
-	populate(myDiv, { class: "hello" }, "Hello", span({}, "World"))
-	// end
-})
-//#endregion
-
-//#region Fragment:
-/*
-You can convert any template content into `DocumentFragment` using `fragment()` function like shown above. 
-Then you can easily append any template content to anywhere in the DOM.
-*/
-code(() => {
-	const contents = html` <div class="hello">Hello World</div> `
-	const contentsFragment = fragment(contents)
-	document.body.append(contentsFragment)
-	// end
-})
-//#endregion
-//#endregion
-
-//#region Life Cycle
-/* 
-You can observe if a <code>Node</code> is connected to DOM or not using
-<code>onConnected$()</code> function. When a function has <code>$</code> at the end of it's name,
-that means that function is being binded to a <code>Node</code>'s lifecycle.
-*/
-code(() => {
-	const myNode = document.createComment("hello")
-	onConnected$(myNode, () => {
-		console.log(myNode, "Connected to the DOM")
-		return () => console.log(myNode, "Disconnected from the DOM")
-	})
-	// end
-})
-//#endregion
-
 //#region Signals
+//#region Signal Basics
 /*
-In the world of <strong>master-ts</strong>, reactivity is made possible through the seamless
-integration of signals. Signals serve a dual purpose: they allow for the observation of value
-changes and enable efficient DOM manipulations.
+Signals are a part of the core of **master-ts**. 
+They are the most basic building block of **master-ts** reactivity. 
 */
 
-//#region Create:
-/*
-In the code below, we create a `Signal<string>`, and then mutate it.
-*/
-code(() => {
-	// Create a signal with the initial value "foo"
-	const foo: Signal<string> = signal("foo")
-	// Mutate the signal
-	foo.ref += "-bar"
-	console.log(foo.ref) // foo-bar
-	// end
-})
-//#endregion
-
-//#region Follow:
-/*
-After following a signal manually, if you don't wanna follow the signal until the App exits, you
-have to unfollow it manually.
-*/
-code(() => {
-	// Create a signal with initial value
-	const foo = signal("foo")
-	// Follow the signal with the mode "immediate"
-	// This will log "foo" immediately after the follow
-	const follow = foo.follow((value) => console.log(value), {
-		mode: "immediate"
-	})
-	// Update the signal to "bar"
-	// This will log "bar"
-	foo.ref = "bar"
-	// Unfollow the signal
-	follow.unfollow()
-	// Update the signal to "baz"
-	// This will not log anything
-	foo.ref = "baz"
-	// end
-})
-//#endregion
-
-//#region Bind Follow:
 /* 
-You can bind a follow to a life cycle of a <code>Node</code>. This way you don't have to
-unfollow manually. This follows naming convention mentioned in
-[Life Cycle](#/usage/life-cycle) section.
+Signals are a wrapper around a value that notifies its followers when the value changes.<br/>
+So it's a way to follow the changes of a value.
+*/
 
-The code below will do two things:
+/* Let's start with a basic example: */
+export const basicSignalExample = code(() => {
+	// Here we define a signal with the initial value of 0
+	const foo = signal(0)
 
-1. When `myNode` is connected to DOM, it will follow the signal
-2. When `myNode` is disconnected from DOM, it will unfollow the signal
+	// You can access the value of a signal using the `ref` property
+	// which is a getter/setter
+	foo.ref = 10 // We set the value of `foo` to 10
+
+	// Signals also have a method called `ping()`
+	// which notifies its followers regardless if the value has changed or not
+	foo.ping()
+
+	// Then we follow the signal
+	// And alert the value of the signal every time it changes
+	foo.follow((value) => alert(value))
+
+	// end
+
+	return html`
+		<div>So here as you can see ${"`foo`"} starts from <strong>10</strong></div>
+		<hr />
+		<div>Foo: ${foo}</div>
+		<button on:click=${() => foo.ref++}>Increment ${"`foo`"}</button>
+		<button on:click=${() => foo.ref--}>Decrement ${"`foo`"}</button>
+		<hr />
+		<button on:click=${() => foo.ping()}>Ping ${"`foo`"}</button>
+	`
+})
+
+//#region Creating Signals
+/* 
+Every signal requires an initial value:
 */
 code(() => {
-	const myNode = document.createComment("myNode")
-	const mySignal = signal(123)
+	// Here we define a signal with the initial value of "foo"
+	const foo = signal("foo")
+	// end
+})
+/* 
+Signals also have an optional second argument called `pong`:
+*/
+code(() => {
+	const foo = signal("i have no followers", (set) => {
+		// This function will be called when a signal has at least one follower
+		console.log("foo has at least one follower")
 
-	mySignal.follow$(myNode, (value) => {
-		console.log(value)
+		// Using the setter function `set()`, you can set the value of the signal
+		set("i have followers now")
+
+		// And you can also return a cleanup function
+		// that will be called when a signal has no followers
+		return () => {
+			set("i have no followers")
+			console.log("foo has no followers")
+		}
 	})
 	// end
 })
-
-/* Same as: */
+/* 
+The `pong` argument enables you to do things like this:
+*/
 code(() => {
-	const myNode = document.createComment("myNode")
-	const mySignal = signal(123)
-	onConnected$(
-		myNode,
-		mySignal.follow((value) => {
-			console.log(value)
-		}).unfollow
-	)
+	const time = signal(Date.now(), (set) => {
+		const interval = setInterval(() => set(Date.now()), 1000)
+		return () => clearInterval(interval)
+	})
 	// end
 })
 //#endregion
+
+//#region Setting and Getting Values
+/*
+Signals have a getter/setter property called `ref` that you can use to get/set the value of a signal:
+*/
+code(() => {
+	const foo = signal("foo")
+	foo.ref += "bar"
+	console.log(foo.ref) // "foobar"
+	// end
+})
+//#endregion
+
+//#region Following Signals
+/* 
+Most primitive way to follow a signal is using the `follow()` function:
+*/
+code(() => {
+	const foo = signal("foo")
+	foo.follow((value) => console.log(value))
+	// end
+})
+/* You have to unfollow a signal manually when you don't need it anymore: */
+code(() => {
+	const foo = signal("foo")
+	const follower = foo.follow((value) => console.log(value))
+	follower.unfollow()
+	// end
+})
+/* 
+Follow also has an optional second argument called `options`:
+
+Which let's you set the mode of following:
+- `immediate`: The follower will be notified immediately after following the signal
+- `once`: The follower will be notified only once
+- `normal`: This is the default mode. The follower will be notifed for the later changes of the signal
+*/
+code(() => {
+	const foo = signal("foo")
+	foo.follow((value) => console.log(value), { mode: "immediate" })
+	foo.follow((value) => console.log(value), { mode: "once" })
+	foo.follow((value) => console.log(value), { mode: "normal" })
+	// end
+})
+
+//#region Binding following to a Node
+/*
+You can also follow a signal using the `follow$()` function.
+Which follows the naming convention mentioned in the [Lifecycle](#/usage/lifecycle).
+
+The function `follow$()` will bind your follower to the lifecycle of a `Node`.
+This way you don't have to unfollow a signal manually.
+*/
+
+export const follow$Example = code(() => {
+	const node = document.createTextNode("Hello World")
+
+	const foo = signal("foo", () => {
+		alert("foo has at least one follower")
+		return () => alert("foo has no followers")
+	})
+
+	// This will follow the signal when the node is connected to the DOM
+	// And unfollow the signal when the node is disconnected from the DOM
+	foo.follow$(node, (value) => console.log(value))
+
+	// end
+	const toggle = signal(false)
+	return html`
+		<div>${() => (toggle.ref ? node : null)}</div>
+		<button on:click=${() => (toggle.ref = !toggle.ref)}>
+			${() => (toggle.ref ? "Remove" : "Append")} ${"`node`"}
+		</button>
+	`
+})
+//#endregion
+//#endregion
+
+//#endregion
+
+//#region Derived Signals
+/*
+You can create a derived signal using the `derive()` function, which takes a function as its argument.<br/>
+The function will be called every time one of the signals that are used inside the function changes.<br/>
+These signals are called dependencies of the derived signal. By default, dependencies are added dynamically.
+*/
+
+export const derivedSignalExample = code(() => {
+	const count = signal(0)
+
+	// `count` is added as a dependency to `double` dynamically
+	const double = derive(() => count.ref * 2)
+
+	// end
+
+	return html`
+		<div>Count: ${count}</div>
+		<div>Double: ${double}</div>
+		<button on:click=${() => count.ref++}>Increment ${"`count`"}</button>
+		<button on:click=${() => count.ref--}>Decrement ${"`count`"}</button>
+	`
+})
+
+/* 
+You can also provide static dependencies to the derived signal as second argument:
+*/
+code(() => {
+	const count = signal(0)
+
+	// Here we provide `count` as a static dependency to `double`
+	// Once you provide a static dependency to a derived signal it won't dynamically add new dependencies.
+	const double = derive(() => count.ref * 2, [count])
+	// end
+})
+
+/* 
+There are few important things to note about derived signals:
+-  They won't be calculated until they have at least one follower.
+-  They asynchronusly notify their followers, so they won't get updated immediately.
+*/
+
+/* 
+Another import thing to note is, The `derive()` function memoizes the derived signal of the function you provide to it.
+Which if you try to create a derived signal with the same function it will return the same derived signal.
+
+This happens internally using a `WeakMap` that maps the function to the derived signal.
+
+Proof:
+*/
+export const derivedSignalMemoizationExample = code(() => {
+	const count = signal(0)
+	const doubleFn = () => count.ref * 2
+
+	const double1 = derive(doubleFn)
+	const double2 = derive(doubleFn)
+
+	const runAlert = () => alert(`double1 === double2: ${double1 === double2}`) // true
+
+	// end
+
+	return html` <button on:click=${runAlert}>Run Alert</button> `
+})
 
 //#endregion
 

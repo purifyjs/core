@@ -11,7 +11,7 @@
 		{
 			"files": ["./app/doc.ts"],
 			"options": {
-				"printWidth": 80
+				"printWidth": 90
 			}
 		}
 	],

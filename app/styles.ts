@@ -11,9 +11,9 @@ export const commonStyle = css`
 document.adoptedStyleSheets.push(
 	css`
 		:root {
-			font-family: "Open Sans Light", Helvetica;
+			font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 			line-height: 1.5;
-			letter-spacing: 0.05ch;
+			/* letter-spacing: 0.05ch; */
 			color-scheme: dark;
 
 			scroll-behavior: smooth;

@@ -11,7 +11,7 @@ import docRaw from "./doc.ts?raw"
 import { parseDocumentation, type ParseDocumentation } from "./libs/parser"
 import { commonStyle } from "./styles"
 
-const { section, div } = tagsNS
+const { section } = tagsNS
 
 const docsTag = defineCustomTag("x-docs")
 export function Docs() {
@@ -33,7 +33,7 @@ function renderItem(item: ParseDocumentation.Item, parentId = "", depth = 0): No
 			const id = `${parentId}/${item.name.replace(/\s+/g, "-").toLowerCase()}`
 			return section(
 				{ class: "region" },
-				Heading(tagsNS[`h${2 + depth}`]!({}, item.name) as HTMLHeadingElement, id),
+				Heading(tagsNS[`h${1 + depth}`]!({}, item.name) as HTMLHeadingElement, id),
 				...item.items.map((item) => renderItem(item, id, depth + 1))
 			)
 		}
@@ -67,13 +67,18 @@ export const documentStyle = css`
 	}
 
 	section {
-		padding: 0.4em;
-		border-left: 0.1em solid var(--primary);
+		margin-block-start: 1em;
+
 		& + section {
 			margin-block-start: 5em;
 		}
 		&:has(+ section) {
 			margin-block-end: 5em;
+		}
+
+		&:has(> :is(h2, h3, h4, h5, h6):first-child) {
+			padding: 0.4em;
+			border-left: 0.1em solid var(--primary);
 		}
 	}
 
