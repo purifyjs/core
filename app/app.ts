@@ -22,9 +22,9 @@ function App() {
 				</div>
 				<h1 style:position="absolute" style:scale="0">master-ts</h1>
 				<p>
-					A lightweight TypeScript library designed for creating Single Page Applications (SPAs) that supercharge
-					vanilla JS. This lightweight library introduces powerful features, including a robust signaling system
-					and seamless templating with full support for signals.
+					A lightweight TypeScript library designed for creating Single Page Applications (SPAs) that goes hand in
+					hand with browser's native APIs. This lightweight library introduces powerful features, including a
+					robust signaling system and seamless templating with full support for signals.
 				</p>
 			</header>
 			<main>

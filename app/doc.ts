@@ -110,14 +110,10 @@ export const example = code(() => {
 	return Hello()
 })
 
-//#region Signals Basics
+//#region Signal Basics
 /*
-Signals are a part of the core of **master-ts**. 
-They are the most basic building block of **master-ts** reactivity. 
-*/
+Signals are the most basic building block of **master-ts** reactivity. 
 
-//#region Basic Signal
-/* 
 A Signal is a wrapper around a value that notifies its followers when the value changes.<br/>
 So it's a way to follow the changes of a value.
 */
@@ -162,7 +158,10 @@ code(() => {
 	// end
 })
 /* 
-Signals also have an optional second argument called `pong`:
+Signals also have an optional second argument called `pong`.
+Which is a function that will be called when the signal has at least one follower.
+
+Let's see an example:
 */
 code(() => {
 	const foo = signal("i have no followers", (set) => {
@@ -224,7 +223,7 @@ code(() => {
 /* 
 Follow also has an optional second argument called `options`:
 
-Which let's you set the mode of following:
+Which let's you set pick the mode of following:
 - `immediate`: The follower will be notified immediately after following the signal
 - `once`: The follower will be notified only once
 - `normal`: This is the default mode. The follower will be notifed for the later changes of the signal
@@ -270,19 +269,23 @@ export const follow$Example = code(() => {
 //#endregion
 //#endregion
 
-//#endregion
-
 //#region Derived Signal
 /*
-You can create a derived signal using the `derive()` function, which takes a function as its argument.<br/>
-The function will be called every time one of the signals that are used inside the function changes.<br/>
-These signals are called dependencies of the derived signal. By default, dependencies are added dynamically.
+You can create a derived signal using the `derive()` function, which takes a function as its first argument.<br/>
+The function will be called when:
+- It activated by having at least one follower.
+- One of its dependencies changes/pings.
+
+By default the derived signal will set its dependencies dynamically.
+Which means it will add every signal that is used inside the function synchronously as a dependency.
+This means first dynamic dependency will be added after the derived signal gets activated by having at least one follower.
 */
 
 export const derivedSignalExample = code(() => {
 	const count = signal(0)
 
 	// `count` is added as a dependency to `double` dynamically
+	// because it's used inside the function by getting its value using `count.ref`
 	const double = derive(() => count.ref * 2)
 
 	// end
@@ -302,7 +305,8 @@ code(() => {
 	const count = signal(0)
 
 	// Here we provide `count` as a static dependency to `double`
-	// Once you provide a static dependency to a derived signal it won't dynamically add new dependencies.
+	// Once you provide a static dependency to a derived signal
+	// it won't add new dependencies dynamically .
 	const double = derive(() => count.ref * 2, [count])
 	// end
 })
@@ -314,7 +318,7 @@ There are few important things to note about derived signals:
 */
 
 /* 
-Another import thing to note is, The `derive()` function memoizes the derived signal of the function you provide to it.
+Another import thing to note is, The `derive()` function memoizes the derived signal it returns.
 Which if you try to create a derived signal with the same function it will return the same derived signal.
 
 This happens internally using a `WeakMap` that maps the function to the derived signal.
@@ -477,6 +481,8 @@ That's why returning an `Array` of `Node`s over a `DocumentFragment` decided to 
 
 //#endregion
 
+//#endregion
+
 //#region Advanced Signals
 
 //#region Deffered Signal
@@ -529,6 +535,8 @@ export const awaitedSignalExample = code(() => {
 	`
 })
 /* 
+By default initial value of an awaited signal is `null`.
+
 You can also provide a second argument to the `awaited()` function which will be used as the initial value of the awaited signal:
 */
 export const awaitedSignalInitialValueExample = code(() => {
@@ -553,7 +561,7 @@ export const awaitedSignalInitialValueExample = code(() => {
 
 //#region Each Signal
 /*
-Each signals are derived from `Array`s. They are signals that maps and memoizes the values of an array each time the array changes.
+Each signals are derived from `Signal<Array>`s. They are signals that maps and memoizes the values of an array each time the array changes.
 */
 function randomId() {
 	return Math.random().toString(36).slice(2)
@@ -623,7 +631,7 @@ When you click the `Randomly Move Item` button, `${randomId()}` inside the `as()
 
 If you inspect the DOM of the Example above you will see that when you click the `Randomly Move Item` button,
 minimum number of DOM nodes are changed. This is thanks to how master-ts templates handle signal arrays.
-As long as you are giving the same items to an array template is gonna do its best to not change the DOM.
+As long as you are giving the same items to an array, template is gonna do its best to not change the DOM.
 
 So `each()` itself doesn't do any DOM manipulation. It just maps signal of an array while memoizing the items based on the `key` you provide.
 It's basically a memoized version of `Array.prototype.map()` for signals.
@@ -634,6 +642,8 @@ It's basically a memoized version of `Array.prototype.map()` for signals.
 //#region Match Signal
 /*
  */
+
+//#endregion
 
 //#endregion
 
