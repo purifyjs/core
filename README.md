@@ -8,14 +8,16 @@
 
 ## Features ⚡
 
-### Core ( no-gzip 3.0kb )
+**Core + Extra ( minified + gzipped 2.6kb )**
+
+### Core ( minified + no-gzip 3.0kb )
 
 -  Signals with `signal` and `derive` - all of reactivity is possible thanks to signals
 -  Templating with `TagsNS` - makes it easier to build dom elements within JS/TS, with support for signals
 -  `populate` - Easily populate dom elements with children, attributes and directives such as `style:*`, `class:*`, `on:*` and `bind:value`, with support for signals
 -  `onConnected$` - Get a callback when ever a Node (Element, Comment, Text, ...) gets connected/disconnected to/from dom.
 
-### Extra ( no-gzip 2.5kb )
+### Extra ( minified + no-gzip 2.5kb )
 
 -  Templating tags `html` and `css` - write HTML and CSS within JS/TS
 -  `defer` - Deferring signals
