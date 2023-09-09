@@ -47,7 +47,7 @@ Meanwhile, native browser APIs are getting better and better, and **master-ts** 
 By only focusing on SPAs, **master-ts** is able work better with the browser's native APIs.
 This also makes it easier to learn, and easier to use with other libraries and frameworks. If you know vanilla JS you know **master-ts**
 
-**master-ts** doesn't tell you how to build a component, how to mount a component, or what is a component. Because these things are not meant to be this complicated. Define a function, create an `Element` or `Node`, throw it into the DOM any way you want, and you are done. Put a `signal` in it, and it will be reactive. Remove it from the DOM, append it back, again multiple times, and it will still work.
+**master-ts** doesn't tell you how to build a component, how to mount a component, or what is a component. Because these things are not meant to be this complicated or opinionated. Define a function, create an `Element` or `Node`, throw it into the DOM any way you want, and you are done. Put a `signal` in it, and it will be reactive. Remove it from the DOM, append it back, again multiple times, and it will still work.
 
 It gives you the freedom to build your app however you want:
 
