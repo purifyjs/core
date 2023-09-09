@@ -183,12 +183,14 @@ code(() => {
 /* 
 The `pong` argument enables you to do things like this:
 */
-code(() => {
+export const pongTimerExample = code(() => {
 	const time = signal(Date.now(), (set) => {
-		const interval = setInterval(() => set(Date.now()), 1000)
+		const interval = setInterval(() => set(Date.now()), 111)
 		return () => clearInterval(interval)
 	})
 	// end
+
+	return fragment(time)
 })
 //#endregion
 
