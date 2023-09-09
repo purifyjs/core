@@ -624,6 +624,7 @@ There is a few things going on here:
 - We use the `key()` function to memoize the items using their `id` property.
 This way when the `items` array changes, the items with the same `id` won't be re-rendered 
 meaning the function inside `as()` won't be called again for those items.
+- Internally `each()` uses `Map` to memoize the items. So you can use any type as a key.
 - If you noticed unlike the `key()` function, inside the `as()` function `item` and `index` arguments are signals.
 Reason for that is even though `key` is the same for an `item`, `item` itself and index of the `item` can change.<br/>
 So function inside `as()` won't called again for the same `key` but `item` and `index` can change.<br/>
@@ -637,6 +638,8 @@ As long as you are giving the same items to an array, template is gonna do its b
 
 So `each()` itself doesn't do any DOM manipulation. It just maps signal of an array while memoizing the items based on the `key` you provide.
 It's basically a memoized version of `Array.prototype.map()` for signals.
+
+Simple explanation for dummies; If you wanna list signal of an array, use `each()` instead of `Array.prototype.map()`.
 
 */
 //#endregion
