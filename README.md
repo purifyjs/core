@@ -90,7 +90,7 @@ Do whatever you want, in the way you want, and **master-ts** will work with you.
 
 ### Q5: What About Built-in Features? 🍩
 
-**A5:** **master-ts** intentionally focuses on being minimal. It doesn't include built-in features like routing to allow you to choose your preferred solutions. It provides reactivity and templates as its core features. And covers wide variety of reactive features.
+**A5:** **master-ts** intentionally focuses on being minimal. It doesn't include built-in features like routing to allow you to choose your preferred solutions. It provides reactivity and templates as its core features. And already covers wide variety of reactive features while staying fit and small.
 
 ## Vite Plugin 🍤
 
