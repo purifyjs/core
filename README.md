@@ -66,7 +66,7 @@ Do whatever you want, in the way you want, and **master-ts** will work with you.
 -  **Minimal** - It's designed to be minimal, and only focus on SPAs.
 -  **Simple** - It's designed to be simple, and easy to learn.
 -  **Flexible** - It's designed to be flexible, and work with other libraries and frameworks.
--  **TypeScript** - It's designed to be used with TypeScript, and leverage the power of TypeScript.
+-  **TypeScript** - It's designed to be used with TypeScript, and leverage the power of TypeScript, to reduce the runtime overhead.
 
 ## Vite Plugin
 
