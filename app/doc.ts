@@ -711,16 +711,14 @@ export const matchSignalExample = code(() => {
 					{ type: "foo" },
 					(foo) =>
 						html`<div>
-							Foo: ${() => foo.ref.value} - Rendered ${++fooCounter}
-							times
+							Foo: ${() => foo.ref.value} - Rendered ${++fooCounter} times
 						</div>`
 				)
 				.case(
 					{ type: "bar" },
 					(bar) =>
 						html`<div>
-							Bar: ${() => bar.ref.value} - Rendered ${++barCounter}
-							times
+							Bar: ${() => bar.ref.value} - Rendered ${++barCounter} times
 						</div>`
 				)
 				.default()}

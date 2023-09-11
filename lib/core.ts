@@ -186,9 +186,7 @@ export let derive = <T>(fn: () => T, staticDependencies?: readonly Signal<unknow
 			undefined!,
 			() => (
 				update(),
-				dependencies[FOR_EACH]((dependency) =>
-					dependencyFollows.set(dependency, dependency[FOLLOW](schedule))
-				),
+				dependencies[FOR_EACH]((dependency) => dependencyFollows.set(dependency, dependency[FOLLOW](schedule))),
 				() => (
 					(scheduled = false),
 					dependencies[FOR_EACH]((dependency) => dependencyFollows.get(dependency)![UNFOLLOW]())
@@ -408,9 +406,7 @@ export let populate: {
 					? bindSignalAsValue(element as never, attributes[key] as never)
 					: element.setAttribute(VALUE, attributes[key] + "")
 				: startsWith(key, "style:")
-				? bindOrSet(element, attributes[key], (value) =>
-						element.style?.setProperty(key.slice(6), value + "")
-				  )
+				? bindOrSet(element, attributes[key], (value) => element.style?.setProperty(key.slice(6), value + ""))
 				: startsWith(key, "class:")
 				? bindOrSet(element, attributes[key], (value) => element.classList.toggle(key.slice(6), !!value))
 				: startsWith(key, "on:")
