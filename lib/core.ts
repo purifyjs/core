@@ -186,7 +186,9 @@ export let derive = <T>(fn: () => T, staticDependencies?: readonly Signal<unknow
 			undefined!,
 			() => (
 				update(),
-				dependencies[FOR_EACH]((dependency) => dependencyFollows.set(dependency, dependency[FOLLOW](schedule))),
+				dependencies[FOR_EACH]((dependency) =>
+					dependencyFollows.set(dependency, dependency[FOLLOW](schedule))
+				),
 				() => (
 					(scheduled = false),
 					dependencies[FOR_EACH]((dependency) => dependencyFollows.get(dependency)![UNFOLLOW]())
@@ -330,7 +332,10 @@ export type TagsNS = {
 export namespace TagsNS {
 	export type AcceptedChild = {} | null
 
-	export type Attributes<T extends Element, TInputType extends HTMLInputElement["type"] = HTMLInputElement["type"]> = {
+	export type Attributes<
+		T extends Element,
+		TInputType extends HTMLInputElement["type"] = HTMLInputElement["type"]
+	> = {
 		[key: string]: unknown
 	} & {
 		class?: string
@@ -384,7 +389,10 @@ let bindSignalAsValue = <T extends InputElement>(element: T, signal: Signal<Inpu
 	onConnected$(element, () => {
 		let onInput = (event: Event) => (signal.ref = (event.target as T)[getInputValueKey(element.type)])
 		element.addEventListener("input", onInput)
-		let follow = signal[FOLLOW]((value) => (element[getInputValueKey(element.type)] = value), FOLLOW_IMMEDIATE_OPTION)
+		let follow = signal[FOLLOW](
+			(value) => (element[getInputValueKey(element.type)] = value),
+			FOLLOW_IMMEDIATE_OPTION
+		)
 		return () => (element.removeEventListener("input", onInput), follow[UNFOLLOW]())
 	})
 }
@@ -400,7 +408,9 @@ export let populate: {
 					? bindSignalAsValue(element as never, attributes[key] as never)
 					: element.setAttribute(VALUE, attributes[key] + "")
 				: startsWith(key, "style:")
-				? bindOrSet(element, attributes[key], (value) => element.style?.setProperty(key.slice(6), value + ""))
+				? bindOrSet(element, attributes[key], (value) =>
+						element.style?.setProperty(key.slice(6), value + "")
+				  )
 				: startsWith(key, "class:")
 				? bindOrSet(element, attributes[key], (value) => element.classList.toggle(key.slice(6), !!value))
 				: startsWith(key, "on:")

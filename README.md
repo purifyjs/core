@@ -12,20 +12,20 @@
 
 ### Core ( minified + no-gzip 3.0kb )
 
--  Signals with `signal` and `derive` - all of reactivity is possible thanks to signals
--  Templating with `TagsNS` - makes it easier to build dom elements within TS, with support for signals
--  `populate` - Easily populate dom elements with children, attributes and directives such as `style:*`, `class:*`, `on:*` and `bind:value`, with support for signals
--  `onConnected$` - Get a callback when ever a Node (Element, Comment, Text, ...) gets connected/disconnected to/from dom.
+-    Signals with `signal` and `derive` - all of reactivity is possible thanks to signals
+-    Templating with `TagsNS` - makes it easier to build dom elements within TS, with support for signals
+-    `populate` - Easily populate dom elements with children, attributes and directives such as `style:*`, `class:*`, `on:*` and `bind:value`, with support for signals
+-    `onConnected$` - Get a callback when ever a Node (Element, Comment, Text, ...) gets connected/disconnected to/from dom.
 
 ### Extra ( minified + no-gzip 2.5kb )
 
--  Templating tags `html` and `css` - write HTML and CSS within TS
--  `defer` - Deferring signals
--  `each` - Map a array signal while memoizing results with a key for minimum DOM change
--  `awaited` - Await a promise using signals
--  `match` - Pattern matching for both signals and values
--  `keyedCache` - Memoizing anything else you want using keys
--  `defineCustomTag` - Shortcut to define empty custom elements easily
+-    Templating tags `html` and `css` - write HTML and CSS within TS
+-    `defer` - Deferring signals
+-    `each` - Map a array signal while memoizing results with a key for minimum DOM change
+-    `awaited` - Await a promise using signals
+-    `match` - Pattern matching for both signals and values
+-    `keyedCache` - Memoizing anything else you want using keys
+-    `defineCustomTag` - Shortcut to define empty custom elements easily
 
 ## Installation 🍙
 
@@ -51,22 +51,22 @@ This also makes it easier to learn, and easier to use with other libraries and f
 
 It gives you the freedom to build your app however you want:
 
--  Wanna use Shadow DOM? Go ahead.
--  Wanna use Custom Elements? Go ahead.
--  Wanna use fragments with CSS `@scoped`? Go ahead.
--  Wanna use history API? Go ahead.
--  Wanna use hash router? Go ahead.
+-    Wanna use Shadow DOM? Go ahead.
+-    Wanna use Custom Elements? Go ahead.
+-    Wanna use fragments with CSS `@scoped`? Go ahead.
+-    Wanna use history API? Go ahead.
+-    Wanna use hash router? Go ahead.
 
 Do whatever you want, in the way you want, and **master-ts** will work with you.
 
 ## Philosophy 🍜
 
--  **Lightweight** - It's only 2.6kb minified and gzipped.
--  **Complementary** - It's designed to be complementary to the browser's native APIs, not to replace them.
--  **Minimal** - It's designed to be minimal, and only focus on SPAs.
--  **Simple** - It's designed to be simple, and easy to learn.
--  **Flexible** - It's designed to be flexible, and work with other libraries and frameworks.
--  **TypeScript** - It's designed to be used with TypeScript, and leverage the power of TypeScript, to reduce the runtime overhead.
+-    **Lightweight** - It's only 2.6kb minified and gzipped.
+-    **Complementary** - It's designed to be complementary to the browser's native APIs, not to replace them.
+-    **Minimal** - It's designed to be minimal, and only focus on SPAs.
+-    **Simple** - It's designed to be simple, and easy to learn.
+-    **Flexible** - It's designed to be flexible, and work with other libraries and frameworks.
+-    **TypeScript** - It's designed to be used with TypeScript, and leverage the power of TypeScript, to reduce the runtime overhead.
 
 ## Why Consider Using **master-ts**? 🍡
 

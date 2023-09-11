@@ -51,7 +51,9 @@ let hydrate = (node: Node, args: HydrateArgs): TagsNS.AcceptedChild[] => {
 				populate(
 					node.tagName === "X" ? (node.remove(), args.v[args.i++] as Element) : node,
 					Array.from(node.attributes).reduce(
-						(attr, { name, value }) => ((attr[name] = value === args.p[args.i] ? args.v[args.i++] : value), attr),
+						(attr, { name, value }) => (
+							(attr[name] = value === args.p[args.i] ? args.v[args.i++] : value), attr
+						),
 						{} as TagsNS.Attributes<Element>
 					),
 					Array.from(node.childNodes)

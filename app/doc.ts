@@ -48,7 +48,9 @@ export const example = code(() => {
 				<div class="hello">
 					<div>Hello</div>
 					<form
-						on:submit=${(e) => (e.preventDefault(), alert(`Hello ${world.ref}`))}>
+						on:submit=${(e) => (
+							e.preventDefault(), alert(`Hello ${world.ref}`)
+						)}>
 						<input type="text" bind:value=${world} />
 						<button>Hello ${world}</button>
 					</form>
@@ -556,7 +558,10 @@ export const awaitedSignalInitialValueExample = code(() => {
 		return text.toUpperCase()
 	}
 
-	const awaitedPromise = derive(() => awaited(upperCase(text.ref), "loading..."), [text])
+	const awaitedPromise = derive(
+		() => awaited(upperCase(text.ref), "loading..."),
+		[text]
+	)
 
 	// end
 
@@ -706,14 +711,16 @@ export const matchSignalExample = code(() => {
 					{ type: "foo" },
 					(foo) =>
 						html`<div>
-							Foo: ${() => foo.ref.value} - Rendered ${++fooCounter} times
+							Foo: ${() => foo.ref.value} - Rendered ${++fooCounter}
+							times
 						</div>`
 				)
 				.case(
 					{ type: "bar" },
 					(bar) =>
 						html`<div>
-							Bar: ${() => bar.ref.value} - Rendered ${++barCounter} times
+							Bar: ${() => bar.ref.value} - Rendered ${++barCounter}
+							times
 						</div>`
 				)
 				.default()}
@@ -753,7 +760,8 @@ export const matchSignalExample2 = code(() => {
 			${match(foo)
 				.case(null, () => html`<div>Foo is null</div>`)
 				.default(
-					(value) => html`<div>${value} - ${() => value.ref.toUpperCase()}</div>`
+					(value) =>
+						html`<div>${value} - ${() => value.ref.toUpperCase()}</div>`
 				)}
 		</div>
 	`
@@ -771,7 +779,8 @@ export const matchSignalExample3 = code(() => {
 			${match(foo)
 				.case(
 					{ [TYPEOF]: "string" },
-					(value) => html`<div>${value} - ${() => value.ref.toUpperCase()}</div>`
+					(value) =>
+						html`<div>${value} - ${() => value.ref.toUpperCase()}</div>`
 				)
 				.default(() => html`<div>Foo is null</div>`)}
 		</div>

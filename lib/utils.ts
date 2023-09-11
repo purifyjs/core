@@ -50,7 +50,15 @@ namespace Utils {
 	export type PrimitiveType = string | number | bigint | boolean | symbol | undefined | null
 	export type ReferanceType = object | Fn
 
-	export type TypeString = "string" | "number" | "bigint" | "boolean" | "symbol" | "undefined" | "object" | "function"
+	export type TypeString =
+		| "string"
+		| "number"
+		| "bigint"
+		| "boolean"
+		| "symbol"
+		| "undefined"
+		| "object"
+		| "function"
 	export type TypeStringToType<T extends TypeString> = T extends "string"
 		? string
 		: T extends "number"

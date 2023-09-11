@@ -196,7 +196,8 @@ function switchValueSignal<TValue>(valueSignal: Readonly<Signal<TValue>>): Switc
 
 				return valueSignal.follow(
 					(signalValue) => {
-						if (currentIndex >= 0 && matchPattern(signalValue, cases[currentIndex]!.pattern as any)) return
+						if (currentIndex >= 0 && matchPattern(signalValue, cases[currentIndex]!.pattern as any))
+							return
 
 						for (let i = 0; i < cases.length; i++) {
 							if (i === currentIndex) continue
@@ -209,7 +210,9 @@ function switchValueSignal<TValue>(valueSignal: Readonly<Signal<TValue>>): Switc
 						currentIndex = -1
 
 						if (fallback) return set(fallback(valueSignal))
-						throw new Error("No default case provided and no case matched, this is not supposed to happen")
+						throw new Error(
+							"No default case provided and no case matched, this is not supposed to happen"
+						)
 					},
 					{ mode: "immediate" }
 				).unfollow

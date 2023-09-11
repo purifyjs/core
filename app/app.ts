@@ -18,12 +18,14 @@ function App() {
 		fragment(html`
 			<header>
 				<div class="logo">
-					<img alt="master-ts logo" src=${IPFS.resolve("QmRZXurxmTZwQC2GPrdNidPJ3PS4SrXSFqkeeoV24DXt4e")} />
+					<img
+						alt="master-ts logo"
+						src=${IPFS.resolve("QmRZXurxmTZwQC2GPrdNidPJ3PS4SrXSFqkeeoV24DXt4e")} />
 				</div>
 				<h1 style:position="absolute" style:scale="0">master-ts</h1>
 				<p>
-					A lightweight TypeScript library designed for creating SPAs, that is complementary to the browser's
-					native APIs. Small yet powerful. Simple yet still useful.
+					A lightweight TypeScript library designed for creating SPAs, that is complementary to the
+					browser's native APIs. Small yet powerful. Simple yet still useful.
 				</p>
 			</header>
 			<main>
