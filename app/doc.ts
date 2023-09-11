@@ -6,6 +6,7 @@ import { defineCustomTag } from "../lib/extra/custom-tags"
 import { defer } from "../lib/extra/defer"
 import { each } from "../lib/extra/each"
 import { html } from "../lib/extra/html"
+import { INSTANCEOF, TYPEOF, match } from "../lib/extra/match"
 
 function code<T extends Utils.Fn>(block: T): () => ReturnType<T> {
 	return () => block()
@@ -317,6 +318,12 @@ code(() => {
 There are few important things to note about derived signals:
 -  They won't be calculated until they have at least one follower.
 -  They update asynchronously, which means they won't update immediately after one of their dependencies changes.
+	Reason for this behavior is because `MutationsObserver` is not synchronous, 
+	which means we can't detect when a node is removed from the DOM synchronously.
+	If we can't detect that synchronously, we can't unfollow the derived signal synchronously.
+	Which makes derived signal update when it's not supposed to. So we have to update it asynchronously.
+	Which is not a big deal because other frameworks and libraries also has the same behavior.
+	And it's better for performance too, kinda.
 */
 
 /* 
@@ -379,7 +386,7 @@ code(() => {
 **master-ts** provides you with a function called `onConnected$()` to follow the lifecycle of a `Node`.<br/>
 `$` at the end of the function name is a convention to indicate that the function follows the lifecycle of a `Node`.
 You can see the same naming convention used at the 
-[#Binding following to a Node](#/usage/signals-basics/basic-signal/following-signals/binding-following-to-a-node) section.
+[#Binding following to a Node](#/usage/signal-basics/following-signals/binding-following-to-a-node) section.
 
 `onConnected$()` takes a `Node` as its first argument and a function as its second argument.<br/>
 The function will be called when the `Node` is connected to the DOM.<br/>
@@ -646,7 +653,153 @@ Simple explanation for dummies; If you wanna list signal of an array, use `each(
 
 //#region Match Signal
 /*
- */
+YOu can pattern match a signal using the `match()` function. 
+This let's you check type of a signal do return a different value based on the type of the signal.
+It only changing the value when the case changes. And has full TypeScript support.
+
+Easier to understand with an example:
+*/
+export const matchSignalExample = code(() => {
+	type Foo = { type: "foo"; value: number }
+	type Bar = { type: "bar"; value: string }
+	type FooBar = Foo | Bar
+
+	const fooBar = signal<FooBar>({ type: "foo", value: 0 })
+
+	function randomString() {
+		return Math.random().toString(36).slice(2)
+	}
+	function randomInt() {
+		return Math.floor(Math.random() * Number.MAX_SAFE_INTEGER)
+	}
+
+	function changeValue() {
+		fooBar.ref.value = fooBar.ref.type === "foo" ? randomInt() : randomString()
+		fooBar.ping()
+	}
+
+	function switchType() {
+		fooBar.ref =
+			fooBar.ref.type === "foo"
+				? {
+						type: "bar",
+						value: randomString()
+				  }
+				: {
+						type: "foo",
+						value: randomInt()
+				  }
+	}
+
+	// Let's create some counters to check which template is being rendered
+	let fooCounter = 0
+	let barCounter = 0
+
+	return html`
+		<div>
+			<button on:click=${switchType}>Switch Type</button>
+			<button on:click=${changeValue}>Change Value</button>
+		</div>
+		<div>
+			${match(fooBar)
+				.case(
+					{ type: "foo" },
+					(foo) =>
+						html`<div>
+							Foo: ${() => foo.ref.value} - Rendered ${++fooCounter} times
+						</div>`
+				)
+				.case(
+					{ type: "bar" },
+					(bar) =>
+						html`<div>
+							Bar: ${() => bar.ref.value} - Rendered ${++barCounter} times
+						</div>`
+				)
+				.default()}
+		</div>
+	`
+
+	// end
+})
+
+/* 
+So everytime signal changes, `match()` will check if the case has changed or not.
+If the case has changed, it will call the function inside `case()` and return the value of the function.
+
+So even though `fooBar` signal changes, `match()` will only call the function inside `case()` when the `type` changes.
+So it will only call the function when case changes.
+
+`match()` also has a `default()` function which will be called when none of the cases matches the signal.
+And same rules apply to `default()` function too. It will only be called when the case changes.
+
+TypeScript will force us to handle all cases or provide a `default()` function.
+In this case TypeScript won't let us put a function inside `default()` because we exhausted all the cases.
+
+But placing `default()` to close the `match()` even if it's empty is required because it returns the result signal.
+Otherwise you will get the `MatchBuilder` instead of the result signal.
+
+Now we understand how `match()` works. Let's see more examples:
+*/
+
+/* 
+We don't have to match object patterns, we can also match primitive values:
+*/
+export const matchSignalExample2 = code(() => {
+	const foo = signal<string | null>("foo")
+
+	return html`
+		<div>
+			${match(foo)
+				.case(null, () => html`<div>Foo is null</div>`)
+				.default(
+					(value) => html`<div>${value} - ${() => value.ref.toUpperCase()}</div>`
+				)}
+		</div>
+	`
+	// end
+})
+
+/*
+We can also match `typeof` a signal:
+*/
+export const matchSignalExample3 = code(() => {
+	const foo = signal<string | null>("foo")
+
+	return html`
+		<div>
+			${match(foo)
+				.case(
+					{ [TYPEOF]: "string" },
+					(value) => html`<div>${value} - ${() => value.ref.toUpperCase()}</div>`
+				)
+				.default(() => html`<div>Foo is null</div>`)}
+		</div>
+	`
+	// end
+})
+
+/*
+Same for `instanceof`:
+*/
+export const matchSignalExample4 = code(() => {
+	const foo = signal<Date | null>(new Date())
+
+	return html`
+		<div>
+			${match(foo)
+				.case({ [INSTANCEOF]: Date }, (value) => html`<div>${value}</div>`)
+				.default(() => html`<div>Foo is null</div>`)}
+		</div>
+	`
+	// end
+})
+
+/*
+And all of these are fully type checked by TypeScript. Correctly narrowed, exhausted and everything.
+You can experiment with it and see for yourself. 
+Also, open an issue if you find any weird behavior: [Github Issues](https://github.com/DeepDoge/master-ts/issues)
+*/
 
 //#endregion
 
