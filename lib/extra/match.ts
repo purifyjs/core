@@ -1,5 +1,5 @@
 import type { Signal } from "../core"
-import { isSignal, signal } from "../core"
+import { signal } from "../core"
 
 // TODO: Just copy pasted this from the old master-ts. Make it smaller and better later.
 
@@ -27,6 +27,7 @@ type CanExhaust<TExhauster> = [TExhauster] extends [never]
 		: true
 	: false
 
+// Some inline type tests
 false satisfies CanExhaust<never>
 true satisfies CanExhaust<undefined>
 true satisfies CanExhaust<null>
@@ -100,73 +101,32 @@ function matchPattern<TValue, const TPattern extends PatternOf<TValue>>(
 	value: TValue,
 	pattern: TPattern
 ): value is TValue & TPattern {
-	if (isObject(pattern)) {
-		if (TYPEOF in pattern) {
-			if (pattern[TYPEOF] !== typeof value) return false
-		} else if (INSTANCEOF in pattern) {
-			if (typeof pattern[INSTANCEOF] !== "function") return false
-			if (!(value instanceof pattern[INSTANCEOF])) return false
-		} else {
-			for (const key of Object.keys(pattern) as (keyof TPattern)[]) {
-				const patternValue = pattern[key]
+	if (!isObject(pattern)) return value === (pattern as never)
 
-				if (!isObject(value)) return false
-				if (!(key in value)) return false
-				if (!matchPattern(value[key as keyof TValue], patternValue as any)) return false
-			}
-		}
-		return true
-	} else return value === (pattern as any)
-}
+	if (TYPEOF in pattern) {
+		if (pattern[TYPEOF] !== typeof value) return false
+	} else if (INSTANCEOF in pattern) {
+		if (typeof pattern[INSTANCEOF] !== "function") return false
+		if (!(value instanceof pattern[INSTANCEOF])) return false
+	} else {
+		for (const key of Object.keys(pattern) as (keyof TPattern)[]) {
+			const patternValue = pattern[key]
 
-type SwitchValueBuilder<TValue, TReturns = never> = {
-	case<const TPattern extends PatternOf<TValue>, TResult>(
-		pattern: TPattern,
-		then: (value: Narrow<TValue, TPattern>) => TResult
-	): SwitchValueBuilder<ExhaustWithPattern<TValue, TPattern>, TReturns | TResult>
-} & SwitchValueBuilder.Default<TValue, TReturns>
-namespace SwitchValueBuilder {
-	export type Default<TValue, TReturns> = [TValue] extends [never]
-		? {
-				default(): TReturns
-		  }
-		: {
-				default<TDefault>(fallback: (value: TValue) => TDefault): TReturns | TDefault
-		  }
-}
-
-function switchValue<TValue>(value: TValue): SwitchValueBuilder<TValue> {
-	const cases: {
-		pattern: Utils.DeepOptional<TValue>
-		then: (value: TValue) => unknown
-	}[] = []
-
-	// Builder type is way too funky, so gotta act like it doesn't exist here
-	const result = {
-		case(pattern: Utils.DeepOptional<TValue>, then: (value: TValue) => unknown) {
-			cases.push({ pattern, then })
-			return result
-		},
-		default(fallback?: (value: TValue) => unknown) {
-			for (const case_ of cases) {
-				if (matchPattern(value, case_.pattern as any)) return case_.then(value)
-			}
-
-			if (fallback) return fallback(value)
-			return null
+			if (!isObject(value)) return false
+			if (!(key in value)) return false
+			if (!matchPattern(value[key as keyof TValue], patternValue as never)) return false
 		}
 	}
-	// Yup, this is a hack, type is way to funky to get right
-	return result as never
+	return true
 }
 
-type SwitchValueSignalBuilder<TValue, TReturns = never> = {
+type MatchBuilder<TValue, TReturns = never> = {
 	case<const TPattern extends PatternOf<TValue>, TResult>(
 		pattern: TPattern,
 		then: (value: Readonly<Signal<Narrow<TValue, TPattern>>>) => TResult
-	): SwitchValueSignalBuilder<ExhaustWithPattern<TValue, TPattern>, TReturns | TResult>
-} & SwitchValueSignalBuilder.Default<TValue, TReturns>
-namespace SwitchValueSignalBuilder {
+	): MatchBuilder<ExhaustWithPattern<TValue, TPattern>, TReturns | TResult>
+} & MatchBuilder.Default<TValue, TReturns>
+namespace MatchBuilder {
 	export type Default<TValue, TReturns> = [TValue] extends [never]
 		? {
 				default(): Readonly<Signal<TReturns>>
@@ -178,52 +138,41 @@ namespace SwitchValueSignalBuilder {
 		  }
 }
 
-function switchValueSignal<TValue>(valueSignal: Readonly<Signal<TValue>>): SwitchValueSignalBuilder<TValue> {
-	const cases: {
+export function match<TValue>(valueSignal: Readonly<Signal<TValue>>): MatchBuilder<TValue> {
+	let cases: {
 		pattern: Utils.DeepOptional<TValue>
 		then: (value: Readonly<Signal<TValue>>) => unknown
 	}[] = []
 
 	// Builder type is way too funky, so gotta act like it doesn't exist here
-	const result = {
-		case(pattern: Utils.DeepOptional<TValue>, then: (value: Readonly<Signal<TValue>>) => unknown) {
-			cases.push({ pattern, then })
-			return result
-		},
-		default(fallback?: (value: Readonly<Signal<TValue>>) => unknown) {
-			return signal<unknown>(undefined, (set) => {
+	let self = {
+		case: (pattern: Utils.DeepOptional<TValue>, then: (value: Readonly<Signal<TValue>>) => unknown) => (
+			cases.push({ pattern, then }), self
+		),
+		default: (fallback?: (value: Readonly<Signal<TValue>>) => unknown) =>
+			signal<unknown>(undefined, (set) => {
 				let currentIndex = -1
-
 				return valueSignal.follow(
 					(signalValue) => {
-						if (currentIndex >= 0 && matchPattern(signalValue, cases[currentIndex]!.pattern as any)) return
+						if (currentIndex >= 0 && matchPattern(signalValue, cases[currentIndex]!.pattern as never))
+							return
 
 						for (let i = 0; i < cases.length; i++) {
 							if (i === currentIndex) continue
 							const case_ = cases[i]!
-							if (matchPattern(signalValue, case_.pattern as any)) {
+							if (matchPattern(signalValue, case_.pattern as never)) {
 								currentIndex = i
 								return set(case_.then(valueSignal))
 							}
 						}
 						currentIndex = -1
 
-						if (fallback) return set(fallback(valueSignal))
-						throw new Error("No default case provided and no case matched, this is not supposed to happen")
+						return set(fallback?.(valueSignal))
 					},
 					{ mode: "immediate" }
 				).unfollow
 			})
-		}
 	}
 	// Yup, this is a hack, type is way to funky to get right
-	return result as never
-}
-
-export const match: {
-	<T>(value: Readonly<Signal<T>>): SwitchValueSignalBuilder<T>
-	<T>(value: T): SwitchValueBuilder<T>
-} = <T>(value: T | Readonly<Signal<T>>) => {
-	if (isSignal(value)) return switchValueSignal(value) as never
-	return switchValue(value) as never
+	return self as never
 }

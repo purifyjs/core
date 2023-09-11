@@ -52,7 +52,7 @@ function renderItem(item: ParseDocumentation.Item, parentId = "", depth = 0): No
 		case "demo": {
 			return fragment(
 				Codeblock(item.content),
-				populate(DemoWrapper(), {}, (docNS[item.name as keyof typeof docNS] as any)())
+				populate(DemoWrapper(), {}, docNS[item.name as keyof typeof docNS]())
 			)
 		}
 		default:
