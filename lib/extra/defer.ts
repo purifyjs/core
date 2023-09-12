@@ -3,7 +3,7 @@ import { signal, signalFrom } from "../core"
 
 export let defer = <T>(signalOrFunction: SignalOrFn<T>, timeout_ms = 250): Readonly<Signal<T>> => {
 	const sourceSignal = signalFrom(signalOrFunction)
-	let timeout = null as NodeJS.Timeout | null
+	let timeout = null as Timer | null
 	let follow: Signal.Follow | null = null
 	return signal(
 		sourceSignal.ref,

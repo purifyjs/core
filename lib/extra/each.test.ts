@@ -1,5 +1,4 @@
-import { strictEqual } from "node:assert"
-import { test } from "node:test"
+import { expect, test } from "bun:test"
 import { signal } from "../core"
 import { each } from "./each"
 
@@ -17,16 +16,16 @@ test(describe(), () => {
 
 	result.ref satisfies string[]
 
-	strictEqual(result.ref.length, 5)
-	strictEqual(result.ref[0], "1")
-	strictEqual(result.ref[1], "2")
-	strictEqual(result.ref[2], "3")
-	strictEqual(result.ref[3], "4")
-	strictEqual(result.ref[4], "5")
+	expect(result.ref).toBeArrayOfSize(5)
+	expect(result.ref[0]).toBe("1")
+	expect(result.ref[1]).toBe("2")
+	expect(result.ref[2]).toBe("3")
+	expect(result.ref[3]).toBe("4")
+	expect(result.ref[4]).toBe("5")
 
 	arr.ref.push(6)
 	arr.ping()
-
-	strictEqual(result.ref.length, 6)
-	strictEqual(result.ref[5], "6")
+	
+	expect(result.ref).toBeArrayOfSize(6)
+	expect(result.ref[5]).toBe("6")
 })

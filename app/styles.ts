@@ -6,6 +6,10 @@ export const commonStyle = css`
 	*::after {
 		box-sizing: border-box;
 	}
+
+	img {
+		max-width: 100%;
+	}
 `
 
 document.adoptedStyleSheets.push(

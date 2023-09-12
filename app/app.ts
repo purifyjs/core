@@ -44,14 +44,9 @@ const style = css`
 		padding-block-end: 25vh;
 	}
 
-	img {
-		max-width: 100%;
-	}
-
 	header {
 		display: grid;
 		grid-auto-flow: row;
-		justify-items: center;
 		text-align: center;
 	}
 
@@ -59,16 +54,27 @@ const style = css`
 		position: relative;
 		isolation: isolate;
 
+		& > img,
+		&::before {
+			width: min(25em, 100%);
+			aspect-ratio: 4 / 3;
+		}
+
+		& > img {
+			object-fit: contain;
+		}
+
 		&::before {
 			content: "";
 			position: absolute;
-			inset: 0;
 			background: conic-gradient(from 30deg, var(--primary), var(--secondary), var(--primary));
 			border-radius: 1000000px;
 			filter: blur(100px);
 			opacity: 0.25;
 			z-index: -1;
 		}
+
+		
 	}
 `
 
