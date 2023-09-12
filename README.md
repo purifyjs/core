@@ -56,8 +56,12 @@ It gives you the freedom to build your app however you want:
 -   Wanna use fragments with CSS `@scoped`? Go ahead.
 -   Wanna use history API? Go ahead.
 -   Wanna use hash router? Go ahead.
+-   Wanna make class based Components? Go ahead.
+-   Wanna make functional Components? Go ahead.
 
-Do whatever you want, in the way you want, and **master-ts** will work with you.
+Do whatever you want, in the way you want, and **master-ts** will work with you.<br/>
+Because, **master-ts** is not a framework, it's just a library of helpful tools that helps you with templating and reactivity.
+It's a complementent to native vanilla browser APIs. 
 
 ## Philosophy 🍜
 
