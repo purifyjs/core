@@ -1,5 +1,4 @@
-import { deepStrictEqual } from "node:assert"
-import { test } from "node:test"
+import { test, expect } from "bun:test"
 import type { ParseDocumentation } from "./parser"
 import { parseDocumentation } from "./parser"
 
@@ -37,7 +36,7 @@ export function hello() {
 
 `
 
-	const expect: ParseDocumentation.Item[] = [
+	const expected: ParseDocumentation.Item[] = [
 		{
 			type: "region",
 			name: "Hello",
@@ -73,5 +72,5 @@ export function hello() {
 		}
 	]
 
-	deepStrictEqual(parseDocumentation(src), expect)
+	expect(parseDocumentation(src)).toStrictEqual(expected)
 })
