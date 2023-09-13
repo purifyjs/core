@@ -61,7 +61,7 @@ It gives you the freedom to build your app however you want:
 
 Do whatever you want, in the way you want, and **master-ts** will work with you.<br/>
 Because, **master-ts** is not a framework, it's just a library of helpful tools that helps you with templating and reactivity.
-It's a complementent to native vanilla browser APIs. 
+It's a complementent to native vanilla browser APIs.
 
 ## Philosophy 🍜
 

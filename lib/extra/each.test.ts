@@ -1,5 +1,5 @@
+import { signal } from "@/lib/core.ts"
 import { expect, test } from "bun:test"
-import { signal } from "../core"
 import { each } from "./each"
 
 const describe = () => {
@@ -25,7 +25,7 @@ test(describe(), () => {
 
 	arr.ref.push(6)
 	arr.ping()
-	
+
 	expect(result.ref).toBeArrayOfSize(6)
 	expect(result.ref[5]).toBe("6")
 })

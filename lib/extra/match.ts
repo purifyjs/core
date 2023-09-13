@@ -1,5 +1,5 @@
-import type { Signal } from "../core"
-import { signal } from "../core"
+import type { Signal } from "@/lib/core.ts"
+import { signal } from "@/lib/core.ts"
 
 // TODO: Just copy pasted this from the old master-ts. Make it smaller and better later.
 

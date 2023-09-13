@@ -1,12 +1,12 @@
-import "./styles"
+import "@/app/styles.ts"
 
-import { fragment } from "@/../lib/core"
-import { css } from "@/../lib/extra/css"
-import { html } from "@/../lib/extra/html"
-import { defineCustomTag } from "../lib/extra/custom-tags"
-import { Docs } from "./content"
-import { IPFS } from "./libs/ipfs"
-import { commonStyle } from "./styles"
+import { Docs } from "@/app/content.ts"
+import { IPFS } from "@/app/libs/ipfs.ts"
+import { commonStyle } from "@/app/styles.ts"
+import { fragment } from "@/lib/core.ts"
+import { css } from "@/lib/extra/css.ts"
+import { defineCustomTag } from "@/lib/extra/custom-tags.ts"
+import { html } from "@/lib/extra/html.ts"
 
 const appTag = defineCustomTag("x-app")
 function App() {
@@ -73,8 +73,6 @@ const style = css`
 			opacity: 0.25;
 			z-index: -1;
 		}
-
-		
 	}
 `
 

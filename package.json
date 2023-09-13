@@ -2,7 +2,7 @@
 	"type": "module",
 	"name": "master-ts",
 	"scripts": {
-		"format": "prettier -w ./",
+		"format": "bunx --bun prettier -w ./",
 		"dev": "bunx --bun vite --host",
 		"build": "bunx --bun vite build",
 		"preview": "bunx --bun vite preview --host",

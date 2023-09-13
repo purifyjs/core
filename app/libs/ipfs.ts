@@ -1,4 +1,4 @@
-import { derive } from "@/../lib/core"
+import { derive } from "@/lib/core.ts"
 
 export namespace IPFS {
 	export const isIpfs = location.hostname.endsWith("ipfs.localhost") || location.hostname.endsWith("ipns.localhost")

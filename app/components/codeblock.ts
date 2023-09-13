@@ -1,9 +1,10 @@
-import { fragment } from "@/../lib/core"
-import { css } from "@/../lib/extra/css"
-import { defineCustomTag } from "@/../lib/extra/custom-tags"
-import { html } from "@/../lib/extra/html"
-import { commonStyle } from "@/styles"
 import "../libs/prism"
+
+import { commonStyle } from "@/app/styles.ts"
+import { fragment } from "@/lib/core.ts"
+import { css } from "@/lib/extra/css.ts"
+import { defineCustomTag } from "@/lib/extra/custom-tags.ts"
+import { html } from "@/lib/extra/html.ts"
 import prismThemeCss from "../libs/prism/style.css?inline"
 
 const { Prism } = window

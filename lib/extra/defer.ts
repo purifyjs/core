@@ -1,5 +1,5 @@
-import type { Signal, SignalOrFn } from "../core"
-import { signal, signalFrom } from "../core"
+import type { Signal, SignalOrFn } from "@/lib/core.ts"
+import { signal, signalFrom } from "@/lib/core.ts"
 
 export let defer = <T>(signalOrFunction: SignalOrFn<T>, timeout_ms = 250): Readonly<Signal<T>> => {
 	const sourceSignal = signalFrom(signalOrFunction)

@@ -1,12 +1,12 @@
-import type { Signal } from "../lib/core"
-import { derive, fragment, onConnected$, signal, tagsNS } from "../lib/core"
-import { awaited } from "../lib/extra/awaited"
-import { css } from "../lib/extra/css"
-import { defineCustomTag } from "../lib/extra/custom-tags"
-import { defer } from "../lib/extra/defer"
-import { each } from "../lib/extra/each"
-import { html } from "../lib/extra/html"
-import { INSTANCEOF, TYPEOF, match } from "../lib/extra/match"
+import type { Signal } from "@/lib/core.ts"
+import { derive, fragment, onConnected$, signal, tagsNS } from "@/lib/core.ts"
+import { awaited } from "@/lib/extra/awaited.ts"
+import { css } from "@/lib/extra/css.ts"
+import { defineCustomTag } from "@/lib/extra/custom-tags.ts"
+import { defer } from "@/lib/extra/defer.ts"
+import { each } from "@/lib/extra/each.ts"
+import { html } from "@/lib/extra/html.ts"
+import { INSTANCEOF, TYPEOF, match } from "@/lib/extra/match.ts"
 
 function code<T extends Utils.Fn>(block: T): () => ReturnType<T> {
 	return () => block()

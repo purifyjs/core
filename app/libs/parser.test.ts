@@ -1,6 +1,6 @@
-import { test, expect } from "bun:test"
-import type { ParseDocumentation } from "./parser"
-import { parseDocumentation } from "./parser"
+import { expect, test } from "bun:test"
+import type { ParseDocumentation } from "./parser.ts"
+import { parseDocumentation } from "./parser.ts"
 
 test("parseDocumentation", () => {
 	return

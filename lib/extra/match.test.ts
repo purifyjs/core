@@ -1,6 +1,6 @@
-import { test, expect,  } from "bun:test"
-import type { Signal } from "../core"
-import { signal } from "../core"
+import type { Signal } from "@/lib/core.ts"
+import { signal } from "@/lib/core.ts"
+import { expect, test } from "bun:test"
 import { INSTANCEOF, TYPEOF, match } from "./match"
 
 const describe = () => {

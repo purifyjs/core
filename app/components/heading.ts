@@ -1,7 +1,7 @@
-import { fragment, populate, signal } from "@/../lib/core"
-import { css } from "@/../lib/extra/css"
-import { html } from "@/../lib/extra/html"
-import { commonStyle } from "@/styles"
+import { commonStyle } from "@/app/styles.ts"
+import { fragment, populate, signal } from "@/lib/core.ts"
+import { css } from "@/lib/extra/css.ts"
+import { html } from "@/lib/extra/html.ts"
 
 const hash = signal(location.hash, (set) => {
 	const interval = setInterval(() => set(location.hash), 100)

@@ -1,5 +1,5 @@
-import type { TagsNS } from "../core"
-import { tagsNS } from "../core"
+import type { TagsNS } from "@/lib/core.ts"
+import { tagsNS } from "@/lib/core.ts"
 
 export namespace CustomTag {
 	export type TagName = `${string}${string}-${string}${string}`
