@@ -1,4 +1,4 @@
-import { readFileMacro } from "@/app/macros/read.ts" assert { type: "macro" }
+import { inlineRaw } from "@/app/macros/read.ts" assert { type: "macro" }
 import { fragment, populate, tagsNS } from "@/lib/core.ts"
 import { css } from "@/lib/extra/css.ts"
 import { defineCustomTag } from "@/lib/extra/custom-tags.ts"
@@ -11,7 +11,7 @@ import * as docNS from "./doc.ts"
 import { parseDocumentation, type ParseDocumentation } from "./libs/parser.ts"
 import { commonStyle } from "./styles.ts"
 
-const docRaw = readFileMacro("./app/doc.ts")
+const docRaw = inlineRaw("./app/doc.ts")
 
 const { section } = tagsNS
 
