@@ -5,15 +5,21 @@ let uniqueId = () => Math.random().toString(36).slice(2) + (counter++).toString(
 
 export let html = (strings: TemplateStringsArray, ...values: (TagsNS.AcceptedChild | EventListener)[]) => {
 	let placeholders: string[] = new Array(values.length)
-	let args = { p: placeholders, v: values, i: 0 } as const satisfies HydrateArgs
-	let template = tagsNS.template()
-	template.innerHTML = strings
+	let html = strings
 		.map((part, i) => part + (i < placeholders.length ? (placeholders[i] = `x${uniqueId()}`) : ""))
 		.join("")
 		.trim()
-	return Array.from(template.content.childNodes)
-		.map((node) => hydrate(node, args))
-		.flat()
+
+	let fn = () => {
+		let args = { p: placeholders, v: values, i: 0 } as const satisfies HydrateArgs
+		let template = tagsNS.template()
+		template.innerHTML = html
+		return Array.from(template.content.childNodes)
+			.map((node) => hydrate(node, args))
+			.flat()
+	}
+
+	return fn()
 }
 
 interface HydrateArgs {
