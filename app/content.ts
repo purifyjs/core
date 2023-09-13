@@ -8,10 +8,8 @@ import { Codeblock } from "./components/codeblock.ts"
 import { DemoWrapper } from "./components/demo.ts"
 import { Heading } from "./components/heading.ts"
 import * as docNS from "./doc.ts"
-import { parseDocumentation, type ParseDocumentation } from "./libs/parser.ts"
+import { parseDocumentation, type ParseDocumentation } from "./libs/parser.ts" assert { type: "macro" }
 import { commonStyle } from "./styles.ts"
-
-const docRaw = inlineRaw("./app/doc.ts")
 
 const { section } = tagsNS
 
@@ -22,7 +20,13 @@ export function Docs() {
 	dom.adoptedStyleSheets.push(commonStyle, documentStyle)
 
 	dom.append(
-		fragment(html` <div class="content">${parseDocumentation(docRaw).map((item) => renderItem(item))}</div> `)
+		fragment(
+			html`
+				<div class="content">
+					${parseDocumentation(inlineRaw("./app/doc.ts")).map((item) => renderItem(item))}
+				</div>
+			`
+		)
 	)
 
 	return host
