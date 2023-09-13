@@ -1,14 +1,14 @@
+import { Codeblock } from "@/app/components/codeblock.ts"
+import { DemoWrapper } from "@/app/components/demo.ts"
+import { Heading } from "@/app/components/heading.ts"
+import { parseDocumentation, type ParseDocumentation } from "@/app/libs/parser.ts" assert { type: "macro" }
 import { inlineRaw } from "@/app/macros/read.ts" assert { type: "macro" }
 import { fragment, populate, tagsNS } from "@/lib/core.ts"
 import { css } from "@/lib/extra/css.ts"
 import { defineCustomTag } from "@/lib/extra/custom-tags.ts"
 import { html } from "@/lib/extra/html.ts"
 import { marked } from "marked"
-import { Codeblock } from "./components/codeblock.ts"
-import { DemoWrapper } from "./components/demo.ts"
-import { Heading } from "./components/heading.ts"
 import * as docNS from "./doc.ts"
-import { parseDocumentation, type ParseDocumentation } from "./libs/parser.ts" assert { type: "macro" }
 import { commonStyle } from "./styles.ts"
 
 const { section } = tagsNS
