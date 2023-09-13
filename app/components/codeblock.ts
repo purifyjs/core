@@ -1,16 +1,16 @@
 import "../libs/prism"
 
+import { readFileMacro } from "@/app/macros/read.ts" assert { type: "macro" }
 import { commonStyle } from "@/app/styles.ts"
 import { fragment } from "@/lib/core.ts"
 import { css } from "@/lib/extra/css.ts"
 import { defineCustomTag } from "@/lib/extra/custom-tags.ts"
 import { html } from "@/lib/extra/html.ts"
-import prismThemeCss from "../libs/prism/style.css?inline"
 
 const { Prism } = window
 
 const prismThemeStyle = css`
-	${prismThemeCss}
+	${readFileMacro("./app/libs/prism/style.css")}
 `
 
 const codeblockTag = defineCustomTag("x-codeblock")
