@@ -3,6 +3,8 @@ namespace Utils {
 		? Kebab<R, `${A}${F extends Lowercase<F> ? "" : "-"}${Lowercase<F>}`>
 		: A
 
+	export type CanDecide<T, U> = boolean extends (T extends U ? true : false) ? false : true
+
 	export type EmptyObject = { [K in PropertyKey]: never }
 
 	type BuildTuple<L extends number, T extends any[] = []> = T extends {

@@ -26,13 +26,14 @@ export namespace Lifecycle {
 
 let lifecycleListeners = new weakMap<Node, Lifecycle.Item[]>()
 export let onConnected$ = <T extends Node>(node: T, listener: Lifecycle.OnConnected): void => {
-	let lifecycleItem: Lifecycle.Item = [() => (lifecycleItem[1] ??= listener()!)]
+	let lifecycleItem: Lifecycle.Item = [() => (lifecycleItem[1] = listener()!)]
 	node.isConnected && lifecycleItem[0]()
 	lifecycleListeners.get(node)?.push(lifecycleItem) ?? lifecycleListeners.set(node, [lifecycleItem])
 }
 
 if (doc) {
 	let callFnOnTree = (node: Node, tupleIndex: Utils.Subtract<Lifecycle.Item["length"], 1>): void => {
+		if (tupleIndex === 0 && !node.isConnected) return
 		lifecycleListeners.get(node)?.[FOR_EACH]((callbacks) => callbacks[tupleIndex]?.())
 		Array.from((node as Element).shadowRoot?.childNodes ?? [])[FOR_EACH]((childNode) =>
 			callFnOnTree(childNode, tupleIndex)
@@ -53,7 +54,7 @@ if (doc) {
 		mutationObserver.observe(root, {
 			characterData: true,
 			childList: true,
-			subtree: true,
+			subtree: true
 		}),
 		root
 	)
@@ -108,7 +109,7 @@ export let isSignal: <U extends boolean = false>(
 	value: any
 ): value is Readonly<Signal<unknown>> => signals.has(value)
 
-let isSignalOrFn = <T>(value: any): value is SignalOrFn<T> => isSignal(value) || isFunction(value)
+export let isSignalOrFn = <T>(value: any): value is SignalOrFn<T> => isSignal(value) || isFunction(value)
 
 export let signalFrom = <T>(src: SignalOrFn<T>): Readonly<Signal<T>> => (isFunction(src) ? derive(src) : src)
 
@@ -141,11 +142,11 @@ export let signal: Signal.Builder = (currentValue, pong) => {
 			{
 				[UNFOLLOW]() {
 					followers.delete(follower), followers.size || passive()
-				},
+				}
 			}
 		),
 		[FOLLOW$]: (node, ...args) => onConnected$(node, () => self[FOLLOW](...args)[UNFOLLOW]),
-		asReadonly: () => self,
+		asReadonly: () => self
 	}
 	signals.add(self)
 	return self
@@ -213,7 +214,7 @@ let bindSignalAsFragment = <T>(signalOrFn: SignalOrFn<T>): DocumentFragment => {
 		let self: Item = {
 			v: value,
 			s: itemStart,
-			e: itemEnd,
+			e: itemEnd
 		}
 		itemNodes.set(itemStart, self)
 		insertBefore.before(itemStart, toNode(value), itemEnd)
@@ -229,10 +230,14 @@ let bindSignalAsFragment = <T>(signalOrFn: SignalOrFn<T>): DocumentFragment => {
 
 	// TODO: Someone help me make this shorter and more elegant
 	// TODO: Welp
+	let oldValue: unknown
 	signalFrom(signalOrFn)[FOLLOW$](
 		start,
 		(value: T) => {
-			if (!isArray(value)) return clearBetween(start, end), end.before(toNode(value))
+			if (!isArray(oldValue) || !isArray(value)) clearBetween(start, end)
+			oldValue = value
+
+			if (!isArray(value)) return end.before(toNode(value))
 
 			let currentNode = nextSibling(start)!
 			nextValue: for (let currentIndex = 0; currentIndex < value.length; currentIndex++) {
@@ -298,23 +303,6 @@ type InputValueKeyMap<Type extends string> = Type extends keyof typeof inputValu
 	: typeof VALUE
 type InputValueTypeMap<Type extends string> = HTMLInputElement[InputValueKeyMap<Type>]
 
-type ProbablyValidAttributesOfElement<T extends Element> = Partial<{
-	[K in Exclude<
-		Utils.Kebab<
-			Exclude<
-				Extract<
-					{
-						[K2 in keyof T]: T[K2] extends string ? K2 : never
-					}[keyof T],
-					string
-				>,
-				keyof Element
-			>
-		>,
-		`${string}-${string}`
-	>]: K extends keyof T ? T[K] : never
-}>
-
 let CHECKED = "checked" as const
 let VALUE = "value" as const
 let VALUE_AS_NUMBER = (VALUE + "AsNumber") as `${typeof VALUE}AsNumber`
@@ -328,7 +316,7 @@ let inputValueKeyMap = {
 	"datetime-local": VALUE_AS_DATE,
 	month: VALUE_AS_DATE,
 	time: VALUE_AS_DATE,
-	week: VALUE_AS_DATE,
+	week: VALUE_AS_DATE
 } as const
 
 let getInputValueKey = <Type extends keyof typeof inputValueKeyMap | (string & {})>(type: Type) =>
@@ -342,8 +330,15 @@ export type TagsNS = {
 export namespace TagsNS {
 	export type AcceptedChild = {} | null
 
-	export type Attributes<T extends Element, TInputType extends HTMLInputElement["type"] = HTMLInputElement["type"]> = {
+	export type Attributes<
+		T extends Element,
+		TInputType extends HTMLInputElement["type"] = HTMLInputElement["type"]
+	> = {
 		[key: string]: unknown
+	} & {
+		class?: string
+		style?: string
+		title?: string
 	} & {
 		[K in `class:${string}`]?: SignalOrValueOrFn<boolean>
 	} & (T extends HTMLElement
@@ -367,8 +362,7 @@ export namespace TagsNS {
 					type?: TInputType
 					"bind:value"?: Signal<InputValueTypeMap<TInputType>>
 			  }
-			: {}) &
-		ProbablyValidAttributesOfElement<T>
+			: {})
 
 	export type Builder<T extends Element> = {
 		<TInputType extends HTMLInputElement["type"]>(
@@ -382,18 +376,21 @@ export let tagsNS = new Proxy(
 	{
 		get: (_, tagName: string) =>
 			((...args: Parameters<TagsNS.Builder<HTMLElement>>) =>
-				populate(doc.createElement(tagName), ...args)) as TagsNS.Builder<HTMLElement>,
+				populate(doc.createElement(tagName), ...args)) as TagsNS.Builder<HTMLElement>
 	}
 ) as TagsNS
 
 let bindOrSet = <T>(element: Element, value: SignalOrValueOrFn<T>, then: (value: T) => void): void =>
-	isSignalOrFn(value) ? signalFrom(value)[FOLLOW$](element, then) : then(value)
+	isSignalOrFn(value) ? signalFrom(value)[FOLLOW$](element, then, FOLLOW_IMMEDIATE_OPTION) : then(value)
 
 let bindSignalAsValue = <T extends InputElement>(element: T, signal: Signal<InputValueTypeMap<T["type"]>>) => {
 	onConnected$(element, () => {
 		let onInput = (event: Event) => (signal.ref = (event.target as T)[getInputValueKey(element.type)])
 		element.addEventListener("input", onInput)
-		let follow = signal[FOLLOW]((value) => (element[getInputValueKey(element.type)] = value), FOLLOW_IMMEDIATE_OPTION)
+		let follow = signal[FOLLOW](
+			(value) => (element[getInputValueKey(element.type)] = value),
+			FOLLOW_IMMEDIATE_OPTION
+		)
 		return () => (element.removeEventListener("input", onInput), follow[UNFOLLOW]())
 	})
 }

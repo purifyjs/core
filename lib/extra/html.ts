@@ -1,19 +1,25 @@
-import { populate, tagsNS, type TagsNS } from "../core"
+import { populate, tagsNS, type TagsNS } from "master-ts/lib/core.ts"
 
 let counter = 0n
 let uniqueId = () => Math.random().toString(36).slice(2) + (counter++).toString(36)
 
-export let html = (strings: TemplateStringsArray, ...values: TagsNS.AcceptedChild[]) => {
+export let html = (strings: TemplateStringsArray, ...values: (TagsNS.AcceptedChild | EventListener)[]) => {
 	let placeholders: string[] = new Array(values.length)
-	let args = { p: placeholders, v: values, i: 0 } as const satisfies HydrateArgs
-	let template = tagsNS.template()
-	template.innerHTML = strings
-		.map((part, i) => part + (i < placeholders.length ? (placeholders[i] = uniqueId()) : ""))
+	let html = strings
+		.map((part, i) => part + (i < placeholders.length ? (placeholders[i] = `x${uniqueId()}`) : ""))
 		.join("")
 		.trim()
-	return Array.from(template.content.childNodes)
-		.map((node) => hydrate(node, args))
-		.flat()
+
+	let fn = () => {
+		let args = { p: placeholders, v: values, i: 0 } as const satisfies HydrateArgs
+		let template = tagsNS.template()
+		template.innerHTML = html
+		return Array.from(template.content.childNodes)
+			.map((node) => hydrate(node, args))
+			.flat()
+	}
+
+	return fn()
 }
 
 interface HydrateArgs {
@@ -51,13 +57,15 @@ let hydrate = (node: Node, args: HydrateArgs): TagsNS.AcceptedChild[] => {
 				populate(
 					node.tagName === "X" ? (node.remove(), args.v[args.i++] as Element) : node,
 					Array.from(node.attributes).reduce(
-						(attr, { name, value }) => ((attr[name] = value === args.p[args.i] ? args.v[args.i++] : value), attr),
+						(attr, { name, value }) => (
+							(attr[name] = value === args.p[args.i] ? args.v[args.i++] : value), attr
+						),
 						{} as TagsNS.Attributes<Element>
 					),
 					Array.from(node.childNodes)
 						.map((childNode) => hydrate(childNode, args))
 						.flat()
-				),
+				)
 		  ]
 		: [node]
 }

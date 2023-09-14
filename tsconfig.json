@@ -1,27 +1,34 @@
 {
 	"compilerOptions": {
-		"target": "ESNext",
-		"module": "ESNext",
-		"lib": ["ES2023", "DOM"],
-		"moduleResolution": "Node",
-		"resolveJsonModule": true,
-		// "isolatedModules": true,
-		"esModuleInterop": true,
-		"noEmit": true,
-		"skipLibCheck": true,
-		"removeComments": false,
-		"sourceMap": true,
-		"baseUrl": "app",
-		"paths": {
-			"@/*": ["*"]
-		},
+		// add Bun type definitions
+		"types": ["bun-types"],
 
-		"forceConsistentCasingInFileNames": true /* Ensure that casing is correct in imports. */,
-		"strict": true /* Enable all strict type-checking options. */,
-		"useUnknownInCatchVariables": true /* Require type checking of catch clause variables */,
-		"noUncheckedIndexedAccess": true /* Include 'undefined' in index signature results */,
+		// enable latest features
+		"lib": ["ESNext", "DOM", "DOM.Iterable"],
+		"module": "ESNext",
+		"target": "ESNext",
+
+		// if TS 5.x+
+		"moduleResolution": "Bundler",
+		"allowImportingTsExtensions": true,
+		"noEmit": true,
+		"moduleDetection": "force",
+
+		"allowJs": true, // allow importing `.js` from `.ts`
+		"esModuleInterop": true, // allow default imports for CommonJS modules
+
+		// best practices
+		"skipLibCheck": true,
+		"strict": true,
+		"strictNullChecks": true,
+		"useUnknownInCatchVariables": true,
+		"noUncheckedIndexedAccess": true,
 		"noPropertyAccessFromIndexSignature": true,
-		"strictNullChecks": true /* Enable strict null checks. */
+		"exactOptionalPropertyTypes": true,
+
+		"paths": {
+			"master-ts/*": ["./*"]
+		}
 	},
-	"include": ["app", "lib"]
+	"include": ["apps", "lib"]
 }

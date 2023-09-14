@@ -1,9 +1,11 @@
-import type { Signal } from "../core"
-import { signal } from "../core"
+import type { Signal } from "master-ts/lib/core.ts"
+import { signal } from "master-ts/lib/core.ts"
 
-export let awaited = <T, F = null>(promise: Promise<T>, fallback?: (error?: Error) => F): Readonly<Signal<T | F>> => {
-	const promiseSignal = signal<T | F>((fallback ? fallback() : null) as F)
+export let awaited: {
+	<T>(promise: Promise<T>): Readonly<Signal<T | null>>
+	<T, U>(promise: Promise<T>, until: U): Readonly<Signal<T | U>>
+} = (promise: Promise<unknown>, until: unknown = null) => {
+	const promiseSignal = signal(until)
 	promise.then((value) => (promiseSignal.ref = value))
-	fallback && promise.catch((error) => fallback(error))
 	return promiseSignal
 }

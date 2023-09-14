@@ -1,6 +1,3 @@
 /.*
 /*.md
-/app
-/vite.config.ts
-/index.html
-/CODE_OF_CONDUCT
+/apps
