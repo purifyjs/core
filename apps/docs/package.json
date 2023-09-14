@@ -2,6 +2,7 @@
 	"name": "docs",
 	"type": "module",
 	"devDependencies": {
+		"bun-types": "^1.0.1",
 		"@types/prismjs": "^1.26.0",
 		"marked": "^8.0.1",
 		"master-ts": "workspace:packages/master-ts"

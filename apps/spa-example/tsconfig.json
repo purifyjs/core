@@ -1,0 +1,29 @@
+{
+	"compilerOptions": {
+		"types": ["bun-types"],
+
+		// enable latest features
+		"lib": ["ESNext", "DOM", "DOM.Iterable"],
+		"module": "ESNext",
+		"target": "ESNext",
+
+		// if TS 5.x+
+		"moduleResolution": "Bundler",
+		"allowImportingTsExtensions": true,
+		"noEmit": true,
+		"moduleDetection": "force",
+
+		"allowJs": true, // allow importing `.js` from `.ts`
+		"esModuleInterop": true, // allow default imports for CommonJS modules
+
+		// best practices
+		"skipLibCheck": true,
+		"strict": true,
+		"strictNullChecks": true,
+		"useUnknownInCatchVariables": true,
+		"noUncheckedIndexedAccess": true,
+		"noPropertyAccessFromIndexSignature": true,
+		"exactOptionalPropertyTypes": true
+	},
+	"include": ["src"]
+}

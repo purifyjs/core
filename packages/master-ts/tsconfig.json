@@ -1,7 +1,5 @@
 {
 	"compilerOptions": {
-		"types": ["bun-types"],
-
 		// enable latest features
 		"lib": ["ESNext", "DOM", "DOM.Iterable"],
 		"module": "ESNext",
@@ -25,5 +23,5 @@
 		"noPropertyAccessFromIndexSignature": true,
 		"exactOptionalPropertyTypes": true
 	},
-	"include": ["apps", "packages"]
+	"include": ["."]
 }

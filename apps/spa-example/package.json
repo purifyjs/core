@@ -2,6 +2,7 @@
 	"name": "spa-example",
 	"type": "module",
 	"devDependencies": {
+		"bun-types": "^1.0.1",
 		"vite": "^4.4.9",
 		"master-ts": "workspace:packages/master-ts"
 	}

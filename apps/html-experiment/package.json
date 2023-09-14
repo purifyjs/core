@@ -2,6 +2,7 @@
 	"name": "html-experiment",
 	"type": "module",
 	"devDependencies": {
+		"bun-types": "^1.0.1",
 		"master-ts": "workspace:packages/master-ts"
 	}
 }
