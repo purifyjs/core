@@ -1,5 +1,5 @@
 import { html } from "../utils/html"
-import { uniqueId } from "../utils/unique" assert { type: "macro" }
+import { uniqueId } from "../utils/unique"
 
 export async function GET() {
 	const playerId = uniqueId()

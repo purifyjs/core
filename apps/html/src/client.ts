@@ -137,12 +137,15 @@ window.addEventListener("load", () => {
 								const response = fetch(actionArgs[0]!, { method: actionName.toUpperCase() }).then(
 									(response) => response.text()
 								)
-								const cache = responseCache.get(actionArgs[2]!)
-								if (cache) cache.ref = await response
+								const keys = actionArgs.slice(2)
+								for (const key of keys) {
+									const cache = responseCache.get(key)
+									if (cache) cache.ref = await response
+								}
 						  }
 						: async () => fetch(actionArgs[0]!, { method: actionName.toUpperCase() })
 					: actionName === "invalidate" && actionArgs.length >= 1
-					? async () => invalidateAll(actionArgs[0]!)
+					? async () => invalidateAll(actionArgs.join(" "))
 					: null
 			return buildActionFunction(index + 1, async () => {
 				if (previousFn) await previousFn()

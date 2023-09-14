@@ -21,9 +21,14 @@ export async function GET() {
 			<button mx-on="click : get /api/counter set counter">Update Counters</button>
 		</div>
 		<div>
-			<button mx-on="click : get /never-gonna set player">Click me too!</button>
-			<div>
+			<button mx-on="click : get /never-gonna?1 set player, get /never-gonna?2 set player2">Click me too!</button>
+			<div style="display:flex">
 				<mx-view key="player" html></mx-view>
+				<mx-view key="player" html></mx-view>
+			</div>
+			<div style="display:flex">
+				<mx-view key="player2" html></mx-view>
+				<mx-view key="player2" html></mx-view>
 			</div>
 		</div>
 	`
