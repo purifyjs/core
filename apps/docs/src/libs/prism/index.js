@@ -800,7 +800,7 @@ Prism.languages.clike = {
 		e.languages.insertBefore("typescript", "function", {
 			decorator: {
 				pattern: /@[$\w\xA0-\uFFFF]+/,
-				inside: { at: { pattern: /^@/, alias: "operator" }, function: /^[\s\S]+/ }
+				inside: { at: { pattern: /^master-ts/, alias: "operator" }, function: /^[\s\S]+/ }
 			},
 			"generic-function": {
 				pattern:

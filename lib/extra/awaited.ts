@@ -1,5 +1,5 @@
-import type { Signal } from "@/lib/core.ts"
-import { signal } from "@/lib/core.ts"
+import type { Signal } from "master-ts/lib/core.ts"
+import { signal } from "master-ts/lib/core.ts"
 
 export let awaited: {
 	<T>(promise: Promise<T>): Readonly<Signal<T | null>>

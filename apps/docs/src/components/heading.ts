@@ -1,6 +1,6 @@
-import { fragment, populate, signal } from "@/lib/core.ts"
-import { css } from "@/lib/extra/css.ts"
-import { html } from "@/lib/extra/html.ts"
+import { fragment, populate, signal } from "master-ts/lib/core.ts"
+import { css } from "master-ts/lib/extra/css.ts"
+import { html } from "master-ts/lib/extra/html.ts"
 import { commonStyle } from "../styles.ts"
 
 const hash = signal(location.hash, (set) => {

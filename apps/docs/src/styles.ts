@@ -1,4 +1,4 @@
-import { css } from "@/lib/extra/css.ts"
+import { css } from "master-ts/lib/extra/css.ts"
 
 export const commonStyle = css`
 	*,

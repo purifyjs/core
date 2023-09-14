@@ -1,5 +1,5 @@
-import { signal } from "@/lib/core.ts"
 import { expect, test } from "bun:test"
+import { signal } from "master-ts/lib/core.ts"
 import { each } from "./each"
 
 const describe = () => {

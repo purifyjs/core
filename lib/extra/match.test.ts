@@ -1,6 +1,6 @@
-import type { Signal } from "@/lib/core.ts"
-import { signal } from "@/lib/core.ts"
 import { expect, test } from "bun:test"
+import type { Signal } from "master-ts/lib/core.ts"
+import { signal } from "master-ts/lib/core.ts"
 import { INSTANCEOF, TYPEOF, match } from "./match"
 
 const describe = () => {

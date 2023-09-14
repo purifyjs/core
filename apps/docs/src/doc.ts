@@ -1,12 +1,12 @@
-import type { Signal } from "@/lib/core.ts"
-import { derive, fragment, onConnected$, signal, tagsNS } from "@/lib/core.ts"
-import { awaited } from "@/lib/extra/awaited.ts"
-import { css } from "@/lib/extra/css.ts"
-import { defineCustomTag } from "@/lib/extra/custom-tags.ts"
-import { defer } from "@/lib/extra/defer.ts"
-import { each } from "@/lib/extra/each.ts"
-import { html } from "@/lib/extra/html.ts"
-import { INSTANCEOF, TYPEOF, match } from "@/lib/extra/match.ts"
+import type { Signal } from "master-ts/lib/core.ts"
+import { derive, fragment, onConnected$, signal, tagsNS } from "master-ts/lib/core.ts"
+import { awaited } from "master-ts/lib/extra/awaited.ts"
+import { css } from "master-ts/lib/extra/css.ts"
+import { defineCustomTag } from "master-ts/lib/extra/custom-tags.ts"
+import { defer } from "master-ts/lib/extra/defer.ts"
+import { each } from "master-ts/lib/extra/each.ts"
+import { html } from "master-ts/lib/extra/html.ts"
+import { INSTANCEOF, TYPEOF, match } from "master-ts/lib/extra/match.ts"
 
 function code<T extends Utils.Fn>(block: T): () => ReturnType<T> {
 	return () => block()
@@ -47,10 +47,7 @@ export const example = code(() => {
 			fragment(html`
 				<div class="hello">
 					<div>Hello</div>
-					<form
-						on:submit=${(e) => (
-							e.preventDefault(), alert(`Hello ${world.ref}`)
-						)}>
+					<form on:submit=${(e) => (e.preventDefault(), alert(`Hello ${world.ref}`))}>
 						<input type="text" bind:value=${world} />
 						<button>Hello ${world}</button>
 					</form>
@@ -558,10 +555,7 @@ export const awaitedSignalInitialValueExample = code(() => {
 		return text.toUpperCase()
 	}
 
-	const awaitedPromise = derive(
-		() => awaited(upperCase(text.ref), "loading..."),
-		[text]
-	)
+	const awaitedPromise = derive(() => awaited(upperCase(text.ref), "loading..."), [text])
 
 	// end
 
@@ -611,11 +605,7 @@ export const eachSignalExample = code(() => {
 
 	const itemsWithRandomText = each(items)
 		.key((item, index) => item.id)
-		.as(
-			(item, index) => html`
-				<div>${() => item.ref.text} - ${index} ${randomId()}</div>
-			`
-		)
+		.as((item, index) => html` <div>${() => item.ref.text} - ${index} ${randomId()}</div> `)
 
 	return html`
 		<div>
@@ -709,17 +699,11 @@ export const matchSignalExample = code(() => {
 			${match(fooBar)
 				.case(
 					{ type: "foo" },
-					(foo) =>
-						html`<div>
-							Foo: ${() => foo.ref.value} - Rendered ${++fooCounter} times
-						</div>`
+					(foo) => html`<div>Foo: ${() => foo.ref.value} - Rendered ${++fooCounter} times</div>`
 				)
 				.case(
 					{ type: "bar" },
-					(bar) =>
-						html`<div>
-							Bar: ${() => bar.ref.value} - Rendered ${++barCounter} times
-						</div>`
+					(bar) => html`<div>Bar: ${() => bar.ref.value} - Rendered ${++barCounter} times</div>`
 				)
 				.default()}
 		</div>
@@ -757,10 +741,7 @@ export const matchSignalExample2 = code(() => {
 		<div>
 			${match(foo)
 				.case(null, () => html`<div>Foo is null</div>`)
-				.default(
-					(value) =>
-						html`<div>${value} - ${() => value.ref.toUpperCase()}</div>`
-				)}
+				.default((value) => html`<div>${value} - ${() => value.ref.toUpperCase()}</div>`)}
 		</div>
 	`
 	// end
@@ -775,11 +756,7 @@ export const matchSignalExample3 = code(() => {
 	return html`
 		<div>
 			${match(foo)
-				.case(
-					{ [TYPEOF]: "string" },
-					(value) =>
-						html`<div>${value} - ${() => value.ref.toUpperCase()}</div>`
-				)
+				.case({ [TYPEOF]: "string" }, (value) => html`<div>${value} - ${() => value.ref.toUpperCase()}</div>`)
 				.default(() => html`<div>Foo is null</div>`)}
 		</div>
 	`

@@ -27,7 +27,7 @@
 		"exactOptionalPropertyTypes": true,
 
 		"paths": {
-			"@/*": ["./*"]
+			"master-ts/*": ["./*"]
 		}
 	},
 	"include": ["apps", "lib"]

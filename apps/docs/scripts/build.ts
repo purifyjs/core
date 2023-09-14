@@ -5,8 +5,6 @@ const root = path.resolve(path.join(import.meta.dir, ".."))
 const distDirname = path.join(root, "dist")
 const srcDirname = path.join(root, "src")
 
-console.log(srcDirname)
-
 const output = await Bun.build({
 	entrypoints: [path.join(srcDirname, "app.ts")],
 	minify: true,
