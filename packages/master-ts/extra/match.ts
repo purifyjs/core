@@ -1,5 +1,6 @@
 import type { Signal } from "master-ts/core.ts"
 import { signal } from "master-ts/core.ts"
+import type { Utils } from "../utils"
 
 // TODO: Just copy pasted this from the old master-ts. Make it smaller and better later.
 

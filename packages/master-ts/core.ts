@@ -4,6 +4,8 @@
 	While keeping the readablity in an optimum level 
 */
 
+import type { Utils } from "./utils"
+
 let doc = (typeof window === "undefined" ? null : document) as Document
 let isFunction = (value: any): value is Function => typeof value === "function"
 let isArray = (value: unknown): value is unknown[] => Array.isArray(value)

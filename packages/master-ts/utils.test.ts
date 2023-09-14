@@ -1,3 +1,5 @@
+import type { Utils } from "./utils"
+
 true satisfies Utils.Equals<"a", "a">
 false satisfies Utils.Equals<"a", string>
 false satisfies Utils.Equals<string, Utils.Brand<"hello", string>>
