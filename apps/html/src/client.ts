@@ -36,35 +36,6 @@ const style = css`
 `
 
 customElements.define(
-	"mx-fetch",
-	class extends HTMLElement {
-		constructor() {
-			super()
-			const dom = this.attachShadow({ mode: "open" })
-			dom.adoptedStyleSheets.push(style)
-			dom.append(tagsNS.slot())
-
-			const url = this.getAttribute("url")
-			if (!url) return
-			const key = this.getAttribute("key") ?? url
-			const html = this.hasAttribute("html")
-
-			fetchGET(url).then((response) => {
-				const responseTextSignal = set(key, response)
-				responseTextSignal.follow$(
-					this,
-					(value) => {
-						if (html) this.innerHTML = value
-						else this.textContent = value
-					},
-					{ mode: "immediate" }
-				)
-			})
-		}
-	}
-)
-
-customElements.define(
 	"mx-view",
 	class extends HTMLElement {
 		constructor() {
@@ -134,16 +105,22 @@ window.addEventListener("load", () => {
 				(actionName === "post" || actionName === "get") && actionArgs.length >= 1
 					? actionArgs.length >= 3 && actionArgs[1] === "set"
 						? async () => {
-								const response = fetch(actionArgs[0]!, { method: actionName.toUpperCase() }).then(
-									(response) => response.text()
-								)
+								const response =
+									actionName === "get"
+										? fetchGET(actionArgs[0]!)
+										: fetch(actionArgs[0]!, { method: actionName.toUpperCase() }).then((response) =>
+												response.text()
+										  )
 								const keys = actionArgs.slice(2)
 								for (const key of keys) {
 									const cache = responseCache.get(key)
 									if (cache) cache.ref = await response
 								}
 						  }
-						: async () => fetch(actionArgs[0]!, { method: actionName.toUpperCase() })
+						: async () =>
+								actionName === "get"
+									? fetchGET(actionArgs[0]!)
+									: fetch(actionArgs[0]!, { method: actionName.toUpperCase() })
 					: actionName === "invalidate" && actionArgs.length >= 1
 					? async () => invalidateAll(actionArgs.join(" "))
 					: null
