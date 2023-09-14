@@ -1,0 +1,77 @@
+name: Create Release Archive
+
+on:
+    release:
+        types:
+            - published
+
+jobs:
+    build:
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v2
+
+            - name: Set Tag Name
+              id: set-tag-name
+              run: echo "::set-output name=tag_name::$(echo ${{ github.ref }} | sed 's/refs\/tags\///')"
+
+            - name: Create Subfolder Archive
+              run: |
+                  TAG_NAME="${{ steps.set-tag-name.outputs.tag_name }}"
+
+                  # Create a directory to store the archive
+                  mkdir -p release-archives
+
+                  # Check if .npmignore exists, and if so, use it to filter files for archiving
+                   if [ -f "packages/master-ts/.npmignore" ]; then
+                    tar -czvf release-archives/package.tar.gz -C packages --exclude-from=packages/master-ts/.npmignore master-ts
+                   else
+                    tar -czvf release-archives/package.tar.gz -C packages master-ts
+                   fi
+
+            - name: Upload Archive to Release
+              id: upload-archive
+              uses: actions/upload-artifact@v2
+              with:
+                  name: package
+                  path: release-archives/package.tar.gz
+
+            - name: Get Release ID
+              id: get-release-id
+              run: |
+                  TAG_NAME="${{ steps.set-tag-name.outputs.tag_name }}"
+                  RESPONSE=$(curl -s -H 'Accept: application/vnd.github.v3+json' -H "Authorization: token ${{ secrets.TOKEN_GITHUB }}" "https://api.github.com/repos/${{ github.repository }}/releases/tags/${TAG_NAME}")
+
+                  if [ -z "$RESPONSE" ]; then
+                    echo "::error::Release not found for tag $TAG_NAME."
+                    exit 1
+                  fi
+
+                  RELEASE_ID=$(echo "$RESPONSE" | jq -r '.id')
+                  echo "::set-output name=release_id::$RELEASE_ID"
+
+            - name: Upload to Release
+              run: |
+                  RELEASE_ID="${{ steps.get-release-id.outputs.release_id }}"
+                  UPLOAD_URL="https://uploads.github.com/repos/${{ github.repository }}/releases/${RELEASE_ID}/assets?name=package.tar.gz"
+                  curl -s -H "Authorization: token ${{ secrets.TOKEN_GITHUB }}" -H "Content-Type: application/gzip" --data-binary "@release-archives/package.tar.gz" "$UPLOAD_URL"
+
+            - name: Check Release Message and Update if Empty
+              run: |
+                  TAG_NAME="${{ steps.set-tag-name.outputs.tag_name }}"
+                  RELEASE_ID="${{ steps.get-release-id.outputs.release_id }}"
+
+                  if [ -z "$TAG_NAME" ]; then
+                    echo "::error::Tag name is empty."
+                    exit 1
+                  fi
+
+                  RELEASE_MESSAGE=$(curl -s -H 'Accept: application/vnd.github.v3+json' -H "Authorization: token ${{ secrets.TOKEN_GITHUB }}" "https://api.github.com/repos/${{ github.repository }}/releases/tags/${TAG_NAME}" | jq -r '.body')
+
+                  if [ -z "$RELEASE_MESSAGE" ]; then
+                    # Release message is empty, update it
+                    NEW_MESSAGE="# Install\n\`\`\`\nnpm i -D https://github.com/${{ github.repository }}/releases/download/${TAG_NAME}/package.tar.gz\n\`\`\`\n\`\`\`\nbun i -D https://github.com/${{ github.repository }}/releases/download/${TAG_NAME}/package.tar.gz\n\`\`\`"
+                    curl -X PATCH -H "Authorization: token ${{ secrets.TOKEN_GITHUB }}" -H "Content-Type: application/json" -d "{\"body\":\"$NEW_MESSAGE\"}" "https://api.github.com/repos/${{ github.repository }}/releases/${RELEASE_ID}"
+                  fi
