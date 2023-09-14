@@ -1,8 +1,8 @@
 import { Signal, signal, tagsNS } from "master-ts/lib/core"
 import { css } from "master-ts/lib/extra/css"
-import { createWeakCache } from "./utils/weakCache"
+import { WeakCache } from "./utils/weakCache"
 
-const responseCache = createWeakCache<string, Signal<string | null>>()
+const responseCache = new WeakCache<string, Signal<string | null>>()
 
 function set(key: string, value: string): Signal<string> {
 	const cache = responseCache.get(key)

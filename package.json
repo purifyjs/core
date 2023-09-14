@@ -5,6 +5,7 @@
 		"format": "bunx --bun prettier -w ./",
 		"dev:docs": "bun run ./apps/docs/scripts/dev.ts",
 		"build:docs": "bun run ./apps/docs/scripts/build.ts",
+		"start:html-kit": "bun run ./apps/html/server.ts",
 		"test": "bunx --bun tsc --noEmit && bun test"
 	},
 	"devDependencies": {
