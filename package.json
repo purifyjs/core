@@ -1,17 +1,22 @@
 {
 	"type": "module",
-	"name": "master-ts",
+	"name": "master-ts-workspace",
+	"workspaces": [
+		"./apps/*",
+		"./packages/*"
+	],
 	"scripts": {
 		"format": "bunx --bun prettier -w ./",
-		"dev:docs": "bun run ./apps/docs/scripts/dev.ts",
-		"build:docs": "bun run ./apps/docs/scripts/build.ts",
-		"start:html-kit": "bun run ./apps/html/server.ts",
+		"docs:dev": "bun run ./apps/docs/scripts/dev.ts",
+		"docs:build": "bun run ./apps/docs/scripts/build.ts",
+		"html-experiment:start": "bun run ./apps/html-experiment/src/server.ts",
+		"spa-example:dev": "bunx --bun vite ./apps/spa-example --host",
+		"spa-example:build": "bunx --bun vite build ./apps/spa-example",
+		"spa-example:preview": "bunx --bun vite preview ./apps/spa-example --host",
 		"test": "bunx --bun tsc --noEmit && bun test"
 	},
 	"devDependencies": {
-		"@types/prismjs": "^1.26.0",
 		"bun-types": "^1.0.1",
-		"marked": "^8.0.1",
 		"prettier": "^2.8.8",
 		"prettier-plugin-organize-imports": "^3.2.2",
 		"typescript": "^5.2.2"

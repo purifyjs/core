@@ -1,5 +1,5 @@
-import type { Signal, SignalOrFn } from "master-ts/lib/core.ts"
-import { signal, signalFrom } from "master-ts/lib/core.ts"
+import type { Signal, SignalOrFn } from "master-ts/core.ts"
+import { signal, signalFrom } from "master-ts/core.ts"
 
 export let each = <T>(arr: SignalOrFn<T[]>) => ({
 	key: (getKey: (value: T, index: number) => unknown) => ({

@@ -1,7 +1,7 @@
-import { fragment } from "master-ts/lib/core.ts"
-import { css } from "master-ts/lib/extra/css.ts"
-import { defineCustomTag } from "master-ts/lib/extra/custom-tags.ts"
-import { html } from "master-ts/lib/extra/html.ts"
+import { fragment } from "master-ts/core.ts"
+import { css } from "master-ts/extra/css.ts"
+import { defineCustomTag } from "master-ts/extra/custom-tags.ts"
+import { html } from "master-ts/extra/html.ts"
 import { commonStyle } from "../styles.ts"
 
 const demoTag = defineCustomTag("x-demo")

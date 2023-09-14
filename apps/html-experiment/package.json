@@ -1,0 +1,7 @@
+{
+	"name": "html-experiment",
+	"type": "module",
+	"devDependencies": {
+		"master-ts": "workspace:packages/master-ts"
+	}
+}

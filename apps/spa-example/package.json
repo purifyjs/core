@@ -1,0 +1,8 @@
+{
+	"name": "spa-example",
+	"type": "module",
+	"devDependencies": {
+		"vite": "^4.4.9",
+		"master-ts": "workspace:packages/master-ts"
+	}
+}

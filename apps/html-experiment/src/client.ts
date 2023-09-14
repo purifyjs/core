@@ -1,5 +1,5 @@
-import { Signal, signal, tagsNS } from "master-ts/lib/core"
-import { css } from "master-ts/lib/extra/css"
+import { Signal, signal, tagsNS } from "master-ts/core"
+import { css } from "master-ts/extra/css"
 import { WeakCache } from "./utils/weakCache"
 
 const responseCache = new WeakCache<string, Signal<string | null>>()

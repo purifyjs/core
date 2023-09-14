@@ -1,4 +1,4 @@
-import { populate, tagsNS, type TagsNS } from "master-ts/lib/core.ts"
+import { populate, tagsNS, type TagsNS } from "master-ts/core.ts"
 
 let counter = 0n
 let uniqueId = () => Math.random().toString(36).slice(2) + (counter++).toString(36)
