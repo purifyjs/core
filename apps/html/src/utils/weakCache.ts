@@ -1,6 +1,6 @@
 export type WeakCache<K extends PropertyKey, T extends object> = {
 	get(key: K): T | undefined
-	set(key: K, value: T): T
+	set<V extends T>(key: K, value: V): V
 }
 export function createWeakCache<K extends PropertyKey, T extends object>() {
 	const caches = new Map<K, WeakRef<T>>()
