@@ -1,12 +1,12 @@
-import "@/app/styles.ts"
+import "./styles.ts"
 
-import { Docs } from "@/app/content.ts"
-import { IPFS } from "@/app/libs/ipfs.ts"
-import { commonStyle } from "@/app/styles.ts"
 import { fragment } from "@/lib/core.ts"
 import { css } from "@/lib/extra/css.ts"
 import { defineCustomTag } from "@/lib/extra/custom-tags.ts"
 import { html } from "@/lib/extra/html.ts"
+import { Docs } from "./content.ts"
+import { IPFS } from "./libs/ipfs.ts"
+import { commonStyle } from "./styles.ts"
 
 const appTag = defineCustomTag("x-app")
 function App() {

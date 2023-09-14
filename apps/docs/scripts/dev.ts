@@ -5,10 +5,13 @@
 
 	Wait for this: https://bun.sh/blog/bun-bundler#sneak-peek-bun-app
 */
+import path from "path"
 
-const devDir = `/tmp/${Math.random().toString(36).slice(2)}_bun_dev`
+const root = path.resolve(path.join(import.meta.dir, ".."))
+const devDirname = `/tmp/${Math.random().toString(36).slice(2)}_bun_dev`
+const srcDirname = path.join(root, "src")
 
-Bun.spawn(["bun", "build", "--watch", "./app/app.ts", "--target", "browser", "--outdir", devDir], {
+Bun.spawn(["bun", "build", "--watch", path.join(srcDirname, "app.ts"), "--target", "browser", "--outdir", devDirname], {
 	stdout: "inherit",
 	stderr: "inherit"
 })
@@ -20,12 +23,12 @@ Bun.serve({
 
 		switch (url.pathname) {
 			case "/app.js":
-				return new Response(await Bun.file(`${devDir}/app.js`).arrayBuffer(), {
+				return new Response(await Bun.file(path.join(devDirname, "app.js")).arrayBuffer(), {
 					headers: { "Content-Type": "application/javascript" }
 				})
 			case "/":
 				return new Response(
-					await Bun.file("./app/index.html")
+					await Bun.file(path.join(srcDirname, "index.html"))
 						.text()
 						.then((html) =>
 							html.replace("<!-- js -->", () => `<script type="module" src="/app.js"></script>`)

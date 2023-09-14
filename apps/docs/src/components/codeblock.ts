@@ -1,16 +1,16 @@
 import "../libs/prism"
 
-import { inlineRaw } from "@/app/macros/read.ts" assert { type: "macro" }
-import { commonStyle } from "@/app/styles.ts"
 import { fragment } from "@/lib/core.ts"
 import { css } from "@/lib/extra/css.ts"
 import { defineCustomTag } from "@/lib/extra/custom-tags.ts"
 import { html } from "@/lib/extra/html.ts"
+import { inlineRaw } from "../macros/read.ts" assert { type: "macro" }
+import { commonStyle } from "../styles.ts"
 
 const { Prism } = window
 
 const prismThemeStyle = css`
-	${inlineRaw("./app/libs/prism/style.css")}
+	${inlineRaw("./apps/docs/src/libs/prism/style.css")}
 `
 
 const codeblockTag = defineCustomTag("x-codeblock")

@@ -3,8 +3,8 @@
 	"name": "master-ts",
 	"scripts": {
 		"format": "bunx --bun prettier -w ./",
-		"dev": "bun run ./app/scripts/dev.ts",
-		"build": "bun run ./app/scripts/build.ts",
+		"dev:docs": "bun run ./apps/docs/scripts/dev.ts",
+		"build:docs": "bun run ./apps/docs/scripts/build.ts",
 		"test": "bunx --bun tsc --noEmit && bun test"
 	},
 	"devDependencies": {
