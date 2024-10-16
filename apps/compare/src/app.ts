@@ -7,6 +7,8 @@ import { Framework, getFrameworks } from "./frameworks"
 
 // I have to do it like this, because if i use top-level await, vite fucks up glob imports for some reasons
 getFrameworks().then((frameworks) => {
+    console.log(frameworks)
+
     const {
         div,
         span,

@@ -1,4 +1,4 @@
-const contentImports = import.meta.glob("./content/**/*", {
+const contentImports = import.meta.glob("./content/*/**/*", {
     query: "?raw",
     import: "default"
 })
