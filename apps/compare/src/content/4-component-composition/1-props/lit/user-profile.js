@@ -25,9 +25,7 @@ export class UserProfile extends LitElement {
 			</p>
 			<p>
 				I am
-				${this.isAvailable ? "available" : (
-					"not available"
-				)}
+				${this.isAvailable ? "available" : "not available"}
 			</p>
 		`;
 	}

@@ -3,8 +3,7 @@ import m from "mithril";
 export default function PickPill() {
 	let picked = "red";
 	let pills = ["red", "green", "blue"];
-	const handleChange = ({ target: { value } }) =>
-		(picked = value);
+	const handleChange = ({ target: { value } }) => (picked = value);
 
 	return {
 		view: () =>

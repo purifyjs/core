@@ -13,9 +13,7 @@ export class InputHello extends LitElement {
 	render() {
 		return html`
 			<p>${this.text}</p>
-			<input
-				value=${this.text}
-				@input=${this.handleInput} />
+			<input value=${this.text} @input=${this.handleInput} />
 		`;
 	}
 }

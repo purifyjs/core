@@ -1,9 +1,4 @@
-import {
-	computed,
-	fragment,
-	ref,
-	tags,
-} from "@purifyjs/core";
+import { computed, fragment, ref, tags } from "@purifyjs/core";
 
 const { div, input, label } = tags;
 

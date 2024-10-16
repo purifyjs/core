@@ -18,8 +18,7 @@ export class XApp extends LitElement {
 			const response = await fetch(
 				"https://randomuser.me/api/?results=3",
 			);
-			const { results: users } =
-				await response.json();
+			const { results: users } = await response.json();
 			this.data = users;
 			this.error = undefined;
 		} catch (err) {
@@ -50,8 +49,7 @@ export class XApp extends LitElement {
 						(user) => html`
 							<li>
 								<img
-									src=${user.picture
-										.thumbnail}
+									src=${user.picture.thumbnail}
 									alt="user" />
 								<p>
 									${user.name.first}

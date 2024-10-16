@@ -22,8 +22,7 @@ const ColorSelect = component$(() => {
 					value={color.id}
 					disabled={color.isDisabled}
 					selected={
-						`${color.id}` ===
-						selectedColorId.value
+						`${color.id}` === selectedColorId.value
 					}>
 					{color.text}
 				</option>

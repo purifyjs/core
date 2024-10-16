@@ -14,11 +14,7 @@ export default function IsAvailable() {
 					checked: isAvailable,
 					onchange: onUpdate,
 				}),
-				m(
-					"label",
-					{ for: "is-available" },
-					"Is available",
-				),
+				m("label", { for: "is-available" }, "Is available"),
 			),
 	};
 }

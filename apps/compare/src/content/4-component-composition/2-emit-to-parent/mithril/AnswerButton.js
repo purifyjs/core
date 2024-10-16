@@ -1,7 +1,5 @@
 import m from "mithril";
-export const AnswerButton = ({
-	attrs: { onYes, onNo },
-}) => ({
+export const AnswerButton = ({ attrs: { onYes, onNo } }) => ({
 	view: () =>
 		m(
 			"div",

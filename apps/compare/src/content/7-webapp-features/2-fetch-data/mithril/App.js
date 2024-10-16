@@ -38,10 +38,7 @@ export default function App() {
 						src: user.picture.thumbnail,
 						alt: "user",
 					}),
-					m(
-						"p",
-						`${user.name.first} ${user.name.last}`,
-					),
+					m("p", `${user.name.first} ${user.name.last}`),
 				),
 			);
 		},

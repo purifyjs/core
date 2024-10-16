@@ -1,9 +1,4 @@
-import {
-	createResource,
-	For,
-	Match,
-	Switch,
-} from "solid-js";
+import { createResource, For, Match, Switch } from "solid-js";
 
 async function fetchUsers() {
 	return (
@@ -21,9 +16,7 @@ export default function App() {
 				<p>Fetching users...</p>
 			</Match>
 			<Match when={data.error}>
-				<p>
-					An error occurred while fetching users
-				</p>
+				<p>An error occurred while fetching users</p>
 			</Match>
 			<Match when={users()}>
 				<ul>
@@ -31,15 +24,11 @@ export default function App() {
 						{(user) => (
 							<li>
 								<img
-									src={
-										user.picture
-											.thumbnail
-									}
+									src={user.picture.thumbnail}
 									alt="user"
 								/>
 								<p>
-									{user.name.first}{" "}
-									{user.name.last}
+									{user.name.first} {user.name.last}
 								</p>
 							</li>
 						)}

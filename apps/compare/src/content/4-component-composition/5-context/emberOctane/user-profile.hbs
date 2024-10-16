@@ -4,10 +4,7 @@
 		{{this.user.username}}</p>
 	<p>Email: {{this.user.email}}</p>
 	<button
-		{{on
-			"click"
-			(fn this.userService.updateUserName "Jane")
-		}}
+		{{on "click" (fn this.userService.updateUserName "Jane")}}
 	>
 		Update username to Jane
 	</button>

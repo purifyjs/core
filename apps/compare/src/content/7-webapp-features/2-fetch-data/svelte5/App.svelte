@@ -12,9 +12,7 @@
 	<ul>
 		{#each response.users as user}
 			<li>
-				<img
-					src={user.picture.thumbnail}
-					alt="user" />
+				<img src={user.picture.thumbnail} alt="user" />
 				<p>
 					{user.name.first}
 					{user.name.last}

@@ -2,8 +2,7 @@ import { component$, useContext } from "@builder.io/qwik";
 import { UserContext } from "./App";
 
 const UserProfile = component$(() => {
-	const { user, updateUsername } =
-		useContext(UserContext);
+	const { user, updateUsername } = useContext(UserContext);
 
 	return (
 		<div>

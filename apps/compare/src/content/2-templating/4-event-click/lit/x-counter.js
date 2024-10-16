@@ -13,9 +13,7 @@ export class XCounter extends LitElement {
 	render() {
 		return html`
 			<p>Counter: ${this.count}</p>
-			<button @click=${this.incrementCount}>
-				+1
-			</button>
+			<button @click=${this.incrementCount}>+1</button>
 		`;
 	}
 }

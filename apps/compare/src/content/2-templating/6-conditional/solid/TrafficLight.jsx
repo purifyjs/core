@@ -8,9 +8,7 @@ export default function TrafficLight() {
 	const light = () => TRAFFIC_LIGHTS[lightIndex()];
 
 	function nextLight() {
-		setLightIndex(
-			(lightIndex() + 1) % TRAFFIC_LIGHTS.length,
-		);
+		setLightIndex((lightIndex() + 1) % TRAFFIC_LIGHTS.length);
 	}
 
 	return (

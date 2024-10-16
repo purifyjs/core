@@ -5,8 +5,7 @@ export class App {
 
 	nextLight() {
 		this.lightIndex =
-			(this.lightIndex + 1) %
-			this.TRAFFIC_LIGHTS.length;
+			(this.lightIndex + 1) % this.TRAFFIC_LIGHTS.length;
 		this.light = this.TRAFFIC_LIGHTS[this.lightIndex];
 	}
 }

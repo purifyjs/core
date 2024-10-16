@@ -11,9 +11,7 @@ const TRAFFIC_LIGHTS = ["red", "orange", "green"];
 			You must
 			<ng-container [ngSwitch]="light">
 				<span *ngSwitchCase="'red'">STOP</span>
-				<span *ngSwitchCase="'orange'"
-					>SLOW DOWN</span
-				>
+				<span *ngSwitchCase="'orange'">SLOW DOWN</span>
 				<span *ngSwitchCase="'green'">GO</span>
 			</ng-container>
 		</p>

@@ -5,8 +5,7 @@ export default function TrafficLight() {
 	let lightIndex = 0;
 	let currentLight = () => TRAFFIC_LIGHTS[lightIndex];
 
-	const nextLight = () =>
-		(lightIndex + 1) % TRAFFIC_LIGHTS.length;
+	const nextLight = () => (lightIndex + 1) % TRAFFIC_LIGHTS.length;
 
 	const instructions = () => {
 		switch (currentLight()) {
@@ -23,17 +22,9 @@ export default function TrafficLight() {
 		view: () =>
 			m(
 				"div",
-				m(
-					"button",
-					{ onclick: nextLight },
-					"Next light",
-				),
+				m("button", { onclick: nextLight }, "Next light"),
 				m("p", `Light is: ${currentLight()}`),
-				m(
-					"p",
-					"You must ",
-					m("span", instructions()),
-				),
+				m("p", "You must ", m("span", instructions())),
 			),
 	};
 }

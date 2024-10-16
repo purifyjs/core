@@ -16,9 +16,7 @@ export const initialState: UsersState = {
 
 @Injectable({ providedIn: "root" })
 export class UserService {
-	private state = new BehaviorSubject<UsersState>(
-		initialState,
-	);
+	private state = new BehaviorSubject<UsersState>(initialState);
 	state$ = this.state.asObservable();
 
 	constructor(private http: HttpClient) {}
@@ -30,9 +28,7 @@ export class UserService {
 		});
 
 		this.http
-			.get<UserResponse>(
-				"https://randomuser.me/api/?results=3",
-			)
+			.get<UserResponse>("https://randomuser.me/api/?results=3")
 			.subscribe({
 				next: ({ results }) =>
 					this.state.next({

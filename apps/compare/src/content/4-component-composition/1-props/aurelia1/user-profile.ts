@@ -1,7 +1,4 @@
-import {
-	bindable,
-	customElement,
-} from "aurelia-templating";
+import { bindable, customElement } from "aurelia-templating";
 
 @customElement("user-profile")
 export class UserProfile {

@@ -9,9 +9,7 @@
   ]
 }">
 	<select x-model.number="selectedColorId">
-		<template
-			x-for="color in colors"
-			x-bind:key="color.id">
+		<template x-for="color in colors" x-bind:key="color.id">
 			<option
 				x-text="color.text"
 				x-bind:value="color.id"

@@ -13,8 +13,6 @@ export default class Time extends Component {
 			this.time = new Date().toLocaleTimeString();
 		}, 1000);
 
-		registerDestructor(this, () =>
-			clearInterval(timer),
-		);
+		registerDestructor(this, () => clearInterval(timer));
 	}
 }

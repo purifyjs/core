@@ -1,7 +1,4 @@
-import {
-	bindable,
-	customElement,
-} from "aurelia-templating";
+import { bindable, customElement } from "aurelia-templating";
 
 @customElement("answer-button")
 export class AnswerButton {

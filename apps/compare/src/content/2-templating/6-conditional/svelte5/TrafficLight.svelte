@@ -5,8 +5,7 @@
 	const light = $derived(TRAFFIC_LIGHTS[lightIndex]);
 
 	function nextLight() {
-		lightIndex =
-			(lightIndex + 1) % TRAFFIC_LIGHTS.length;
+		lightIndex = (lightIndex + 1) % TRAFFIC_LIGHTS.length;
 	}
 </script>
 

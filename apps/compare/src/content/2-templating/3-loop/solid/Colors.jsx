@@ -5,9 +5,7 @@ export default function Colors() {
 
 	return (
 		<ul>
-			<For each={colors}>
-				{(color) => <li>{color}</li>}
-			</For>
+			<For each={colors}>{(color) => <li>{color}</li>}</For>
 		</ul>
 	);
 }

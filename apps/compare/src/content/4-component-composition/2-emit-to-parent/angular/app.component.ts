@@ -5,9 +5,7 @@ import { Component } from "@angular/core";
 	template: `
 		<p>Are you happy?</p>
 
-		<app-answer-button
-			(yes)="onAnswerYes()"
-			(no)="onAnswerNo()">
+		<app-answer-button (yes)="onAnswerYes()" (no)="onAnswerNo()">
 		</app-answer-button>
 
 		<p style="font-size: 50px">

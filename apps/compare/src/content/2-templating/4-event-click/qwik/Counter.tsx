@@ -10,9 +10,7 @@ export const Counter = component$(() => {
 	return (
 		<>
 			<p>Counter: {count.value}</p>
-			<button onClick$={incrementCount}>
-				Increment
-			</button>
+			<button onClick$={incrementCount}>Increment</button>
 		</>
 	);
 });

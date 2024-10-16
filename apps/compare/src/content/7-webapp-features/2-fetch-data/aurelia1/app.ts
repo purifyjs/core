@@ -1,7 +1,4 @@
-import {
-	autoinject,
-	computedFrom,
-} from "aurelia-framework";
+import { autoinject, computedFrom } from "aurelia-framework";
 import { UseFetchUsers } from "./UseFetchUsers";
 
 @autoinject()

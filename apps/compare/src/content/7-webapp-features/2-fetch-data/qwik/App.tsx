@@ -1,8 +1,4 @@
-import {
-	component$,
-	Resource,
-	useResource$,
-} from "@builder.io/qwik";
+import { component$, Resource, useResource$ } from "@builder.io/qwik";
 
 type UsersResponse = {
 	results: {
@@ -30,9 +26,7 @@ export const App = component$(() => {
 			value={data}
 			onPending={() => <p>Fetching users...</p>}
 			onRejected={() => (
-				<p>
-					An error occurred while fetching users
-				</p>
+				<p>An error occurred while fetching users</p>
 			)}
 			onResolved={({ results: users }) => (
 				<ul>
@@ -43,8 +37,7 @@ export const App = component$(() => {
 								alt="user"
 							/>
 							<p>
-								{user.name.first}{" "}
-								{user.name.last}
+								{user.name.first} {user.name.last}
 							</p>
 						</li>
 					))}

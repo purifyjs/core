@@ -1,8 +1,7 @@
 import { createSignal } from "solid-js";
 
 export default function IsAvailable() {
-	const [isAvailable, setIsAvailable] =
-		createSignal(false);
+	const [isAvailable, setIsAvailable] = createSignal(false);
 
 	function handleChange() {
 		setIsAvailable((previousValue) => !previousValue);

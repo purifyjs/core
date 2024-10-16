@@ -12,11 +12,8 @@ export function InputHello() {
 			.checked(isAvailable)
 			.onchange(
 				(event) =>
-					(isAvailable.val =
-						event.currentTarget.checked),
+					(isAvailable.val = event.currentTarget.checked),
 			),
-		label({ for: "is-available" }).children(
-			"Is available",
-		),
+		label({ for: "is-available" }).children("Is available"),
 	);
 }

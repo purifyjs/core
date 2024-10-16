@@ -35,11 +35,7 @@ export default {
 		</p>
 		<p>
 			I am
-			{{
-				props.isAvailable ? "available" : (
-					"not available"
-				)
-			}}
+			{{ props.isAvailable ? "available" : "not available" }}
 		</p>
 	</div>
 </template>

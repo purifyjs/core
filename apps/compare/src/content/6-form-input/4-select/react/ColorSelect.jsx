@@ -12,17 +12,14 @@ const colors = [
 ];
 
 export default function ColorSelect() {
-	const [selectedColorId, setSelectedColorId] =
-		useState(2);
+	const [selectedColorId, setSelectedColorId] = useState(2);
 
 	function handleChange(event) {
 		setSelectedColorId(event.target.value);
 	}
 
 	return (
-		<select
-			value={selectedColorId}
-			onChange={handleChange}>
+		<select value={selectedColorId} onChange={handleChange}>
 			{colors.map((color) => (
 				<option
 					key={color.id}

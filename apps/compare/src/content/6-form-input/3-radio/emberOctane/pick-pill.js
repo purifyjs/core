@@ -5,6 +5,5 @@ export default class PickPill extends Component {
 	@tracked
 	picked = "red";
 
-	handleChange = (event) =>
-		(this.picked = event.target.value);
+	handleChange = (event) => (this.picked = event.target.value);
 }

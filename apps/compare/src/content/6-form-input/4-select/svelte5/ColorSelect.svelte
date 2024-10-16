@@ -11,9 +11,7 @@
 
 <select bind:value={selectedColorId}>
 	{#each colors as color}
-		<option
-			value={color.id}
-			disabled={color.isDisabled}>
+		<option value={color.id} disabled={color.isDisabled}>
 			{color.text}
 		</option>
 	{/each}

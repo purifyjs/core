@@ -15,9 +15,7 @@ export default function IsAvailable() {
 				checked={isAvailable}
 				onChange={handleChange}
 			/>
-			<label htmlFor="is-available">
-				Is available
-			</label>
+			<label htmlFor="is-available">Is available</label>
 		</>
 	);
 }

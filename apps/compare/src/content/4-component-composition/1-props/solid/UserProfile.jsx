@@ -21,9 +21,7 @@ export default function UserProfile(props) {
 			</p>
 			<p>
 				I am{" "}
-				{merged.isAvailable ?
-					"available"
-				:	"not available"}
+				{merged.isAvailable ? "available" : "not available"}
 			</p>
 		</>
 	);

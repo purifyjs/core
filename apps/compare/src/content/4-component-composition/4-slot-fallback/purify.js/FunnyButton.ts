@@ -22,9 +22,7 @@ export function FunnyButton() {
 	});
 	shadow.append(
 		fragment(
-			slot().children(
-				span().children("No content found"),
-			),
+			slot().children(span().children("No content found")),
 		),
 	);
 

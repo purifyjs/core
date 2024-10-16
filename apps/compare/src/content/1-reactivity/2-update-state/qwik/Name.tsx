@@ -1,8 +1,4 @@
-import {
-	component$,
-	useSignal,
-	useTask$,
-} from "@builder.io/qwik";
+import { component$, useSignal, useTask$ } from "@builder.io/qwik";
 
 export const Name = component$(() => {
 	const name = useSignal("John");

@@ -4,8 +4,7 @@ import { UserService } from "./user.service";
 @Component({
 	selector: "app-users",
 	template: `
-		<ng-container
-			*ngIf="userService.state$ | async as vm">
+		<ng-container *ngIf="userService.state$ | async as vm">
 			<div *ngIf="vm.loading; else errorTpl">
 				Fetching users...
 			</div>

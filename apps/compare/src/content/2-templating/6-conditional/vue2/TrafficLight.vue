@@ -14,8 +14,7 @@ export default {
 	methods: {
 		nextLight() {
 			this.lightIndex =
-				(this.lightIndex + 1) %
-				this.TRAFFIC_LIGHTS.length;
+				(this.lightIndex + 1) % this.TRAFFIC_LIGHTS.length;
 		},
 	},
 };
@@ -28,9 +27,7 @@ export default {
 		<p>
 			You must
 			<span v-if="light === 'red'">STOP</span>
-			<span v-else-if="light === 'orange'"
-				>SLOW DOWN</span
-			>
+			<span v-else-if="light === 'orange'">SLOW DOWN</span>
 			<span v-else-if="light === 'green'">GO</span>
 		</p>
 	</div>

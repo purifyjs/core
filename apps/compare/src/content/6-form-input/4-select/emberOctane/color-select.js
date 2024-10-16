@@ -5,8 +5,7 @@ export default class ColorSelect extends Component {
 	@tracked
 	selectedColorId = 2;
 
-	select = (event) =>
-		(this.selectedColorId = event.target.value);
+	select = (event) => (this.selectedColorId = event.target.value);
 
 	colors = [
 		{ id: 1, text: "red" },

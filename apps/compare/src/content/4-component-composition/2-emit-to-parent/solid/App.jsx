@@ -15,10 +15,7 @@ export default function App() {
 	return (
 		<>
 			<p>Are you happy?</p>
-			<AnswerButton
-				onYes={onAnswerYes}
-				onNo={onAnswerNo}
-			/>
+			<AnswerButton onYes={onAnswerYes} onNo={onAnswerNo} />
 			<p style={{ "font-size": "50px" }}>
 				{isHappy() ? "😀" : "😥"}
 			</p>

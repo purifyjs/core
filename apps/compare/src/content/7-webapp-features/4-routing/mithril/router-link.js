@@ -5,22 +5,8 @@ export default function App() {
 		view: () =>
 			m(
 				"ul",
-				m(
-					"li",
-					m(
-						m.route.Link,
-						{ href: "/foo" },
-						"foo",
-					),
-				),
-				m(
-					"li",
-					m(
-						m.route.Link,
-						{ href: "/bar" },
-						"bar",
-					),
-				),
+				m("li", m(m.route.Link, { href: "/foo" }, "foo")),
+				m("li", m(m.route.Link, { href: "/bar" }, "bar")),
 			),
 	};
 }

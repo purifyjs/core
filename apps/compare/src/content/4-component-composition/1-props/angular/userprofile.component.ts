@@ -11,9 +11,7 @@ import { Component, Input } from "@angular/core";
 		</p>
 		<p>
 			I am
-			{{
-				isAvailable ? "available" : "not available"
-			}}
+			{{ isAvailable ? "available" : "not available" }}
 		</p>
 	`,
 })

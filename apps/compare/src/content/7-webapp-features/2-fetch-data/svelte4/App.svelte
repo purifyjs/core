@@ -1,11 +1,7 @@
 <script>
 	import useFetchUsers from "./useFetchUsers";
 
-	const {
-		isLoading,
-		error,
-		data: users,
-	} = useFetchUsers();
+	const { isLoading, error, data: users } = useFetchUsers();
 </script>
 
 {#if $isLoading}
@@ -16,9 +12,7 @@
 	<ul>
 		{#each $users as user}
 			<li>
-				<img
-					src={user.picture.thumbnail}
-					alt="user" />
+				<img src={user.picture.thumbnail} alt="user" />
 				<p>
 					{user.name.first}
 					{user.name.last}

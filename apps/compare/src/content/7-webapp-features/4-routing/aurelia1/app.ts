@@ -16,22 +16,19 @@ export class App {
 			{
 				route: "users",
 				name: "users",
-				moduleId:
-					PLATFORM.moduleName("users/index"),
+				moduleId: PLATFORM.moduleName("users/index"),
 				nav: true,
 				title: "Users",
 			},
 			{
 				route: "users/:id/detail",
 				name: "userDetail",
-				moduleId:
-					PLATFORM.moduleName("users/detail"),
+				moduleId: PLATFORM.moduleName("users/detail"),
 			},
 			{
 				route: "files/*path",
 				name: "files",
-				moduleId:
-					PLATFORM.moduleName("files/index"),
+				moduleId: PLATFORM.moduleName("files/index"),
 				nav: 0,
 				title: "Files",
 				href: "#files",

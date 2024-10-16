@@ -2,8 +2,7 @@ import m from "mithril";
 
 export default function InputHello() {
 	let text = "Hello world";
-	const handleChange = ({ target: { value } }) =>
-		(text = value);
+	const handleChange = ({ target: { value } }) => (text = value);
 
 	return {
 		view: () =>

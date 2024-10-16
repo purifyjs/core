@@ -24,11 +24,8 @@ export const TrafficLight = component$(() => {
 			<button onClick$={nextLight}>Next light</button>
 			<p>Light is: {light.value}</p>
 			<p>
-				You must{" "}
-				{light.value === "red" && <span>STOP</span>}
-				{light.value === "orange" && (
-					<span>SLOW DOWN</span>
-				)}
+				You must {light.value === "red" && <span>STOP</span>}
+				{light.value === "orange" && <span>SLOW DOWN</span>}
 				{light.value === "green" && <span>GO</span>}
 			</p>
 		</>

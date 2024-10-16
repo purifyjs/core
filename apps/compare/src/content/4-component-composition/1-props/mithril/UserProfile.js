@@ -1,9 +1,7 @@
 import m from "mithril";
 
 export const UserProfile = () => ({
-	view: ({
-		attrs: { name, age, favouriteColors, isAvailable },
-	}) =>
+	view: ({ attrs: { name, age, favouriteColors, isAvailable } }) =>
 		m(
 			"div",
 			m("p", `My name is ${name}!`),

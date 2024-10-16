@@ -21,8 +21,7 @@ export default function App() {
 	return (
 		<>
 			<h1>Welcome back, {user().username}</h1>
-			<UserContext.Provider
-				value={[user, updateUsername]}>
+			<UserContext.Provider value={[user, updateUsername]}>
 				<UserProfile />
 			</UserContext.Provider>
 		</>

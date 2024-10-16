@@ -10,8 +10,7 @@ export function InputHello() {
 		input()
 			.value(text)
 			.oninput(
-				(event) =>
-					(text.val = event.currentTarget.value),
+				(event) => (text.val = event.currentTarget.value),
 			),
 	);
 }

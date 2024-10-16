@@ -32,11 +32,7 @@ export class AppComponent {}
 			},
 		]),
 	],
-	declarations: [
-		AppComponent,
-		HomeComponent,
-		AboutComponent,
-	],
+	declarations: [AppComponent, HomeComponent, AboutComponent],
 	bootstrap: [AppComponent],
 })
 export class AppModule {}

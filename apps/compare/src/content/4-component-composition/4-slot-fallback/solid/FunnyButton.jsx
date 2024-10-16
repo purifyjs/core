@@ -14,9 +14,7 @@ export default function FunnyButton(props) {
 					"transform 0.2s cubic-bezier(0.34, 1.65, 0.88, 0.925) 0s",
 				outline: "0",
 			}}>
-			{props.children || (
-				<span>No content found</span>
-			)}
+			{props.children || <span>No content found</span>}
 		</button>
 	);
 }

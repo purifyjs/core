@@ -9,8 +9,7 @@ export default function App() {
 		email: "unicorn42@example.com",
 	};
 
-	const updateUsername = (username) =>
-		(user.username = username);
+	const updateUsername = (username) => (user.username = username);
 
 	return {
 		view: () =>

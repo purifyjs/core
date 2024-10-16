@@ -32,10 +32,6 @@ const props = defineProps({
 	</p>
 	<p>
 		I am
-		{{
-			props.isAvailable ? "available" : (
-				"not available"
-			)
-		}}
+		{{ props.isAvailable ? "available" : "not available" }}
 	</p>
 </template>

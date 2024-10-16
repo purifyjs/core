@@ -1,8 +1,4 @@
-import {
-	component$,
-	Slot,
-	useStylesScoped$,
-} from "@builder.io/qwik";
+import { component$, Slot, useStylesScoped$ } from "@builder.io/qwik";
 
 /**
  * Fallback content as described in the docs is not working

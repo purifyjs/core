@@ -1,9 +1,4 @@
-import {
-	awaited,
-	computed,
-	fragment,
-	tags,
-} from "@purifyjs/core";
+import { awaited, computed, fragment, tags } from "@purifyjs/core";
 import { fetchUsers } from "./fetchUsers";
 
 const { p, ul, li, img } = tags;
@@ -11,9 +6,7 @@ const { p, ul, li, img } = tags;
 export function App() {
 	const response = awaited(
 		fetchUsers().catch((error) =>
-			error instanceof Error ? error : (
-				new Error(String(error))
-			),
+			error instanceof Error ? error : new Error(String(error)),
 		),
 		null,
 	);
@@ -30,9 +23,7 @@ export function App() {
 				return ul().children(
 					response.val.map((user) =>
 						li().children(
-							img().src(
-								user.picture.thumbnail,
-							),
+							img().src(user.picture.thumbnail),
 							p().children(
 								user.name.first,
 								user.name.last,

@@ -12,17 +12,14 @@ const colors = [
 ];
 
 export default function ColorSelect() {
-	const [selectedColorId, setSelectedColorId] =
-		createSignal(2);
+	const [selectedColorId, setSelectedColorId] = createSignal(2);
 
 	function handleChange(event) {
 		setSelectedColorId(event.target.value);
 	}
 
 	return (
-		<select
-			value={selectedColorId()}
-			onChange={handleChange}>
+		<select value={selectedColorId()} onChange={handleChange}>
 			<For each={colors}>
 				{(color) => (
 					<option

@@ -28,8 +28,7 @@ export class ColorSelect extends LitElement {
 					(color) =>
 						html`<option
 							value=${color.id}
-							?selected=${this
-								.selectedColorId ===
+							?selected=${this.selectedColorId ===
 							color.id}
 							?disabled=${color.isDisabled}>
 							${color.text}

@@ -8,9 +8,7 @@ export class ColorsList extends LitElement {
 	render() {
 		return html`
 			<ul>
-				${this.colors.map(
-					(color) => html`<li>${color}</li>`,
-				)}
+				${this.colors.map((color) => html`<li>${color}</li>`)}
 			</ul>
 		`;
 	}
