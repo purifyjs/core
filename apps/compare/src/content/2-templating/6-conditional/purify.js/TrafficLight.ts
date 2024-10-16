@@ -28,18 +28,17 @@ export function TrafficsLight() {
 		p().children(
 			"You must",
 			computed(() => {
-				if (light.val === "red") {
+				if (light.val === "red")
 					return span().textContent("STOP");
-				} else if (light.val === "orange") {
+				else if (light.val === "orange")
 					return span().textContent("SLOW DOWN");
-				} else if (light.val === "green") {
+				else if (light.val === "green")
 					return span().textContent("GO");
-				}
 				light.val satisfies never;
-				throw new Error(
-					`Unhandled light: ${light.val}`,
-				);
-			}),
+			}).derive(
+				(result) =>
+					result ?? span().textContent(light),
+			),
 		),
 	);
 }
