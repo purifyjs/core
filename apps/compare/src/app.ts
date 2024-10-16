@@ -48,7 +48,7 @@ getFrameworks().then((frameworks) => {
 
     const compared = ref(calculateCompared(path.val))
     function calculateCompared(pathValue: (typeof path)["val"]) {
-        const key = pathValue.framework || "lit"
+        const key = pathValue.framework || "vue3"
         return {
             key,
             framework: frameworks[key]
