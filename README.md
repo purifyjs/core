@@ -114,21 +114,3 @@ Coming soon.
 
 But as long as the developer is aware of this limitation or difference, it
 shouldn't cause any issues.
-
-## Why Not JSX Templating? 🍕
-
--   **Lack of Type Safety**: An `<img>` element created with JSX cannot have the
-    `HTMLImageElement` type because all JSX elements must return the same type.
-    This causes issues if you expect a `HTMLImageElement` some where in the code
-    but all JSX returns is `HTMLElement` or something like `JSX.Element`. Also, it
-    has some other issues related to the generics, discriminated unions and more.
-
--   **Build Step Required**: JSX necessitates a build step, adding complexity to
-    the development workflow. In contrast, **purify.js** avoids this, enabling a
-    simpler and more streamlined development process by working directly with
-    native JavaScript and TypeScript.
-
--   **Attributes vs. Properties**: In **purify.js**, I can differentiate between
-    attributes and properties of an element while building it, which is not
-    currently possible with JSX. This distinction enhances clarity and control
-    when defining element characteristics.
