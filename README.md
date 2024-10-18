@@ -45,7 +45,7 @@ To install **purify.js**, follow the
 ### Counter
 
 ```ts
-import { ref, tags } from "@purifyjs/core"
+import { ref, computed, tags } from "@purifyjs/core"
 
 const { div, button } = tags
 
@@ -55,7 +55,7 @@ function App() {
 
 function Counter() {
     const count = ref(0)
-    const double = count.derive((count) => count * 2)
+    const double = computed(() => count.val * 2)
 
     return div().children(
         button({ class: "my-button", "data-count": count })
@@ -72,7 +72,7 @@ document.body.append(App().element)
 ### Counter with ShadowRoot
 
 ```ts
-import { fragment, ref, tags } from "@purifyjs/core"
+import { fragment, ref, computed, tags } from "@purifyjs/core"
 
 const { div, button } = tags
 
@@ -85,7 +85,7 @@ function Counter() {
     const shadow = host.element.attachShadow({ mode: "open" })
 
     const count = ref(0)
-    const double = count.derive((count) => count * 2)
+    const double = computed(() => count.val * 2)
 
     shadow.append(
         fragment(
