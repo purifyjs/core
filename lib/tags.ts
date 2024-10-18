@@ -74,13 +74,16 @@ export let toAppendable = (
     }
 
     if (instancesOf(value, Signal)) {
+        /* I would make a custom element for this but we have to stay under 1.0kB */
         return toAppendable(
-            tags["div"]({ style: "display:contents" }).use((element) =>
-                value.follow(
-                    (value) => element.replaceChildren(toAppendable(value)),
-                    true
+            tags
+                .div({ style: "display:contents" })
+                .use((element) =>
+                    value.follow(
+                        (value) => element.replaceChildren(toAppendable(value)),
+                        true
+                    )
                 )
-            )
         )
     }
 
@@ -129,7 +132,7 @@ export let tags = new Proxy(
             <T extends keyof HTMLElementTagNameMap>(_: never, tag: T) =>
             (
                 attributes: Builder.Attributes<
-                    HTMLElementTagNameMap[T] & HTMLElementWithLifecycle
+                    WithLifecycle<HTMLElementTagNameMap[T]>
                 > = {}
             ) =>
                 Builder.Proxy(withLifecycle(tag)).attributes(attributes)
@@ -138,21 +141,17 @@ export let tags = new Proxy(
 
 export type Tags = {
     [K in keyof HTMLElementTagNameMap]: (
-        attributes?: Builder.Attributes<
-            HTMLElementTagNameMap[K] & HTMLElementWithLifecycle
-        >
-    ) => Builder.Proxy<HTMLElementTagNameMap[K] & HTMLElementWithLifecycle>
+        attributes?: Builder.Attributes<WithLifecycle<HTMLElementTagNameMap[K]>>
+    ) => Builder.Proxy<WithLifecycle<HTMLElementTagNameMap[K]>>
 }
 
+export type WithLifecycle<T extends HTMLElement> = T & HTMLElementWithLifecycle
 export interface HTMLElementWithLifecycle extends HTMLElement {
     onConnect(callback: Lifecycle.OnConnected<this>): Lifecycle.OffConnected
 }
-
 export namespace Lifecycle {
     export type OnDisconnected = () => void
-    export type OnConnected<T extends HTMLElement = HTMLElement> = (
-        element: T
-    ) => void | OnDisconnected
+    export type OnConnected<T extends HTMLElement> = (element: T) => void | OnDisconnected
     export type OffConnected = () => void
 }
 
@@ -216,13 +215,13 @@ let withLifecycle = <T extends keyof HTMLElementTagNameMap>(
         )
     }
 
-    return new constructor() as HTMLElementTagNameMap[T] & HTMLElementWithLifecycle
+    return new constructor() as WithLifecycle<HTMLElementTagNameMap[T]>
 }
 
 /**
  * Builder class to construct a builder to populate an element with attributes and children.
  */
-export class Builder<T extends HTMLElementWithLifecycle> {
+export class Builder<T extends WithLifecycle<HTMLElement>> {
     public readonly element: T
 
     /**
@@ -246,8 +245,7 @@ export class Builder<T extends HTMLElementWithLifecycle> {
     }
 
     public children(...members: MemberOf<T>[]): this {
-        let element = this.element
-        element.append(...members.map(toAppendable))
+        this.element.append(...members.map(toAppendable))
         return this
     }
 
@@ -291,9 +289,9 @@ export declare namespace Builder {
      *  .ariaLabel("Hello, World!");
      * ```
      */
-    function Proxy<T extends HTMLElementWithLifecycle>(element: T): Builder.Proxy<T>
+    function Proxy<T extends WithLifecycle<HTMLElement>>(element: T): Builder.Proxy<T>
 }
-Builder.Proxy = <T extends HTMLElementWithLifecycle>(element: T) =>
+Builder.Proxy = <T extends WithLifecycle<HTMLElement>>(element: T) =>
     new Proxy(new Builder(element), {
         get: (target: Builder<T>, name: PropertyKey, proxy) =>
             target[name as never] ??
@@ -316,13 +314,13 @@ Builder.Proxy = <T extends HTMLElementWithLifecycle>(element: T) =>
 
 export namespace Builder {
     export type Attributes<T extends Element> = {
-        class?: T extends HTMLElementWithLifecycle ? string | Signal<string> : string
+        class?: T extends WithLifecycle<HTMLElement> ? string | Signal<string> : string
         id?: string | Signal<string>
-        style?: T extends HTMLElementWithLifecycle ? string | Signal<string> : string
+        style?: T extends WithLifecycle<HTMLElement> ? string | Signal<string> : string
         title?: string | Signal<string>
-        form?: T extends HTMLElementWithLifecycle ? string | Signal<string> : string
+        form?: T extends WithLifecycle<HTMLElement> ? string | Signal<string> : string
     } & {
-        [K in keyof ARIAMixin as ToKebabCase<K>]?: T extends HTMLElementWithLifecycle ?
+        [K in keyof ARIAMixin as ToKebabCase<K>]?: T extends WithLifecycle<HTMLElement> ?
             ARIAMixin[K] | Signal<ARIAMixin[K]>
         :   ARIAMixin[K]
     } & {
@@ -335,9 +333,10 @@ export namespace Builder {
         | boolean
         | bigint
         | null
-        | (T extends HTMLElementWithLifecycle ? Signal<DefaultAttributeValue<T>> : never)
+        | (T extends WithLifecycle<HTMLElement> ? Signal<DefaultAttributeValue<T>>
+          :   never)
 
-    export type Proxy<T extends HTMLElementWithLifecycle> = Builder<T> & {
+    export type Proxy<T extends WithLifecycle<HTMLElement>> = Builder<T> & {
         [K in keyof T as true extends (
             [IsEventHandler<T, K>, Not<IsFunction<T[K]>> & Not<IsReadonly<T, K>>][number]
         ) ?
@@ -381,6 +380,6 @@ export type MemberOf<T extends ParentNode> =
     | bigint
     | null
     | ChildNodeOf<T>
-    | (HTMLElement extends ChildNodeOf<T> ? Builder<HTMLElementWithLifecycle> : never)
+    | (HTMLElement extends ChildNodeOf<T> ? Builder<WithLifecycle<HTMLElement>> : never)
     | MemberOf<T>[]
     | Signal<MemberOf<T>>
