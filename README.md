@@ -40,9 +40,36 @@
 To install **purify.js**, follow the
 [jsr.io/@purifyjs/core](https://jsr.io/@purifyjs/core).
 
-## Examples
+## Examples 🍤
 
-### purify.js + ShadowRoot 🍤
+### Counter
+
+```ts
+import { ref, tags } from "@purifyjs/core"
+
+const { div, button } = tags
+
+function App() {
+    return div().id("app").children(Counter())
+}
+
+function Counter() {
+    const count = ref(0)
+    const double = count.derive((count) => count * 2)
+
+    return div().children(
+        button({ class: "my-button", "data-count": count })
+            .title("Click me!")
+            .onclick(() => count.val++)
+            .children("Count:", count),
+        ["Double:", double]
+    )
+}
+
+document.body.append(App().element)
+```
+
+### Counter with ShadowRoot
 
 ```ts
 import { fragment, ref, tags } from "@purifyjs/core"
@@ -63,6 +90,7 @@ function Counter() {
     shadow.append(
         fragment(
             button({ class: "my-button", "data-count": count })
+                .title("Click me!")
                 .onclick(() => count.val++)
                 .children("Count:", count),
             ["Double:", double]
