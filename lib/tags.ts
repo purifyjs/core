@@ -165,7 +165,7 @@ export namespace Lifecycle {
  */
 let withLifecycle = <T extends keyof HTMLElementTagNameMap>(
     tagname: T,
-    newTagName = `enchanced-${tagname}`,
+    newTagName = `pure-${tagname}`,
     constructor = customElements.get(newTagName) as new () => HTMLElement
 ) => {
     if (!constructor) {
