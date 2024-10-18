@@ -21,7 +21,7 @@ export function scope(css: string): Lifecycle.OnConnected {
 		const scopeId = Math.random().toString(36).slice(2);
 		document.adoptedStyleSheets.push(
 			sheet(
-				`@scope ([data-scope="${scopeId}"]) to ([data-scope]:not([data-scope="${scopeId}"]) > *) {${css}}`,
+				`@scope ([data-scope="${scopeId}"]) to ([data-scope] > *) {${css}}`,
 			),
 		);
 		element.dataset.scope = scopeId;
