@@ -108,9 +108,10 @@ Coming soon.
         `.parent > *` selector wouldn't select all children if some are inside a
         signal.
 
-        As another solution to this, a `HTMLElement` or `Element` attribute similar
-        to `inert` that hides the element from the query selector both in JS and CSS
-        would also be useful.
+        As another solution to this, a persistent DocumentFrament that acts similar
+        to `Element` with `display: contents` style but also intentionally skipped
+        by query selectors would also be useful.
+        Similar: ([DOM#739](https://github.com/whatwg/dom/issues/736))
 
 But as long as the developer is aware of this limitation or difference, it
 shouldn't cause any issues.
