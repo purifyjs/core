@@ -29,11 +29,10 @@ type ToKebabCase<S extends string> =
         :   `-${Lowercase<First>}${ToKebabCase<Rest>}`
     :   S
 
-let instancesOf = <T extends (abstract new (...args: never) => unknown)[]>(
+let instancesOf = <T extends abstract new (...args: never) => unknown>(
     target: unknown,
-    ...constructors: T
-): target is InstanceType<T[number]> =>
-    constructors.some((constructor) => target instanceof constructor)
+    constructor: T
+): target is InstanceType<T> => target instanceof constructor
 
 /**
  * Creates a DocumentFragment containing the provided members.
@@ -59,17 +58,15 @@ export let fragment = (...members: MemberOf<DocumentFragment>[]): DocumentFragme
 /**
  * Converts a value into an appendable format.
  *
- * @param {unknown} value - The value to convert.
- * @returns {string | CharacterData | Element | DocumentFragment} The appendable value.
+ * @param value - The value to convert.
+ * @returns The appendable value.
  */
-export let toAppendable = (
-    value: unknown
-): string | CharacterData | Element | DocumentFragment => {
+export let toAppendable = (value: unknown): string | Node => {
     if (value == null) {
         return ""
     }
 
-    if (instancesOf(value, Element, DocumentFragment, CharacterData)) {
+    if (instancesOf(value, Node)) {
         return value
     }
 
@@ -92,7 +89,7 @@ export let toAppendable = (
     }
 
     if (Array.isArray(value)) {
-        return fragment(...value.map(toAppendable))
+        return fragment(...value)
     }
 
     return String(value)
@@ -151,7 +148,9 @@ export interface HTMLElementWithLifecycle extends HTMLElement {
 }
 export namespace Lifecycle {
     export type OnDisconnected = () => void
-    export type OnConnected<T extends HTMLElement> = (element: T) => void | OnDisconnected
+    export type OnConnected<T extends HTMLElement = HTMLElement> = (
+        element: T
+    ) => void | OnDisconnected
     export type OffConnected = () => void
 }
 
@@ -175,21 +174,18 @@ let withLifecycle = <T extends keyof HTMLElementTagNameMap>(
                 (document.createElement(tagname).constructor as typeof HTMLElement)
             ) {
                 #connectedCallbacks = new Set<Lifecycle.OnConnected<HTMLElement>>()
-                // different connected callbacks might use same cleanup function
                 #disconnectedCallbacks: Lifecycle.OnDisconnected[] = []
 
-                #call(
-                    callback: Lifecycle.OnConnected<HTMLElement>,
-                    disconnectedCallback = callback(this)
+                #addDisconnectedCallbackIfExist(
+                    disconnectedCallbackOrVoid: Lifecycle.OnDisconnected | void
                 ) {
-                    if (disconnectedCallback) {
-                        this.#disconnectedCallbacks.push(disconnectedCallback)
-                    }
+                    if (!disconnectedCallbackOrVoid) return
+                    this.#disconnectedCallbacks.push(disconnectedCallbackOrVoid)
                 }
 
                 connectedCallback() {
                     for (let callback of this.#connectedCallbacks) {
-                        this.#call(callback)
+                        this.#addDisconnectedCallbackIfExist(callback(this))
                     }
                 }
 
@@ -201,13 +197,12 @@ let withLifecycle = <T extends keyof HTMLElementTagNameMap>(
                 }
 
                 onConnect(callback: Lifecycle.OnConnected<HTMLElement>) {
-                    let self = this
-                    self.#connectedCallbacks.add(callback)
-                    if (self.isConnected) {
-                        self.#call(callback)
+                    this.#connectedCallbacks.add(callback)
+                    if (this.isConnected) {
+                        this.#addDisconnectedCallbackIfExist(callback(this))
                     }
                     return () => {
-                        self.#connectedCallbacks.delete(callback)
+                        this.#connectedCallbacks.delete(callback)
                     }
                 }
             }),
@@ -356,20 +351,6 @@ export namespace Builder {
 }
 
 /**
- * Possible child nodes of a given ParentNode type.
- */
-export type ChildNodeOf<TParentNode extends ParentNode> =
-    | DocumentFragment
-    | CharacterData
-    | (TParentNode extends SVGElement ?
-          TParentNode extends SVGForeignObjectElement ?
-              Element
-          :   SVGElement
-      : TParentNode extends HTMLElement ? Element
-      : TParentNode extends MathMLElement ? MathMLElement
-      : Element)
-
-/**
  * A union type representing the possible member types of a given ParentNode.
  * Used in Builder.children() and fragment() functions
  */
@@ -379,7 +360,7 @@ export type MemberOf<T extends ParentNode> =
     | boolean
     | bigint
     | null
-    | ChildNodeOf<T>
-    | (HTMLElement extends ChildNodeOf<T> ? Builder<WithLifecycle<HTMLElement>> : never)
+    | Node
+    | Builder<WithLifecycle<HTMLElement>>
     | MemberOf<T>[]
     | Signal<MemberOf<T>>
