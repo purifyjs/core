@@ -166,6 +166,20 @@ describe("Signals", () => {
 
         strictEqual(b.val, "abc")
     })
+
+    it("Verify computed recalculates correctly with internal dependency updates", () => {
+        const a = ref(0)
+        let counter = 0
+        computed(() => {
+            counter++
+            if (counter > 10) return
+            Signal.Dependency.add(a)
+            a.val = 1 // 2, 4
+        }).follow(() => {}) // 1
+        a.val = 2 // 3
+
+        strictEqual(counter, 4) // 4 times, no less, no more
+    })
 })
 
 // TODO: computed shouldn't update without followers. and similar logic check

@@ -24,7 +24,7 @@ export abstract class Signal<T> {
      *
      * @template R The type of the derived value.
      * @param {function(T): R} getter - A function that computes a value based on this signal's value.
-     * @returns {Signal<R>} A new computed signal.
+     * @returns {Signal.Computed<R>} A new computed signal.
      *
      * @example
      * ```ts
@@ -32,10 +32,11 @@ export abstract class Signal<T> {
      * urlHref.derive(() => urlSearchParams.val.get('foo') ?? urlPathname.val)
      * ```
      */
-    public derive<R>(getter: (value: T) => R): Signal<R> {
-        return ref<R>(0 as never, (set) =>
-            this.follow((value) => set(getter(value)), true)
-        )
+    public derive<R>(getter: (value: T) => R): Signal.Computed<R> {
+        return computed(() => {
+            Dependency.add(this)
+            return Dependency.track(() => getter(this.val))
+        })
     }
 }
 
@@ -110,64 +111,22 @@ export declare namespace Signal {
     }
 
     namespace Dependency {
-        /**
-         * Adds a signal to the most recent dependency tracking set on the stack, if it exists.
-         *
-         * @param {Signal<unknown>} signal - The signal to be added to the current tracking set.
-         *
-         * @example
-         * ```ts
-         * let signal = new Signal<number>(10);
-         * track(() => {
-         *     add(signal); // This is automatically done when getting a value from State or Computed signals
-         * });
-         * ```
-         */
         export function add(signal: Signal<unknown>): void
-
-        /**
-         * Tracks dependencies by pushing a new set onto the stack, invoking a function,
-         * and then popping the set off. This allows signals to be tracked during the execution
-         * of `callAndTrack`.
-         *
-         * @template R
-         * @param {() => R} callAndTrack - The function to invoke while tracking dependencies.
-         * @param {Set<Signal<unknown>>} [set] - Optional set to track the signals in. If not provided, undefined is pushed.
-         * @returns {R} - The result of the `callAndTrack` function.
-         *
-         * @example
-         * ```ts
-         * const signal = new Signal<number>(10);
-         * const signalSet = new Set<Signal<unknown>>();
-         * const result = track(() => {
-         *     return signal.val * 2; // result is 20
-         * }, signalSet);
-         *
-         * result; // 20
-         * signalSet; // [signal]
-         * ```
-         *
-         * @example
-         * ```ts
-         * // Using track in a computed context to ignore further tracking
-         * computed(() => {
-         *      add(signal); // Add the current signal for tracking
-         *      return track(() => getter(signal.val)); // Ignore further adds
-         * });
-         * ```
-         */
-        function track<R>(callAndTrack: () => R, set?: Set<Signal<unknown>>): R
+        function track<R>(
+            callAndTrack: () => R,
+            callback?: (signal: Signal<unknown>) => unknown
+        ): R
     }
 }
 
-let dependencyTrackingStack: (Set<Signal<unknown>> | undefined)[] = []
+let dependencyTrackingStack: (((signal: Signal<unknown>) => unknown) | undefined)[] = []
 
 let Dependency = (Signal.Dependency = {
     add(signal: Signal<unknown>): void {
-        dependencyTrackingStack.at(-1)?.add(signal)
+        dependencyTrackingStack.at(-1)?.(signal)
     },
-    track<R>(callAndTrack: () => R, set?: Set<Signal<unknown>>): R {
-        dependencyTrackingStack.push(set)
+    track<R>(callAndTrack: () => R, callback?: (signal: Signal<unknown>) => unknown): R {
+        dependencyTrackingStack.push(callback)
         let result = callAndTrack()
         dependencyTrackingStack.pop()
         return result
@@ -239,7 +198,12 @@ Signal.Computed = class<T> extends Signal<T> {
         this.#state = ref<T>(0 as never, (set) => {
             let update = () => {
                 let newDependencies = new Set<Signal<unknown>>()
-                let newValue = Dependency.track(getter, newDependencies)
+                let newValue = Dependency.track(getter, (dependency) => {
+                    newDependencies.add(dependency)
+                    if (!dependencies.has(dependency)) {
+                        dependencies.set(dependency, dependency.follow(update))
+                    }
+                })
                 newDependencies.delete(this)
                 set(newValue)
 
@@ -247,12 +211,6 @@ Signal.Computed = class<T> extends Signal<T> {
                     if (!newDependencies.has(dependency)) {
                         unfollow()
                         dependencies.delete(dependency)
-                    }
-                }
-
-                for (let dependency of newDependencies) {
-                    if (!dependencies.has(dependency)) {
-                        dependencies.set(dependency, dependency.follow(update))
                     }
                 }
             }
