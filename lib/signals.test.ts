@@ -154,6 +154,18 @@ describe("Signals", () => {
 
         strictEqual(counter, 1)
     })
+
+    it("State should start on get, if there are no followers", () => {
+        const a = ref("abc")
+
+        const b = a
+            .derive((value) => value)
+            .derive((value) => value)
+            .derive((value) => value)
+            .derive((value) => value)
+
+        strictEqual(b.val, "abc")
+    })
 })
 
 // TODO: computed shouldn't update without followers. and similar logic check

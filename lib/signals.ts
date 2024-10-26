@@ -24,7 +24,7 @@ export abstract class Signal<T> {
      *
      * @template R The type of the derived value.
      * @param {function(T): R} getter - A function that computes a value based on this signal's value.
-     * @returns {Signal.Computed<R>} A new computed signal.
+     * @returns {Signal<R>} A new computed signal.
      *
      * @example
      * ```ts
@@ -32,7 +32,7 @@ export abstract class Signal<T> {
      * urlHref.derive(() => urlSearchParams.val.get('foo') ?? urlPathname.val)
      * ```
      */
-    public derive<R>(getter: (value: T) => R): Signal.Computed<R> {
+    public derive<R>(getter: (value: T) => R): Signal<R> {
         return ref<R>(0 as never, (set) =>
             this.follow((value) => set(getter(value)), true)
         )
@@ -186,6 +186,9 @@ Signal.State = class<T> extends Signal<T> {
 
     public get val() {
         Dependency.add(this)
+        if (!this.#stop) {
+            this.follow(() => {})()
+        }
         return this.#value
     }
     public set val(newValue: T) {
@@ -198,9 +201,7 @@ Signal.State = class<T> extends Signal<T> {
     #stop: Signal.State.Stop | undefined | void | null
 
     public follow(follower: Signal.Follower<T>, immediate?: boolean): Signal.Unfollower {
-        if (!this.#followers.size) {
-            this.#stop = this.#start?.((value) => (this.val = value))
-        }
+        this.#stop ??= this.#start?.((value) => (this.val = value))
 
         if (immediate) {
             follower(this.#value)
