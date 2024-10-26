@@ -133,6 +133,8 @@ let Dependency = (Signal.Dependency = {
     }
 })
 
+let noop = () => {}
+
 Signal.State = class<T> extends Signal<T> {
     #followers = new Set<Signal.Follower<T>>()
     #value: T
@@ -157,12 +159,12 @@ Signal.State = class<T> extends Signal<T> {
     }
 
     #start: Signal.State.Start<T> | undefined
-    #stop: Signal.State.Stop | undefined | void | null
+    #stop: Signal.State.Stop | undefined | null
 
     public follow(follower: Signal.Follower<T>, immediate?: boolean): Signal.Unfollower {
         if (!this.#stop) {
-            this.#stop = () => {}
-            this.#stop = this.#start?.((value) => (this.val = value))
+            this.#stop = noop // start might call follow internally, so we set stop as noop here to prevent recusive infinite loop of defining stop
+            this.#stop = this.#start?.((value) => (this.val = value)) ?? noop
         }
 
         if (immediate) {
