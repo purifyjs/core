@@ -1,6 +1,6 @@
 {
     "name": "@purifyjs/core",
-    "version": "0.0.316",
+    "version": "0.0.317",
     "exports": "./lib/all.ts",
     "publish": {
         "include": ["lib", "LICENSE", "README.md"]

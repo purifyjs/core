@@ -160,7 +160,10 @@ Signal.State = class<T> extends Signal<T> {
     #stop: Signal.State.Stop | undefined | void | null
 
     public follow(follower: Signal.Follower<T>, immediate?: boolean): Signal.Unfollower {
-        this.#stop ??= this.#start?.((value) => (this.val = value))
+        if (!this.#stop) {
+            this.#stop = () => {}
+            this.#stop = this.#start?.((value) => (this.val = value))
+        }
 
         if (immediate) {
             follower(this.#value)

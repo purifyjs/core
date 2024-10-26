@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-expressions */
 import { deepEqual, deepStrictEqual, strictEqual } from "node:assert"
 import { describe, it } from "node:test"
 import { computed, ref, Signal } from "./signals"
@@ -172,13 +173,42 @@ describe("Signals", () => {
         let counter = 0
         computed(() => {
             counter++
-            if (counter > 10) return
+            if (counter > 100) return
             Signal.Dependency.add(a)
             a.val = 1 // 2, 4
         }).follow(() => {}) // 1
         a.val = 2 // 3
 
         strictEqual(counter, 4) // 4 times, no less, no more
+    })
+
+    it("Infinite loop test", () => {
+        let counter = 0
+        const a = ref(0, () => {
+            counter++
+            if (counter > 100) return
+            a.val
+        })
+        a.val
+
+        strictEqual(counter, 1) // 4 times, no less, no more
+    })
+
+    it("No stop leak", () => {
+        let counter = 0
+        let unfollow: Signal.Unfollower
+        const a = ref(0, () => {
+            if (typeof unfollow !== "undefined") {
+                unfollow()
+            }
+
+            return () => {
+                counter++
+            }
+        })
+        unfollow = a.follow(() => {})
+        unfollow()
+        strictEqual(counter, 1) // 4 times, no less, no more
     })
 })
 
