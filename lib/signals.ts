@@ -33,10 +33,9 @@ export abstract class Signal<T> {
      * ```
      */
     public derive<R>(getter: (value: T) => R): Signal.Computed<R> {
-        return computed(() => {
-            Dependency.add(this)
-            return Dependency.track(() => getter(this.val))
-        })
+        return ref<R>(0 as never, (set) =>
+            this.follow((value) => set(getter(value)), true)
+        )
     }
 }
 

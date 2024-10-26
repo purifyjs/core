@@ -1,6 +1,6 @@
 import { deepEqual, deepStrictEqual, strictEqual } from "node:assert"
 import { describe, it } from "node:test"
-import { computed, Dependency, ref } from "./signals"
+import { computed, ref, Signal } from "./signals"
 
 describe("Signals", () => {
     it("Derive counter with immediate basics", () => {
@@ -51,7 +51,7 @@ describe("Signals", () => {
         let counter = 0
         const a = ref(0)
         const b = computed(() => {
-            Dependency.add(a)
+            Signal.Dependency.add(a)
             counter++
         })
         b.follow(() => {})
@@ -83,7 +83,7 @@ describe("Signals", () => {
         let counter = 0
         const a = ref(0)
         const b = computed(() => {
-            Dependency.add(a)
+            Signal.Dependency.add(a)
             counter++
         })
         b.follow(() => {})
@@ -99,7 +99,7 @@ describe("Signals", () => {
         let counter = 0
         const a = ref(0)
         computed(() => {
-            Dependency.add(a)
+            Signal.Dependency.add(a)
             counter++
         })
 
@@ -112,7 +112,7 @@ describe("Signals", () => {
         let counter = 0
         const a = ref(0)
         computed(() => {
-            Dependency.add(a)
+            Signal.Dependency.add(a)
             counter++
         })
 
@@ -134,6 +134,23 @@ describe("Signals", () => {
         follower()
 
         a.val++
+
+        strictEqual(counter, 1)
+    })
+
+    it("Deep derivation shouldn't run multiple times", () => {
+        const a = ref(0)
+        let counter = 0
+
+        a.derive((value) => {
+            counter++
+            return value
+        })
+            .derive((value) => value)
+            .derive((value) => value)
+            .derive((value) => value)
+            .derive((value) => value)
+            .follow(() => {}, true)
 
         strictEqual(counter, 1)
     })
