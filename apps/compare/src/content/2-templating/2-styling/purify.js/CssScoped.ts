@@ -1,11 +1,11 @@
 import { tags } from "@purifyjs/core";
-import { css, scope } from "./util-css";
+import { css, useScope } from "./util-css";
 
 const { div, h1, button } = tags;
 
 export function CssStyle() {
 	return div()
-		.use(scope(CssStyleCss))
+		.effect(useScope(CssStyleCss))
 		.children(
 			h1({ class: "title" }).textContent("I am red"),
 			button({

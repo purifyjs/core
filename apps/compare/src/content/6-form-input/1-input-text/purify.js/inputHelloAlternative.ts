@@ -1,5 +1,5 @@
 import { fragment, ref, tags } from "@purifyjs/core";
-import { bind } from "./util-bind";
+import { useBind } from "./util-bind";
 
 const { p, input } = tags;
 
@@ -8,6 +8,6 @@ export function InputHello() {
 
 	return fragment(
 		p().children(text),
-		input().use(bind(text, "value", "input")),
+		input().effect(useBind(text, "value", "input")),
 	);
 }

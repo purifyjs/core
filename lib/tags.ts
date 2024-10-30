@@ -75,7 +75,7 @@ export let toAppendable = (value: unknown): string | Node => {
         return toAppendable(
             tags
                 .div({ style: "display:contents" })
-                .use((element) =>
+                .effect((element) =>
                     value.follow(
                         (value) => element.replaceChildren(toAppendable(value)),
                         true
@@ -234,7 +234,7 @@ export class Builder<T extends WithLifecycle<HTMLElement>> {
         this.element = element
     }
 
-    public use(callback: Lifecycle.OnConnected<T>): this {
+    public effect(callback: Lifecycle.OnConnected<T>): this {
         this.element.onConnect(callback)
         return this
     }

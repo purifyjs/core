@@ -6,7 +6,7 @@ export function PageTitle() {
 	const pageTitle = ref("");
 
 	return p()
-		.use(() => {
+		.effect(() => {
 			pageTitle.val = document.title;
 		})
 		.children(pageTitle);

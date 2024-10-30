@@ -1,6 +1,9 @@
 import { Lifecycle, Signal } from "@purifyjs/core";
 
-export function bind<T, P extends keyof HTMLElement | (string & {})>(
+export function useBind<
+	T,
+	P extends keyof HTMLElement | (string & {}),
+>(
 	signal: Signal.State<T>,
 	propertyName: P,
 	eventName: keyof HTMLElementEventMap | (string & {}),

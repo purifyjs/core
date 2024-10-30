@@ -14,7 +14,7 @@ export function sheet(css: string) {
 	return sheet;
 }
 
-export function scope(css: string): Lifecycle.OnConnected {
+export function useScope(css: string): Lifecycle.OnConnected {
 	return (element) => {
 		if (element.dataset.scope) return;
 
