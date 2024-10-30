@@ -151,7 +151,7 @@ describe("Signals", () => {
             .derive((value) => value)
             .derive((value) => value)
             .derive((value) => value)
-            .follow(() => {}, true)
+            .follow(() => {})
 
         strictEqual(counter, 1)
     })
