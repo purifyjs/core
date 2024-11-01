@@ -12,7 +12,8 @@ type IsReadonly<T, K extends keyof T> =
         true
     :   false
 type IsFunction<T> = T extends Fn ? true : false
-type Fn = (...args: unknown[]) => unknown
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type Fn = (...args: any) => any
 type IsEventHandler<T, K extends keyof T> =
     NonNullable<T[K]> extends (this: unknown, event: infer U) => unknown ?
         U extends Event ?
