@@ -1,7 +1,10 @@
 {
     "name": "@purifyjs/core",
     "version": "0.0.321",
-    "exports": "./lib/all.ts",
+    "exports": {
+        ".": "./lib/mod.ts",
+        "./aria": "./lib/aria.ts"
+    },
     "publish": {
         "include": ["lib", "LICENSE", "README.md"]
     }

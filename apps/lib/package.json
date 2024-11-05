@@ -3,8 +3,8 @@
     "type": "module",
     "exports": {
         ".": {
-            "default": "./all.ts",
-            "types": "./all.ts"
+            "default": "./mod.ts",
+            "types": "./mod.ts"
         }
     }
 }

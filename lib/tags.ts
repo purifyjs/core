@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { HTMLElementWithLifecycle, WithLifecycle, withLifecycle } from "./lifecycle"
+import { ARIA } from "./aria"
 import { Signal } from "./signals"
 
 let instancesOf = <T extends abstract new (...args: never) => unknown>(
@@ -134,7 +134,7 @@ let toAppendable = (value: unknown): string | Node => {
 /**
  * Builder class to construct a builder to populate an element with attributes and children.
  */
-export class Builder<T extends HTMLElement & Partial<HTMLElementWithLifecycle>> {
+export class Builder<T extends HTMLElement> {
     public readonly element: T
 
     /**
@@ -171,7 +171,9 @@ export class Builder<T extends HTMLElement & Partial<HTMLElementWithLifecycle>> 
             }
 
             if (instancesOf(value, Signal)) {
-                element.effect?.(() => value.follow(setOrRemoveAttribute, true))
+                ;(element as Partial<HTMLElementWithLifecycle>).effect?.(() =>
+                    value.follow(setOrRemoveAttribute, true)
+                )
             } else {
                 setOrRemoveAttribute(value)
             }
@@ -191,7 +193,7 @@ export declare namespace Builder {
         title?: AttributeValue<T, string | null>
         form?: AttributeValue<T, string | null>
     } & {
-        [K in keyof ARIAMixin as ToKebabCase<K>]?: AttributeValue<T, ARIAMixin[K]>
+        [K in keyof ARIA.Attributes]?: AttributeValue<T, ARIA.Attributes[K]>
     } & {
         [key: string]: AttributeValue<T, string | number | boolean | bigint | null>
     }
@@ -297,9 +299,75 @@ type IsReadonly<T, K extends keyof T> =
         true
     :   false
 
-type ToKebabCase<S extends string> =
-    S extends `${infer First}${infer Rest}` ?
-        First extends Lowercase<First> ?
-            `${First}${ToKebabCase<Rest>}`
-        :   `-${Lowercase<First>}${ToKebabCase<Rest>}`
-    :   S
+export type WithLifecycle<T extends HTMLElement> = T & HTMLElementWithLifecycle
+export interface HTMLElementWithLifecycle
+    extends Omit<HTMLElement, keyof ARIA.Properties>,
+        ARIA.Properties {
+    effect(callback: Lifecycle.OnConnected<this>): Lifecycle.OffConnected
+}
+export namespace Lifecycle {
+    export type OnDisconnected = () => void
+    export type OnConnected<T extends HTMLElement = HTMLElement> = (
+        element: T
+    ) => void | OnDisconnected
+    export type OffConnected = () => void
+}
+
+/**
+ * Creates HTMLElement for a given tag name with lifecycle methods.
+ *
+ * @param tagname - The name of the tag to enhance.
+ * @param newTagName - The new tag name for the enhanced element (optional).
+ * @param constructor - The constructor for the custom element (optional).
+ * @returns The enhanced element.
+ */
+let withLifecycle = <T extends keyof HTMLElementTagNameMap>(
+    tagname: T,
+    newTagName = `pure-${tagname}`,
+    constructor = customElements.get(newTagName) as new () => HTMLElementWithLifecycle
+) => {
+    if (!constructor) {
+        customElements.define(
+            newTagName,
+            (constructor = class extends (document.createElement(tagname)
+                .constructor as typeof HTMLElement) {
+                /* implements HTMLElementWithLifecycle */
+                #connectedCallbacks = new Set<Lifecycle.OnConnected<this>>()
+                #disconnectedCallbacks: Lifecycle.OnDisconnected[] = []
+
+                #addDisconnectedCallbackIfExist(
+                    disconnectedCallbackOrVoid: Lifecycle.OnDisconnected | void
+                ) {
+                    if (!disconnectedCallbackOrVoid) return
+                    this.#disconnectedCallbacks.push(disconnectedCallbackOrVoid)
+                }
+
+                connectedCallback() {
+                    for (let callback of this.#connectedCallbacks) {
+                        this.#addDisconnectedCallbackIfExist(callback(this))
+                    }
+                }
+
+                disconnectedCallback() {
+                    for (let callback of this.#disconnectedCallbacks) {
+                        callback()
+                    }
+                    this.#disconnectedCallbacks.length = 0
+                }
+
+                effect(callback: Lifecycle.OnConnected<this>): Lifecycle.OffConnected {
+                    this.#connectedCallbacks.add(callback)
+                    if (this.isConnected) {
+                        this.#addDisconnectedCallbackIfExist(callback(this))
+                    }
+                    return () => {
+                        this.#connectedCallbacks.delete(callback)
+                    }
+                }
+            } as never),
+            { extends: tagname }
+        )
+    }
+
+    return new constructor() as WithLifecycle<HTMLElementTagNameMap[T]>
+}
