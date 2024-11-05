@@ -3,6 +3,8 @@
 import { ARIA } from "./aria"
 import { Signal } from "./signals"
 
+let custom = customElements
+
 let instancesOf = <T extends abstract new (...args: never) => unknown>(
     target: unknown,
     constructor: T
@@ -35,19 +37,11 @@ let instancesOf = <T extends abstract new (...args: never) => unknown>(
  *  .children("Click me!");
  * ```
  */
-export let tags = new Proxy(
-    {},
-    {
-        get:
-            <T extends keyof HTMLElementTagNameMap>(_: never, tag: T) =>
-            (
-                attributes: Builder.Attributes<
-                    WithLifecycle<HTMLElementTagNameMap[T]>
-                > = {}
-            ) =>
-                Builder.Proxy(withLifecycle(tag)).attributes(attributes)
-    }
-) as Tags
+export let tags = new Proxy<Tags>({} as Tags, {
+    get: (tags: any, tag: keyof Tags) =>
+        (tags[tag] ??= (attributes: any = {}) =>
+            Builder.Proxy(withLifecycle(tag)).attributes(attributes))
+})
 
 export type Tags = {
     [K in keyof HTMLElementTagNameMap]: (
@@ -324,10 +318,10 @@ export namespace Lifecycle {
 let withLifecycle = <T extends keyof HTMLElementTagNameMap>(
     tagname: T,
     newTagName = `pure-${tagname}`,
-    constructor = customElements.get(newTagName) as new () => HTMLElementWithLifecycle
+    constructor = custom.get(newTagName) as new () => HTMLElementWithLifecycle
 ) => {
     if (!constructor) {
-        customElements.define(
+        custom.define(
             newTagName,
             (constructor = class extends (document.createElement(tagname)
                 .constructor as typeof HTMLElement) {

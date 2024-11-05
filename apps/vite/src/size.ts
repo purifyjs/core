@@ -1,2 +1,2 @@
-import { awaited, Builder, computed, fragment, ref, Signal, tags } from "@purifyjs/core"
-console.log(Builder, Signal, awaited, computed, fragment, ref, tags)
+import { awaited, computed, fragment, ref, tags } from "@purifyjs/core"
+console.log(awaited, computed, fragment, ref, tags)
