@@ -191,7 +191,7 @@ describe("Signals", () => {
         })
         a.val
 
-        strictEqual(counter, 1) // 4 times, no less, no more
+        strictEqual(counter, 1)
     })
 
     it("No stop leak", () => {
@@ -208,7 +208,7 @@ describe("Signals", () => {
         })
         unfollow = a.follow(() => {})
         unfollow()
-        strictEqual(counter, 1) // 4 times, no less, no more
+        strictEqual(counter, 1)
     })
 })
 
