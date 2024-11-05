@@ -101,10 +101,10 @@ function useBindNumber(
 document.body.append(App().element)
 ```
 
-### Counter with ShadowRoot
+### ShadowRoot
 
 ```ts
-import { fragment, ref, computed, tags } from "@purifyjs/core"
+import { fragment, ref, tags } from "@purifyjs/core"
 
 const { div, button } = tags
 
@@ -117,15 +117,13 @@ function Counter() {
     const shadow = host.element.attachShadow({ mode: "open" })
 
     const count = ref(0)
-    const double = computed(() => count.val * 2)
 
     shadow.append(
         fragment(
-            button({ class: "my-button", "data-count": count })
+            button()
                 .title("Click me!")
                 .onclick(() => count.val++)
-                .children("Count:", count),
-            ["Double:", double]
+                .children("Count:", count)
         )
     )
     return host
