@@ -92,7 +92,7 @@ export let fragment = (...members: MemberOf<DocumentFragment>[]): DocumentFragme
  * @returns The appendable value.
  */
 let toAppendable = (value: unknown): string | Node => {
-    if (value == null) {
+    if (value === null) {
         return ""
     }
 
