@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { ARIA } from "./aria"
+import { StrictARIA } from "./aria"
 import { Signal } from "./signals"
 
 let custom = customElements
@@ -37,7 +37,7 @@ let instancesOf = <T extends abstract new (...args: never) => unknown>(
  *  .children("Click me!");
  * ```
  */
-export let tags = new Proxy<Tags>({} as Tags, {
+export let tags: Tags = new Proxy<Tags>({} as Tags, {
     get: (tags: any, tag: keyof Tags) =>
         (tags[tag] ??= (attributes: any = {}) =>
             Builder.Proxy(withLifecycle(tag)).attributes(attributes))
@@ -187,7 +187,7 @@ export declare namespace Builder {
         title?: AttributeValue<T, string | null>
         form?: AttributeValue<T, string | null>
     } & {
-        [K in keyof ARIA.Attributes]?: AttributeValue<T, ARIA.Attributes[K]>
+        [K in keyof StrictARIA.Attributes]?: AttributeValue<T, StrictARIA.Attributes[K]>
     } & {
         [key: string]: AttributeValue<T, string | number | boolean | bigint | null>
     }
@@ -236,7 +236,7 @@ Builder.Proxy = <T extends WithLifecycle<HTMLElement>>(element: T) =>
         ) =>
             (target[name] ??=
                 (
-                    typeof element[name] == "function" &&
+                    instancesOf(element[name], Function) &&
                     !(element as object).hasOwnProperty(name)
                 ) ?
                     (...args: any) => {
@@ -294,9 +294,8 @@ type IsReadonly<T, K extends keyof T> =
     :   false
 
 export type WithLifecycle<T extends HTMLElement> = T & HTMLElementWithLifecycle
-export interface HTMLElementWithLifecycle
-    extends Omit<HTMLElement, keyof ARIA.Properties>,
-        ARIA.Properties {
+type HTMLElementWithStrictARIA = HTMLElement & StrictARIA.Properties
+interface HTMLElementWithLifecycle extends HTMLElementWithStrictARIA {
     effect(callback: Lifecycle.OnConnected<this>): Lifecycle.OffConnected
 }
 export namespace Lifecycle {
@@ -307,53 +306,40 @@ export namespace Lifecycle {
     export type OffConnected = () => void
 }
 
-/**
- * Creates HTMLElement for a given tag name with lifecycle methods.
- *
- * @param tagname - The name of the tag to enhance.
- * @param newTagName - The new tag name for the enhanced element (optional).
- * @param constructor - The constructor for the custom element (optional).
- * @returns The enhanced element.
- */
-let withLifecycle = <T extends keyof HTMLElementTagNameMap>(
+let withLifecycle = <
+    T extends keyof HTMLElementTagNameMap,
+    Returns = WithLifecycle<HTMLElementTagNameMap[T]>
+>(
     tagname: T,
-    newTagName = `pure-${tagname}`,
-    constructor = custom.get(newTagName) as new () => HTMLElementWithLifecycle
-) => {
+    newTagName = `pure-${tagname}` as const,
+    constructor = custom.get(newTagName) as new () => Returns
+): Returns => {
     if (!constructor) {
         custom.define(
             newTagName,
             (constructor = class extends (document.createElement(tagname)
                 .constructor as typeof HTMLElement) {
-                /* implements HTMLElementWithLifecycle */
                 #connectedCallbacks = new Set<Lifecycle.OnConnected<this>>()
-                #disconnectedCallbacks: Lifecycle.OnDisconnected[] = []
-
-                #addDisconnectedCallbackIfExist(
-                    disconnectedCallbackOrVoid: Lifecycle.OnDisconnected | void
-                ) {
-                    if (!disconnectedCallbackOrVoid) return
-                    this.#disconnectedCallbacks.push(disconnectedCallbackOrVoid)
-                }
+                #disconnectedCallbacks: ReturnType<Lifecycle.OnConnected<this>>[] = []
 
                 connectedCallback() {
                     for (let callback of this.#connectedCallbacks) {
-                        this.#addDisconnectedCallbackIfExist(callback(this))
+                        this.#disconnectedCallbacks.push(callback(this))
                     }
                 }
 
                 disconnectedCallback() {
-                    for (let callback of this.#disconnectedCallbacks) {
-                        callback()
+                    for (let disconnectedCallbackOrVoid of this.#disconnectedCallbacks) {
+                        disconnectedCallbackOrVoid?.()
                     }
-                    this.#disconnectedCallbacks.length = 0
                 }
 
                 effect(callback: Lifecycle.OnConnected<this>): Lifecycle.OffConnected {
                     this.#connectedCallbacks.add(callback)
                     if (this.isConnected) {
-                        this.#addDisconnectedCallbackIfExist(callback(this))
+                        this.#disconnectedCallbacks.push(callback(this))
                     }
+
                     return () => {
                         this.#connectedCallbacks.delete(callback)
                     }
@@ -363,5 +349,5 @@ let withLifecycle = <T extends keyof HTMLElementTagNameMap>(
         )
     }
 
-    return new constructor() as WithLifecycle<HTMLElementTagNameMap[T]>
+    return new constructor()
 }

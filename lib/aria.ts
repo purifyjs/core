@@ -6,7 +6,7 @@
  * and the `Properties` interface for ARIA property type overrides and experimental attributes.
  */
 
-export namespace ARIA {
+export namespace StrictARIA {
     /**
      * Type representing ARIA attributes, which are derived from `Properties` and follow a
      * `aria-` prefix naming convention. Attributes like `aria-labelledby` are mapped to
@@ -24,19 +24,13 @@ export namespace ARIA {
      * Interface representing all ARIA properties, including those that override base properties and
      * experimental attributes that are supported by specific browsers.
      */
-    export interface Properties
-        extends Omit<
-                ARIAMixin,
-                keyof Properties.Override | keyof Properties.Experimental
-            >,
-            Properties.Override,
-            Properties.Experimental {}
+    export type Properties = ARIAMixin & Properties.Override & Properties.Experimental
 
     export namespace Properties {
         /**
          * Experimental ARIA properties that may not be fully standardized or cross-browser.
          */
-        export interface Experimental {
+        export type Experimental = {
             ariaOwnsElements: Element[] | null
             ariaFlowToElements: Element[] | null
             ariaDetailsElements: Element[] | null
@@ -50,7 +44,7 @@ export namespace ARIA {
          * Properties that override default ARIA types for stricter control over allowed values.
          * These types enforce specific string literal types for various ARIA attributes.
          */
-        export interface Override {
+        export type Override = {
             ariaAtomic: "false" | "true" | (string & {}) | null
             ariaAutoComplete: "inline" | "list" | "both" | "none" | (string & {}) | null
             ariaBusy: "true" | "false" | (string & {}) | null
@@ -106,7 +100,7 @@ export namespace ARIA {
             ariaValueMax: `${number}` | null
             ariaValueMin: `${number}` | null
             ariaValueNow: `${number}` | null
-            role: ARIA.Role | (string & {}) | null
+            role: StrictARIA.Role | (string & {}) | null
         }
     }
 
