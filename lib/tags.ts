@@ -119,7 +119,11 @@ let toAppendable = (value: unknown): string | Node => {
     }
 
     if (instancesOf(value, Array)) {
-        return fragment(...value)
+        // Normally fragment accepts anything because it maps its input members with toAppendable anyway.
+        // But we dont allow things like undefined in the types.
+        // So we can get IDE errors when something can be undefined.
+        // But here, it doesn't matter, so we just set the type as never[]
+        return fragment(...(value as never[]))
     }
 
     return String(value)
