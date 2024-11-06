@@ -118,7 +118,7 @@ let toAppendable = (value: unknown): string | Node => {
         return value.element
     }
 
-    if (Array.isArray(value)) {
+    if (instancesOf(value, Array)) {
         return fragment(...value)
     }
 
