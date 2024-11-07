@@ -37,10 +37,11 @@ let instancesOf = <T extends abstract new (...args: never) => unknown>(
  *  .children("Click me!");
  * ```
  */
-export let tags: Tags = new Proxy<Tags>({} as Tags, {
-    get: (tags: any, tag: keyof Tags) =>
+export let tags: Tags = new Proxy({} as any, {
+    // Keep `any` here, otherwise `tsc` gets slow as fuck
+    get: (tags: any, tag: any): any =>
         (tags[tag] ??= (attributes: any = {}) =>
-            Builder.Proxy(withLifecycle(tag)).attributes(attributes))
+            (Builder.Proxy as any)((withLifecycle as any)(tag)).attributes(attributes))
 })
 
 export type Tags = {
@@ -158,7 +159,7 @@ export class Builder<T extends HTMLElement> {
     public attributes(attributes: Builder.Attributes<T>): this {
         let element = this.element
         for (let name in attributes) {
-            let value = attributes[name]
+            let value = attributes[name]!
 
             let setOrRemoveAttribute = (value: unknown) => {
                 if (value == null) {
@@ -169,7 +170,7 @@ export class Builder<T extends HTMLElement> {
             }
 
             if (instancesOf(value, Signal)) {
-                ;(element as Partial<HTMLElementWithLifecycle>).effect?.(() =>
+                ;(element as Partial<WithLifecycle<HTMLElement>>).effect?.(() =>
                     value.follow(setOrRemoveAttribute, true)
                 )
             } else {
@@ -266,7 +267,7 @@ Builder.Proxy = <T extends WithLifecycle<HTMLElement>>(element: T) =>
 
 type IsProxyable<T, K extends keyof T> = [
     // Anything part of the Lifecycle
-    K extends Exclude<keyof HTMLElementWithLifecycle, keyof HTMLElement> ? true : false,
+    K extends Exclude<keyof WithLifecycle<HTMLElement>, keyof HTMLElement> ? true : false,
     // Any non readonly non functions, basically mutable values
     Not<IsReadonly<T, K>> & Not<IsFunction<T[K]>>,
     // Any nullable functions, basically mutable functions such as event listeners
@@ -298,10 +299,11 @@ type IsReadonly<T, K extends keyof T> =
         true
     :   false
 
-export type WithLifecycle<T extends HTMLElement> = Omit<T, keyof StrictARIA.Properties> & HTMLElementWithLifecycle
-type HTMLElementWithStrictARIA = Omit<HTMLElement, keyof StrictARIA.Properties> & StrictARIA.Properties
+export type WithLifecycle<T extends HTMLElement> = T &
+    HTMLElementWithLifecycle &
+    StrictARIA.Properties.Mixin
 
-interface HTMLElementWithLifecycle extends HTMLElementWithStrictARIA {
+interface HTMLElementWithLifecycle extends HTMLElement {
     effect(callback: Lifecycle.OnConnected<this>): Lifecycle.OffConnected
 }
 export namespace Lifecycle {

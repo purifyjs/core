@@ -13,21 +13,21 @@ export namespace StrictARIA {
      * properties of specific element types.
      */
     export type Attributes = {
-        [K in keyof Properties.Mixin as K extends `aria${infer Name}` ?
+        [K in keyof Properties as K extends `aria${infer Name}` ?
             Name extends `${infer Name}Elements` ?
                 `aria-${Lowercase<Name>}`
             :   `aria-${Lowercase<Name>}`
-        :   never]: Element[] extends Properties.Mixin[K] ? string | null : Properties.Mixin[K]
+        :   never]: Element[] extends Properties[K] ? string | null : Properties[K]
     }
 
     /**
      * Interface representing all ARIA properties, including those that override base properties and
      * experimental attributes that are supported by specific browsers.
      */
-    export type Properties = Properties.Override & Properties.Experimental
+    export type Properties = ARIAMixin & Properties.Mixin
 
     export namespace Properties {
-        export type Mixin = Omit<ARIAMixin, keyof Properties> & Properties
+        export type Mixin = Properties.Override & Properties.Experimental
 
         /**
          * Experimental ARIA properties that may not be fully standardized or cross-browser.
@@ -47,10 +47,10 @@ export namespace StrictARIA {
          * These types enforce specific string literal types for various ARIA attributes.
          */
         export type Override = {
-            ariaAtomic: "false" | "true" | (string & {}) | null
-            ariaAutoComplete: "inline" | "list" | "both" | "none" | (string & {}) | null
-            ariaBusy: "true" | "false" | (string & {}) | null
-            ariaChecked: "true" | "mixed" | "false" | "undefined" | (string & {}) | null
+            ariaAtomic: "false" | "true" | null
+            ariaAutoComplete: "inline" | "list" | "both" | "none" | null
+            ariaBusy: "true" | "false" | null
+            ariaChecked: "true" | "mixed" | "false" | "undefined" | null
             ariaColCount: `${bigint}` | null
             ariaColIndex: `${bigint}` | null
             ariaColSpan: `${bigint}` | null
@@ -64,8 +64,8 @@ export namespace StrictARIA {
                 | "false"
                 | (string & {})
                 | null
-            ariaDisabled: "true" | "false" | (string & {}) | null
-            ariaExpanded: "true" | "false" | "undefined" | (string & {}) | null
+            ariaDisabled: "true" | "false" | null
+            ariaExpanded: "true" | "false" | "undefined" | null
             ariaHasPopup:
                 | "false"
                 | "true"
@@ -76,13 +76,13 @@ export namespace StrictARIA {
                 | "dialog"
                 | (string & {})
                 | null
-            ariaHidden: "true" | "false" | "undefined" | (string & {}) | null
-            ariaInvalid: "true" | "false" | "grammar" | "spelling" | (string & {}) | null
+            ariaHidden: "true" | "false" | "undefined" | null
+            ariaInvalid: "true" | "false" | "grammar" | "spelling" | null
             ariaLevel: `${bigint}` | null
-            ariaLive: "assertive" | "off" | "polite" | (string & {}) | null
-            ariaModal: "true" | "false" | (string & {}) | null
-            ariaMultiLine: "true" | "false" | (string & {}) | null
-            ariaMultiSelectable: "true" | "false" | (string & {}) | null
+            ariaLive: "assertive" | "off" | "polite" | null
+            ariaModal: "true" | "false" | null
+            ariaMultiLine: "true" | "false" | null
+            ariaMultiSelectable: "true" | "false" | null
             ariaOrientation:
                 | "horizontal"
                 | "vertical"
@@ -90,19 +90,19 @@ export namespace StrictARIA {
                 | (string & {})
                 | null
             ariaPosInSet: `${bigint}` | null
-            ariaPressed: "true" | "false" | "mixed" | "undefined" | (string & {}) | null
-            ariaReadOnly: "true" | "false" | (string & {}) | null
-            ariaRequired: "true" | "false" | (string & {}) | null
+            ariaPressed: "true" | "false" | "mixed" | "undefined" | null
+            ariaReadOnly: "true" | "false" | null
+            ariaRequired: "true" | "false" | null
             ariaRowCount: `${bigint}` | null
             ariaRowIndex: `${bigint}` | null
             ariaRowSpan: `${bigint}` | null
-            ariaSelected: "true" | "false" | "undefined" | (string & {}) | null
+            ariaSelected: "true" | "false" | "undefined" | null
             ariaSetSize: `${bigint}` | null
-            ariaSort: "ascending" | "descending" | "none" | "other" | (string & {}) | null
+            ariaSort: "ascending" | "descending" | "none" | "other" | null
             ariaValueMax: `${number}` | null
             ariaValueMin: `${number}` | null
             ariaValueNow: `${number}` | null
-            role: StrictARIA.Role | (string & {}) | null
+            role: StrictARIA.Role | null
         }
     }
 

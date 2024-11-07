@@ -6,6 +6,8 @@
     "scripts": {
         "format": "prettier -w ./",
         "lint": "eslint .",
+        "check": "tsc --diagnostics",
+        "check:dev": "tsc --watch",
         "test": "tsx --test ./lib/*.test.ts",
         "test:dev": "tsx --test --watch ./lib/*.test.ts",
         "publish": "jsr publish",
