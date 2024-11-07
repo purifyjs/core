@@ -299,7 +299,8 @@ type IsReadonly<T, K extends keyof T> =
     :   false
 
 export type WithLifecycle<T extends HTMLElement> = T & HTMLElementWithLifecycle
-type HTMLElementWithStrictARIA = HTMLElement & StrictARIA.Properties
+type HTMLElementWithStrictARIA = Omit<HTMLElement, keyof StrictARIA.Properties> &
+    StrictARIA.Properties
 interface HTMLElementWithLifecycle extends HTMLElementWithStrictARIA {
     effect(callback: Lifecycle.OnConnected<this>): Lifecycle.OffConnected
 }
