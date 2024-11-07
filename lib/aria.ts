@@ -62,7 +62,6 @@ export namespace StrictARIA {
                 | "time"
                 | "true"
                 | "false"
-                | (string & {})
                 | null
             ariaDisabled: "true" | "false" | null
             ariaExpanded: "true" | "false" | "undefined" | null
@@ -74,7 +73,6 @@ export namespace StrictARIA {
                 | "tree"
                 | "grid"
                 | "dialog"
-                | (string & {})
                 | null
             ariaHidden: "true" | "false" | "undefined" | null
             ariaInvalid: "true" | "false" | "grammar" | "spelling" | null
@@ -83,12 +81,7 @@ export namespace StrictARIA {
             ariaModal: "true" | "false" | null
             ariaMultiLine: "true" | "false" | null
             ariaMultiSelectable: "true" | "false" | null
-            ariaOrientation:
-                | "horizontal"
-                | "vertical"
-                | "undefined"
-                | (string & {})
-                | null
+            ariaOrientation: "horizontal" | "vertical" | "undefined" | null
             ariaPosInSet: `${bigint}` | null
             ariaPressed: "true" | "false" | "mixed" | "undefined" | null
             ariaReadOnly: "true" | "false" | null
