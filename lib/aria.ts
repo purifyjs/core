@@ -13,21 +13,22 @@ export namespace StrictARIA {
      * properties of specific element types.
      */
     export type Attributes = {
-        [K in keyof Properties as K extends `aria${infer Name}` ?
+        [K in keyof Properties.Mixin as K extends `aria${infer Name}` ?
             Name extends `${infer Name}Elements` ?
                 `aria-${Lowercase<Name>}`
             :   `aria-${Lowercase<Name>}`
-        :   never]: Element[] extends Properties[K] ? string | null : Properties[K]
+        :   never]: Element[] extends Properties.Mixin[K] ? string | null : Properties.Mixin[K]
     }
 
     /**
      * Interface representing all ARIA properties, including those that override base properties and
      * experimental attributes that are supported by specific browsers.
      */
-    export type Properties = Omit<ARIAMixin, keyof PropertiesStrict> & PropertiesStrict
-    type PropertiesStrict = Properties.Override & Properties.Experimental
+    export type Properties = Properties.Override & Properties.Experimental
 
     export namespace Properties {
+        export type Mixin = Omit<ARIAMixin, keyof Properties> & Properties
+
         /**
          * Experimental ARIA properties that may not be fully standardized or cross-browser.
          */
