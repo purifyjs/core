@@ -295,8 +295,7 @@ export let computed = <T>(getter: Signal.Computed.Getter<T>): Signal.Computed<T>
 export let awaited = <T, const U = null>(
     promise: Promise<T>,
     until: U = null as never
-): Signal<T | U> => {
-    let signal = ref<T | U>(until)
-    promise.then((value) => (signal.val = value))
-    return signal
-}
+): Signal<T | U> =>
+    ref<T | U>(until, (set) => {
+        promise.then(set)
+    })
