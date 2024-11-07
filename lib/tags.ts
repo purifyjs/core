@@ -239,7 +239,8 @@ Builder.Proxy = <T extends WithLifecycle<HTMLElement>>(element: T) =>
             proxy: unknown
         ) =>
             (target[name] ??=
-                (
+                name in element &&
+                ((
                     instancesOf(element[name], Function) &&
                     !(element as object).hasOwnProperty(name)
                 ) ?
@@ -260,7 +261,7 @@ Builder.Proxy = <T extends WithLifecycle<HTMLElement>>(element: T) =>
                         }
 
                         return proxy
-                    })) as never
+                    }))) as never
     })
 
 type IsProxyable<T, K extends keyof T> = [
