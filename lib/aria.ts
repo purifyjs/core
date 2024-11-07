@@ -24,7 +24,8 @@ export namespace StrictARIA {
      * Interface representing all ARIA properties, including those that override base properties and
      * experimental attributes that are supported by specific browsers.
      */
-    export type Properties = ARIAMixin & Properties.Override & Properties.Experimental
+    export type Properties = Omit<ARIAMixin, keyof PropertiesStrict> & PropertiesStrict
+    type PropertiesStrict = Properties.Override & Properties.Experimental
 
     export namespace Properties {
         /**
