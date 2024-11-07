@@ -18,3 +18,10 @@ import { tags } from "./tags"
             ariaBusy satisfies never
     }
 }
+
+// StrictARIA should be correctly defined
+{
+    tags.div().ariaBusy("true")
+    /// @ts-expect-error Unknown value
+    tags.div().ariaBusy("abc")
+}
