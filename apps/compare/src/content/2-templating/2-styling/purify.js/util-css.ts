@@ -10,9 +10,14 @@ export function css(...params: Parameters<typeof String.raw>) {
 	return new String(String.raw(...params));
 }
 
-export function sheet(css: string) {
-	const sheet = new CSSStyleSheet();
-	sheet.replaceSync(css);
+const sheetCache = new WeakMap<String, CSSStyleSheet>();
+export function sheet(css: String) {
+	let sheet = sheetCache.get(css);
+	if (!sheet) {
+		sheet = new CSSStyleSheet();
+		sheet.replaceSync(css.toString());
+		sheetCache.set(css, sheet);
+	}
 	return sheet;
 }
 
