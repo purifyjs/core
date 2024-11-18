@@ -1,24 +1,20 @@
 import { Lifecycle, Signal } from "@purifyjs/core";
 
-export function useBind<
-	T,
-	P extends keyof HTMLElement | (string & {}),
->(
-	signal: Signal.State<T>,
-	propertyName: P,
-	eventName: keyof HTMLElementEventMap | (string & {}),
-): Lifecycle.OnConnected<HTMLElement & { [_ in P]: T }> {
+export function useBindText(
+	signal: Signal.State<string>,
+): Lifecycle.OnConnected<HTMLInputElement> {
 	return (element) => {
-		const handler = () => (signal.val = element[propertyName]);
-		element.addEventListener(eventName, handler);
+		const listener = () => (signal.val = element.value);
+		element.addEventListener("input", listener);
+
 		const unfollow = signal.follow(
-			(value) => element[propertyName] === value,
+			(value) => (element.value = value),
 			true,
 		);
 
 		return () => {
 			unfollow();
-			element.removeEventListener(eventName, handler);
+			element.removeEventListener("input", listener);
 		};
 	};
 }
