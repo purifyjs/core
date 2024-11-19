@@ -57,15 +57,16 @@ export abstract class Signal<T> {
      * const nestedSignal = ref(ref(ref(123)))
      * const unrolledSignal = nestedSignal.pipe(unroll)
      *
-     * type Unroll<T> = T extends Signal<infer U> ? Unroll<U> : T
-     * function unroll<T>(signal: Signal<T>): Unroll<T>
-     * function unroll(value: unknown) {
-     *   return computed(() => {
-     *     while (value instanceof Signal) {
-     *       value = value.val
-     *     }
-     *     return value
-     *   })
+     * type SignalUnroll<T> = T extends Signal<infer U> ? SignalUnroll<U> : T;
+     * function unroll<T>(signal: T): SignalUnroll<T>;
+     * function unroll(signal: Signal<unknown>) {
+     * 	return computed(() => {
+     * 		let value: unknown = signal;
+     * 		while (value instanceof Signal) {
+     * 			value = value.val;
+     * 		}
+     * 		return value;
+     * 	});
      * }
      * ```
      */
