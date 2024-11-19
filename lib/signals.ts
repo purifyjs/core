@@ -20,23 +20,57 @@ export abstract class Signal<T> {
     ): Signal.Unfollower
 
     /**
-     * Derives a new computed signal from this signal using a getter function.
+     * Derives a new value from this signal based on a getter function.
+     * The derived value will only update when the source signal's value changes,
+     * other signals used inside the `getter` will not be added as dependencies dynamically.
      *
      * @template R The type of the derived value.
-     * @param {function(T): R} getter - A function that computes a value based on this signal's value.
-     * @returns {Signal.Computed<R>} A new computed signal.
+     * @param getter - A function that computes a derived value from the current signal's value.
+     * @returns A new computed signal that holds the derived value.
      *
      * @example
      * ```ts
-     * // Updates only when `urlHref` changes
-     * urlHref.derive(() => urlSearchParams.val.get('foo') ?? urlPathname.val)
+     * const a = ref(1);
+     * const b = ref(2);
+     * const derivedValue = a.derive((a) => a * b.val);
      * ```
+     * `derivedValue` will only update when `a` changes, not when `b` changes.
      */
     public derive<R>(getter: (value: T) => R): Signal.Computed<R> {
         return computed(() => {
             Dependency.add(this)
             return Dependency.track(() => getter(this.val))
         })
+    }
+
+    /**
+     * Allows chaining of additional signal transformations or computations.
+     * This method applies a getter function to the current signal and directly returns the result.
+     * It does not return a new signal.
+     *
+     * @template R The type of the result from the getter function.
+     * @param getter - A function that receives the current signal and returns a transformed value or result.
+     * @returns The result of applying the getter function to the current signal.
+     *
+     * @example
+     * ```ts
+     * const nestedSignal = ref(ref(ref(123)))
+     * const unrolledSignal = nestedSignal.pipe(unroll)
+     *
+     * type Unroll<T> = T extends Signal<infer U> ? Unroll<U> : T
+     * function unroll<T>(signal: Signal<T>): Unroll<T>
+     * function unroll(value: unknown) {
+     *   return computed(() => {
+     *     while (value instanceof Signal) {
+     *       value = value.val
+     *     }
+     *     return value
+     *   })
+     * }
+     * ```
+     */
+    public pipe<R>(getter: (signal: Signal<T>) => R): R {
+        return getter(this)
     }
 }
 
@@ -239,6 +273,7 @@ Signal.Computed = class<T> extends Signal<T> {
         return this.#state.follow(follower, immediate)
     }
 }
+
 /**
  * Creates a new state signal with an initial value.
  *
@@ -276,26 +311,3 @@ export let ref = <T>(value: T, startStop?: Signal.State.Start<T>): Signal.State<
  */
 export let computed = <T>(getter: Signal.Computed.Getter<T>): Signal.Computed<T> =>
     new Signal.Computed(getter)
-
-/**
- * Creates a new signal that will resolve with the result of a promise.
- *
- * @template T The type of the resolved value.
- * @template U The type of the initial value (usually `null`).
- * @param {Promise<T>} promise The promise that will resolve the value.
- * @param {U} [until] The initial value before the promise resolves.
- * @returns {Signal<T | U>} A signal that updates when the promise resolves.
- *
- * @example
- * ```ts
- * const dataSignal = awaited(fetchDataPromise, null);
- * dataSignal.follow((data) => console.log(data)); // logs the resolved data when ready
- * ```
- */
-export let awaited = <T, const U = null>(
-    promise: Promise<T>,
-    until: U = null as never
-): Signal<T | U> =>
-    ref<T | U>(until, (set) => {
-        promise.then(set)
-    })

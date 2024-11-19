@@ -1,4 +1,4 @@
-import { computed, fragment, ref, tags } from "@purifyjs/core";
+import { fragment, ref, tags } from "@purifyjs/core";
 
 const { select, option } = tags;
 
@@ -14,7 +14,7 @@ export function PickPill() {
 
 	return fragment(
 		select()
-			.value(computed(() => String(selectedColorId.val)))
+			.value(selectedColorId.derive(String))
 			.onchange(
 				(event) =>
 					(selectedColorId.val = Number(

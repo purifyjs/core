@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-expressions */
 import { deepEqual, deepStrictEqual, strictEqual } from "node:assert"
 import { describe, it } from "node:test"
-import { awaited, computed, ref, Signal } from "./signals"
+import { computed, ref, Signal } from "./signals"
 
 describe("Signals", () => {
     it("Derive counter with immediate basics", () => {
@@ -211,7 +211,7 @@ describe("Signals", () => {
         strictEqual(counter, 1)
     })
 
-    it("Basic awaited signal logic", async () => {
+    /* it("Basic awaited signal logic", async () => {
         const results: (typeof signal)["val"][] = []
         const promise = new Promise((resolve) => setTimeout(resolve, 1000))
         const signal = awaited(
@@ -222,7 +222,5 @@ describe("Signals", () => {
         await promise.catch(() => {})
         await new Promise((resolve) => setTimeout(resolve))
         deepStrictEqual(results, ["waiting", "done"])
-    })
+    }) */
 })
-
-// TODO: computed shouldn't update without followers. and similar logic check

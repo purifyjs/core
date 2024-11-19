@@ -3,12 +3,12 @@
 import { StrictARIA } from "./aria"
 import { Signal } from "./signals"
 
-let custom = customElements
-
-let instancesOf = <T extends abstract new (...args: never) => unknown>(
+export let instancesOf = <T extends abstract new (...args: never) => unknown>(
     target: unknown,
     constructor: T
 ): target is InstanceType<T> => target instanceof constructor
+
+let custom = customElements
 
 /**
  * Proxy object for building HTML elements.
@@ -92,7 +92,7 @@ export let fragment = (...members: MemberOf<DocumentFragment>[]): DocumentFragme
  * @param value - The value to convert.
  * @returns The appendable value.
  */
-let toAppendable = (value: unknown): string | Node => {
+let toAppendable = (value: MemberOf<ParentNode>): string | Node => {
     if (value === null) {
         return ""
     }
@@ -120,14 +120,11 @@ let toAppendable = (value: unknown): string | Node => {
     }
 
     if (instancesOf(value, Array)) {
-        // Normally fragment accepts anything because it maps its input members with toAppendable anyway.
-        // But we dont allow things like undefined in the types.
-        // So we can get IDE errors when something can be undefined.
-        // But here, it doesn't matter, so we just set the type as never[]
-        return fragment(...(value as never[]))
+        return fragment(...value)
     }
 
-    return String(value)
+    return value + ""
+    // return String(value)
 }
 
 /**
@@ -157,7 +154,7 @@ export class Builder<T extends HTMLElement> {
     }
 
     public attributes(attributes: Builder.Attributes<T>): this {
-        let element = this.element
+        let element = this.element as T & Partial<WithLifecycle<HTMLElement>>
         for (let name in attributes) {
             let value = attributes[name]!
 
@@ -165,14 +162,13 @@ export class Builder<T extends HTMLElement> {
                 if (value == null) {
                     element.removeAttribute(name)
                 } else {
-                    element.setAttribute(name, String(value))
+                    // element.setAttribute(name, String(value))
+                    element.setAttribute(name, value + "")
                 }
             }
 
             if (instancesOf(value, Signal)) {
-                ;(element as Partial<WithLifecycle<HTMLElement>>).effect?.(() =>
-                    value.follow(setOrRemoveAttribute, true)
-                )
+                element.effect!(() => value.follow(setOrRemoveAttribute, true))
             } else {
                 setOrRemoveAttribute(value)
             }
