@@ -33,7 +33,7 @@
 
 ### Syntax
 
-[Compare Syntax](https://bafybeihfqjty6ftahk263rc6q66yxzuh24vylahprhodkocbbhvazjtjmi.ipfs.dweb.link)
+[Compare Syntax](https://bafybeieflpjuo3oyvilpf6sobu5jrcoaftzlfz2ja5uznch4jlatflc2am.ipfs.dweb.link)
 
 ## Installation 🍙
 
