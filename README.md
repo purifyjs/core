@@ -1,7 +1,7 @@
 <h1 align="center"> purify.js </h1>
 
 <p align="center">
-    <img width="100px" height="auto" alt="purify.js logo" src="https://ipfs.io/ipfs/QmPmZkHS66TTFiVpRQiyM7FbDZ3sKzkQEtWVeXuRp8cs9V" />
+    <img width="100px" height="auto" alt="purify.js logo" src="https://raw.githubusercontent.com/purifyjs/core/refs/heads/master/apps/compare/src/icons/purify.js.svg" />
 </p>
 <p align="center">
     Simple, not Familiar
@@ -33,7 +33,7 @@
 
 ### Syntax
 
-[Compare Syntax](https://bafybeieflpjuo3oyvilpf6sobu5jrcoaftzlfz2ja5uznch4jlatflc2am.ipfs.dweb.link)
+[Compare Syntax](https://bafybeicae2dnq2iqwxsfngdtx2ur3rqyxsb6ectiavoxwx5oco7eidqudm.ipfs.dweb.link)
 
 ## Installation 🍙
 
