@@ -3,7 +3,7 @@
 import { StrictARIA } from "./aria"
 import { Signal } from "./signals"
 
-export let instancesOf = <T extends abstract new (...args: never) => unknown>(
+let instancesOf = <T extends abstract new (...args: never) => unknown>(
     target: unknown,
     constructor: T
 ): target is InstanceType<T> => target instanceof constructor
@@ -41,13 +41,15 @@ export let tags: Tags = new Proxy({} as any, {
     // Keep `any` here, otherwise `tsc` gets slow as fuck
     get: (tags: any, tag: any): any =>
         (tags[tag] ??= (attributes: any = {}) =>
-            (Builder.Proxy as any)((withLifecycle as any)(tag)).attributes(attributes))
+            new (Builder as any)((createElementWithLifecycle as any)(tag)).attributes(
+                attributes
+            ))
 })
 
 export type Tags = {
     [K in keyof HTMLElementTagNameMap]: (
         attributes?: Builder.Attributes<WithLifecycle<HTMLElementTagNameMap[K]>>
-    ) => Builder.Proxy<WithLifecycle<HTMLElementTagNameMap[K]>>
+    ) => Builder<WithLifecycle<HTMLElementTagNameMap[K]>>
 }
 
 /**
@@ -61,7 +63,7 @@ export type MemberOf<T extends ParentNode> =
     | bigint
     | null
     | Node
-    | Builder<HTMLElement>
+    | Builder<Element>
     | MemberOf<T>[]
     | Signal<MemberOf<T>>
 
@@ -127,34 +129,89 @@ let toAppendable = (value: MemberOf<ParentNode>): string | Node => {
     // return String(value)
 }
 
-/**
- * Builder class to construct a builder to populate an element with attributes and children.
- */
-export class Builder<T extends HTMLElement> {
-    public readonly element: T
+export type Builder<T extends Element> = {
+    element: T
+    children(...members: MemberOf<T>[]): Builder<T>
+    attributes(attributes: Builder.Attributes<T>): Builder<T>
+} & {
+    [K in keyof T as If<IsProxyable<T, K>, K>]: T[K] extends (
+        (...args: infer Args) => void
+    ) ?
+        (...args: Args) => Builder<T>
+    :   (
+            value: NonNullable<T[K]> extends (this: infer X, event: infer U) => infer R ?
+                U extends Event ?
+                    (this: X, event: U & { currentTarget: T }) => R
+                :   T[K]
+            : T extends WithLifecycle<HTMLElement> ? T[K] | Signal<T[K]>
+            : T[K]
+        ) => Builder<T>
+}
 
-    /**
-     * Creates a builder for the given element.
-     *
-     * @param element - The element to build.
-     * @example
-     * ```ts
-     * new Builder(myDiv)
-     *  .attributes({ class: 'hello', 'aria-hidden': 'false' })
-     *  .children(span('Hello, World!'));
-     * ```
-     */
-    constructor(element: T) {
-        this.element = element
+export namespace Builder {
+    type Value<TElement extends Element, T> =
+        TElement extends WithLifecycle<HTMLElement> ? T | Signal<T> : T
+
+    export type Attributes<T extends Element> = {
+        class?: Value<T, string | null>
+        id?: Value<T, string | null>
+        style?: Value<T, string | null>
+        title?: Value<T, string | null>
+        form?: Value<T, string | null>
+    } & {
+        [K in keyof StrictARIA.Attributes]?: Value<T, StrictARIA.Attributes[K]>
+    } & {
+        [key: string]: Value<T, string | number | boolean | bigint | null>
     }
+}
 
-    public children(...members: MemberOf<T>[]): this {
+export type BuilderConstructor = {
+    new <T extends Element>(element: T): Builder<T>
+    new (element: Element): Builder<Element>
+}
+
+export let Builder: BuilderConstructor = function <
+    T extends Element & Partial<WithLifecycle<HTMLElement>>
+>(this: Builder<T>, element: T) {
+    this.element = element
+    return new Proxy(this, {
+        get: (target: any, name: keyof T, proxy: unknown) =>
+            (target[name] ??=
+                name in element ?
+                    (
+                        instancesOf(element[name], Function) &&
+                        !element.hasOwnProperty(name)
+                    ) ?
+                        (...args: unknown[]) => {
+                            ;(element[name] as Fn)(...args)
+                            return proxy
+                        }
+                    :   (value: unknown) => {
+                            if (instancesOf(value, Signal)) {
+                                element.effect!(() =>
+                                    value.follow(
+                                        (value) => (element[name] = value as never),
+                                        true
+                                    )
+                                )
+                            } else {
+                                element[name] = value as never
+                            }
+
+                            return proxy
+                        }
+                :   element[name])
+    } as never)
+} as never
+
+Builder.prototype = {
+    children(...members: MemberOf<Element>[]): Builder<Element> {
         this.element.append(...members.map(toAppendable))
         return this
-    }
-
-    public attributes(attributes: Builder.Attributes<T>): this {
-        let element = this.element as T & Partial<WithLifecycle<HTMLElement>>
+    },
+    attributes(attributes: Builder.Attributes<Element>): Builder<Element> {
+        let element = this.element as typeof this.element &
+            Partial<WithLifecycle<HTMLElement>>
         for (let name in attributes) {
             let value = attributes[name]!
 
@@ -176,90 +233,6 @@ export class Builder<T extends HTMLElement> {
         return this
     }
 }
-
-type AttributeValue<TElement extends Element, T> =
-    TElement extends WithLifecycle<HTMLElement> ? T | Signal<T> : T
-
-export declare namespace Builder {
-    type Attributes<T extends Element> = {
-        class?: AttributeValue<T, string | null>
-        id?: AttributeValue<T, string | null>
-        style?: AttributeValue<T, string | null>
-        title?: AttributeValue<T, string | null>
-        form?: AttributeValue<T, string | null>
-    } & {
-        [K in keyof StrictARIA.Attributes]?: AttributeValue<T, StrictARIA.Attributes[K]>
-    } & {
-        [key: string]: AttributeValue<T, string | number | boolean | bigint | null>
-    }
-
-    type Proxy<T extends WithLifecycle<HTMLElement>> = Builder<T> & {
-        [K in keyof T as If<IsProxyable<T, K>, K>]: T[K] extends (
-            (...args: infer Args) => void
-        ) ?
-            (...args: Args) => Proxy<T>
-        :   (
-                value: NonNullable<T[K]> extends (
-                    (this: infer X, event: infer U) => infer R
-                ) ?
-                    U extends Event ?
-                        (this: X, event: U & { currentTarget: T }) => R
-                    :   T[K]
-                :   T[K] | Signal<T[K]>
-            ) => Proxy<T>
-    }
-
-    /**
-     * Creates a proxy for a `Builder` instance.
-     * Which allows you to also set properties.
-     *
-     * @param element - The element to manage.
-     * @returns The proxy for the Builder instance.
-     *
-     * @example
-     * ```ts
-     * Builder.Proxy(myDiv)
-     *  .attributes({ class: 'hello', 'aria-hidden': 'false' })
-     *  .children(span('Hello, World!'));
-     *  .onclick(() => console.log('clicked!'));
-     *  .ariaLabel("Hello, World!");
-     * ```
-     */
-    function Proxy<T extends WithLifecycle<HTMLElement>>(element: T): Builder.Proxy<T>
-}
-
-Builder.Proxy = <T extends WithLifecycle<HTMLElement>>(element: T) =>
-    new Proxy(new Builder(element) as Builder.Proxy<T>, {
-        get: ((
-            target: Partial<Record<PropertyKey, unknown>>,
-            name: keyof T,
-            proxy: unknown
-        ) =>
-            (target[name] ??=
-                name in element &&
-                ((
-                    instancesOf(element[name], Function) &&
-                    !(element as object).hasOwnProperty(name)
-                ) ?
-                    (...args: any) => {
-                        ;(element[name] as Fn)(...args)
-                        return proxy
-                    }
-                :   (value: unknown) => {
-                        if (instancesOf(value, Signal)) {
-                            element.effect(() =>
-                                value.follow(
-                                    (value) => (element[name] = value as never),
-                                    true
-                                )
-                            )
-                        } else {
-                            element[name] = value as never
-                        }
-
-                        return proxy
-                    }))) as never
-    })
 
 type IsProxyable<T, K extends keyof T> = [
     // Anything part of the Lifecycle
@@ -295,13 +268,6 @@ type IsReadonly<T, K extends keyof T> =
         true
     :   false
 
-export type WithLifecycle<T extends HTMLElement> = T &
-    HTMLElementWithLifecycle &
-    StrictARIA.Properties.Mixin
-
-interface HTMLElementWithLifecycle extends HTMLElement {
-    effect(callback: Lifecycle.OnConnected<this>): Lifecycle.OffConnected
-}
 export namespace Lifecycle {
     export type OnDisconnected = () => void
     export type OnConnected<T extends HTMLElement = HTMLElement> = (
@@ -310,14 +276,17 @@ export namespace Lifecycle {
     export type OffConnected = () => void
 }
 
-let withLifecycle = <
-    T extends keyof HTMLElementTagNameMap,
-    Returns = WithLifecycle<HTMLElementTagNameMap[T]>
->(
+export type WithLifecycle<T extends HTMLElement> = T & {
+    effect(callback: Lifecycle.OnConnected<T>): Lifecycle.OffConnected
+}
+
+export let createElementWithLifecycle = <T extends keyof HTMLElementTagNameMap>(
     tagname: T,
-    newTagName = `pure-${tagname}` as const,
-    constructor = custom.get(newTagName) as new () => Returns
-): Returns => {
+    newTagName = `pure-${tagname}` as `${string}-${string}`,
+    constructor = custom.get(newTagName) as new () => WithLifecycle<
+        HTMLElementTagNameMap[T]
+    >
+): WithLifecycle<HTMLElementTagNameMap[T]> => {
     if (!constructor) {
         custom.define(
             newTagName,

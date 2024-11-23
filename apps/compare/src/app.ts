@@ -132,7 +132,9 @@ getFrameworks().then((frameworks) => {
                                             .onclick(() => (currentFile.val = file))
                                             .ariaCurrent(
                                                 computed(() =>
-                                                    String(currentFile.val === file)
+                                                    currentFile.val === file ?
+                                                        "true"
+                                                    :   "false"
                                                 )
                                             )
                                             .children(file.name)

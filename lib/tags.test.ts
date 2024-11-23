@@ -1,31 +1,47 @@
-import type { tags as tags_type } from "./tags"
+/* eslint-disable @typescript-eslint/no-unused-vars */
+
+import { ref } from "./signals"
+import { Builder, tags as tags_type, WithLifecycle } from "./tags"
 declare const tags: typeof tags_type
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function _() {
+function _(fn: () => void) {}
+
+_(() => {
     // Elements should still satisfy the native types
-    {
-        tags.a().element satisfies HTMLAnchorElement
-        tags.form().element satisfies HTMLFormElement
-    }
+    tags.a().element satisfies HTMLAnchorElement
+    tags.form().element satisfies HTMLFormElement
+})
 
-    // StrictARIA should be correctly defined
-    {
-        const ariaBusy = tags.div().element.ariaBusy
-        switch (ariaBusy) {
-            case "true":
-            case "false":
-            case null:
-                break
-            default:
-                ariaBusy satisfies never
-        }
-    }
+declare function foo(x: Builder<HTMLElement>): void
+declare const bar: Builder<HTMLDivElement>
+declare const baz: Builder<WithLifecycle<HTMLElement>>
 
-    // StrictARIA should be correctly defined
-    {
-        tags.div().ariaBusy("true")
-        /// @ts-expect-error Unknown value
-        tags.div().ariaBusy("abc")
-    }
-}
+_(() => {
+    // Elements should still satisfy the native types
+    foo(bar)
+    foo(baz)
+})
+
+declare const svgElement: SVGSVGElement
+declare const divElement: HTMLDivElement
+declare const divElementWithLifecycle: WithLifecycle<HTMLDivElement>
+_(() => {
+    const svgBuilder = new Builder(svgElement)
+    svgBuilder.children("123")
+    /// @ts-expect-error Don't allow signals on elements without lifecycle
+    svgBuilder.ariaLabel(ref("foo"))
+    /// @ts-expect-error Don't allow signals on elements without lifecycle
+    svgBuilder.effect(() => {})
+
+    const divBuilder = new Builder(divElement)
+    divBuilder.children("123")
+    /// @ts-expect-error Don't allow signals on elements without lifecycle
+    divBuilder.ariaLabel(ref("foo"))
+    /// @ts-expect-error Don't allow signals on elements without lifecycle
+    divBuilder.effect(() => {})
+
+    const divWithLifecycleBuilder = new Builder(divElementWithLifecycle)
+    divWithLifecycleBuilder.children("123")
+    divWithLifecycleBuilder.ariaLabel(ref("foo"))
+    divWithLifecycleBuilder.effect(() => {})
+})
