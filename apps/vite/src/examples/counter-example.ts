@@ -23,7 +23,7 @@ function Counter() {
 			.children(
 				button()
 					.title("Decrement by 1")
-					.onclick(() => count.val++)
+					.onclick(() => count.val--)
 					.textContent("-"),
 				input()
 					.type("number")
