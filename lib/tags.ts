@@ -41,7 +41,7 @@ export let tags: Tags = new Proxy({} as any, {
     // Keep `any` here, otherwise `tsc` gets slow as fuck
     get: (tags: any, tag: any): any =>
         (tags[tag] ??= (attributes: any = {}) =>
-            new (Builder as any)((createElementWithLifecycle as any)(tag)).attributes(
+            new (Builder as any)(new ((WithLifecycle as any)(tag))()).attributes(
                 attributes
             ))
 })
@@ -280,47 +280,44 @@ export type WithLifecycle<T extends HTMLElement> = T & {
     effect(callback: Lifecycle.OnConnected<T>): Lifecycle.OffConnected
 }
 
-export let createElementWithLifecycle = <T extends keyof HTMLElementTagNameMap>(
+export let WithLifecycle = <T extends keyof HTMLElementTagNameMap>(
     tagname: T,
     newTagName = `pure-${tagname}` as `${string}-${string}`,
     constructor = custom.get(newTagName) as new () => WithLifecycle<
         HTMLElementTagNameMap[T]
     >
-): WithLifecycle<HTMLElementTagNameMap[T]> => {
-    if (!constructor) {
-        custom.define(
-            newTagName,
-            (constructor = class extends (document.createElement(tagname)
-                .constructor as typeof HTMLElement) {
-                #connectedCallbacks = new Set<Lifecycle.OnConnected<this>>()
-                #disconnectedCallbacks: ReturnType<Lifecycle.OnConnected<this>>[] = []
+): new () => WithLifecycle<HTMLElementTagNameMap[T]> =>
+    constructor ??
+    (custom.define(
+        newTagName,
+        (constructor = class extends (document.createElement(tagname)
+            .constructor as typeof HTMLElement) {
+            #connectedCallbacks = new Set<Lifecycle.OnConnected<this>>()
+            #disconnectedCallbacks: ReturnType<Lifecycle.OnConnected<this>>[] = []
 
-                connectedCallback() {
-                    for (let callback of this.#connectedCallbacks) {
-                        this.#disconnectedCallbacks.push(callback(this))
-                    }
+            connectedCallback() {
+                for (let callback of this.#connectedCallbacks) {
+                    this.#disconnectedCallbacks.push(callback(this))
+                }
+            }
+
+            disconnectedCallback() {
+                for (let disconnectedCallbackOrVoid of this.#disconnectedCallbacks) {
+                    disconnectedCallbackOrVoid?.()
+                }
+            }
+
+            effect(callback: Lifecycle.OnConnected<this>): Lifecycle.OffConnected {
+                this.#connectedCallbacks.add(callback)
+                if (this.isConnected) {
+                    this.#disconnectedCallbacks.push(callback(this))
                 }
 
-                disconnectedCallback() {
-                    for (let disconnectedCallbackOrVoid of this.#disconnectedCallbacks) {
-                        disconnectedCallbackOrVoid?.()
-                    }
+                return () => {
+                    this.#connectedCallbacks.delete(callback)
                 }
-
-                effect(callback: Lifecycle.OnConnected<this>): Lifecycle.OffConnected {
-                    this.#connectedCallbacks.add(callback)
-                    if (this.isConnected) {
-                        this.#disconnectedCallbacks.push(callback(this))
-                    }
-
-                    return () => {
-                        this.#connectedCallbacks.delete(callback)
-                    }
-                }
-            } as never),
-            { extends: tagname }
-        )
-    }
-
-    return new constructor()
-}
+            }
+        } as never),
+        { extends: tagname }
+    ),
+    constructor)
