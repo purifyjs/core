@@ -132,6 +132,61 @@ function Counter() {
 document.body.append(App().element)
 ```
 
+### Astro + WebComponents
+
+`components/CounterElement.astro`
+
+```html
+---
+type Props = { counterKey: string };
+const { counterKey } = Astro.props;
+
+const count = (await kv.get(`counter:${counterKey}`)) ?? 0;
+---
+
+<my-counter data-counter-key="{counterKey}">{count}</my-counter>
+
+<script>
+    import { WithLifecycle, fragment, ref, tags } from "@purifyjs/core";
+
+    const { button } = tags;
+
+    class _ extends WithLifecycle(HTMLButtonElement) {
+    	constructor() {
+    		super();
+
+    		const counterKey = this.getAttribute("data-counter-key")!;
+    		const count = ref(Number(this.textContent));
+
+    		const busy = ref(false);
+    		async function countUp() {
+    			if (busy.val) return;
+    			busy.val = true;
+
+    			try {
+    				const response = await fetch("/api/count?increment", { body: JSON.stringify({ counterKey }) });
+    				const result = (await response.json()) as { count: number };
+    				count.val = result.count;
+    			} finally {
+    				busy.val = false;
+    			}
+    		}
+
+    		const children = fragment(
+    			button({ class: "button" })
+    				.type("button")
+    				.ariaBusy(busy.derive(String))
+    				.disabled(busy)
+    				.onclick(countUp)
+    				.replaceChildren(fragment(count)),
+    		);
+    		this.append(children);
+    	}
+    }
+    customElements.define("my-counter", _);
+</script>
+```
+
 ## Guide 🥡
 
 Coming soon.
