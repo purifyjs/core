@@ -144,7 +144,7 @@ const { counterKey } = Astro.props;
 const count = (await kv.get(`counter:${counterKey}`)) ?? 0;
 ---
 
-<button is="my-counter" data-counter-key="{counterKey}">{count}</button>
+<button is="my-counter" data-counter-key={counterKey}>{count}</button>
 
 <script>
     import { Builder, WithLifecycle, fragment, ref } from "@purifyjs/core";
