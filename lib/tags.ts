@@ -280,9 +280,14 @@ export type WithLifecycle<T extends HTMLElement> = T & {
     effect(callback: Lifecycle.OnConnected<T>): Lifecycle.OffConnected
 }
 
-export let WithLifecycle = <T extends keyof HTMLElementTagNameMap>(
+export let WithLifecycle: <T extends keyof HTMLElementTagNameMap>(
+    tagName: T,
+    newTagName?: `${string}-${string}`
+) => { new (): WithLifecycle<HTMLElementTagNameMap[T]> } = <
+    T extends keyof HTMLElementTagNameMap
+>(
     tagname: T,
-    newTagName = `pure-${tagname}` as `${string}-${string}`,
+    newTagName = `pure-${tagname}`,
     constructor = custom.get(newTagName) as new () => WithLifecycle<
         HTMLElementTagNameMap[T]
     >
