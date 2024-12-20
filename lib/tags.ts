@@ -1,9 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-export {}
-
 import { StrictARIA } from "./aria"
 import { Signal } from "./signals"
+import { Fn, If, IsProxyable } from "./utils"
 
 let instancesOf = <T extends abstract new (...args: never) => unknown>(
     target: unknown,
@@ -41,11 +40,24 @@ let custom = customElements
  */
 export let tags: Tags = new Proxy({} as any, {
     // Keep `any` here, otherwise `tsc` gets slow as fuck
-    get: (tags: any, tag: any): any =>
-        (tags[tag] ??= (attributes: any = {}) =>
-            new (Builder as any)(new ((WithLifecycle as any)(tag))()).attributes(
+    get(tags: any, tag: string): any {
+        if (tags[tag]) return tags[tag]
+        let pureTag = `pure-${tag}` as const
+        let pureConstructor = custom.get(pureTag) as any
+        if (!pureConstructor) {
+            custom.define(
+                pureTag,
+                (pureConstructor = (WithLifecycle as any)(
+                    document.createElement(tag).constructor as any
+                )),
+                { extends: tag }
+            )
+        }
+        return (attributes: any = {}) =>
+            new (Builder as any)(new pureConstructor() as any).attributes(
                 attributes
-            ))
+            ) as any
+    }
 })
 
 export type Tags = {
@@ -236,40 +248,6 @@ Builder.prototype = {
     }
 }
 
-type IsProxyable<T, K extends keyof T> = [
-    // Anything part of the Lifecycle
-    K extends Exclude<keyof WithLifecycle<HTMLElement>, keyof HTMLElement> ? true : false,
-    // Any non readonly non functions, basically mutable values
-    Not<IsReadonly<T, K>> & Not<IsFunction<T[K]>>,
-    // Any nullable functions, basically mutable functions such as event listeners
-    IsFunction<T[K]> & IsNullable<T[K]>,
-    // Any function that returns void exclusivly
-    IsFunction<T[K], void>
-][number]
-
-type If<T extends boolean, Then, Else = never> = true extends T ? Then : Else
-type Not<T extends boolean> = false extends T ? true : false
-type Fn = (...args: any) => any
-type IsFunction<T, TReturns = any> =
-    Fn extends T ?
-        T extends (...args: any) => infer R ?
-            R extends TReturns ?
-                true
-            :   false
-        :   false
-    :   false
-type IsNullable<T> = null extends T ? true : false
-type IsReadonly<T, K extends keyof T> =
-    (<T_1>() => T_1 extends { [Q in K]: T[K] } ? 1 : 2) extends (
-        <T_2>() => T_2 extends {
-            readonly [Q_1 in K]: T[K]
-        } ?
-            1
-        :   2
-    ) ?
-        true
-    :   false
-
 export namespace Lifecycle {
     export type OnDisconnected = () => void
     export type OnConnected<T extends HTMLElement = HTMLElement> = (
@@ -282,49 +260,35 @@ export type WithLifecycle<T extends HTMLElement> = T & {
     effect(callback: Lifecycle.OnConnected<T>): Lifecycle.OffConnected
 }
 
-export let WithLifecycle: <T extends keyof HTMLElementTagNameMap>(
-    tagName: T,
-    newTagName?: `${string}-${string}`
-) => { new (): WithLifecycle<HTMLElementTagNameMap[T]> } = <
-    T extends keyof HTMLElementTagNameMap
->(
-    tagname: T,
-    newTagName = `pure-${tagname}`,
-    constructor = custom.get(newTagName) as new () => WithLifecycle<
-        HTMLElementTagNameMap[T]
-    >
-): new () => WithLifecycle<HTMLElementTagNameMap[T]> =>
-    constructor ??
-    (custom.define(
-        newTagName,
-        (constructor = class extends (document.createElement(tagname)
-            .constructor as typeof HTMLElement) {
-            #connectedCallbacks = new Set<Lifecycle.OnConnected<this>>()
-            #disconnectedCallbacks: ReturnType<Lifecycle.OnConnected<this>>[] = []
+export let WithLifecycle = <Base extends new (...params: any[]) => HTMLElement>(
+    Base: Base
+): { new (...params: ConstructorParameters<Base>): WithLifecycle<InstanceType<Base>> } =>
+    class extends Base {
+        #connectedCallbacks = new Set<Lifecycle.OnConnected<this>>()
+        #disconnectedCallbacks: ReturnType<Lifecycle.OnConnected<this>>[] = []
 
-            connectedCallback() {
-                for (let callback of this.#connectedCallbacks) {
-                    this.#disconnectedCallbacks.push(callback(this))
-                }
+        connectedCallback(): void {
+            for (let callback of this.#connectedCallbacks) {
+                this.#disconnectedCallbacks.push(callback(this))
+            }
+        }
+
+        disconnectedCallback(): void {
+            for (let disconnectedCallbackOrVoid of this.#disconnectedCallbacks) {
+                disconnectedCallbackOrVoid?.()
+            }
+        }
+
+        effect(callback: Lifecycle.OnConnected<this>): Lifecycle.OffConnected {
+            this.#connectedCallbacks.add(callback)
+            if (this.isConnected) {
+                this.#disconnectedCallbacks.push(callback(this))
             }
 
-            disconnectedCallback() {
-                for (let disconnectedCallbackOrVoid of this.#disconnectedCallbacks) {
-                    disconnectedCallbackOrVoid?.()
-                }
+            return () => {
+                this.#connectedCallbacks.delete(callback)
             }
-
-            effect(callback: Lifecycle.OnConnected<this>): Lifecycle.OffConnected {
-                this.#connectedCallbacks.add(callback)
-                if (this.isConnected) {
-                    this.#disconnectedCallbacks.push(callback(this))
-                }
-
-                return () => {
-                    this.#connectedCallbacks.delete(callback)
-                }
-            }
-        } as never),
-        { extends: tagname }
-    ),
-    constructor)
+        }
+    } satisfies {
+        new (...params: any[]): WithLifecycle<HTMLElement>
+    } as never

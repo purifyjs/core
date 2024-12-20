@@ -7,13 +7,13 @@
 
         "noEmit": true,
         "moduleDetection": "force",
-        "esModuleInterop": true,
+        "declaration": true,
+        "isolatedDeclarations": true,
 
         "skipLibCheck": true,
         "strict": true,
         "noUncheckedIndexedAccess": true,
         "noPropertyAccessFromIndexSignature": true,
-        "exactOptionalPropertyTypes": true,
         "noImplicitOverride": true
     },
     "include": ["lib"]
