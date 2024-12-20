@@ -144,12 +144,10 @@ const { counterKey } = Astro.props;
 const count = (await kv.get(`counter:${counterKey}`)) ?? 0;
 ---
 
-<my-counter data-counter-key="{counterKey}">{count}</my-counter>
+<button is="my-counter" data-counter-key="{counterKey}">{count}</button>
 
 <script>
-    import { WithLifecycle, fragment, ref, tags } from "@purifyjs/core";
-
-    const { button } = tags;
+    import { Builder, WithLifecycle, fragment, ref } from "@purifyjs/core";
 
     class _ extends WithLifecycle(HTMLButtonElement) {
     	constructor() {
@@ -164,7 +162,10 @@ const count = (await kv.get(`counter:${counterKey}`)) ?? 0;
     			busy.val = true;
 
     			try {
-    				const response = await fetch("/api/count?increment", { body: JSON.stringify({ counterKey }) });
+    				const response = await fetch("/api/count?increment", {
+    					method: "POST",
+    					body: JSON.stringify({ counterKey }),
+    				});
     				const result = (await response.json()) as { count: number };
     				count.val = result.count;
     			} finally {
@@ -172,18 +173,16 @@ const count = (await kv.get(`counter:${counterKey}`)) ?? 0;
     			}
     		}
 
-    		const children = fragment(
-    			button({ class: "button" })
-    				.type("button")
-    				.ariaBusy(busy.derive(String))
-    				.disabled(busy)
-    				.onclick(countUp)
-    				.replaceChildren(fragment(count)),
-    		);
-    		this.append(children);
+    		new Builder<_>(this)
+    			.attributes({ class: "button" })
+    			.type("button")
+    			.ariaBusy(busy.derive(String))
+    			.disabled(busy)
+    			.onclick(countUp)
+    			.replaceChildren(fragment(count));
     	}
     }
-    customElements.define("my-counter", _);
+    customElements.define("my-counter", _, { extends: "button" });
 </script>
 ```
 
