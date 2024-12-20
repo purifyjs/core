@@ -1,3 +1,5 @@
+export {}
+
 /**
  * An abstract class representing a signal that holds a value and allows followers to react to changes.
  *

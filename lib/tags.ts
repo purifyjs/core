@@ -1,5 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
+export {}
+
 import { StrictARIA } from "./aria"
 import { Signal } from "./signals"
 
