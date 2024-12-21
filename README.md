@@ -4,7 +4,7 @@
     <img width="100px" height="auto" alt="purify.js logo" src="https://raw.githubusercontent.com/purifyjs/core/refs/heads/master/apps/compare/src/icons/purify.js.svg" />
 </p>
 <p align="center">
-    <b>tiny dom magic for big ideas ✨</b>
+     <b>tiny dom magic for big ideas ✨</b>
 </p>
 
 **Experimental: Not for Production**
@@ -17,7 +17,9 @@
 
 ---
 
-## Compare ⚡
+## Compare
+
+### Size ⚡
 
 | Library         | .min.js | .min.js.gz |
 | --------------- | ------- | ---------- |
@@ -33,102 +35,88 @@
 
 [Compare Syntax](https://bafybeicae2dnq2iqwxsfngdtx2ur3rqyxsb6ectiavoxwx5oco7eidqudm.ipfs.dweb.link)
 
----
-
 ## Installation 🍙
 
 To install **purify.js**, follow the
 [jsr.io/@purifyjs/core](https://jsr.io/@purifyjs/core).
-
----
-
-## Features 💎
-
-- **Tiny**: 1.0kB gzipped, perfect for lightweight applications.
-- **No Build Step**: Use directly with native JavaScript or TypeScript.
-- **Type-Safe**: Built with TypeScript to ensure reliable code and strong typing.
-- **Reactivity Built-In**: Built-in signals and derived values for a reactive UI experience.
-- **Clear Lifecycle Control**: Manage DOM lifecycles with fine-grained precision.
-- **Attribute vs. Property Control**: Distinguish and manage DOM attributes and properties with ease.
-
----
-
-## Quick Start 🚀
-
-Here’s a simple example to get you up and running:
-
-```ts
-import { tags } from "@purifyjs/core";
-const { div, button } = tags;
-
-function App() {
-    return div().id("app").children(
-        button()
-            .textContent("Click Me!")
-            .onclick(() => alert("Hello, purify.js!"))
-    );
-}
-
-document.body.append(App().element);
-```
-
----
 
 ## Examples 🍤
 
 ### Counter
 
 ```ts
-import { computed, ref, tags } from "@purifyjs/core";
+import { computed, Lifecycle, ref, Signal, tags } from "@purifyjs/core"
 
-const { div, section, button, ul, li, input } = tags;
+const { div, section, button, ul, li, input } = tags
 
 function App() {
-    return div().id("app").children(Counter());
+    return div().id("app").children(Counter())
 }
 
 function Counter() {
-    const count = ref(0);
-    const double = count.derive((c) => c * 2);
-    const half = computed(() => count.val * 0.5);
+    const count = ref(0)
+    const double = count.derive((count) => count * 2)
+    const half = computed(() => count.val * 0.5)
 
     return div().children(
-        section({ class: "input" }).children(
-            button().textContent("-").onclick(() => count.val--),
-            input().type("number").value(count.val).oninput((e) => count.val = +e.target.value),
-            button().textContent("+").onclick(() => count.val++)
-        ),
-        section({ class: "output" }).children(
-            ul().children(
-                li().textContent(`Count: ${count.val}`),
-                li().textContent(`Double: ${double.val}`),
-                li().textContent(`Half: ${half.val}`)
+        section({ class: "input" })
+            .ariaLabel("Input")
+            .children(
+                button()
+                    .title("Decrement by 1")
+                    .onclick(() => count.val--)
+                    .textContent("-"),
+                input().type("number").effect(useBindNumber(count)).step("1"),
+                button()
+                    .title("Increment by 1")
+                    .onclick(() => count.val++)
+                    .textContent("+")
+            ),
+        section({ class: "output" })
+            .ariaLabel("Output")
+            .children(
+                ul().children(
+                    li().children("Count: ", count),
+                    li().children("Double: ", double),
+                    li().children("Half: ", half)
+                )
             )
-        )
-    );
+    )
 }
 
-document.body.append(App().element);
-```
+function useBindNumber(
+    state: Signal.State<number>
+): Lifecycle.OnConnected<HTMLInputElement> {
+    return (element) => {
+        const listener = () => (state.val = element.valueAsNumber)
+        element.addEventListener("input", listener)
+        const unfollow = state.follow((value) => (element.valueAsNumber = value), true)
+        return () => {
+            element.removeEventListener("input", listener)
+            unfollow()
+        }
+    }
+}
 
----
+document.body.append(App().element)
+```
 
 ### ShadowRoot
 
 ```ts
-import { fragment, ref, tags } from "@purifyjs/core";
+import { fragment, ref, tags } from "@purifyjs/core"
 
-const { div, button } = tags;
+const { div, button } = tags
 
 function App() {
-    return div().id("app").children(Counter());
+    return div().id("app").children(Counter())
 }
 
 function Counter() {
-    const host = div();
-    const shadow = host.element.attachShadow({ mode: "open" });
+    const host = div()
+    const shadow = host.element.attachShadow({ mode: "open" })
 
-    const count = ref(0);
+    const count = ref(0)
 
     shadow.append(
         fragment(
@@ -137,39 +125,89 @@ function Counter() {
                 .onclick(() => count.val++)
                 .children("Count:", count)
         )
-    );
-    return host;
+    )
+    return host
 }
 
-document.body.append(App().element);
+document.body.append(App().element)
 ```
 
+### Astro + WebComponents
+
+`components/CounterElement.astro`
+
+```html
+---
+type Props = { counterKey: string };
+const { counterKey } = Astro.props;
+
+const count = (await kv.get(`counter:${counterKey}`)) ?? 0;
 ---
 
-## Why Not JSX? 🔍
+<button is="my-counter" data-counter-key={counterKey}>{count}</button>
 
-### 1. **Type Safety**
-JSX does not provide strong typing for DOM elements. For example, creating an `<img>` element with JSX will not ensure it is of type `HTMLImageElement`. **purify.js** avoids this by ensuring that all elements are strongly typed.
+<script>
+    import { Builder, WithLifecycle, fragment, ref } from "@purifyjs/core";
 
-### 2. **No Build Step**
-With JSX, a build step is required to compile your templates. **purify.js** eliminates the need for additional tooling, making development simpler and faster.
+    class _ extends WithLifecycle(HTMLButtonElement) {
+    	constructor() {
+    		super();
 
-### 3. **Attribute vs. Property Control**
-**purify.js** allows clear differentiation between attributes and properties when defining element characteristics, providing better control over your UI.
+    		const counterKey = this.getAttribute("data-counter-key")!;
+    		const count = ref(Number(this.textContent));
 
----
+    		const busy = ref(false);
+    		async function countUp() {
+    			if (busy.val) return;
+    			busy.val = true;
+
+    			try {
+    				const response = await fetch("/api/count?increment", {
+    					method: "POST",
+    					body: JSON.stringify({ counterKey }),
+    				});
+    				const result = (await response.json()) as { count: number };
+    				count.val = result.count;
+    			} finally {
+    				busy.val = false;
+    			}
+    		}
+
+    		new Builder<_>(this)
+    			.attributes({ class: "button" })
+    			.type("button")
+    			.ariaBusy(busy.derive(String))
+    			.disabled(busy)
+    			.onclick(countUp)
+    			.replaceChildren(fragment(count));
+    	}
+    }
+    customElements.define("my-counter", _, { extends: "button" });
+</script>
+```
+
+## Guide 🥡
+
+Coming soon.
+
+## Why Not JSX Templating? 🍕
+
+-   **Lack of Type Safety**: An `<img>` element created with JSX cannot have the `HTMLImageElement` type because all JSX elements must return the same type. This causes issues if you expect a `HTMLImageElement` some where in the code but all JSX returns is `HTMLElement` or something like `JSX.Element`. Also, it has some other issues related to the generics, discriminated unions and more.
+
+-   **Build Step Required**: JSX necessitates a build step, adding complexity to the development workflow. In contrast, **purify.js** avoids this, enabling a simpler and more streamlined development process by working directly with native JavaScript and TypeScript.
+
+-   **Attributes vs. Properties**: In **purify.js**, I can differentiate between attributes and properties of an element while building it, which is not currently possible with JSX. This distinction enhances clarity and control when defining element characteristics.
 
 ## Current Limitations 🦀
 
 -   **Lifecycle and Reactivity**: Currently, I use Custom Elements to detect if an
     element is connected to the DOM. This means:
 
-       Every element created by the `tags` proxy, are Custom Elements. But they
+    -   Every element created by the `tags` proxy, are Custom Elements. But they
         look like normal `<div>`(s) and `<span>`(s) and etc on the DevTools, because
         they extend the original element and use the original tag name. This way we
         can follow the life cycle of every element. And it works amazingly.
-
-       But we also have signals, which might not return an HTMLElement. So we gotta
+    -   But we also have signals, which might not return an HTMLElement. So we gotta
         wrap signals with something in the DOM. So we can follow its lifecycle and
         know where it starts and ends. Traditionally this is done via `Comment`
         `Node`(s). But there is no feasible and sync way to follow a `Comment`
@@ -181,11 +219,11 @@ With JSX, a build step is required to compile your templates. **purify.js** elim
         render itself is an `Element` this approach has limitations, such as
         `.parent > *` selector wouldn't select all children if some are inside a
         signal.
-    
-       As another solution to this, a persistent DocumentFrament that acts similar
+
+        As another solution to this, a persistent DocumentFrament that acts similar
         to `Element` with `display: contents` style but also intentionally skipped
         by query selectors would also be useful.
         Similar: ([DOM#739](https://github.com/whatwg/dom/issues/736))
 
-      But as long as the developer is aware of this limitation or difference, it
-        shouldn't cause any issues.
+But as long as the developer is aware of this limitation or difference, it
+shouldn't cause any issues.
