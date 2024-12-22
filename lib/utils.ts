@@ -2,6 +2,8 @@
 
 import { WithLifecycle } from "./tags"
 
+export type _Event = Event
+
 export type IsProxyable<T, K extends keyof T> = [
     // Anything part of the Lifecycle
     K extends Exclude<keyof WithLifecycle<HTMLElement>, keyof HTMLElement> ? true : false,

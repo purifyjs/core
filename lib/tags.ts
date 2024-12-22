@@ -2,7 +2,7 @@
 
 import { StrictARIA } from "./aria"
 import { Signal } from "./signals"
-import { Fn, If, IsProxyable } from "./utils"
+import { _Event, Fn, If, IsProxyable } from "./utils"
 
 let instancesOf = <T extends abstract new (...args: never) => unknown>(
     target: unknown,
@@ -155,7 +155,7 @@ export type Builder<T extends Element> = {
     :   (
             value: NonNullable<T[K]> extends (this: infer X, event: infer U) => infer R ?
                 U extends Event ?
-                    (this: X, event: U & { currentTarget: T }) => R
+                    (this: X, event: Builder.Event<U, T>) => R
                 :   T[K]
             : T extends WithLifecycle<HTMLElement> ? T[K] | Signal<T[K]>
             : T[K]
@@ -165,6 +165,8 @@ export type Builder<T extends Element> = {
 export namespace Builder {
     type Value<TElement extends Element, T> =
         TElement extends WithLifecycle<HTMLElement> ? T | Signal<T> : T
+
+    export type Event<T extends _Event, E extends Element> = T & { currentTarget: E }
 
     export type Attributes<T extends Element> = {
         class?: Value<T, string | null>
@@ -290,5 +292,5 @@ export let WithLifecycle = <Base extends new (...params: any[]) => HTMLElement>(
             }
         }
     } satisfies {
-        new (...params: any[]): WithLifecycle<HTMLElement>
+        new (): WithLifecycle<HTMLElement>
     } as never
