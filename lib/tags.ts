@@ -163,21 +163,22 @@ export type Builder<T extends Element> = {
 }
 
 export namespace Builder {
-    type Value<TElement extends Element, T> =
-        TElement extends WithLifecycle<HTMLElement> ? T | Signal<T> : T
-
     export type Event<T extends _Event, E extends Element> = T & { currentTarget: E }
 
+    export namespace Attributes {
+        export type Value<TElement extends Element, T> =
+            TElement extends WithLifecycle<HTMLElement> ? T | Signal<T> : T
+    }
     export type Attributes<T extends Element> = {
-        class?: Value<T, string | null>
-        id?: Value<T, string | null>
-        style?: Value<T, string | null>
-        title?: Value<T, string | null>
-        form?: Value<T, string | null>
+        class?: Attributes.Value<T, string | null>
+        id?: Attributes.Value<T, string | null>
+        style?: Attributes.Value<T, string | null>
+        title?: Attributes.Value<T, string | null>
+        form?: Attributes.Value<T, string | null>
     } & {
-        [K in keyof StrictARIA.Attributes]?: Value<T, StrictARIA.Attributes[K]>
+        [K in keyof StrictARIA.Attributes]?: Attributes.Value<T, StrictARIA.Attributes[K]>
     } & {
-        [key: string]: Value<T, string | number | boolean | bigint | null>
+        [key: string]: Attributes.Value<T, string | number | boolean | bigint | null>
     }
 }
 
