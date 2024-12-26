@@ -284,9 +284,10 @@ export let WithLifecycle = <Base extends new (...params: any[]) => HTMLElement>(
 
         effect(callback: Lifecycle.OnConnected<this>): Lifecycle.OffConnected {
             this.#connectedCallbacks.add(callback)
-            if (this.isConnected) {
+            // Commented because causes issues when custom element defined while also being already connected
+            /* if (this.isConnected) {
                 this.#disconnectedCallbacks.push(callback(this))
-            }
+            } */
 
             return () => {
                 this.#connectedCallbacks.delete(callback)
