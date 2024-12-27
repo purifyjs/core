@@ -15,7 +15,22 @@
     <b>purify.js</b> is a 1.0kB <i>(minified, gzipped)</i> JavaScript UI building library that encourages the usage of pure JavaScript and DOM, while providing a thin layer of abstraction for the annoying parts for better DX <i>(developer experience)</i>.
 </p>
 
----
+# Features
+- Keeps you close to the DOM.
+- HTMLElement builder allows you to differentiate between attributes and properties.
+- Converts existing HTMLElement methods to builder pattern with `Proxy`.
+- Uses signals for reactivity.
+- Makes using signals easier with things like `.pipe()`, `.derive()` and more.
+- Allows direct DOM manipulation.
+- No special file extensions.
+- Only deal with `.ts` files, so use it with any existing formatting, linting and other tools.
+- No extra LSP and IDE extension/plugin. So fast IDE resposes, autocompleting and more.
+- No weird refactoring errors and issues, caused by framework specific LSPs.
+- No weird "can't find auto import" issues.
+- No LSP hacks.
+- No compiler hacks.
+- No type generation.
+- All verifiable TypeScript code.
 
 ## Compare
 
@@ -130,60 +145,6 @@ function Counter() {
 }
 
 document.body.append(App().element)
-```
-
-### Astro + WebComponents
-
-`components/CounterElement.astro`
-
-```html
----
-type Props = { counterKey: string };
-const { counterKey } = Astro.props;
-
-const count = (await kv.get(`counter:${counterKey}`)) ?? 0;
----
-
-<button is="my-counter" data-counter-key={counterKey}>{count}</button>
-
-<script>
-    import { Builder, WithLifecycle, fragment, ref } from "@purifyjs/core";
-
-    class _ extends WithLifecycle(HTMLButtonElement) {
-    	constructor() {
-    		super();
-
-    		const counterKey = this.getAttribute("data-counter-key")!;
-    		const count = ref(Number(this.textContent));
-
-    		const busy = ref(false);
-    		async function countUp() {
-    			if (busy.val) return;
-    			busy.val = true;
-
-    			try {
-    				const response = await fetch("/api/count?increment", {
-    					method: "POST",
-    					body: JSON.stringify({ counterKey }),
-    				});
-    				const result = (await response.json()) as { count: number };
-    				count.val = result.count;
-    			} finally {
-    				busy.val = false;
-    			}
-    		}
-
-    		new Builder<_>(this)
-    			.attributes({ class: "button" })
-    			.type("button")
-    			.ariaBusy(busy.derive(String))
-    			.disabled(busy)
-    			.onclick(countUp)
-    			.replaceChildren(fragment(count));
-    	}
-    }
-    customElements.define("my-counter", _, { extends: "button" });
-</script>
 ```
 
 ## Guide 🥡
