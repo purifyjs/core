@@ -34,7 +34,7 @@ getFrameworks().then((frameworks) => {
 
     document.head.append(
         link().rel("icon").type("image/svg+xml").href(frameworks["purify.js"].iconSrc)
-            .element
+            .node
     )
 
     const hash = ref(location.hash)
@@ -77,7 +77,7 @@ getFrameworks().then((frameworks) => {
                         const groupSection = section({ class: "group" })
                             .id(computed(() => `${compared.val.key}/${primaryGroupKey}`))
                             .children(h2().children(primaryGroupItem.label))
-                        host.append(groupSection.element)
+                        host.append(groupSection.node)
 
                         for (const primaryExampleKey in primaryGroupItem.examples) {
                             const primaryExample =
@@ -374,5 +374,5 @@ getFrameworks().then((frameworks) => {
 `)
 
     document.adoptedStyleSheets.push(piceStyle, highlightStyle, appStyle)
-    document.body.append(App().element)
+    document.body.append(App().node)
 })
