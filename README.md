@@ -49,7 +49,7 @@
 
 ### Syntax
 
-[Compare Syntax](https://bafybeicae2dnq2iqwxsfngdtx2ur3rqyxsb6ectiavoxwx5oco7eidqudm.ipfs.dweb.link)
+[Compare Syntax](https://bafybeie6nypyq3cnbo55z2gm623vlu6igmbag6cwediyvewoyjkbkktmfm.ipfs.dweb.link)
 
 ## Installation 🍙
 
