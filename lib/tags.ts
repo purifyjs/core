@@ -9,8 +9,6 @@ let instancesOf = <T extends abstract new (...args: never) => unknown>(
     constructor: T
 ): target is InstanceType<T> => target instanceof constructor
 
-let custom = customElements
-
 /**
  * Proxy object for building HTML elements.
  *
@@ -43,9 +41,9 @@ export let tags: Tags = new Proxy({} as any, {
     get(tags: any, tag: string): any {
         if (tags[tag]) return tags[tag]
         let pureTag = `pure-${tag}` as const
-        let pureConstructor = custom.get(pureTag) as any
+        let pureConstructor = customElements.get(pureTag) as any
         if (!pureConstructor) {
-            custom.define(
+            customElements.define(
                 pureTag,
                 (pureConstructor = (WithLifecycle as any)(
                     document.createElement(tag).constructor as any
@@ -132,7 +130,7 @@ let toAppendable = (value: MemberOf<ParentNode>): string | Node => {
     }
 
     if (instancesOf(value, Builder)) {
-        return value.element
+        return value.node
     }
 
     if (instancesOf(value, Array)) {
@@ -143,54 +141,15 @@ let toAppendable = (value: MemberOf<ParentNode>): string | Node => {
     // return String(value)
 }
 
-export type Builder<T extends Element> = {
-    element: T
-    children(...members: MemberOf<T>[]): Builder<T>
-    attributes(attributes: Builder.Attributes<T>): Builder<T>
-} & {
-    [K in keyof T as If<IsProxyable<T, K>, K>]: T[K] extends (
-        (...args: infer Args) => void
-    ) ?
-        (...args: Args) => Builder<T>
-    :   (
-            value: NonNullable<T[K]> extends (this: infer X, event: infer U) => infer R ?
-                U extends Event ?
-                    (this: X, event: Builder.Event<U, T>) => R
-                :   T[K]
-            : T extends WithLifecycle<HTMLElement> ? T[K] | Signal<T[K]>
-            : T[K]
-        ) => Builder<T>
-}
-
-export namespace Builder {
-    export type Event<T extends _Event, E extends Element> = T & { currentTarget: E }
-
-    export namespace Attributes {
-        export type Value<TElement extends Element, T> =
-            TElement extends WithLifecycle<HTMLElement> ? T | Signal<T> : T
-    }
-    export type Attributes<T extends Element> = {
-        class?: Attributes.Value<T, string | null>
-        id?: Attributes.Value<T, string | null>
-        style?: Attributes.Value<T, string | null>
-        title?: Attributes.Value<T, string | null>
-        form?: Attributes.Value<T, string | null>
-    } & {
-        [K in keyof StrictARIA.Attributes]?: Attributes.Value<T, StrictARIA.Attributes[K]>
-    } & {
-        [key: string]: Attributes.Value<T, string | number | boolean | bigint | null>
-    }
-}
-
 export type BuilderConstructor = {
-    new <T extends Element>(element: T): Builder<T>
-    new (element: Element): Builder<Element>
+    new <T extends Node>(node: T): Builder<T>
+    new (node: Node): Builder<Node>
 }
 
 export let Builder: BuilderConstructor = function <
-    T extends Element & Partial<WithLifecycle<HTMLElement>>
+    T extends Node & Partial<WithLifecycle<HTMLElement>>
 >(this: Builder<T>, element: T) {
-    this.element = element
+    this.node = element
     return new Proxy(this, {
         get: (target: any, name: keyof T, proxy: unknown) =>
             (target[name] ??=
@@ -221,28 +180,67 @@ export let Builder: BuilderConstructor = function <
     } as never)
 } as never
 
+export namespace Builder {
+    export type Event<E extends _Event, T extends EventTarget> = E & { currentTarget: T }
+
+    export namespace Attributes {
+        export type Value<TElement extends Element, T> =
+            TElement extends WithLifecycle<HTMLElement> ? T | Signal<T> : T
+    }
+    export type Attributes<T extends Element> = {
+        class?: Attributes.Value<T, string | null>
+        id?: Attributes.Value<T, string | null>
+        style?: Attributes.Value<T, string | null>
+        title?: Attributes.Value<T, string | null>
+        form?: Attributes.Value<T, string | null>
+    } & {
+        [K in keyof StrictARIA.Attributes]?: Attributes.Value<T, StrictARIA.Attributes[K]>
+    } & {
+        [key: string]: Attributes.Value<T, string | number | boolean | bigint | null>
+    }
+}
+
+export type Builder<T extends Node> = ({
+    node: T
+} & (T extends ParentNode ? { children(...members: MemberOf<T>[]): Builder<T> }
+:   unknown) &
+    (T extends Element ? { attributes(attributes: Builder.Attributes<T>): Builder<T> }
+    :   unknown)) & {
+    [K in keyof T as If<IsProxyable<T, K>, K>]: T[K] extends (
+        (...args: infer Args) => void
+    ) ?
+        (...args: Args) => Builder<T>
+    :   (
+            value: NonNullable<T[K]> extends (this: infer X, event: infer U) => infer R ?
+                U extends Event ?
+                    (this: X, event: Builder.Event<U, T>) => R
+                :   T[K]
+            : T extends WithLifecycle<HTMLElement> ? T[K] | Signal<T[K]>
+            : T[K]
+        ) => Builder<T>
+}
+
 Builder.prototype = {
-    children(...members: MemberOf<Element>[]): Builder<Element> {
-        this.element.append(...members.map(toAppendable))
+    children(...members: MemberOf<ParentNode>[]): Builder<ParentNode> {
+        this.node.append(...members.map(toAppendable))
         return this
     },
     attributes(attributes: Builder.Attributes<Element>): Builder<Element> {
-        let element = this.element as typeof this.element &
-            Partial<WithLifecycle<HTMLElement>>
+        let node = this.node as Element & Partial<WithLifecycle<HTMLElement>>
         for (let name in attributes) {
             let value = attributes[name]!
 
             let setOrRemoveAttribute = (value: unknown) => {
                 if (value == null) {
-                    element.removeAttribute(name)
+                    node.removeAttribute(name)
                 } else {
                     // element.setAttribute(name, String(value))
-                    element.setAttribute(name, value + "")
+                    node.setAttribute(name, value + "")
                 }
             }
 
             if (instancesOf(value, Signal)) {
-                element.effect!(() => value.follow(setOrRemoveAttribute, true))
+                node.effect!(() => value.follow(setOrRemoveAttribute, true))
             } else {
                 setOrRemoveAttribute(value)
             }

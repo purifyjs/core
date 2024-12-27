@@ -17,7 +17,7 @@ export function FunnyButton() {
 			"outline: 0",
 		].join(";"),
 	});
-	const shadow = host.element.attachShadow({
+	const shadow = host.node.attachShadow({
 		mode: "open",
 	});
 	shadow.append(

@@ -5,7 +5,7 @@ const { div, h1, button } = tags;
 
 export function CssStyle() {
 	const host = div();
-	const shadow = host.element.attachShadow({
+	const shadow = host.node.attachShadow({
 		mode: "open",
 	});
 	shadow.adoptedStyleSheets.push(CssStyleSheet);

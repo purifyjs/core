@@ -16,21 +16,22 @@
 </p>
 
 # Features
-- Keeps you close to the DOM.
-- HTMLElement builder allows you to differentiate between attributes and properties.
-- Converts existing HTMLElement methods to builder pattern with `Proxy`.
-- Uses signals for reactivity.
-- Makes using signals easier with things like `.pipe()`, `.derive()` and more.
-- Allows direct DOM manipulation.
-- No special file extensions.
-- Only deal with `.ts` files, so use it with any existing formatting, linting and other tools.
-- No extra LSP and IDE extension/plugin. So fast IDE resposes, autocompleting and more.
-- No weird refactoring errors and issues, caused by framework specific LSPs.
-- No weird "can't find auto import" issues.
-- No LSP hacks.
-- No compiler hacks.
-- No type generation.
-- All verifiable TypeScript code.
+
+-   Keeps you close to the DOM.
+-   HTMLElement builder allows you to differentiate between attributes and properties.
+-   Converts existing HTMLElement methods to builder pattern with `Proxy`.
+-   Uses signals for reactivity.
+-   Makes using signals easier with things like `.pipe()`, `.derive()` and more.
+-   Allows direct DOM manipulation.
+-   No special file extensions.
+-   Only deal with `.ts` files, so use it with any existing formatting, linting and other tools.
+-   No extra LSP and IDE extension/plugin. So fast IDE resposes, autocompleting and more.
+-   No weird refactoring errors and issues, caused by framework specific LSPs.
+-   No weird "can't find auto import" issues.
+-   No LSP hacks.
+-   No compiler hacks.
+-   No type generation.
+-   All verifiable TypeScript code.
 
 ## Compare
 
@@ -113,13 +114,13 @@ function useBindNumber(
     }
 }
 
-document.body.append(App().element)
+document.body.append(App().node)
 ```
 
 ### ShadowRoot
 
 ```ts
-import { fragment, ref, tags } from "@purifyjs/core"
+import { Builder, ref, tags } from "@purifyjs/core"
 
 const { div, button } = tags
 
@@ -129,22 +130,58 @@ function App() {
 
 function Counter() {
     const host = div()
-    const shadow = host.element.attachShadow({ mode: "open" })
+    const shadow = new Builder(host.node.attachShadow({ mode: "open" }))
 
     const count = ref(0)
 
-    shadow.append(
-        fragment(
-            button()
-                .title("Click me!")
-                .onclick(() => count.val++)
-                .children("Count:", count)
-        )
+    shadow.children(
+        button()
+            .title("Click me!")
+            .onclick(() => count.val++)
+            .children("Count:", count)
     )
     return host
 }
 
-document.body.append(App().element)
+document.body.append(App().node)
+```
+
+### Web Components
+
+```ts
+import { Builder, ref, tags, WithLifecycle } from "@purifyjs/core"
+
+const { div, button } = tags
+
+function App() {
+    return div().id("app").children(new CounterElement())
+}
+
+declare global {
+    interface HTMLElementTagNameMap {
+        "x-counter": CounterElement
+    }
+}
+
+class CounterElement extends WithLifecycle(HTMLElement) {
+    static _ = customElements.define("x-counter", CounterElement)
+
+    #count = ref(0)
+
+    constructor() {
+        super()
+        const self = new Builder<CounterElement>(this)
+
+        self.children(
+            button()
+                .title("Click me!")
+                .onclick(() => this.#count.val++)
+                .children("Count:", this.#count)
+        )
+    }
+}
+
+document.body.append(App().node)
 ```
 
 ## Guide 🥡

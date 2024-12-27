@@ -1,10 +1,4 @@
-import {
-	computed,
-	Lifecycle,
-	ref,
-	Signal,
-	tags,
-} from "@purifyjs/core";
+import { computed, Lifecycle, ref, Signal, tags } from "@purifyjs/core";
 
 const { div, section, button, ul, li, input } = tags;
 
@@ -25,10 +19,7 @@ function Counter() {
 					.title("Decrement by 1")
 					.onclick(() => count.val--)
 					.textContent("-"),
-				input()
-					.type("number")
-					.effect(useBindNumber(count))
-					.step("1"),
+				input().type("number").effect(useBindNumber(count)).step("1"),
 				button()
 					.title("Increment by 1")
 					.onclick(() => count.val++)
@@ -63,4 +54,4 @@ function useBindNumber(
 	};
 }
 
-document.body.append(App().element);
+document.body.append(App().node);

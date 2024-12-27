@@ -8,8 +8,8 @@ function _(fn: () => void) {}
 
 _(() => {
     // Elements should still satisfy the native types
-    tags.a().element satisfies HTMLAnchorElement
-    tags.form().element satisfies HTMLFormElement
+    tags.a().node satisfies HTMLAnchorElement
+    tags.form().node satisfies HTMLFormElement
 })
 
 declare function foo(x: Builder<HTMLElement>): void

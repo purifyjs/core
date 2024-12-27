@@ -6,4 +6,4 @@ export function App() {
 	return div().id("app").children(h1().children("Hello World"));
 }
 
-document.body.append(App().element);
+document.body.append(App().node);
