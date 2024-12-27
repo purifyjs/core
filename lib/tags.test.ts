@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
 import { ref } from "./signals"
-import { Builder, tags as tags_type, WithLifecycle } from "./tags"
+import { Builder, MemberOf, tags as tags_type, WithLifecycle } from "./tags"
 declare const tags: typeof tags_type
 
 function _(fn: () => void) {}
@@ -44,4 +44,9 @@ _(() => {
     divWithLifecycleBuilder.children("123")
     divWithLifecycleBuilder.ariaLabel(ref("foo"))
     divWithLifecycleBuilder.effect(() => {})
+})
+
+_(() => {
+    /// @ts-expect-error No comment, just make sure this works
+    false satisfies Builder<HTMLDivElement> extends MemberOf<ParentNode> ? true : false
 })
