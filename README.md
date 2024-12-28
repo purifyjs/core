@@ -20,7 +20,7 @@
 -   Keeps you close to the DOM.
 -   `HTMLElement` builder allows you to differentiate between attributes and properties.
 -   Builder doesn't only work with `HTMLElement`(s) but works with any `Node` instance including `ShadowRoot`, `DocumentFragment`, `Document`... any `Node` type, including future ones.
--   Converts existing HTMLElement methods to builder pattern with `Proxy`.
+-   Builder converts existing methods on the `Node` instance to builder pattern with `Proxy`.
 -   Uses signals for reactivity.
 -   Makes using signals easier with things like `.pipe()`, `.derive()` and more.
 -   Allows direct DOM manipulation.
