@@ -1,40 +1,38 @@
-<h1 align="center"> purify.js </h1>
+<h1 align="center"> purify.js ✨</h1>
 
 <p align="center">
     <img width="100px" height="auto" alt="purify.js logo" src="https://raw.githubusercontent.com/purifyjs/core/refs/heads/master/apps/compare/src/icons/purify.js.svg" />
 </p>
 <p align="center">
-     <b>tiny dom magic for big ideas ✨</b>
+     <strong>tiny dom magic for big ideas 🎉</strong>
 </p>
-
-**Experimental: Not for Production**
+<p align="center">
+    <i>fresh and light ✨🍃</i>
+</p>
 
 ---
 
 <p align="center">
-    <b>purify.js</b> is a 1.0kB <i>(minified, gzipped)</i> JavaScript UI building library that encourages the usage of pure JavaScript and DOM, while providing a thin layer of abstraction for the annoying parts for better DX <i>(developer experience)</i>.
+    <b>purify.js</b> is a 1.0kB <i>(minified, gzipped)</i> JavaScript UI building library that encourages the usage of pure JavaScript and DOM, while providing a thin layer of abstraction for the annoying parts for better DX <i>(developer experience)</i>. 🚀
 </p>
 
-# Features
+# Features 🌟
 
--   Keeps you close to the DOM.
--   `HTMLElement` builder allows you to differentiate between attributes and properties.
--   Builder doesn't only work with `HTMLElement`(s) but works with any `Node` instance including `ShadowRoot`, `DocumentFragment`, `Document`... any `Node` type, including future ones.
--   Builder converts existing methods on the `Node` instance to builder pattern with `Proxy`.
--   Uses signals for reactivity.
--   Makes using signals easier with things like `.pipe()`, `.derive()` and more.
--   Allows direct DOM manipulation.
--   No special file extensions.
--   Only deal with `.ts` files, so use it with any existing formatting, linting and other tools.
--   No extra LSP and IDE extension/plugin. So fast IDE resposes, autocompleting and more.
--   No weird refactoring errors and issues, caused by framework specific LSPs.
--   No weird "can't find auto import" issues.
--   No LSP hacks.
--   No compiler hacks.
--   No type generation.
--   All verifiable TypeScript code.
+-   🔥 **Keeps you close to the DOM.**
+-   ✍️ `HTMLElement` builder allows you to differentiate between attributes and properties.
+-   🌐 Builder doesn't only work with `HTMLElement`(s) but works with any `Node` instance including `ShadowRoot`, `DocumentFragment`, `Document`... any `Node` type, including future ones.
+-   🎩 Builder converts existing methods on the `Node` instance to builder pattern with `Proxy`.
+-   ⚡ **Uses signals for reactivity.**
+-   🧙 **Signals are extendable,** allowing chaining with utilities like .pipe() and .derive() to build custom workflows..
+-   ✂️ Allows direct DOM manipulation.
+-   📁 No special file extensions.
+-   🔧 Only deal with `.ts` files, so use it with any existing formatting, linting, and other tools.
+-   ⚡ **No extra LSP and IDE extensions/plugins:** fast IDE responses, autocompletion, and more.
+-   ✅ **All verifiable TypeScript code.**
 
-## Compare
+---
+
+## Compare 📏
 
 ### Size ⚡
 
@@ -48,14 +46,13 @@
 | ReactDOM 18.2.0 | 130.2kB | 42kB       |
 | Angular 17.1.0  | 310kB   | 104kB      |
 
-### Syntax
-
-[Compare Syntax](https://bafybeie6nypyq3cnbo55z2gm623vlu6igmbag6cwediyvewoyjkbkktmfm.ipfs.dweb.link)
+---
 
 ## Installation 🍙
 
-To install **purify.js**, follow the
-[jsr.io/@purifyjs/core](https://jsr.io/@purifyjs/core).
+To install **purify.js**, follow the [jsr.io/@purifyjs/core](https://jsr.io/@purifyjs/core).
+
+---
 
 ## Examples 🍤
 
