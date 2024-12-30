@@ -1,4 +1,4 @@
-~~~ok this is my plans for the purify.js because i might forget them
+~~ok this is my plans for the purify.js because i might forget them
 
 so our first goal is rethinking signals again because they need to be better
 
@@ -120,4 +120,4 @@ dependency computed signals
 I can't squize signals anymore. So if i wanna continue i should remove fat from
 tags somehow maybe rethink the whole think focus on enchanced elements maybe
 make it all about enchanced elements can simplify things there fore makes it
-smaller, maybe~~~
+smaller, maybe~~
