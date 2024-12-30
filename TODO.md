@@ -49,7 +49,7 @@ built in
 but as i said, bugs and missing features show up while coding an app like now
 
 we need signal helpers like derive, readonly and etc maybe each signal doesnt
-need its own whole follow system maybe only state needs it
+need its own whole follow system maybe only state needs it~~
 
 here some starting point for the new signals:
 
@@ -92,7 +92,7 @@ const documentVisibleSignal = new Signal.Readonly<boolean>((follower, immediate)
 })
 ```
 
-but this has one problem how does any Computed signal knows Readonly is used.
+~~but this has one problem how does any Computed signal knows Readonly is used.
 well one solution is throwing away call stack based detection completely and
 using a list also having derive function for quick dervations from one or
 ~~multiple~~(maybe) sources computed can also give the values in the function so
