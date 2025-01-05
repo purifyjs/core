@@ -162,7 +162,7 @@ declare global {
 }
 
 class CounterElement extends WithLifecycle(HTMLElement) {
-    static _ = customElements.define("x-counter", CounterElement)
+    static _ = customElements.define("x-counter", this)
 
     #count = ref(0)
 
