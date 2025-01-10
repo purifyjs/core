@@ -27,7 +27,7 @@
 -   ✂️ Allows direct DOM manipulation.
 -   📁 No special file extensions.
 -   🔧 Only deal with `.ts` files, so use it with any existing formatting, linting, and other tools.
--   ⚡ **No extra LSP and IDE extensions/plugins:** fast IDE responses, autocompletion, and more.
+-   ⚡ **No extra LSP and IDE extensions/plugins:** fast IDE responses, autocompletion, and no weird framework specific LSP issues.
 -   ✅ **All verifiable TypeScript code.**
 
 ---
