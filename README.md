@@ -223,4 +223,7 @@ Coming soon.
 
 But as long as the developer is aware of this limitation or difference, it
 shouldn't cause any issues.
+
 - Since I use extended custom elements, safari doesn't support this yet, so if you care about safari for some reasons, use [ungap/custom-elements](https://github.com/ungap/custom-elements) polyfill. You can follow support at [caniuse](https://caniuse.com/mdn-html_global_attributes_is). 
+
+- Treat built in elements `WithLifecycle` as normal built it elements, and don't check if an element is `instanceof WithLifecycle(HTMLDivElement). This method might be changed in the future with things like [WICG/webcomponents/issues/1029](https://github.com/WICG/webcomponents/issues/1029). 
