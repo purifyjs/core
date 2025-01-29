@@ -37,25 +37,15 @@ let instancesOf = <T extends abstract new (...args: never) => unknown>(
  * ```
  */
 export let tags: Tags = new Proxy({} as any, {
-    // Keep `any` here, otherwise `tsc` gets slow as fuck
-    get(tags: any, tag: string): any {
-        if (tags[tag]) return tags[tag]
-        let pureTag = `pure-${tag}` as const
-        let pureConstructor = customElements.get(pureTag) as any
-        if (!pureConstructor) {
-            customElements.define(
-                pureTag,
-                (pureConstructor = (WithLifecycle as any)(
-                    document.createElement(tag).constructor as any
-                )),
-                { extends: tag }
-            )
-        }
-        return (attributes: any = {}) =>
-            new (Builder as any)(new pureConstructor() as any).attributes(
-                attributes
-            ) as any
-    }
+    // Keep `any` here, otherwise `tsc` and LSP gets slow as fuck
+    get: (tags: any, tag: string, constructor) =>
+        (tags[tag] ??=
+            ((constructor = class extends (
+                WithLifecycle(document.createElement(tag).constructor as any)
+            ) {}),
+            customElements.define(`${tag}-withlifecycle`, constructor, { extends: tag }),
+            (attributes: any = {}) =>
+                new (Builder as any)(new constructor()).attributes(attributes)))
 })
 
 export type Tags = {
@@ -261,36 +251,48 @@ export type WithLifecycle<T extends HTMLElement> = T & {
     effect(callback: Lifecycle.OnConnected<T>): Lifecycle.OffConnected
 }
 
-export let WithLifecycle = <Base extends new (...params: any[]) => HTMLElement>(
+let withLifecycleCache = new Map<
+    { new (): HTMLElement },
+    { new (): WithLifecycle<HTMLElement> }
+>()
+export let WithLifecycle = <Base extends { new (...params: any[]): HTMLElement }>(
     Base: Base
-): { new (...params: ConstructorParameters<Base>): WithLifecycle<InstanceType<Base>> } =>
-    class extends Base {
-        #connectedCallbacks = new Set<Lifecycle.OnConnected<this>>()
-        #disconnectedCallbacks: ReturnType<Lifecycle.OnConnected<this>>[] = []
+): {
+    new (...params: ConstructorParameters<Base>): WithLifecycle<InstanceType<Base>>
+} => {
+    let constructor = withLifecycleCache.get(Base)
+    if (!constructor) {
+        withLifecycleCache.set(
+            Base,
+            (constructor = class extends Base {
+                #connectedCallbacks = new Set<Lifecycle.OnConnected<this>>()
+                #disconnectedCallbacks: ReturnType<Lifecycle.OnConnected<this>>[] = []
 
-        connectedCallback(): void {
-            for (let callback of this.#connectedCallbacks) {
-                this.#disconnectedCallbacks.push(callback(this))
-            }
-        }
+                connectedCallback(): void {
+                    for (let callback of this.#connectedCallbacks) {
+                        this.#disconnectedCallbacks.push(callback(this))
+                    }
+                }
 
-        disconnectedCallback(): void {
-            for (let disconnectedCallbackOrVoid of this.#disconnectedCallbacks) {
-                disconnectedCallbackOrVoid?.()
-            }
-        }
+                disconnectedCallback(): void {
+                    for (let disconnectedCallbackOrVoid of this.#disconnectedCallbacks) {
+                        disconnectedCallbackOrVoid?.()
+                    }
+                }
 
-        effect(callback: Lifecycle.OnConnected<this>): Lifecycle.OffConnected {
-            this.#connectedCallbacks.add(callback)
-            // Commented because causes issues when custom element defined while also being already connected
-            /* if (this.isConnected) {
+                effect(callback: Lifecycle.OnConnected<this>): Lifecycle.OffConnected {
+                    this.#connectedCallbacks.add(callback)
+                    // Commented because causes issues when custom element defined while also being already connected
+                    /* if (this.isConnected) {
                 this.#disconnectedCallbacks.push(callback(this))
             } */
 
-            return () => {
-                this.#connectedCallbacks.delete(callback)
-            }
-        }
-    } satisfies {
-        new (): WithLifecycle<HTMLElement>
-    } as never
+                    return () => {
+                        this.#connectedCallbacks.delete(callback)
+                    }
+                }
+            } satisfies { new (): WithLifecycle<HTMLElement> })
+        )
+    }
+    return constructor as never
+}
