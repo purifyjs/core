@@ -1,6 +1,6 @@
 {
     "name": "@purifyjs/core",
-    "version": "0.0.348",
+    "version": "0.0.349",
     "exports": {
         ".": "./lib/mod.ts",
         "./aria": "./lib/aria.ts"
