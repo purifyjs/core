@@ -1,7 +1,7 @@
 <h1 align="center"> purify.js ✨</h1>
 
 <p align="center">
-    <img width="100px" height="auto" alt="purify.js logo" src="https://raw.githubusercontent.com/purifyjs/core/refs/heads/master/apps/compare/src/icons/purify.js.svg" />
+    <img width="100px" height="auto" alt="purify.js logo" src="https://avatars.githubusercontent.com/u/173010374" />
 </p>
 <p align="center">
      <strong>tiny dom magic for big ideas 🎉</strong>
