@@ -13,13 +13,10 @@
         "publish": "jsr publish",
         "publish:dry": "jsr publish --dry-run --allow-dirty",
         "vite:dev": "npm run dev --prefix ./apps/vite",
-        "vite:build": "npm run build --prefix ./apps/vite",
-        "compare:dev": "npm run dev --prefix ./apps/compare",
-        "compare:build": "npm run build --prefix ./apps/compare",
-        "compare:publish": "npm run publish --prefix ./apps/compare"
+        "vite:build": "npm run build --prefix ./apps/vite"
     },
     "devDependencies": {
-        "@types/node": "22.7.5",
+        "@types/node": "^22",
         "eslint": "9.12.0",
         "typescript-eslint": "8.8.1",
         "globals": "15.11.0",
