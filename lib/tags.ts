@@ -54,10 +54,6 @@ export type Tags = {
     ) => Builder<WithLifecycle<HTMLElementTagNameMap[K]>>
 }
 
-export abstract class MemberNode {
-    public abstract node: Node
-}
-
 /**
  * A union type representing the possible member types of a given ParentNode.
  * Used in Builder.children() and fragment() functions
@@ -103,7 +99,7 @@ let toAppendable = (value: MemberOf<ParentNode>): string | Node => {
         return value
     }
 
-    if (instancesOf(value, MemberNode)) {
+    if (instancesOf(value, Builder)) {
         return value.node
     }
 
