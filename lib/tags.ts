@@ -54,20 +54,18 @@ export type Tags = {
     ) => Builder<WithLifecycle<HTMLElementTagNameMap[K]>>
 }
 
+export abstract class MemberNode {
+    public abstract node: Node
+}
+
 /**
  * A union type representing the possible member types of a given ParentNode.
  * Used in Builder.children() and fragment() functions
  */
-export type MemberOf<T extends ParentNode> =
-    | string
-    | number
-    | boolean
-    | bigint
-    | null
-    | Node
-    | Builder<Element>
-    | MemberOf<T>[]
-    | Signal<MemberOf<T>>
+export type MemberOf<
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    T extends ParentNode
+> = unknown
 
 /**
  * Creates a DocumentFragment containing the provided members.
@@ -105,8 +103,11 @@ let toAppendable = (value: MemberOf<ParentNode>): string | Node => {
         return value
     }
 
+    if (instancesOf(value, MemberNode)) {
+        return value.node
+    }
+
     if (instancesOf(value, Signal)) {
-        /* I would make a custom element for this but we have to stay under 1.0kB */
         return toAppendable(
             tags
                 .div({ style: "display:contents" })
@@ -117,10 +118,6 @@ let toAppendable = (value: MemberOf<ParentNode>): string | Node => {
                     )
                 )
         )
-    }
-
-    if (instancesOf(value, Builder)) {
-        return value.node
     }
 
     if (instancesOf(value, Array)) {
