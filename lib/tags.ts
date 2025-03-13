@@ -141,8 +141,18 @@ export let Builder: BuilderConstructor = function <
                         instancesOf(element[name], Function) &&
                         !element.hasOwnProperty(name)
                     ) ?
-                        (...args: unknown[]) => {
-                            ;(element[name] as Fn)(...args)
+                        (arg: Signal<unknown[]> | unknown, ...args: unknown[]) => {
+                            if (instancesOf(arg, Signal)) {
+                                element.effect!(() =>
+                                    arg.follow(
+                                        (arg) =>
+                                            (element[name] as Fn)(...(arg as unknown[])),
+                                        true
+                                    )
+                                )
+                            } else {
+                                ;(element[name] as Fn)(arg, ...args)
+                            }
                             return proxy
                         }
                     :   (value: unknown) => {
@@ -192,7 +202,7 @@ export type Builder<T extends Node> = ({
     [K in keyof T as If<IsProxyable<T, K>, K>]: T[K] extends (
         (...args: infer Args) => void
     ) ?
-        (...args: Args) => Builder<T>
+        (...args: Args | [Signal<Args>]) => Builder<T>
     :   (
             value: NonNullable<T[K]> extends (this: infer X, event: infer U) => infer R ?
                 U extends Event ?
