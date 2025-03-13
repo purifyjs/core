@@ -40,9 +40,11 @@ export let tags: Tags = new Proxy({} as any, {
     // Keep `any` here, otherwise `tsc` and LSP gets slow as fuck
     get: (tags: any, tag: string, constructor) =>
         (tags[tag] ??=
-            ((constructor = class extends (
-                WithLifecycle(document.createElement(tag).constructor as any)
-            ) {}),
+            ((constructor = document.createElement(tag).constructor),
+            (constructor =
+                constructor["effect"] ? constructor : (
+                    class extends WithLifecycle(constructor) {}
+                )),
             customElements.define(`${tag}-withlifecycle`, constructor, { extends: tag }),
             (attributes: any = {}) =>
                 new (Builder as any)(new constructor()).attributes(attributes)))
