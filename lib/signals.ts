@@ -14,10 +14,7 @@ export abstract class Signal<T> {
      * @param {boolean} [immediate] - Whether to call the follower immediately with the current value.
      * @returns {Signal.Unfollower} A function to unregister the follower.
      */
-    public abstract follow(
-        follower: Signal.Follower<T>,
-        immediate?: boolean
-    ): Signal.Unfollower
+    public abstract follow(follower: Signal.Follower<T>, immediate?: boolean): Signal.Unfollower
 
     /**
      * Derives a new value from this signal based on a getter function.
@@ -147,10 +144,7 @@ export declare namespace Signal {
 
     namespace Dependency {
         export function add(signal: Signal<unknown>): void
-        function track<R>(
-            callAndTrack: () => R,
-            callback?: (signal: Signal<unknown>) => unknown
-        ): R
+        function track<R>(callAndTrack: () => R, callback?: (signal: Signal<unknown>) => unknown): R
     }
 }
 
@@ -291,8 +285,7 @@ Signal.Computed = class<T> extends Signal<T> {
  * count.val = 10; // logs: 10
  * ```
  */
-export let ref = <T>(value: T, startStop?: Signal.State.Start<T>): Signal.State<T> =>
-    new Signal.State(value, startStop)
+export let ref = <T>(value: T, startStop?: Signal.State.Start<T>): Signal.State<T> => new Signal.State(value, startStop)
 
 /**
  * Creates a new computed signal from other signals.
@@ -310,5 +303,4 @@ export let ref = <T>(value: T, startStop?: Signal.State.Start<T>): Signal.State<
  * a.val++ // logs: 4
  * ```
  */
-export let computed = <T>(getter: Signal.Computed.Getter<T>): Signal.Computed<T> =>
-    new Signal.Computed(getter)
+export let computed = <T>(getter: Signal.Computed.Getter<T>): Signal.Computed<T> => new Signal.Computed(getter)

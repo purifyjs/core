@@ -98,9 +98,7 @@ function Counter() {
     )
 }
 
-function useBindNumber(
-    state: Signal.State<number>
-): Lifecycle.OnConnected<HTMLInputElement> {
+function useBindNumber(state: Signal.State<number>): Lifecycle.OnConnected<HTMLInputElement> {
     return (element) => {
         const listener = () => (state.val = element.valueAsNumber)
         element.addEventListener("input", listener)
@@ -224,6 +222,6 @@ Coming soon.
 But as long as the developer is aware of this limitation or difference, it
 shouldn't cause any issues.
 
-- Since I use extended custom elements, safari doesn't support this yet, so if you care about safari for some reasons, use [ungap/custom-elements](https://github.com/ungap/custom-elements) polyfill. You can follow support at [caniuse](https://caniuse.com/mdn-html_global_attributes_is). 
+-   Since I use extended custom elements, safari doesn't support this yet, so if you care about safari for some reasons, use [ungap/custom-elements](https://github.com/ungap/custom-elements) polyfill. You can follow support at [caniuse](https://caniuse.com/mdn-html_global_attributes_is).
 
-- Treat built in elements with `WithLifecycle` as normal built in elements, and for example don't check if an element is `instanceof WithLifecycle(HTMLDivElement)`. Because this way of doing things might be changed in the future with things like [WICG/webcomponents/issues/1029](https://github.com/WICG/webcomponents/issues/1029). 
+-   Treat built in elements with `WithLifecycle` as normal built in elements, and for example don't check if an element is `instanceof WithLifecycle(HTMLDivElement)`. Because this way of doing things might be changed in the future with things like [WICG/webcomponents/issues/1029](https://github.com/WICG/webcomponents/issues/1029).

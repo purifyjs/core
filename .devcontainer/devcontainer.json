@@ -7,11 +7,7 @@
 
     "customizations": {
         "vscode": {
-            "extensions": [
-                "esbenp.prettier-vscode",
-                "dbaeumer.vscode-eslint",
-                "pushqrdx.inline-html"
-            ]
+            "extensions": ["esbenp.prettier-vscode", "dbaeumer.vscode-eslint", "pushqrdx.inline-html"]
         }
     },
 

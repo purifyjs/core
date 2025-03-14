@@ -40,16 +40,13 @@ export let tags: Tags = new Proxy({} as any, {
     // Keep `any` here, otherwise `tsc` and LSP gets slow as fuck
     get: (tags: any, tag: string, constructor) =>
         (tags[tag] ??=
-            (withlifecycles.has(
-                (constructor = document.createElement(tag).constructor) as never
-            ) ||
+            (withlifecycles.has((constructor = document.createElement(tag).constructor) as never) ||
                 customElements.define(
                     `pure-${tag}`,
                     (constructor = class extends WithLifecycle(constructor) {}) as never,
                     { extends: tag }
                 ),
-            (attributes: any = {}) =>
-                new (Builder as any)(new constructor()).attributes(attributes)))
+            (attributes: any = {}) => new (Builder as any)(new constructor()).attributes(attributes)))
 })
 
 export type Tags = {
@@ -111,12 +108,7 @@ let toAppendable = (value: MemberOf<ParentNode>): string | Node => {
         return toAppendable(
             tags
                 .div({ style: "display:contents" })
-                .effect((element) =>
-                    value.follow(
-                        (value) => element.replaceChildren(toAppendable(value)),
-                        true
-                    )
-                )
+                .effect((element) => value.follow((value) => element.replaceChildren(toAppendable(value)), true))
         )
     }
 
@@ -133,26 +125,20 @@ export type BuilderConstructor = {
     new (node: Node): Builder<Node>
 }
 
-export let Builder: BuilderConstructor = function <
-    T extends Node & Partial<WithLifecycle<HTMLElement>>
->(this: Builder<T>, element: T) {
+export let Builder: BuilderConstructor = function <T extends Node & Partial<WithLifecycle<HTMLElement>>>(
+    this: Builder<T>,
+    element: T
+) {
     this.node = element
     return new Proxy(this, {
         get: (target: any, name: keyof T, proxy: unknown) =>
             (target[name] ??=
                 name in element ?
-                    (
-                        instancesOf(element[name], Function) &&
-                        !element.hasOwnProperty(name)
-                    ) ?
+                    instancesOf(element[name], Function) && !element.hasOwnProperty(name) ?
                         (arg: Signal<unknown[]> | unknown, ...args: unknown[]) => {
                             if (instancesOf(arg, Signal)) {
                                 element.effect!(() =>
-                                    arg.follow(
-                                        (arg) =>
-                                            (element[name] as Fn)(...(arg as unknown[])),
-                                        true
-                                    )
+                                    arg.follow((arg) => (element[name] as Fn)(...(arg as unknown[])), true)
                                 )
                             } else {
                                 ;(element[name] as Fn)(arg, ...args)
@@ -161,12 +147,7 @@ export let Builder: BuilderConstructor = function <
                         }
                     :   (value: unknown) => {
                             if (instancesOf(value, Signal)) {
-                                element.effect!(() =>
-                                    value.follow(
-                                        (value) => (element[name] = value as never),
-                                        true
-                                    )
-                                )
+                                element.effect!(() => value.follow((value) => (element[name] = value as never), true))
                             } else {
                                 element[name] = value as never
                             }
@@ -181,8 +162,7 @@ export namespace Builder {
     export type Event<E extends _Event, T extends EventTarget> = E & { currentTarget: T }
 
     export namespace Attributes {
-        export type Value<TElement extends Element, T> =
-            TElement extends WithLifecycle<HTMLElement> ? T | Signal<T> : T
+        export type Value<TElement extends Element, T> = TElement extends WithLifecycle<HTMLElement> ? T | Signal<T> : T
     }
     export type Attributes<T extends Element> = {
         class?: Attributes.Value<T, string | null>
@@ -199,13 +179,9 @@ export namespace Builder {
 
 export type Builder<T extends Node> = ({
     node: T
-} & (T extends ParentNode ? { children(...members: MemberOf<T>[]): Builder<T> }
-:   unknown) &
-    (T extends Element ? { attributes(attributes: Builder.Attributes<T>): Builder<T> }
-    :   unknown)) & {
-    [K in keyof T as If<IsProxyable<T, K>, K>]: T[K] extends (
-        (...args: infer Args) => void
-    ) ?
+} & (T extends ParentNode ? { children(...members: MemberOf<T>[]): Builder<T> } : unknown) &
+    (T extends Element ? { attributes(attributes: Builder.Attributes<T>): Builder<T> } : unknown)) & {
+    [K in keyof T as If<IsProxyable<T, K>, K>]: T[K] extends (...args: infer Args) => void ?
         (...args: Args | [Signal<Args>]) => Builder<T>
     :   (
             value: NonNullable<T[K]> extends (this: infer X, event: infer U) => infer R ?
@@ -248,9 +224,7 @@ Builder.prototype = {
 
 export namespace Lifecycle {
     export type OnDisconnected = () => void
-    export type OnConnected<T extends HTMLElement = HTMLElement> = (
-        element: T
-    ) => void | OnDisconnected
+    export type OnConnected<T extends HTMLElement = HTMLElement> = (element: T) => void | OnDisconnected
     export type OffConnected = () => void
 }
 
@@ -258,10 +232,7 @@ export type WithLifecycle<T extends HTMLElement> = T & {
     effect(callback: Lifecycle.OnConnected<T>): Lifecycle.OffConnected
 }
 
-let withLifecycleCache = new Map<
-    { new (): HTMLElement },
-    { new (): WithLifecycle<HTMLElement> }
->()
+let withLifecycleCache = new Map<{ new (): HTMLElement }, { new (): WithLifecycle<HTMLElement> }>()
 let withlifecycles = new Set<{ new (): WithLifecycle<HTMLElement> }>()
 export let WithLifecycle = <Base extends { new (...params: any[]): HTMLElement }>(
     Base: Base

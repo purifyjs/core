@@ -56,26 +56,10 @@ export namespace StrictARIA {
             ariaColCount: `${bigint}` | null
             ariaColIndex: `${bigint}` | null
             ariaColSpan: `${bigint}` | null
-            ariaCurrent:
-                | "page"
-                | "step"
-                | "location"
-                | "date"
-                | "time"
-                | "true"
-                | "false"
-                | null
+            ariaCurrent: "page" | "step" | "location" | "date" | "time" | "true" | "false" | null
             ariaDisabled: "true" | "false" | null
             ariaExpanded: "true" | "false" | "undefined" | null
-            ariaHasPopup:
-                | "false"
-                | "true"
-                | "menu"
-                | "listbox"
-                | "tree"
-                | "grid"
-                | "dialog"
-                | null
+            ariaHasPopup: "false" | "true" | "menu" | "listbox" | "tree" | "grid" | "dialog" | null
             ariaHidden: "true" | "false" | "undefined" | null
             ariaInvalid: "true" | "false" | "grammar" | "spelling" | null
             ariaLevel: `${bigint}` | null
@@ -105,10 +89,7 @@ export namespace StrictARIA {
      * Type representing ARIA roles, which can be specified for various elements to define
      * their function and behavior within an application. Roles are grouped by specification.
      */
-    export type Role =
-        | Role.RichInternetApplications
-        | Role.DigitalPublishing
-        | Role.Experimental
+    export type Role = Role.RichInternetApplications | Role.DigitalPublishing | Role.Experimental
 
     export namespace Role {
         /**
