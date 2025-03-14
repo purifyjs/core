@@ -40,12 +40,11 @@ export let tags: Tags = new Proxy({} as any, {
     // Keep `any` here, otherwise `tsc` and LSP gets slow as fuck
     get: (tags: any, tag: string, constructor: any) =>
         (tags[tag] ??=
-            (withlifecycles.has((constructor = document.createElement(tag).constructor) as never) ||
-                customElements.define(
-                    `pure-${tag}`,
-                    (constructor = class extends WithLifecycle(constructor) {}) as never,
-                    { extends: tag }
-                ),
+            (customElements.define(
+                `pure-${tag}`,
+                (constructor = class extends WithLifecycle(document.createElement(tag).constructor as any) {}) as never,
+                { extends: tag }
+            ),
             (attributes: any = {}) => new (Builder as any)(new constructor()).attributes(attributes)))
 })
 
@@ -233,7 +232,6 @@ export type WithLifecycle<T extends HTMLElement> = T & {
 }
 
 let withLifecycleCache = new Map<{ new (): HTMLElement }, { new (): WithLifecycle<HTMLElement> }>()
-let withlifecycles = new Set<{ new (): WithLifecycle<HTMLElement> }>()
 export let WithLifecycle = <Base extends { new (...params: any[]): HTMLElement }>(
     Base: Base
 ): {
@@ -272,7 +270,6 @@ export let WithLifecycle = <Base extends { new (...params: any[]): HTMLElement }
                 }
             } satisfies { new (): WithLifecycle<HTMLElement> })
         )
-        withlifecycles.add(constructor)
     }
     return constructor as never
 }
