@@ -42,8 +42,12 @@ export let tags: Tags = new Proxy({} as any, {
         (tags[tag] ??=
             (withlifecycles.has(
                 (constructor = document.createElement(tag).constructor) as never
-            ) || (constructor = class extends WithLifecycle(constructor) {}),
-            customElements.define(`${tag}-withlifecycle`, constructor, { extends: tag }),
+            ) ||
+                customElements.define(
+                    `pure-${tag}`,
+                    (constructor = class extends WithLifecycle(constructor) {}) as never,
+                    { extends: tag }
+                ),
             (attributes: any = {}) =>
                 new (Builder as any)(new constructor()).attributes(attributes)))
 })
