@@ -38,7 +38,7 @@ let instancesOf = <T extends abstract new (...args: never) => unknown>(
  */
 export let tags: Tags = new Proxy({} as any, {
     // Keep `any` here, otherwise `tsc` and LSP gets slow as fuck
-    get: (tags: any, tag: string, constructor) =>
+    get: (tags: any, tag: string, constructor: any) =>
         (tags[tag] ??=
             (withlifecycles.has((constructor = document.createElement(tag).constructor) as never) ||
                 customElements.define(
