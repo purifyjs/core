@@ -1,8 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { StrictARIA } from "./aria"
-import { Signal } from "./signals"
-import { _Event, Fn, If, IsProxyable } from "./utils"
+import { computed, Signal } from "./signals"
+import { _Event, Fn, If, IsFunction, IsNullable, IsReadonly, Not } from "./utils"
 
 let instancesOf = <T extends abstract new (...args: never) => unknown>(
     target: unknown,
@@ -45,78 +44,11 @@ export let tags: Tags = new Proxy({} as any, {
                 (constructor = class extends WithLifecycle(document.createElement(tag).constructor as any) {}) as never,
                 { extends: tag }
             ),
-            (attributes: any = {}) => new (Builder as any)(new constructor()).attributes(attributes)))
+            () => new (Builder as any)(new constructor())))
 })
 
 export type Tags = {
-    [K in keyof HTMLElementTagNameMap]: (
-        attributes?: Builder.Attributes<WithLifecycle<HTMLElementTagNameMap[K]>>
-    ) => Builder<WithLifecycle<HTMLElementTagNameMap[K]>>
-}
-
-/**
- * A union type representing the possible member types of a given ParentNode.
- * Used in Builder.children() and fragment() functions
- */
-export type MemberOf<
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    T extends ParentNode
-> = unknown
-
-/**
- * Creates a DocumentFragment containing the provided members.
- *
- * @param members - The members to append to the fragment.
- * @returns  The created DocumentFragment.
- * @example
- * ```ts
- * document.body.append(fragment(
- *      document.createElement('div'),
- *      div(),
- *      computed(() => count.val * 2),
- *      'Text content'
- * ));
- * ```
- */
-export let fragment = (...members: MemberOf<DocumentFragment>[]): DocumentFragment => {
-    let fragment = document.createDocumentFragment()
-    if (members) fragment.append(...members.map(toAppendable))
-    return fragment
-}
-
-/**
- * Converts a value into an appendable format.
- *
- * @param value - The value to convert.
- * @returns The appendable value.
- */
-let toAppendable = (value: MemberOf<ParentNode>): string | Node => {
-    if (value === null) {
-        return ""
-    }
-
-    if (instancesOf(value, Node)) {
-        return value
-    }
-
-    if (instancesOf(value, Builder)) {
-        return value.node
-    }
-
-    if (instancesOf(value, Signal)) {
-        return toAppendable(
-            tags
-                .div({ style: "display:contents" })
-                .effect((element) => value.follow((value) => element.replaceChildren(toAppendable(value)), true))
-        )
-    }
-
-    if (instancesOf(value, Array)) {
-        return fragment(...value)
-    }
-
-    return value + ""
-    // return String(value)
+    [K in keyof HTMLElementTagNameMap]: () => Builder<WithLifecycle<HTMLElementTagNameMap[K]>>
 }
 
 export type BuilderConstructor = {
@@ -124,64 +56,40 @@ export type BuilderConstructor = {
     new (node: Node): Builder<Node>
 }
 
-export let Builder: BuilderConstructor = function <T extends Node & Partial<WithLifecycle<HTMLElement>>>(
-    this: Builder<T>,
-    element: T
-) {
-    this.node = element
-    return new Proxy(this, {
-        get: (target: any, name: keyof T, proxy: unknown) =>
-            (target[name] ??=
-                name in element ?
-                    instancesOf(element[name], Function) && !element.hasOwnProperty(name) ?
-                        (arg: Signal<unknown[]> | unknown, ...args: unknown[]) => {
-                            if (instancesOf(arg, Signal)) {
-                                element.effect!(() =>
-                                    arg.follow((arg) => (element[name] as Fn)(...(arg as unknown[])), true)
-                                )
-                            } else {
-                                ;(element[name] as Fn)(arg, ...args)
-                            }
-                            return proxy
-                        }
-                    :   (value: unknown) => {
-                            if (instancesOf(value, Signal)) {
-                                element.effect!(() => value.follow((value) => (element[name] = value as never), true))
-                            } else {
-                                element[name] = value as never
-                            }
-
-                            return proxy
-                        }
-                :   element[name])
-    } as never)
-} as never
-
 export namespace Builder {
     export type Event<E extends _Event, T extends EventTarget> = E & { currentTarget: T }
-
-    export namespace Attributes {
-        export type Value<TElement extends Element, T> = TElement extends WithLifecycle<HTMLElement> ? T | Signal<T> : T
-    }
-    export type Attributes<T extends Element> = {
-        class?: Attributes.Value<T, string | null>
-        id?: Attributes.Value<T, string | null>
-        style?: Attributes.Value<T, string | null>
-        title?: Attributes.Value<T, string | null>
-        form?: Attributes.Value<T, string | null>
-    } & {
-        [K in keyof StrictARIA.Attributes]?: Attributes.Value<T, StrictARIA.Attributes[K]>
-    } & {
-        [key: string]: Attributes.Value<T, string | number | boolean | bigint | null>
-    }
 }
 
-export type Builder<T extends Node> = ({
-    node: T
-} & (T extends ParentNode ? { children(...members: MemberOf<T>[]): Builder<T> } : unknown) &
-    (T extends Element ? { attributes(attributes: Builder.Attributes<T>): Builder<T> } : unknown)) & {
-    [K in keyof T as If<IsProxyable<T, K>, K>]: T[K] extends (...args: infer Args) => void ?
-        (...args: Args | [Signal<Args>]) => Builder<T>
+type IsProxyable<T, K extends keyof T> =
+    K extends keyof EventTarget ? false
+    :   [
+            // Anything part of the Lifecycle
+            K extends Exclude<keyof WithLifecycle<HTMLElement>, keyof HTMLElement> ? true : false,
+            // Any non readonly non functions, basically mutable values
+            Not<IsReadonly<T, K>> & Not<IsFunction<T[K]>>,
+            // Any nullable functions, basically mutable functions such as event listeners
+            IsFunction<T[K]> & IsNullable<T[K]>,
+            // Any function that returns void exclusivly
+            IsFunction<T[K], void>
+        ][number]
+
+type MapProxyArgs<T extends any[], N extends Node, R extends any[] = []> =
+    T extends [infer Head, ...infer Tail] ?
+        MapProxyArgs<
+            Tail,
+            N,
+            [...R, Head | Builder<Extract<Head, Node>> | (N extends WithLifecycle<HTMLElement> ? Signal<Head> : never)]
+        >
+    : R extends [] ?
+        T extends (infer Arr)[] ?
+            MapProxyArgs<[Arr], N>[0][]
+        :   R
+    :   R
+
+export type Builder<T extends Node> = { $node: T } & {
+    [K in keyof T as If<IsProxyable<T, K>, K>]: K extends `$${any}` ? T[K]
+    : T[K] extends (this: infer X, ...args: infer Args) => void ?
+        (this: X, ...args: MapProxyArgs<Args, T>) => Builder<T>
     :   (
             value: NonNullable<T[K]> extends (this: infer X, event: infer U) => infer R ?
                 U extends Event ?
@@ -192,34 +100,49 @@ export type Builder<T extends Node> = ({
         ) => Builder<T>
 }
 
-Builder.prototype = {
-    children(...members: MemberOf<ParentNode>[]): Builder<ParentNode> {
-        this.node.append(...members.map(toAppendable))
-        return this
-    },
-    attributes(attributes: Builder.Attributes<Element>): Builder<Element> {
-        let node = this.node as Element & Partial<WithLifecycle<HTMLElement>>
-        for (let name in attributes) {
-            let value = attributes[name]!
+export let Builder: BuilderConstructor = function <T extends Node & Partial<WithLifecycle<HTMLElement>>>(
+    this: Builder<T>,
+    element: T
+) {
+    this.$node = element
+    return new Proxy(this, {
+        get: (target: any, name: keyof T, proxy: unknown) =>
+            (target[name] ??=
+                name in element ?
+                    instancesOf(element[name], Function) && !element.hasOwnProperty(name) ?
+                        (...args: unknown[]) => {
+                            let hasSignal: boolean | undefined
+                            args.forEach((arg, index) => {
+                                if (instancesOf(arg, Builder)) {
+                                    args[index] = arg.$node
+                                } else {
+                                    hasSignal ||= instancesOf(arg, Signal)
+                                }
+                            })
+                            if (hasSignal) {
+                                let computedArgs = computed(() =>
+                                    args.map((arg) => (instancesOf(arg, Signal) ? arg.val : arg))
+                                )
+                                element.$effect!(() =>
+                                    computedArgs.follow((args) => (element[name] as Fn)(...args), true)
+                                )
+                            } else {
+                                ;(element[name] as Fn)(...args)
+                            }
+                            return proxy
+                        }
+                    :   (value: unknown) => {
+                            if (instancesOf(value, Signal)) {
+                                element.$effect!(() => value.follow((value) => (element[name] = value as never), true))
+                            } else {
+                                element[name] = value as never
+                            }
 
-            let setOrRemoveAttribute = (value: unknown) => {
-                if (value == null) {
-                    node.removeAttribute(name)
-                } else {
-                    // element.setAttribute(name, String(value))
-                    node.setAttribute(name, value + "")
-                }
-            }
-
-            if (instancesOf(value, Signal)) {
-                node.effect!(() => value.follow(setOrRemoveAttribute, true))
-            } else {
-                setOrRemoveAttribute(value)
-            }
-        }
-        return this
-    }
-}
+                            return proxy
+                        }
+                :   undefined)
+    } as never)
+} as never
 
 export namespace Lifecycle {
     export type OnDisconnected = () => void
@@ -228,7 +151,7 @@ export namespace Lifecycle {
 }
 
 export type WithLifecycle<T extends HTMLElement> = T & {
-    effect(callback: Lifecycle.OnConnected<T>): Lifecycle.OffConnected
+    $effect(callback: Lifecycle.OnConnected<T>): Lifecycle.OffConnected
 }
 
 let withLifecycleCache = new Map<{ new (): HTMLElement }, { new (): WithLifecycle<HTMLElement> }>()
@@ -257,7 +180,7 @@ export let WithLifecycle = <Base extends { new (...params: any[]): HTMLElement }
                     }
                 }
 
-                effect(callback: Lifecycle.OnConnected<this>): Lifecycle.OffConnected {
+                $effect(callback: Lifecycle.OnConnected<this>): Lifecycle.OffConnected {
                     this.#connectedCallbacks.add(callback)
                     // Commented because causes issues when custom element defined while also being already connected
                     /* if (this.isConnected) {

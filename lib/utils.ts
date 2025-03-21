@@ -1,19 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { WithLifecycle } from "./tags"
-
 export type _Event = Event
 
-export type IsProxyable<T, K extends keyof T> = [
-    // Anything part of the Lifecycle
-    K extends Exclude<keyof WithLifecycle<HTMLElement>, keyof HTMLElement> ? true : false,
-    // Any non readonly non functions, basically mutable values
-    Not<IsReadonly<T, K>> & Not<IsFunction<T[K]>>,
-    // Any nullable functions, basically mutable functions such as event listeners
-    IsFunction<T[K]> & IsNullable<T[K]>,
-    // Any function that returns void exclusivly
-    IsFunction<T[K], void>
-][number]
+export type And<T, U> = T | U extends true ? true : false
 
 export type If<T extends boolean, Then, Else = never> = true extends T ? Then : Else
 export type Not<T extends boolean> = false extends T ? true : false
