@@ -118,9 +118,9 @@ type ProxyValueSetterArg<T extends Node, K extends keyof T> =
     : T[K];
 
 export type Builder<T extends Node> = {
-    [K in keyof T as If<IsProxyable<T, K>, K>]: K extends `$${any}` ? T[K]
-    : T[K] extends (...args: infer Args) => void ? (...args: ProxyFunctionCallArgs<T, Args>) => Builder<T>
-    : (value: ProxyValueSetterArg<T, K>) => Builder<T>;
+    [K in keyof T as If<IsProxyable<T, K>, K>]: T[K] extends (...args: infer Args) => void ?
+        (...args: K extends `$${any}` ? Args : ProxyFunctionCallArgs<T, Args>) => Builder<T>
+    :   (value: ProxyValueSetterArg<T, K>) => Builder<T>;
 } & {
     $node: T;
 };
@@ -188,7 +188,7 @@ export let Builder: BuilderConstructor = function <T extends Node & Partial<With
                 return node[name];
             }
 
-            if (instancesOf(node[name], Function) /* && !node.hasOwnProperty(name) */) {
+            if (instancesOf(node[name], Function) && !node.hasOwnProperty(name)) {
                 return (target[name] = (...args: unknown[]) => {
                     if (args.some((arg) => instancesOf(arg, Signal))) {
                         let argsComputed = computed(() => args.map(unwrap));
