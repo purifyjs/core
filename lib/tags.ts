@@ -81,31 +81,57 @@ type IsProxyable<T, K extends keyof T> =
             IsFunction<T[K], void>
         ][number];
 
+type DeeplyNestedArray<T> =
+    | T
+    | T[]
+    | T[][]
+    | T[][][]
+    | T[][][][]
+    | T[][][][][]
+    | T[][][][][][]
+    | T[][][][][][][]
+    | T[][][][][][][][]
+    | unknown[][][][][][][][][];
 type DeeplyNestedSignal<T> =
     | Signal<T>
     | Signal<Signal<T>>
     | Signal<Signal<Signal<T>>>
     | Signal<Signal<Signal<Signal<T>>>>
-    | Signal<Signal<Signal<Signal<Signal<unknown>>>>>;
+    | Signal<Signal<Signal<Signal<Signal<T>>>>>
+    | Signal<Signal<Signal<Signal<Signal<Signal<T>>>>>>
+    | Signal<Signal<Signal<Signal<Signal<Signal<Signal<T>>>>>>>
+    | Signal<Signal<Signal<Signal<Signal<Signal<Signal<Signal<T>>>>>>>>
+    | Signal<Signal<Signal<Signal<Signal<Signal<Signal<Signal<Signal<unknown>>>>>>>>>;
 
 // While proxying functions to support Signal args, make sure it only has one arg or multiple of same spreding argument.
 // Since we have to cleanup the previous set of the signal, before we set it second time we shouldn't support things like `.setAttribute`.
 // It seems OK at first but since we have to cleanup, second time we call `setAttribute` it cleans up the previous call.
 // Makes it not able to use `setAttribute` for multiple attributes, which is a weird beheviour.
-type MaybeBuilder<T> = Extract<T, Node> extends Node ? Builder<Extract<T, Node>> : never;
+type MaybeWrappedNode<T> =
+    Extract<T, Node> extends Node ?
+        | Builder<Extract<T, Node>>
+        | (Node extends Extract<T, Node> ? DeeplyNestedArray<T | Builder<Extract<T, Node>>> : never)
+    :   never;
 type ProxyFunctionCallArgs_Map<Args extends unknown[], R extends unknown[] = []> =
-    Args extends [infer Head, ...infer Tail] ? ProxyFunctionCallArgs_Map<Tail, [...R, Head | MaybeBuilder<Head>]> : R;
+    Args extends [infer Head, ...infer Tail] ? ProxyFunctionCallArgs_Map<Tail, [...R, Head | MaybeWrappedNode<Head>]>
+    :   R;
 type ProxyFunctionCallArgs<T extends Node, Args extends unknown[]> =
     Args extends [any, any, ...any] ? ProxyFunctionCallArgs_Map<Args>
     : Args extends [infer U] ?
-        [U | MaybeBuilder<U> | (T extends WithLifecycle<HTMLElement> ? DeeplyNestedSignal<U | MaybeBuilder<U>> : never)]
+        [
+            | U
+            | MaybeWrappedNode<U>
+            | (T extends WithLifecycle<HTMLElement> ? DeeplyNestedArray<DeeplyNestedSignal<U | MaybeWrappedNode<U>>>
+              :   never)
+        ]
     : Args extends (infer U)[] ?
         [U] extends [never] ?
             []
         :   (
                 | U
-                | MaybeBuilder<U>
-                | (T extends WithLifecycle<HTMLElement> ? DeeplyNestedSignal<U | MaybeBuilder<U>> : never)
+                | MaybeWrappedNode<U>
+                | (T extends WithLifecycle<HTMLElement> ? DeeplyNestedArray<DeeplyNestedSignal<U | MaybeWrappedNode<U>>>
+                  :   never)
             )[]
     :   never;
 
@@ -137,12 +163,15 @@ export interface BuilderConstructor {
 //          So instead I simplified it and used .replaceChildren() method to update all children at once.
 //          Signals can have their own wrappers again when JS DOM has a real DocumentFragment which is persistent.
 
-let unwrap = (value: unknown) => {
+let unwrap = (value: unknown): unknown => {
     if (instancesOf(value, Builder)) {
         return value.$node;
     }
     if (instancesOf(value, Signal)) {
         return unwrap(value.val);
+    }
+    if (instancesOf(value, Array)) {
+        return new Builder(document.createDocumentFragment()).append(...(value.map(unwrap) as never[])).$node;
     }
     return value;
 };
@@ -196,11 +225,7 @@ export let Builder: BuilderConstructor = function <T extends Node & Partial<With
                             argsComputed.follow((args) => (node[name] as Fn)(...args), true)
                         );
                     } else {
-                        args.forEach((arg, index) => {
-                            if (instancesOf(arg, Builder)) {
-                                args[index] = arg.$node;
-                            }
-                        });
+                        args.forEach((arg, index) => (args[index] = unwrap(arg)));
                         (node[name] as Fn)(...args);
                     }
                     return proxy;

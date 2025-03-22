@@ -16,7 +16,7 @@ new Builder(document.body).replaceChildren(
             tags.strong().textContent("World"),
             tags
                 .span({ "data-time": time })
-                .replaceChildren(time)
+                .replaceChildren([time], [[tags.div()]])
                 .setAttribute("data-something", "nothing")
                 .ariaLabel(time)
         )
