@@ -1,3 +1,5 @@
+import { noop } from "./utils"
+
 /**
  * An abstract class representing a signal that holds a value and allows followers to react to changes.
  *
@@ -162,11 +164,12 @@ let Dependency = (Signal.Dependency = {
     }
 })
 
-let noop = () => {}
-
 Signal.State = class<T> extends Signal<T> {
     #followers = new Set<Signal.Follower<T>>()
     #value: T
+
+    #start: Signal.State.Start<T> | undefined
+    #stop: Signal.State.Stop | undefined | null
 
     constructor(initial: T, startStop?: Signal.State.Start<T>) {
         super()
@@ -186,9 +189,6 @@ Signal.State = class<T> extends Signal<T> {
         this.#value = newValue
         this.emit()
     }
-
-    #start: Signal.State.Start<T> | undefined
-    #stop: Signal.State.Stop | undefined | null
 
     public follow(follower: Signal.Follower<T>, immediate?: boolean): Signal.Unfollower {
         if (!this.#stop) {
@@ -213,9 +213,11 @@ Signal.State = class<T> extends Signal<T> {
 
     public emit() {
         let i = this.#followers.size
-        for (let follower of this.#followers) {
-            if (i-- > 0) follower(this.#value)
-        }
+        this.#followers.forEach((follower) => {
+            if (i-- > 0) {
+                follower(this.#value)
+            }
+        })
     }
 }
 

@@ -26,3 +26,10 @@ export type IsReadonly<T, K extends keyof T> =
     ) ?
         true
     :   false
+
+export let noop = (): void => {}
+
+export let instancesOf = <T extends abstract new (...args: never) => unknown>(
+    target: unknown,
+    constructor: T
+): target is InstanceType<T> => target instanceof constructor
