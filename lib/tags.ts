@@ -110,7 +110,7 @@ type DeeplyNestedSignal<T> =
 type MaybeWrappedNode<T> =
     Extract<T, Node> extends Node ?
         | Builder<Extract<T, Node>>
-        | (Node extends Extract<T, Node> ? DeeplyNestedArray<T | Builder<Extract<T, Node>>> : never)
+        | (Node extends Extract<T, Node> ? DeeplyNestedArray<T | Builder<Extract<T, Node>> | null> : never)
     :   never;
 type ProxyFunctionCallArgs_Map<Args extends unknown[], R extends unknown[] = []> =
     Args extends [infer Head, ...infer Tail] ? ProxyFunctionCallArgs_Map<Tail, [...R, Head | MaybeWrappedNode<Head>]>
@@ -164,6 +164,9 @@ export interface BuilderConstructor {
 //          Signals can have their own wrappers again when JS DOM has a real DocumentFragment which is persistent.
 
 let unwrap = (value: unknown): unknown => {
+    if (value == null) {
+        return unwrap([]);
+    }
     if (instancesOf(value, Builder)) {
         return value.$node;
     }
