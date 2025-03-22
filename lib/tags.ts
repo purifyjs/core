@@ -220,7 +220,8 @@ export let Builder: BuilderConstructor = function <T extends Node & Partial<With
     } as never);
 } as never;
 
-// Note: Lifecycle stuff can be removed or simplified once DOM has a nice and simple native way to follow life cycle of any Element or ChildNode sync.
+// Note: Lifecycle stuff can be removed or simplified once DOM has a nice and simple native event to follow life cycle of any Node sync.
+//       It has to be a Node, that way we can even follow lifecycle of persistent DocumentFragment(s)
 export namespace Lifecycle {
     export type OnDisconnected = () => void;
     export type OnConnected<T extends HTMLElement = HTMLElement> = (element: T) => void | OnDisconnected;
