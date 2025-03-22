@@ -90,8 +90,7 @@ type DeeplyNestedArray<T> =
     | T[][][][][]
     | T[][][][][][]
     | T[][][][][][][]
-    | T[][][][][][][][]
-    | unknown[][][][][][][][][];
+    | T[][][][][][][][];
 type DeeplyNestedSignal<T> =
     | Signal<T>
     | Signal<Signal<T>>
@@ -100,8 +99,7 @@ type DeeplyNestedSignal<T> =
     | Signal<Signal<Signal<Signal<Signal<T>>>>>
     | Signal<Signal<Signal<Signal<Signal<Signal<T>>>>>>
     | Signal<Signal<Signal<Signal<Signal<Signal<Signal<T>>>>>>>
-    | Signal<Signal<Signal<Signal<Signal<Signal<Signal<Signal<T>>>>>>>>
-    | Signal<Signal<Signal<Signal<Signal<Signal<Signal<Signal<Signal<unknown>>>>>>>>>;
+    | Signal<Signal<Signal<Signal<Signal<Signal<Signal<Signal<T>>>>>>>>;
 
 // While proxying functions to support Signal args, make sure it only has one arg or multiple of same spreding argument.
 // Since we have to cleanup the previous set of the signal, before we set it second time we shouldn't support things like `.setAttribute`.
