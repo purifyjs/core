@@ -131,6 +131,12 @@ export interface BuilderConstructor {
     new (node: Node): Builder<Node>;
 }
 
+// NOTE: Builder unwrapping logic and `$node` can be removed once DOM has a native way to have Node like objects with something like toNode() or Symbol.toNode
+// NOTE: Before signals had their own wrappers with 'display:contents' style. Which was letting us update signals on the DOM without updating sibilings on the DOM.
+//          But it was causing problems with CSS selectors.
+//          So instead I simplified it and used .replaceChildren() method to update all children at once.
+//          Signals can have their own wrappers again when JS DOM has a real DocumentFragment which is persistent.
+
 let unwrap = (value: unknown) => {
     if (instancesOf(value, Builder)) {
         return value.$node;
@@ -214,6 +220,7 @@ export let Builder: BuilderConstructor = function <T extends Node & Partial<With
     } as never);
 } as never;
 
+// Note: Lifecycle stuff can be removed or simplified once DOM has a nice and simple native way to follow life cycle of any Element or ChildNode sync.
 export namespace Lifecycle {
     export type OnDisconnected = () => void;
     export type OnConnected<T extends HTMLElement = HTMLElement> = (element: T) => void | OnDisconnected;
