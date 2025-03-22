@@ -15,5 +15,7 @@ new Builder(document.body).replaceChildren(
             .span({ "data-time": time })
             .replaceChildren([time], [[tags.div()]])
             .ariaLabel(time)
+            .click()
+            .setAttribute("foo", "bar")
     )
 );

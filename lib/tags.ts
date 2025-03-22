@@ -2,7 +2,7 @@
 
 import { StrictARIA } from "./aria";
 import { computed, Signal } from "./signals";
-import { _Event, Fn, If, instancesOf, IsFunction, IsNullable, IsReadonly, Not } from "./utils";
+import { _Event, Equal, Fn, If, instancesOf, IsFunction, IsNullable, IsReadonly, Not } from "./utils";
 
 /**
  * Proxy object for building HTML elements.
@@ -77,8 +77,14 @@ type IsProxyable<T, K extends keyof T> =
             Not<IsReadonly<T, K>> & Not<IsFunction<T[K]>>,
             // Any nullable functions, basically mutable functions such as event listeners
             IsFunction<T[K]> & IsNullable<T[K]>,
-            // Any function that returns void exclusivly
-            IsFunction<T[K], void, (string | Node)[]>
+            // We have to be careful here because we "unwrap" these for children/members
+            IsFunction<T[K], void, (string | Node)[]>,
+            IsFunction<T[K], void, []>,
+            T[K] extends (...args: infer A) => infer R ?
+                A extends (object | null | undefined)[] ?
+                    false
+                :   Equal<R, void>
+            :   false
         ][number];
 
 type DeeplyNestedArray<T> =
