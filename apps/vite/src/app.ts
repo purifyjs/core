@@ -1,24 +1,23 @@
-import { Builder, ref, tags } from "@purifyjs/core"
+import { Builder, ref, tags } from "@purifyjs/core";
 
 const time = ref(new Date().toLocaleString(), (set) => {
-    const interval = setInterval(() => set(new Date().toLocaleString()), 1000)
+    const interval = setInterval(() => set(new Date().toLocaleString()), 1000);
     return () => {
-        clearInterval(interval)
-    }
-})
+        clearInterval(interval);
+    };
+});
 
-new Builder(document.body).append(
+new Builder(document.body).replaceChildren(
     tags
         .div({ "data-time": time })
+        .click()
         .replaceChildren(
-            ref(ref("")),
             "Hello ",
-            time,
             tags.strong().textContent("World"),
             tags
                 .span({ "data-time": time })
-                .textContent(time)
-                .attribute("data-something", "nothing")
-                .attribute("data-time-2", time)
+                .replaceChildren(time)
+                .setAttribute("data-something", "nothing")
+                .ariaLabel(time)
         )
-)
+);

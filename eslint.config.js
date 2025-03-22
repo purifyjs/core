@@ -1,5 +1,5 @@
-import globals from "globals"
-import tseslint from "typescript-eslint"
+import globals from "globals";
+import tseslint from "typescript-eslint";
 
 export default tseslint.config(
     { files: ["**/*.{js,mjs,cjs,ts}"] },
@@ -13,4 +13,4 @@ export default tseslint.config(
             "@typescript-eslint/no-this-alias": "off"
         }
     }
-)
+);

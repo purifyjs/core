@@ -1,4 +1,4 @@
-export {}
+export {};
 
 /**
  * @module ARIA
@@ -19,83 +19,83 @@ export namespace StrictARIA {
             Name extends `${infer Name}Elements` ?
                 `aria-${Lowercase<Name>}`
             :   `aria-${Lowercase<Name>}`
-        :   never]: Element[] extends Properties[K] ? string | null : Properties[K]
-    }
+        :   never]: Element[] extends Properties[K] ? string | null : Properties[K];
+    };
 
     /**
      * Interface representing all ARIA properties, including those that override base properties and
      * experimental attributes that are supported by specific browsers.
      */
-    export type Properties = ARIAMixin & Properties.Mixin
+    export type Properties = ARIAMixin & Properties.Mixin;
 
     export namespace Properties {
-        export type Mixin = Properties.Override & Properties.Experimental
+        export type Mixin = Properties.Override & Properties.Experimental;
 
         /**
          * Experimental ARIA properties that may not be fully standardized or cross-browser.
          */
         export type Experimental = {
-            ariaOwnsElements: Element[] | null
-            ariaFlowToElements: Element[] | null
-            ariaDetailsElements: Element[] | null
-            ariaControlsElements: Element[] | null
-            ariaLabelledByElements: Element[] | null
-            ariaDescribedByElements: Element[] | null
-            ariaErrorMessageElements: Element[] | null
-        }
+            ariaOwnsElements: Element[] | null;
+            ariaFlowToElements: Element[] | null;
+            ariaDetailsElements: Element[] | null;
+            ariaControlsElements: Element[] | null;
+            ariaLabelledByElements: Element[] | null;
+            ariaDescribedByElements: Element[] | null;
+            ariaErrorMessageElements: Element[] | null;
+        };
 
         /**
          * Properties that override default ARIA types for stricter control over allowed values.
          * These types enforce specific string literal types for various ARIA attributes.
          */
         export type Override = {
-            ariaAtomic: "false" | "true" | null
-            ariaAutoComplete: "inline" | "list" | "both" | "none" | null
-            ariaBusy: "true" | "false" | null
-            ariaChecked: "true" | "mixed" | "false" | "undefined" | null
-            ariaColCount: `${bigint}` | null
-            ariaColIndex: `${bigint}` | null
-            ariaColSpan: `${bigint}` | null
-            ariaCurrent: "page" | "step" | "location" | "date" | "time" | "true" | "false" | null
-            ariaDisabled: "true" | "false" | null
-            ariaExpanded: "true" | "false" | "undefined" | null
-            ariaHasPopup: "false" | "true" | "menu" | "listbox" | "tree" | "grid" | "dialog" | null
-            ariaHidden: "true" | "false" | "undefined" | null
-            ariaInvalid: "true" | "false" | "grammar" | "spelling" | null
-            ariaLevel: `${bigint}` | null
-            ariaLive: "assertive" | "off" | "polite" | null
-            ariaModal: "true" | "false" | null
-            ariaMultiLine: "true" | "false" | null
-            ariaMultiSelectable: "true" | "false" | null
-            ariaOrientation: "horizontal" | "vertical" | "undefined" | null
-            ariaPosInSet: `${bigint}` | null
-            ariaPressed: "true" | "false" | "mixed" | "undefined" | null
-            ariaReadOnly: "true" | "false" | null
-            ariaRequired: "true" | "false" | null
-            ariaRowCount: `${bigint}` | null
-            ariaRowIndex: `${bigint}` | null
-            ariaRowSpan: `${bigint}` | null
-            ariaSelected: "true" | "false" | "undefined" | null
-            ariaSetSize: `${bigint}` | null
-            ariaSort: "ascending" | "descending" | "none" | "other" | null
-            ariaValueMax: `${number}` | null
-            ariaValueMin: `${number}` | null
-            ariaValueNow: `${number}` | null
-            role: StrictARIA.Role | null
-        }
+            ariaAtomic: "false" | "true" | null;
+            ariaAutoComplete: "inline" | "list" | "both" | "none" | null;
+            ariaBusy: "true" | "false" | null;
+            ariaChecked: "true" | "mixed" | "false" | "undefined" | null;
+            ariaColCount: `${bigint}` | null;
+            ariaColIndex: `${bigint}` | null;
+            ariaColSpan: `${bigint}` | null;
+            ariaCurrent: "page" | "step" | "location" | "date" | "time" | "true" | "false" | null;
+            ariaDisabled: "true" | "false" | null;
+            ariaExpanded: "true" | "false" | "undefined" | null;
+            ariaHasPopup: "false" | "true" | "menu" | "listbox" | "tree" | "grid" | "dialog" | null;
+            ariaHidden: "true" | "false" | "undefined" | null;
+            ariaInvalid: "true" | "false" | "grammar" | "spelling" | null;
+            ariaLevel: `${bigint}` | null;
+            ariaLive: "assertive" | "off" | "polite" | null;
+            ariaModal: "true" | "false" | null;
+            ariaMultiLine: "true" | "false" | null;
+            ariaMultiSelectable: "true" | "false" | null;
+            ariaOrientation: "horizontal" | "vertical" | "undefined" | null;
+            ariaPosInSet: `${bigint}` | null;
+            ariaPressed: "true" | "false" | "mixed" | "undefined" | null;
+            ariaReadOnly: "true" | "false" | null;
+            ariaRequired: "true" | "false" | null;
+            ariaRowCount: `${bigint}` | null;
+            ariaRowIndex: `${bigint}` | null;
+            ariaRowSpan: `${bigint}` | null;
+            ariaSelected: "true" | "false" | "undefined" | null;
+            ariaSetSize: `${bigint}` | null;
+            ariaSort: "ascending" | "descending" | "none" | "other" | null;
+            ariaValueMax: `${number}` | null;
+            ariaValueMin: `${number}` | null;
+            ariaValueNow: `${number}` | null;
+            role: StrictARIA.Role | null;
+        };
     }
 
     /**
      * Type representing ARIA roles, which can be specified for various elements to define
      * their function and behavior within an application. Roles are grouped by specification.
      */
-    export type Role = Role.RichInternetApplications | Role.DigitalPublishing | Role.Experimental
+    export type Role = Role.RichInternetApplications | Role.DigitalPublishing | Role.Experimental;
 
     export namespace Role {
         /**
          * Experimental role that may not be fully standardized or supported by all browsers.
          */
-        export type Experimental = "text"
+        export type Experimental = "text";
 
         /**
          * Roles specified under the WAI-ARIA Rich Internet Applications specification,
@@ -169,7 +169,7 @@ export namespace StrictARIA {
             | "tooltip"
             | "tree"
             | "treegrid"
-            | "treeitem"
+            | "treeitem";
 
         /**
          * Roles specific to digital publishing, which assist in identifying structural elements
@@ -214,6 +214,6 @@ export namespace StrictARIA {
             | "doc-qna"
             | "doc-subtitle"
             | "doc-tip"
-            | "doc-toc"
+            | "doc-toc";
     }
 }

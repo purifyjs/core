@@ -1,7 +1,7 @@
 {
     "tabWidth": 4,
     "printWidth": 120,
-    "semi": false,
+    "semi": true,
     "trailingComma": "none",
     "arrowParens": "always",
     "bracketSpacing": true,

@@ -1,1 +1,1 @@
-export * from "../../lib/mod"
+export * from "../../lib/mod";

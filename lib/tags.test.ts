@@ -1,52 +1,52 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
-import { ref } from "./signals"
-import { Builder, tags as tags_type, WithLifecycle } from "./tags"
-declare const tags: typeof tags_type
+import { ref } from "./signals";
+import { Builder, tags as tags_type, WithLifecycle } from "./tags";
+declare const tags: typeof tags_type;
 
 function _(fn: () => void) {}
 
 _(() => {
     // Elements should still satisfy the native types
-    tags.a().$node satisfies HTMLAnchorElement
-    tags.form().$node satisfies HTMLFormElement
-})
+    tags.a().$node satisfies HTMLAnchorElement;
+    tags.form().$node satisfies HTMLFormElement;
+});
 
-declare function foo(x: Builder<Node>): void
-declare const bar: Builder<HTMLDivElement> | Builder<WithLifecycle<HTMLElement>> | Builder<ShadowRoot>
+declare function foo(x: Builder<Node>): void;
+declare const bar: Builder<HTMLDivElement> | Builder<WithLifecycle<HTMLElement>> | Builder<ShadowRoot>;
 
 _(() => {
-    foo(bar)
-})
+    foo(bar);
+});
 
-declare const svgElement: SVGSVGElement
-declare const divElement: HTMLDivElement
-declare const divElementWithLifecycle: WithLifecycle<HTMLDivElement>
+declare const svgElement: SVGSVGElement;
+declare const divElement: HTMLDivElement;
+declare const divElementWithLifecycle: WithLifecycle<HTMLDivElement>;
 _(() => {
-    const svgBuilder = new Builder(svgElement)
-    const divBuilder = new Builder(divElement)
-    const divWithLifecycleBuilder = new Builder(divElementWithLifecycle)
+    const svgBuilder = new Builder(svgElement);
+    const divBuilder = new Builder(divElement);
+    const divWithLifecycleBuilder = new Builder(divElementWithLifecycle);
 
-    svgBuilder.replaceChildren("123")
+    svgBuilder.replaceChildren("123");
     /// @ts-expect-error Don't allow signals on elements without lifecycle
-    svgBuilder.replaceChildren(ref("123"))
+    svgBuilder.replaceChildren(ref("123"));
     /// @ts-expect-error Don't allow signals on elements without lifecycle
-    svgBuilder.ariaLabel(ref("foo"))
+    svgBuilder.ariaLabel(ref("foo"));
     /// @ts-expect-error Don't allow signals on elements without lifecycle
-    svgBuilder.effect(() => {})
+    svgBuilder.effect(() => {});
 
-    divBuilder.replaceChildren("123")
-    divBuilder.replaceChildren(divWithLifecycleBuilder)
+    divBuilder.replaceChildren("123");
+    divBuilder.replaceChildren(divWithLifecycleBuilder);
     /// @ts-expect-error Don't allow signals on elements without lifecycle
-    divBuilder.replaceChildren(ref("123"))
+    divBuilder.replaceChildren(ref("123"));
     /// @ts-expect-error Don't allow signals on elements without lifecycle
-    divBuilder.ariaLabel(ref("foo"))
+    divBuilder.ariaLabel(ref("foo"));
     /// @ts-expect-error Don't allow signals on elements without lifecycle
-    divBuilder.effect(() => {})
+    divBuilder.effect(() => {});
 
-    divWithLifecycleBuilder.replaceChildren("123")
-    divWithLifecycleBuilder.replaceChildren(ref("123"))
-    divWithLifecycleBuilder.replaceChildren(divWithLifecycleBuilder)
-    divWithLifecycleBuilder.ariaLabel(ref("foo"))
-    divWithLifecycleBuilder.$effect(() => {})
-})
+    divWithLifecycleBuilder.replaceChildren("123");
+    divWithLifecycleBuilder.replaceChildren(ref("123"));
+    divWithLifecycleBuilder.replaceChildren(divWithLifecycleBuilder);
+    divWithLifecycleBuilder.ariaLabel(ref("foo"));
+    divWithLifecycleBuilder.$effect(() => {});
+});

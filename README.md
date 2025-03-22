@@ -59,18 +59,18 @@ To install **purify.js**, follow the [jsr.io/@purifyjs/core](https://jsr.io/@pur
 ### Counter
 
 ```ts
-import { computed, Lifecycle, ref, Signal, tags } from "@purifyjs/core"
+import { computed, Lifecycle, ref, Signal, tags } from "@purifyjs/core";
 
-const { div, section, button, ul, li, input } = tags
+const { div, section, button, ul, li, input } = tags;
 
 function App() {
-    return div().id("app").children(Counter())
+    return div().id("app").children(Counter());
 }
 
 function Counter() {
-    const count = ref(0)
-    const double = count.derive((count) => count * 2)
-    const half = computed(() => count.val * 0.5)
+    const count = ref(0);
+    const double = count.derive((count) => count * 2);
+    const half = computed(() => count.val * 0.5);
 
     return div().children(
         section({ class: "input" })
@@ -95,91 +95,91 @@ function Counter() {
                     li().children("Half: ", half)
                 )
             )
-    )
+    );
 }
 
 function useBindNumber(state: Signal.State<number>): Lifecycle.OnConnected<HTMLInputElement> {
     return (element) => {
-        const listener = () => (state.val = element.valueAsNumber)
-        element.addEventListener("input", listener)
-        const unfollow = state.follow((value) => (element.valueAsNumber = value), true)
+        const listener = () => (state.val = element.valueAsNumber);
+        element.addEventListener("input", listener);
+        const unfollow = state.follow((value) => (element.valueAsNumber = value), true);
         return () => {
-            element.removeEventListener("input", listener)
-            unfollow()
-        }
-    }
+            element.removeEventListener("input", listener);
+            unfollow();
+        };
+    };
 }
 
-document.body.append(App().node)
+document.body.append(App().node);
 ```
 
 ### ShadowRoot
 
 ```ts
-import { Builder, ref, tags } from "@purifyjs/core"
+import { Builder, ref, tags } from "@purifyjs/core";
 
-const { div, button } = tags
+const { div, button } = tags;
 
 function App() {
-    return div().id("app").children(Counter())
+    return div().id("app").children(Counter());
 }
 
 function Counter() {
-    const host = div()
-    const shadow = new Builder(host.node.attachShadow({ mode: "open" }))
+    const host = div();
+    const shadow = new Builder(host.node.attachShadow({ mode: "open" }));
 
-    const count = ref(0)
+    const count = ref(0);
 
     shadow.children(
         button()
             .title("Click me!")
             .onclick(() => count.val++)
             .children("Count:", count)
-    )
-    return host
+    );
+    return host;
 }
 
-document.body.append(App().node)
+document.body.append(App().node);
 ```
 
 ### Web Components
 
 ```ts
-import { Builder, ref, tags, WithLifecycle } from "@purifyjs/core"
+import { Builder, ref, tags, WithLifecycle } from "@purifyjs/core";
 
-const { div, button } = tags
+const { div, button } = tags;
 
 function App() {
-    return div().id("app").children(new CounterElement())
+    return div().id("app").children(new CounterElement());
 }
 
 declare global {
     interface HTMLElementTagNameMap {
-        "x-counter": CounterElement
+        "x-counter": CounterElement;
     }
 }
 
 class CounterElement extends WithLifecycle(HTMLElement) {
     static {
-        customElements.define("x-counter", this)
+        customElements.define("x-counter", this);
     }
 
-    #count = ref(0)
+    #count = ref(0);
 
     constructor() {
-        super()
-        const self = new Builder<CounterElement>(this)
+        super();
+        const self = new Builder<CounterElement>(this);
 
         self.children(
             button()
                 .title("Click me!")
                 .onclick(() => this.#count.val++)
                 .children("Count:", this.#count)
-        )
+        );
     }
 }
 
-document.body.append(App().node)
+document.body.append(App().node);
 ```
 
 ## Guide 🥡

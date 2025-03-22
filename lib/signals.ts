@@ -1,4 +1,4 @@
-import { noop } from "./utils"
+import { noop } from "./utils";
 
 /**
  * An abstract class representing a signal that holds a value and allows followers to react to changes.
@@ -7,7 +7,7 @@ import { noop } from "./utils"
  */
 export abstract class Signal<T> {
     /** The current value of the signal. */
-    public abstract readonly val: T
+    public abstract readonly val: T;
 
     /**
      * Registers a follower that will be called when the signal's value changes.
@@ -16,7 +16,7 @@ export abstract class Signal<T> {
      * @param {boolean} [immediate] - Whether to call the follower immediately with the current value.
      * @returns {Signal.Unfollower} A function to unregister the follower.
      */
-    public abstract follow(follower: Signal.Follower<T>, immediate?: boolean): Signal.Unfollower
+    public abstract follow(follower: Signal.Follower<T>, immediate?: boolean): Signal.Unfollower;
 
     /**
      * Derives a new value from this signal based on a getter function.
@@ -37,9 +37,9 @@ export abstract class Signal<T> {
      */
     public derive<R>(getter: (value: T) => R): Signal.Computed<R> {
         return computed(() => {
-            Dependency.add(this)
-            return Dependency.track(() => getter(this.val))
-        })
+            Dependency.add(this);
+            return Dependency.track(() => getter(this.val));
+        });
     }
 
     /**
@@ -70,16 +70,16 @@ export abstract class Signal<T> {
      * ```
      */
     public pipe<R>(getter: (signal: Signal<T>) => R): R {
-        return getter(this)
+        return getter(this);
     }
 }
 
 /** A namespace for signal-related types and classes. */
 export declare namespace Signal {
     /** Signal follower function type. */
-    type Follower<T> = (value: T) => void
+    type Follower<T> = (value: T) => void;
     /** Unfollow signal function type. */
-    type Unfollower = () => void
+    type Unfollower = () => void;
 
     /**
      * Writable State Signal.
@@ -87,10 +87,10 @@ export declare namespace Signal {
      * @template T The type of the value.
      */
     class State<T> extends Signal<T> {
-        constructor(initial: T, startStop?: Signal.State.Start<T>)
-        public get val(): T
-        public set val(newValue: T)
-        public follow(follower: Follower<T>, immediate?: boolean): Signal.Unfollower
+        constructor(initial: T, startStop?: Signal.State.Start<T>);
+        public get val(): T;
+        public set val(newValue: T);
+        public follow(follower: Follower<T>, immediate?: boolean): Signal.Unfollower;
         /**
          * Notifies all followers of the current value without changing it.
          *
@@ -103,7 +103,7 @@ export declare namespace Signal {
          * arraySignal.emit() // logs: 123
          * ```
          */
-        public emit(): void
+        public emit(): void;
     }
 
     namespace State {
@@ -113,7 +113,7 @@ export declare namespace Signal {
          * @template T - The type of the value to set.
          * @param value - The value to set.
          */
-        type Setter<T> = (value: T) => void
+        type Setter<T> = (value: T) => void;
 
         /**
          * State start callback.
@@ -122,10 +122,10 @@ export declare namespace Signal {
          * @param set A function to set the value of the signal.
          * @returns A function to stop the signal or nothing.
          */
-        type Start<T> = (set: Setter<T>) => Stop | void
+        type Start<T> = (set: Setter<T>) => Stop | void;
 
         /** State stop callback. */
-        type Stop = () => void
+        type Stop = () => void;
     }
 
     /**
@@ -134,142 +134,142 @@ export declare namespace Signal {
      * @template T The type of the computed value.
      */
     class Computed<T> extends Signal<T> {
-        constructor(getter: Signal.Computed.Getter<T>)
-        public get val(): T
-        public follow(follower: Follower<T>, immediate?: boolean): Signal.Unfollower
+        constructor(getter: Signal.Computed.Getter<T>);
+        public get val(): T;
+        public follow(follower: Follower<T>, immediate?: boolean): Signal.Unfollower;
     }
 
     namespace Computed {
         /** A function that computes the value of a computed signal. */
-        type Getter<T> = () => T
+        type Getter<T> = () => T;
     }
 
     namespace Dependency {
-        export function add(signal: Signal<unknown>): void
-        function track<R>(callAndTrack: () => R, callback?: (signal: Signal<unknown>) => unknown): R
+        export function add(signal: Signal<unknown>): void;
+        function track<R>(callAndTrack: () => R, callback?: (signal: Signal<unknown>) => unknown): R;
     }
 }
 
-let dependencyTrackingStack: (((signal: Signal<unknown>) => unknown) | undefined)[] = []
+let dependencyTrackingStack: (((signal: Signal<unknown>) => unknown) | undefined)[] = [];
 
 let Dependency = (Signal.Dependency = {
     add(signal: Signal<unknown>): void {
-        dependencyTrackingStack.at(-1)?.(signal)
+        dependencyTrackingStack.at(-1)?.(signal);
     },
     track<R>(callAndTrack: () => R, callback?: (signal: Signal<unknown>) => unknown): R {
-        dependencyTrackingStack.push(callback)
-        let result = callAndTrack()
-        dependencyTrackingStack.pop()
-        return result
+        dependencyTrackingStack.push(callback);
+        let result = callAndTrack();
+        dependencyTrackingStack.pop();
+        return result;
     }
-})
+});
 
 Signal.State = class<T> extends Signal<T> {
-    #followers = new Set<Signal.Follower<T>>()
-    #value: T
+    #followers = new Set<Signal.Follower<T>>();
+    #value: T;
 
-    #start: Signal.State.Start<T> | undefined
-    #stop: Signal.State.Stop | undefined | null
+    #start: Signal.State.Start<T> | undefined;
+    #stop: Signal.State.Stop | undefined | null;
 
     constructor(initial: T, startStop?: Signal.State.Start<T>) {
-        super()
-        this.#value = initial
-        this.#start = startStop
+        super();
+        this.#value = initial;
+        this.#start = startStop;
     }
 
     public get val() {
-        Dependency.add(this)
+        Dependency.add(this);
         if (!this.#stop) {
-            this.follow(() => {})()
+            this.follow(() => {})();
         }
-        return this.#value
+        return this.#value;
     }
     public set val(newValue: T) {
-        if (this.#value === newValue) return
-        this.#value = newValue
-        this.emit()
+        if (this.#value === newValue) return;
+        this.#value = newValue;
+        this.emit();
     }
 
     public follow(follower: Signal.Follower<T>, immediate?: boolean): Signal.Unfollower {
         if (!this.#stop) {
-            this.#stop = noop // start might call follow internally, so we set stop as noop here to prevent recusive infinite loop of defining stop
-            this.#stop = this.#start?.((value) => (this.val = value)) ?? noop
+            this.#stop = noop; // start might call follow internally, so we set stop as noop here to prevent recusive infinite loop of defining stop
+            this.#stop = this.#start?.((value) => (this.val = value)) ?? noop;
         }
 
         if (immediate) {
-            follower(this.#value)
+            follower(this.#value);
         }
 
-        this.#followers.add(follower)
+        this.#followers.add(follower);
 
         return () => {
-            this.#followers.delete(follower)
+            this.#followers.delete(follower);
             if (!this.#followers.size) {
-                this.#stop?.()
-                this.#stop = null
+                this.#stop?.();
+                this.#stop = null;
             }
-        }
+        };
     }
 
     public emit() {
-        let i = this.#followers.size
+        let i = this.#followers.size;
         this.#followers.forEach((follower) => {
             if (i-- > 0) {
-                follower(this.#value)
+                follower(this.#value);
             }
-        })
+        });
     }
-}
+};
 
 Signal.Computed = class<T> extends Signal<T> {
-    #getter: Signal.Computed.Getter<T> | undefined | null
-    #state: Signal.State<T>
+    #getter: Signal.Computed.Getter<T> | undefined | null;
+    #state: Signal.State<T>;
 
     constructor(getter: Signal.Computed.Getter<T>) {
-        super()
-        this.#getter = getter
+        super();
+        this.#getter = getter;
 
-        let dependencies = new Map<Signal<unknown>, Signal.Unfollower>()
+        let dependencies = new Map<Signal<unknown>, Signal.Unfollower>();
 
         this.#state = ref<T>(0 as never, (set) => {
             let update = () => {
-                let newDependencies = new Set<Signal<unknown>>()
+                let newDependencies = new Set<Signal<unknown>>();
                 let newValue = Dependency.track(getter, (dependency) => {
-                    newDependencies.add(dependency)
+                    newDependencies.add(dependency);
                     if (!dependencies.has(dependency)) {
-                        dependencies.set(dependency, dependency.follow(update))
+                        dependencies.set(dependency, dependency.follow(update));
                     }
-                })
-                newDependencies.delete(this)
-                set(newValue)
+                });
+                newDependencies.delete(this);
+                set(newValue);
 
                 for (let [dependency, unfollow] of dependencies) {
                     if (!newDependencies.has(dependency)) {
-                        unfollow()
-                        dependencies.delete(dependency)
+                        unfollow();
+                        dependencies.delete(dependency);
                     }
                 }
-            }
-            update()
-            this.#getter = null
+            };
+            update();
+            this.#getter = null;
 
             return () => {
-                this.#getter = getter
-                dependencies.forEach((unfollow) => unfollow())
-                dependencies.clear()
-            }
-        })
+                this.#getter = getter;
+                dependencies.forEach((unfollow) => unfollow());
+                dependencies.clear();
+            };
+        });
     }
 
     public get val(): T {
-        Dependency.add(this)
-        return this.#getter ? this.#getter() : this.#state.val
+        Dependency.add(this);
+        return this.#getter ? this.#getter() : this.#state.val;
     }
 
     public follow(follower: Signal.Follower<T>, immediate?: boolean): Signal.Unfollower {
-        return this.#state.follow(follower, immediate)
+        return this.#state.follow(follower, immediate);
     }
-}
+};
 
 /**
  * Creates a new state signal with an initial value.
@@ -287,7 +287,8 @@ Signal.Computed = class<T> extends Signal<T> {
  * count.val = 10; // logs: 10
  * ```
  */
-export let ref = <T>(value: T, startStop?: Signal.State.Start<T>): Signal.State<T> => new Signal.State(value, startStop)
+export let ref = <T>(value: T, startStop?: Signal.State.Start<T>): Signal.State<T> =>
+    new Signal.State(value, startStop);
 
 /**
  * Creates a new computed signal from other signals.
@@ -305,4 +306,4 @@ export let ref = <T>(value: T, startStop?: Signal.State.Start<T>): Signal.State<
  * a.val++ // logs: 4
  * ```
  */
-export let computed = <T>(getter: Signal.Computed.Getter<T>): Signal.Computed<T> => new Signal.Computed(getter)
+export let computed = <T>(getter: Signal.Computed.Getter<T>): Signal.Computed<T> => new Signal.Computed(getter);
