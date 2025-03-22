@@ -161,6 +161,9 @@ export interface BuilderConstructor {
 //          So instead I simplified it and used .replaceChildren() method to update all children at once.
 //          Signals can have their own wrappers again when JS DOM has a real DocumentFragment which is persistent.
 
+export let fragment = (...members: Parameters<Builder<DocumentFragment>["append"]>): Builder<DocumentFragment> =>
+    new Builder(document.createDocumentFragment()).append(...members);
+
 export let Builder: BuilderConstructor = function <T extends Node & Partial<WithLifecycle<HTMLElement>>>(
     this: Builder<T>,
     node: T,
@@ -217,9 +220,7 @@ export let Builder: BuilderConstructor = function <T extends Node & Partial<With
                             return unwrap(value.val);
                         }
                         if (instancesOf(value, Array)) {
-                            return new Builder(document.createDocumentFragment()).append(
-                                ...(value.map(unwrap) as never[])
-                            ).$node;
+                            return unwrap(fragment(...(value.map(unwrap) as never[])));
                         }
                         return value;
                     };

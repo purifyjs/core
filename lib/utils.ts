@@ -4,16 +4,20 @@ export type _Event = Event;
 
 export type And<T, U> = T | U extends true ? true : false;
 
+export type Equal<T, U> =
+    T extends U ?
+        U extends T ?
+            true
+        :   false
+    :   false;
 export type If<T extends boolean, Then, Else = never> = true extends T ? Then : Else;
 export type Not<T extends boolean> = false extends T ? true : false;
 export type Fn = (...args: any) => any;
 export type IsFunction<T, TReturns = any, TArgs = any> =
     Fn extends T ?
         T extends (...args: infer Args) => infer R ?
-            R extends TReturns ?
-                Args extends TArgs ?
-                    true
-                :   false
+            true extends Equal<R, TReturns> & Equal<Args, TArgs> ?
+                true
             :   false
         :   false
     :   false;
