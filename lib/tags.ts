@@ -78,7 +78,7 @@ type IsProxyable<T, K extends keyof T> =
             // Any nullable functions, basically mutable functions such as event listeners
             IsFunction<T[K]> & IsNullable<T[K]>,
             // Any function that returns void exclusivly
-            IsFunction<T[K], void>
+            IsFunction<T[K], void, (string | Node)[]>
         ][number];
 
 type DeeplyNestedArray<T> =
@@ -161,22 +161,6 @@ export interface BuilderConstructor {
 //          So instead I simplified it and used .replaceChildren() method to update all children at once.
 //          Signals can have their own wrappers again when JS DOM has a real DocumentFragment which is persistent.
 
-let unwrap = (value: unknown): unknown => {
-    if (value == null) {
-        return unwrap([]);
-    }
-    if (instancesOf(value, Builder)) {
-        return value.$node;
-    }
-    if (instancesOf(value, Signal)) {
-        return unwrap(value.val);
-    }
-    if (instancesOf(value, Array)) {
-        return new Builder(document.createDocumentFragment()).append(...(value.map(unwrap) as never[])).$node;
-    }
-    return value;
-};
-
 export let Builder: BuilderConstructor = function <T extends Node & Partial<WithLifecycle<HTMLElement>>>(
     this: Builder<T>,
     node: T,
@@ -220,15 +204,34 @@ export let Builder: BuilderConstructor = function <T extends Node & Partial<With
 
             if (instancesOf(node[name], Function) && !node.hasOwnProperty(name)) {
                 return (target[name] = (...args: unknown[]) => {
-                    if (args.some((arg) => instancesOf(arg, Signal))) {
-                        let argsComputed = computed(() => args.map(unwrap));
+                    let hasSignal: boolean | undefined;
+                    let unwrap = (value: unknown): unknown => {
+                        if (value == null) {
+                            return unwrap([]);
+                        }
+                        if (instancesOf(value, Builder)) {
+                            return value.$node;
+                        }
+                        if (instancesOf(value, Signal)) {
+                            hasSignal = true;
+                            return unwrap(value.val);
+                        }
+                        if (instancesOf(value, Array)) {
+                            return new Builder(document.createDocumentFragment()).append(
+                                ...(value.map(unwrap) as never[])
+                            ).$node;
+                        }
+                        return value;
+                    };
+
+                    let unwrappedArgs = args.map(unwrap);
+                    if (hasSignal) {
+                        let computedArgs = computed(() => args.map(unwrap));
                         cleanups[name] = node.$effect!(() =>
-                            argsComputed.follow((args) => (node[name] as Fn)(...args), true)
+                            computedArgs.follow((newArgs) => (node[name] as Fn)(...newArgs))
                         );
-                    } else {
-                        args.forEach((arg, index) => (args[index] = unwrap(arg)));
-                        (node[name] as Fn)(...args);
                     }
+                    (node[name] as Fn)(...unwrappedArgs);
                     return proxy;
                 });
             }

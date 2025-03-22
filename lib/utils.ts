@@ -7,11 +7,13 @@ export type And<T, U> = T | U extends true ? true : false;
 export type If<T extends boolean, Then, Else = never> = true extends T ? Then : Else;
 export type Not<T extends boolean> = false extends T ? true : false;
 export type Fn = (...args: any) => any;
-export type IsFunction<T, TReturns = any> =
+export type IsFunction<T, TReturns = any, TArgs = any> =
     Fn extends T ?
-        T extends (...args: any) => infer R ?
+        T extends (...args: infer Args) => infer R ?
             R extends TReturns ?
-                true
+                Args extends TArgs ?
+                    true
+                :   false
             :   false
         :   false
     :   false;
