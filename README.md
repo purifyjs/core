@@ -13,7 +13,7 @@
 ---
 
 <p align="center">
-    <b>purify.js</b> is a 1.0kB <i>(minified, gzipped)</i> DOM utility library that encourages the usage of pure JavaScript and DOM, while providing a thin layer of abstraction for the annoying parts for better DX <i>(developer experience)</i>. 🚀
+    <b>purify.js</b> is a 1.0kB <i>(minified, gzipped)</i> 1.0kB DOM utility library, focusing on building reactive UI. 🚀
 </p>
 
 # Features 🌟🚀
