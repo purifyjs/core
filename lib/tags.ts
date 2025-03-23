@@ -2,7 +2,7 @@
 
 import { StrictARIA } from "./aria";
 import { computed, Signal } from "./signals";
-import { _Event, Equal, Fn, If, instancesOf, IsFunction, IsNullable, IsReadonly, Not } from "./utils";
+import { _Event, Equal, Extends, Fn, If, instancesOf, IsFunction, IsNullable, IsReadonly, Not } from "./utils";
 
 /**
  * Proxy object for building HTML elements.
@@ -51,8 +51,7 @@ export type Tags = {
 
 export namespace Builder {
     export namespace Attributes {
-        export type Value<TElement extends Element, T> =
-            TElement extends WithLifecycle<HTMLElement> ? T | Signal<T> : T;
+        export type Value<TElement extends Element, T> = TElement extends WithLifecycle ? T | Signal<T> : T;
     }
     export type Attributes<T extends Element> = {
         class?: Attributes.Value<T, string | null>;
@@ -68,89 +67,81 @@ export namespace Builder {
     export type Event<E extends _Event, T extends EventTarget> = E & { currentTarget: T };
 }
 
-type IsProxyable<T, K extends keyof T> =
-    K extends keyof EventTarget ? false
-    :   [
-            // Anything part of the Lifecycle
-            K extends Exclude<keyof WithLifecycle<HTMLElement>, keyof HTMLElement> ? true : false,
-            // Any non readonly non functions, basically mutable values
-            Not<IsReadonly<T, K>> & Not<IsFunction<T[K]>>,
-            // Any nullable functions, basically mutable functions such as event listeners
-            IsFunction<T[K]> & IsNullable<T[K]>,
-            // We have to be careful here because we "unwrap" these for children/members
-            IsFunction<T[K], void, (string | Node)[]>,
-            IsFunction<T[K], void, []>,
-            T[K] extends (...args: infer A) => infer R ?
-                A extends (object | null | undefined)[] ?
-                    false
-                :   Equal<R, void>
-            :   false
-        ][number];
+/* 
+    if a function has `Node` as argument then that function can have a "$"" suffixed version.
+    for example `.replaceChildren$()` that "$" tells runtime Proxy to convert Node like variables toto a Node value.
+    on the type side these functions should also be typed accordingly to allow reccusrive Node like values.
 
-type DeeplyNestedArray<T> =
-    | T
-    | T[]
-    | T[][]
-    | T[][][]
-    | T[][][][]
-    | T[][][][][]
-    | T[][][][][][]
-    | T[][][][][][][]
-    | T[][][][][][][][];
-type DeeplyNestedSignal<T> =
-    | Signal<T>
-    | Signal<Signal<T>>
-    | Signal<Signal<Signal<T>>>
-    | Signal<Signal<Signal<Signal<T>>>>
-    | Signal<Signal<Signal<Signal<Signal<T>>>>>
-    | Signal<Signal<Signal<Signal<Signal<Signal<T>>>>>>
-    | Signal<Signal<Signal<Signal<Signal<Signal<Signal<T>>>>>>>
-    | Signal<Signal<Signal<Signal<Signal<Signal<Signal<Signal<T>>>>>>>>;
+    Seperaretly from that, Signals are only allowed with `WithLifecyle` mixin, and functions with single or spreding arguments. 
+*/
 
-// While proxying functions to support Signal args, make sure it only has one arg or multiple of same spreding argument.
-// Since we have to cleanup the previous set of the signal, before we set it second time we shouldn't support things like `.setAttribute`.
-// It seems OK at first but since we have to cleanup, second time we call `setAttribute` it cleans up the previous call.
-// Makes it not able to use `setAttribute` for multiple attributes, which is a weird beheviour.
-type MaybeWrappedNode<T> =
-    Extract<T, Node> extends Node ?
-        | Builder<Extract<T, Node>>
-        | (Node extends Extract<T, Node> ? DeeplyNestedArray<T | Builder<Extract<T, Node>> | null> : never)
-    :   never;
-type ProxyFunctionCallArgs_Map<Args extends unknown[], R extends unknown[] = []> =
-    Args extends [infer Head, ...infer Tail] ? ProxyFunctionCallArgs_Map<Tail, [...R, Head | MaybeWrappedNode<Head>]>
-    :   R;
-type ProxyFunctionCallArgs<T extends Node, Args extends unknown[]> =
-    Args extends [any, any, ...any] ? ProxyFunctionCallArgs_Map<Args>
-    : Args extends [infer U] ?
-        [
-            | U
-            | MaybeWrappedNode<U>
-            | (T extends WithLifecycle<HTMLElement> ? DeeplyNestedArray<DeeplyNestedSignal<U | MaybeWrappedNode<U>>>
-              :   never)
-        ]
-    : Args extends (infer U)[] ?
-        [U] extends [never] ?
-            []
-        :   (
-                | U
-                | MaybeWrappedNode<U>
-                | (T extends WithLifecycle<HTMLElement> ? DeeplyNestedArray<DeeplyNestedSignal<U | MaybeWrappedNode<U>>>
-                  :   never)
-            )[]
-    :   never;
+type IsProxyableProperty<T, K extends keyof T> = If<
+    Not<Extends<K, keyof EventTarget>> & ((Not<IsReadonly<T, K>> & Not<IsFunction<T[K]>>) | (IsFunction<T[K]> & IsNullable<T[K]>))
+>;
 
-type ProxyValueSetterArg<T extends Node, K extends keyof T> =
+type IsProxyableFunction<T, K extends keyof T> = If<
+    Not<Extends<K, keyof EventTarget>> &
+        (
+            | IsFunction<T[K], void, (string | Node)[]>
+            | IsFunction<T[K], void, []>
+            | (T[K] extends (...args: infer A) => infer R ? Not<Extends<A, (object | null | undefined)[]>> & Equal<R, void> : false)
+        )
+>;
+
+type IsProxyableNodeFunction<T, K extends keyof T> = If<IsProxyableFunction<T, K> & IsFunction<T[K], void, (string | Node)[]>>;
+
+type RecursiveArrayOf<T> = T | RecursiveArrayOf<T>[];
+type RecursiveArrayArgs<Args extends unknown[], R extends unknown[] = []> =
+    Args extends [infer Head, ...infer Tail] ? RecursiveArrayArgs<Tail, [...R, RecursiveArrayOf<Head>]>
+    : Args extends (infer U)[] ? RecursiveArrayOf<U>[]
+    : R;
+
+type RecursiveSignalOf<T> = T | Signal<RecursiveSignalOf<T>>;
+type RecursiveSignalArgs<Args extends unknown[], R extends unknown[] = []> =
+    Args extends [infer Head, ...infer Tail] ? RecursiveSignalArgs<Tail, [...R, RecursiveSignalOf<Head>]>
+    : Args extends (infer U)[] ? RecursiveSignalOf<U>[]
+    : R;
+
+type RecursiveSignalAndArrayOf<T> = T | Signal<RecursiveSignalAndArrayOf<T>> | RecursiveSignalAndArrayOf<T>[];
+type RecursiveSignalAndArrayArgs<Args extends unknown[], R extends unknown[] = []> =
+    Args extends [infer Head, ...infer Tail] ? RecursiveSignalAndArrayArgs<Tail, [...R, RecursiveSignalAndArrayOf<Head>]>
+    : Args extends (infer U)[] ? RecursiveSignalAndArrayOf<U>[]
+    : R;
+
+type ProxyPropertyArg<T extends Node, K extends keyof T> =
     NonNullable<T[K]> extends (this: infer X, event: infer U) => infer R ?
         U extends Event ?
             (this: X, event: Builder.Event<U, T>) => R
         :   T[K]
-    : T extends WithLifecycle<HTMLElement> ? T[K] | Signal<T[K]>
+    : T extends WithLifecycle ? T[K] | Signal<T[K]>
     : T[K];
 
-export type Builder<T extends Node> = {
-    [K in keyof T as If<IsProxyable<T, K>, K>]: T[K] extends (...args: infer Args) => void ?
-        (...args: K extends `$${any}` ? Args : ProxyFunctionCallArgs<T, Args>) => Builder<T>
-    :   (value: ProxyValueSetterArg<T, K>) => Builder<T>;
+type ProxyFunctionArgs<T extends Node, K extends keyof T, Args extends unknown[] = T[K] extends (...args: infer U) => any ? U : never> =
+    Args extends [] | [any, any, ...any] ? Args
+    : T extends WithLifecycle ? RecursiveSignalArgs<Args>
+    : Args;
+
+type MaybeNodeLikeArg<T> = T extends Node ? T | Builder<T> | null : T;
+type MaybeNodeLikeArgs<Args extends unknown[], R extends unknown[] = []> =
+    Args extends [infer Head, ...infer Tail] ? MaybeNodeLikeArgs<Tail, [...R, MaybeNodeLikeArg<Head>]>
+    : Args extends (infer U)[] ? MaybeNodeLikeArg<U>[]
+    : R;
+
+type ProxyNodeFunctionArgs<
+    T extends Node,
+    K extends keyof T,
+    Args extends unknown[] = T[K] extends (...args: infer U) => any ? MaybeNodeLikeArgs<U> : never
+> =
+    Args extends [] | [any, any, ...any] ? RecursiveArrayArgs<Args>
+    : T extends WithLifecycle ? RecursiveSignalAndArrayArgs<Args>
+    : RecursiveArrayArgs<Args>;
+
+export type Builder<T extends Node = Node> = {
+    [K in keyof T as If<IsProxyableProperty<T, K>, K>]: (value: ProxyPropertyArg<T, K>) => Builder<T>;
+} & {
+    [K in keyof T as If<IsProxyableFunction<T, K>, K>]: (...args: ProxyFunctionArgs<T, K>) => Builder<T>;
+} & {
+    [K in keyof T & string as If<IsProxyableNodeFunction<T, K>, `${K}$`>]: (...args: ProxyNodeFunctionArgs<T, K>) => Builder<T>;
 } & {
     $node: T;
 };
@@ -170,7 +161,7 @@ export interface BuilderConstructor {
 export let fragment = (...members: Parameters<Builder<DocumentFragment>["append"]>): Builder<DocumentFragment> =>
     new Builder(document.createDocumentFragment()).append(...members);
 
-export let Builder: BuilderConstructor = function <T extends Node & Partial<WithLifecycle<HTMLElement>>>(
+export let Builder: BuilderConstructor = function <T extends Node & Partial<WithLifecycle>>(
     this: Builder<T>,
     node: T,
     attributes: Record<string, unknown> = {}
@@ -199,59 +190,60 @@ export let Builder: BuilderConstructor = function <T extends Node & Partial<With
 
     let cleanups: Partial<Record<PropertyKey, (() => void) | null>> = {};
     return new Proxy(this, {
-        get: (target: any, name: keyof T, proxy: unknown) => {
-            cleanups[name]?.();
-            cleanups[name] = null;
+        get: (target: any, targetName: string, proxy: unknown) => {
+            let nodeName = (targetName.at(-1) == "$" ? targetName.slice(0, -1) : targetName) as keyof T & string;
 
-            if (target[name]) {
-                return target[name];
-            }
+            cleanups[targetName]?.();
+            cleanups[targetName] = null;
 
-            if (!(name in node)) {
-                return node[name];
-            }
+            type Arg = null | Builder | Node | string | Arg[] | Signal<Arg>;
 
-            if (instancesOf(node[name], Function) && !node.hasOwnProperty(name)) {
-                return (target[name] = (...args: unknown[]) => {
-                    let hasSignal: boolean | undefined;
-                    let unwrap = (value: unknown): unknown => {
-                        if (value == null) {
-                            return unwrap([]);
+            return (target[targetName] ??=
+                instancesOf(node[nodeName], Function) && !node.hasOwnProperty(nodeName) ?
+                    nodeName == targetName ?
+                        (...args: unknown[]) => {
+                            (node[nodeName] as Fn)(...args);
+                            return proxy;
                         }
-                        if (instancesOf(value, Builder)) {
-                            return value.$node;
+                    :   (...args: Arg[]) => {
+                            let hasSignal: boolean | undefined;
+                            let unwrap = (value: Arg): string | Node => {
+                                if (value == null) {
+                                    return unwrap([]);
+                                }
+                                if (instancesOf(value, Builder)) {
+                                    return value.$node;
+                                }
+                                if (instancesOf(value, Signal)) {
+                                    hasSignal = true;
+                                    return unwrap(value.val);
+                                }
+                                if (instancesOf(value, Array)) {
+                                    return unwrap(fragment(...value.map(unwrap)));
+                                }
+                                return value;
+                            };
+
+                            let unwrappedArgs = args.map(unwrap);
+                            if (hasSignal) {
+                                let computedArgs = computed(() => args.map(unwrap));
+                                cleanups[targetName] = node.$effect!(() =>
+                                    computedArgs.follow((newArgs) => (node[nodeName] as Fn)(...newArgs))
+                                );
+                            }
+                            (node[nodeName] as Fn)(...unwrappedArgs);
+                            return proxy;
                         }
+                : !(targetName in node) ? node[nodeName]
+                : (value: unknown) => {
                         if (instancesOf(value, Signal)) {
-                            hasSignal = true;
-                            return unwrap(value.val);
+                            cleanups[targetName] = node.$effect!(() => value.follow((value) => (node[nodeName] = value as never), true));
+                        } else {
+                            node[nodeName] = value as never;
                         }
-                        if (instancesOf(value, Array)) {
-                            return unwrap(fragment(...(value.map(unwrap) as never[])));
-                        }
-                        return value;
-                    };
 
-                    let unwrappedArgs = args.map(unwrap);
-                    if (hasSignal) {
-                        let computedArgs = computed(() => args.map(unwrap));
-                        cleanups[name] = node.$effect!(() =>
-                            computedArgs.follow((newArgs) => (node[name] as Fn)(...newArgs))
-                        );
-                    }
-                    (node[name] as Fn)(...unwrappedArgs);
-                    return proxy;
-                });
-            }
-
-            return (target[name] = (value: unknown) => {
-                if (instancesOf(value, Signal)) {
-                    cleanups[name] = node.$effect!(() => value.follow((value) => (node[name] = value as never), true));
-                } else {
-                    node[name] = value as never;
-                }
-
-                return proxy;
-            });
+                        return proxy;
+                    });
         }
     } as never);
 } as never;
@@ -263,11 +255,11 @@ export namespace Lifecycle {
     export type OnConnected<T extends HTMLElement = HTMLElement> = (element: T) => void | OnDisconnected;
     export type OffConnected = () => void;
 }
-export type Lifecycle<T extends HTMLElement> = {
+export type Lifecycle<T extends HTMLElement = HTMLElement> = {
     $effect(callback: Lifecycle.OnConnected<T>): Lifecycle.OffConnected;
 };
 
-export type WithLifecycle<T extends HTMLElement> = T & Lifecycle<T>;
+export type WithLifecycle<T extends HTMLElement = HTMLElement> = T & Lifecycle<T>;
 
 let withLifecycleCache = new Map<{ new (): HTMLElement }, { new (): WithLifecycle<HTMLElement> }>();
 export let WithLifecycle = <BaseConstructor extends { new (...params: any[]): HTMLElement }>(
