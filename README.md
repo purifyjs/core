@@ -212,6 +212,8 @@ JSX is not part of this library natively, but a wrapper can be made quite easily
   [ungap/custom-elements](https://github.com/ungap/custom-elements) polyfill. You can follow support at
   [caniuse](https://caniuse.com/mdn-html_global_attributes_is).
 
+  But I don't recommend that you support Safari.<br> _Don't suffer for Safari, let the Safari users suffer_
+
 ## Future 🔮🦀
 
 - Right now, when a `Signal` is connected to DOM via `Builder`, we update all of the children of the `ParentNode` with
