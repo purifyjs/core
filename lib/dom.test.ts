@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
 import { ref } from "./signals.ts";
-import { Builder, type tags as tags_type, type WithLifecycle } from "./tags.ts";
+import { Builder, type tags as tags_type, type WithLifecycle } from "./dom.ts";
 declare const tags: typeof tags_type;
 
 function _(_fn: () => void) {}
@@ -55,5 +55,5 @@ _(() => {
     // Form element sometimes might cause issues since it has [key: string] and [index: number] in it, so be careful, keep this in mind
     formWithLifecycleBuilder.replaceChildren$("");
     formWithLifecycleBuilder.$effect(() => {});
-    formWithLifecycleBuilder.ariaAtomic("");
+    formWithLifecycleBuilder.ariaAtomic("true");
 });

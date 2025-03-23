@@ -1,3 +1,5 @@
+// Embrace some optimal ugly code, if it makes the minified code smaller.
+
 import type { StrictARIA } from "./aria.ts";
 import { computed, Signal } from "./signals.ts";
 import type { _Event, Equal, Extends, Fn, If, IsReadonly, Not } from "./utils.ts";
