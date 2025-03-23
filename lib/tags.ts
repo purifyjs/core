@@ -234,14 +234,22 @@ export let Builder: BuilderConstructor = function <T extends Node & Partial<With
                             return value;
                         };
 
+                        // This is the best i can come up with
+                        // Normally if we had a persistent document fragment with lifecyle,
+                        // we could have just wrapped signals with it in the DOM. Not doing these at all.
+                        //
+                        // I can wrap them with an element with lifecycle and give it `display:contents`,
+                        // but that causes other issues in the dx
                         let unwrappedArgs = args.map(unwrap);
                         if (hasSignal) {
                             let computedArgs = computed(() => args.map(unwrap));
                             cleanups[targetName] = node.$effect!(() =>
-                                computedArgs.follow((newArgs) => (node[nodeName] as Fn)(...newArgs))
+                                computedArgs.follow((newArgs) => (node[nodeName] as Fn)(...newArgs), true)
                             );
+                        } else {
+                            (node[nodeName] as Fn)(...unwrappedArgs);
                         }
-                        (node[nodeName] as Fn)(...unwrappedArgs);
+
                         return proxy;
                     }
                 : !(targetName in node)
