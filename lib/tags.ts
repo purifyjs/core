@@ -148,9 +148,11 @@ type ProxyNodeFunctionArgs<
     : T extends WithLifecycle ? RecursiveSignalAndArrayArgs<Args>
     : RecursiveArrayArgs<Args>;
 
-type _ = Extract<{ a: 123; [key: string]: any }, { [key: `${any}${any}`]: any }>;
+type MapStrictAriaProperties<T> = {
+    [K in keyof T]: K extends keyof StrictARIA.Properties ? StrictARIA.Properties[K] : T[K];
+};
 
-export type Builder<T extends Node = Node> =
+type BuilderProxy<T extends Node> =
     & {
         [K in keyof T as If<IsProxyableProperty<T, K>, K>]: (value: ProxyPropertyArg<T, K>) => Builder<T>;
     }
@@ -162,10 +164,11 @@ export type Builder<T extends Node = Node> =
     }
     & {
         [K in keyof T as If<IsProxyableNodeFunction<T, K>, `${K & string}$`>]: (...args: ProxyNodeFunctionArgs<T, K>) => Builder<T>;
-    }
-    & {
-        $node: T;
     };
+
+export type Builder<T extends Node = Node> = BuilderProxy<MapStrictAriaProperties<T>> & {
+    $node: T;
+};
 
 export interface BuilderConstructor {
     new <T extends Element>(node: T, attributes?: Builder.Attributes<T>): Builder<T>;
