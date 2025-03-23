@@ -22,10 +22,12 @@ _(() => {
 declare const svgElement: SVGSVGElement;
 declare const divElement: HTMLDivElement;
 declare const divElementWithLifecycle: WithLifecycle<HTMLDivElement>;
+declare const formElementWithLifecycle: WithLifecycle<HTMLFormElement>;
 _(() => {
     const svgBuilder = new Builder(svgElement);
     const divBuilder = new Builder(divElement);
     const divWithLifecycleBuilder = new Builder(divElementWithLifecycle);
+    const formWithLifecycleBuilder = new Builder(formElementWithLifecycle);
 
     svgBuilder.replaceChildren("123");
     /// @ts-expect-error Don't allow signals on elements without lifecycle
@@ -49,4 +51,9 @@ _(() => {
     divWithLifecycleBuilder.replaceChildren$(divWithLifecycleBuilder);
     divWithLifecycleBuilder.ariaLabel(ref("foo"));
     divWithLifecycleBuilder.$effect(() => {});
+
+    // Form element sometimes might cause issues since it has [key: string] and [index: number] in it, so be careful, keep this in mind
+    formWithLifecycleBuilder.replaceChildren$("");
+    formWithLifecycleBuilder.$effect(() => {});
+    formWithLifecycleBuilder.ariaAtomic("");
 });

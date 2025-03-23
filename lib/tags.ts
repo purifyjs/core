@@ -138,6 +138,8 @@ type ProxyNodeFunctionArgs<
     : T extends WithLifecycle ? RecursiveSignalAndArrayArgs<Args>
     : RecursiveArrayArgs<Args>;
 
+type _ = Extract<{ a: 123; [key: string]: any }, { [key: `${any}${any}`]: any }>;
+
 export type Builder<T extends Node = Node> =
     & {
         [K in keyof T as If<IsReflectFunction<T, K>, K>]: T[K] extends (...args: infer Args) => any ? (...args: Args) => Builder<T> : never;
@@ -149,7 +151,7 @@ export type Builder<T extends Node = Node> =
         [K in keyof T as If<IsProxyableFunction<T, K>, K>]: (...args: ProxyFunctionArgs<T, K>) => Builder<T>;
     }
     & {
-        [K in keyof T & string as If<IsProxyableNodeFunction<T, K>, `${K}$`>]: (...args: ProxyNodeFunctionArgs<T, K>) => Builder<T>;
+        [K in keyof T as If<IsProxyableNodeFunction<T, K>, `${K & string}$`>]: (...args: ProxyNodeFunctionArgs<T, K>) => Builder<T>;
     }
     & {
         $node: T;
