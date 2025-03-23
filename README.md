@@ -13,7 +13,7 @@
 ---
 
 <p align="center">
-    <b>purify.js</b> is a 1.0kB <i>(minified, gzipped)</i> JavaScript UI building library that encourages the usage of pure JavaScript and DOM, while providing a thin layer of abstraction for the annoying parts for better DX <i>(developer experience)</i>. 🚀
+    <b>purify.js</b> is a 1.0kB <i>(minified, gzipped)</i> DOM utility library that encourages the usage of pure JavaScript and DOM, while providing a thin layer of abstraction for the annoying parts for better DX <i>(developer experience)</i>. 🚀
 </p>
 
 # Features 🌟🚀
@@ -37,7 +37,7 @@
 
 ### Size ⚡📊
 
-| Library         | .min.js | .min.js.gz |
+| Package         | .min.js | .min.js.gz |
 | --------------- | ------- | ---------- |
 | **purify.js**   | 2.2kB   | 1.0kB      |
 | Preact 10.19.3  | 11.2kB  | 4.5kB      |
