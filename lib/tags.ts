@@ -79,6 +79,11 @@ type IsProxyableProperty<T, K extends keyof T> = If<
     Not<Extends<K, keyof EventTarget>> & ((Not<IsReadonly<T, K>> & Not<IsFunction<T[K]>>) | (IsFunction<T[K]> & IsNullable<T[K]>))
 >;
 
+type IsReflectFunction<T, K extends keyof T> = If<
+    & IsFunction<T[K]>
+    & Extends<K, keyof Lifecycle>
+>;
+
 type IsProxyableFunction<T, K extends keyof T> = If<
     & Not<Extends<K, keyof EventTarget>>
     & (
@@ -119,7 +124,7 @@ type ProxyFunctionArgs<T extends Node, K extends keyof T, Args extends unknown[]
         : T extends WithLifecycle ? RecursiveSignalArgs<Args>
         : Args;
 
-type MaybeNodeLikeArg<T> = T extends Node ? T | Builder<T> | null : T;
+type MaybeNodeLikeArg<T> = T extends Node ? T | Builder<T> | null : T extends string ? string | { toString(): string } : T;
 type MaybeNodeLikeArgs<Args extends unknown[], R extends unknown[] = []> = Args extends [infer Head, ...infer Tail]
     ? MaybeNodeLikeArgs<Tail, [...R, MaybeNodeLikeArg<Head>]>
     : Args extends (infer U)[] ? MaybeNodeLikeArg<U>[]
@@ -134,6 +139,9 @@ type ProxyNodeFunctionArgs<
     : RecursiveArrayArgs<Args>;
 
 export type Builder<T extends Node = Node> =
+    & {
+        [K in keyof T as If<IsReflectFunction<T, K>, K>]: T[K] extends (...args: infer Args) => any ? (...args: Args) => Builder<T> : never;
+    }
     & {
         [K in keyof T as If<IsProxyableProperty<T, K>, K>]: (value: ProxyPropertyArg<T, K>) => Builder<T>;
     }
@@ -199,7 +207,7 @@ export let Builder: BuilderConstructor = function <T extends Node & Partial<With
 
             type Arg = null | Builder | Node | string | Arg[] | Signal<Arg>;
 
-            return (target[targetName] ??= instancesOf(node[nodeName], Function) && !node.hasOwnProperty(nodeName)
+            return (target[targetName] ??= instancesOf(node[nodeName], Function) && !Object.hasOwn(node, nodeName)
                 ? nodeName == targetName
                     ? (...args: unknown[]) => {
                         (node[nodeName] as Fn)(...args);

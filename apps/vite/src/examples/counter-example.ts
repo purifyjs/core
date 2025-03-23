@@ -3,7 +3,7 @@ import { computed, Lifecycle, ref, Signal, tags } from "@purifyjs/core";
 const { div, section, button, ul, li, input } = tags;
 
 function App() {
-    return div().id("app").children(Counter());
+    return div().id("app").replaceChildren$(Counter());
 }
 
 function Counter() {
@@ -11,15 +11,15 @@ function Counter() {
     const double = count.derive((count) => count * 2);
     const half = computed(() => count.val * 0.5);
 
-    return div().children(
+    return div().replaceChildren$(
         section({ class: "input" })
             .ariaLabel("Input")
-            .children(
+            .replaceChildren$(
                 button()
                     .title("Decrement by 1")
                     .onclick(() => count.val--)
                     .textContent("-"),
-                input().type("number").effect(useBindNumber(count)).step("1"),
+                input().type("number").$effect(useBindNumber(count)).step("1"),
                 button()
                     .title("Increment by 1")
                     .onclick(() => count.val++)
@@ -27,11 +27,11 @@ function Counter() {
             ),
         section({ class: "output" })
             .ariaLabel("Output")
-            .children(
-                ul().children(
-                    li().children("Count: ", count),
-                    li().children("Double: ", double),
-                    li().children("Half: ", half),
+            .replaceChildren$(
+                ul().replaceChildren$(
+                    li().replaceChildren$("Count: ", count),
+                    li().replaceChildren$("Double: ", double),
+                    li().replaceChildren$("Half: ", half),
                 ),
             ),
     );
@@ -54,4 +54,4 @@ function useBindNumber(
     };
 }
 
-document.body.append(App().node);
+document.body.append(App().$node);
