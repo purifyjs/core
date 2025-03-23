@@ -229,7 +229,11 @@ JSX is not part of this library natively, but a wrapper can be made quite easily
   So at `0.2.0` I made it so that all children of the `ParentNode` updates when a `Signal` child changes. Tho this issue can be escaped by
   seperating things while writing the code. Or make use of things like `.replaceChild()`. Since all support `Signal`(s) now.
 
-  But to solve the core of this issue JS needs a real `DocumentFragment` with persistent children.
+  You might be saying "Why not just use comment nodes?": Yes, creating ranges with comment nodes is the traditional solution to this issue.
+  But it's not a native ranging solution, and the frameworks that use it break as soon as you mutate the DOM without the framework, which is
+  against the philosophy of the library.
+
+  So to solve the core of this issue JS needs a real `DocumentFragment` with persistent children.
 
   This proposal might solve this issue:
   [DOM#739 Proposal: a DocumentFragment whose nodes do not get removed once inserted](https://github.com/whatwg/dom/issues/736).
