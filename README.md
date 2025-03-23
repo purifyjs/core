@@ -232,7 +232,7 @@ JSX is not part of this library natively, but a wrapper can be made quite easily
   This proposal might solve this issue:
   [DOM#739 Proposal: a DocumentFragment whose nodes do not get removed once inserted](https://github.com/whatwg/dom/issues/736).
 
-  In the puroposal they purpose on making the fragment undetactable with `childNodes` or `children` which I'm against and don't like at all.
+  In the proposal they propose making the fragment undetactable with `childNodes` or `children` which I am against and don't like at all.
   `DocumentFragment` should be a `ParentNode` should have it's own children, and can be `ChildNode` of other `ParentNode`. Normal hierarchy,
   no trasparency other than CSS.
 
@@ -246,9 +246,9 @@ JSX is not part of this library natively, but a wrapper can be made quite easily
 
   An issue is open here [DOM#533 Make it possible to observe connected-ness of a node](https://github.com/whatwg/dom/issues/533).
 
-  Since DOM already has a sync way to follow lifecycle of custom `HTMLElement`(s). Since this is the only way, at this time we heavily relay
-  on that. Currently we use auto created Custom Elements via `tags` proxy and `WithLifecycle` `HTMLElement` mixin. And allow `Signal`
-  related things only on those elements.
+  But also, DOM already has a sync way to follow lifecycle of custom `HTMLElement`(s). And since this is the only way, at this time we
+  heavily relay on that. Currently we use auto created Custom Elements via `tags` proxy and `WithLifecycle` `HTMLElement` mixin. And allow
+  `Signal` related things only on those elements.
 
 - If this feature above doesn't come sooner we also keep an eye of this other proposal which has more attraction:
   [webcomponents#1029 Proposal: Custom attributes for all elements, enhancements for more complex use cases](https://github.com/WICG/webcomponents/issues/1029)
@@ -270,7 +270,7 @@ JSX is not part of this library natively, but a wrapper can be made quite easily
   attribute is not visible in the DOM since this element created by JS, not HTML_.
 
   Anyway since this method requires you to decide if something is an element with lifecycle ahead of time, and also requires use to create
-  `pure-*` variant of native HTMLElement types in order to make them have lifecycle, it's kinda a lot. It makes sense. But it's kind of a
+  `pure-*` variant of native `HTMLElement` types in order to make them have lifecycle, it's kinda a lot. It makes sense. But it's kind of a
   lot.
 
   So this new custom attributes proposal can let us have lifecycle on any `Element` easily by simily adding an attribute to it. And this can
