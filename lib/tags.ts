@@ -1,6 +1,6 @@
 import type { StrictARIA } from "./aria.ts";
 import { computed, Signal } from "./signals.ts";
-import type { _Event, Equal, Extends, Fn, If, IsFunction, IsNullable, IsReadonly, Not } from "./utils.ts";
+import type { _Event, Equal, Extends, Fn, If, IsReadonly, Not } from "./utils.ts";
 import { instancesOf } from "./utils.ts";
 
 /**
@@ -76,24 +76,34 @@ export namespace Builder {
 */
 
 type IsProxyableProperty<T, K extends keyof T> = If<
-    Not<Extends<K, keyof EventTarget>> & ((Not<IsReadonly<T, K>> & Not<IsFunction<T[K]>>) | (IsFunction<T[K]> & IsNullable<T[K]>))
+    & Not<Extends<K, keyof EventTarget>>
+    & (
+        | (
+            & Not<IsReadonly<T, K>>
+            & Not<Extends<T[K], Fn>>
+        )
+        | (Extends<T[K], Fn> & Extends<null, T[K]>)
+    )
 >;
 
 type IsReflectFunction<T, K extends keyof T> = If<
-    & IsFunction<T[K]>
+    & Extends<T[K], Fn>
     & Extends<K, keyof Lifecycle>
 >;
 
 type IsProxyableFunction<T, K extends keyof T> = If<
     & Not<Extends<K, keyof EventTarget>>
-    & (
-        | IsFunction<T[K], void, (string | Node)[]>
-        | IsFunction<T[K], void, []>
-        | (T[K] extends (...args: infer A) => infer R ? Not<Extends<A, (object | null | undefined)[]>> & Equal<R, void> : false)
-    )
+    & ((T[K] extends (...args: infer Args) => infer Return ? Equal<Return, void> : false))
 >;
 
-type IsProxyableNodeFunction<T, K extends keyof T> = If<IsProxyableFunction<T, K> & IsFunction<T[K], void, (string | Node)[]>>;
+type IsProxyableNodeFunction<T, K extends keyof T> = If<
+    & IsProxyableFunction<T, K>
+    & ((T[K] extends (...args: infer Args) => infer Return ?
+            & Not<Equal<Args, []>>
+            & (Not<Extends<Exclude<Args[number], Node>, (object | null | undefined)>> | Extends<Args, (Node | string | null)[]>)
+            & Extends<Args[number], Node>
+        : false))
+>;
 
 type RecursiveArrayOf<T> = T | RecursiveArrayOf<T>[];
 type RecursiveArrayArgs<Args extends unknown[], R extends unknown[] = []> = Args extends [infer Head, ...infer Tail]
@@ -142,10 +152,10 @@ type _ = Extract<{ a: 123; [key: string]: any }, { [key: `${any}${any}`]: any }>
 
 export type Builder<T extends Node = Node> =
     & {
-        [K in keyof T as If<IsReflectFunction<T, K>, K>]: T[K] extends (...args: infer Args) => any ? (...args: Args) => Builder<T> : never;
+        [K in keyof T as If<IsProxyableProperty<T, K>, K>]: (value: ProxyPropertyArg<T, K>) => Builder<T>;
     }
     & {
-        [K in keyof T as If<IsProxyableProperty<T, K>, K>]: (value: ProxyPropertyArg<T, K>) => Builder<T>;
+        [K in keyof T as If<IsReflectFunction<T, K>, K>]: T[K] extends (...args: infer Args) => any ? (...args: Args) => Builder<T> : never;
     }
     & {
         [K in keyof T as If<IsProxyableFunction<T, K>, K>]: (...args: ProxyFunctionArgs<T, K>) => Builder<T>;
@@ -168,9 +178,6 @@ export interface BuilderConstructor {
 //          But it was causing problems with CSS selectors.
 //          So instead I simplified it and used .replaceChildren() method to update all children at once.
 //          Signals can have their own wrappers again when JS DOM has a real DocumentFragment which is persistent.
-
-export let fragment = (...members: Parameters<Builder<DocumentFragment>["append"]>): Builder<DocumentFragment> =>
-    new Builder(document.createDocumentFragment()).append(...members);
 
 export let Builder: BuilderConstructor = function <T extends Node & Partial<WithLifecycle>>(
     this: Builder<T>,
@@ -200,69 +207,72 @@ export let Builder: BuilderConstructor = function <T extends Node & Partial<With
     }
 
     let cleanups: Partial<Record<PropertyKey, (() => void) | null>> = {};
+
     return new Proxy(this, {
-        get: (target: any, targetName: string, proxy: unknown) => {
-            let nodeName = (targetName.at(-1) == "$" ? targetName.slice(0, -1) : targetName) as keyof T & string;
+        get: (target: any, targetName: string, proxy: any) => {
+            let nodeName: keyof T & string;
+            let fn: Fn;
 
-            cleanups[targetName]?.();
-            cleanups[targetName] = null;
+            if (targetName in target) {
+                return target[targetName];
+            }
 
-            type Arg = null | Builder | Node | string | Arg[] | Signal<Arg>;
-
-            return (target[targetName] ??= instancesOf(node[nodeName], Function) && !Object.hasOwn(node, nodeName)
-                ? nodeName == targetName
-                    ? (...args: unknown[]) => {
-                        (node[nodeName] as Fn)(...args);
-                        return proxy;
-                    }
-                    : (...args: Arg[]) => {
-                        let hasSignal: boolean | undefined;
-                        let unwrap = (value: Arg): string | Node => {
-                            if (value == null) {
-                                return unwrap([]);
-                            }
-                            if (instancesOf(value, Builder)) {
-                                return value.$node;
-                            }
-                            if (instancesOf(value, Signal)) {
-                                hasSignal = true;
-                                return unwrap(value.val);
-                            }
-                            if (instancesOf(value, Array)) {
-                                return unwrap(fragment(...value.map(unwrap)));
-                            }
-                            return value;
-                        };
-
-                        // This is the best i can come up with
-                        // Normally if we had a persistent document fragment with lifecyle,
-                        // we could have just wrapped signals with it in the DOM. Not doing these at all.
-                        //
-                        // I can wrap them with an element with lifecycle and give it `display:contents`,
-                        // but that causes other issues in the dx
-                        let unwrappedArgs = args.map(unwrap);
-                        if (hasSignal) {
-                            let computedArgs = computed(() => args.map(unwrap));
-                            cleanups[targetName] = node.$effect!(() =>
-                                computedArgs.follow((newArgs) => (node[nodeName] as Fn)(...newArgs), true)
-                            );
-                        } else {
-                            (node[nodeName] as Fn)(...unwrappedArgs);
+            nodeName = (targetName.at(-1) == "$" ? targetName.slice(0, -1) : targetName) as keyof T & string;
+            fn = (instancesOf(node[nodeName], Function) && !Object.hasOwn(node, nodeName))
+                ? (nodeName == targetName) ? (args: unknown[]) => (node[nodeName] as Fn)(...args) : ((
+                    args: unknown[],
+                    computedArgs: Signal<unknown[]>,
+                    hasSignal: boolean | undefined,
+                    unwrap = (value: unknown): string | Node | { toString(): string } => {
+                        if (value == null) {
+                            return unwrap([]);
                         }
-
-                        return proxy;
+                        if (instancesOf(value, Builder)) {
+                            return value.$node;
+                        }
+                        if (instancesOf(value, Signal)) {
+                            hasSignal = true;
+                            return unwrap(value.val);
+                        }
+                        if (instancesOf(value, Array)) {
+                            return unwrap(new Builder(document.createDocumentFragment()).append(...value.map(unwrap) as never[]));
+                        }
+                        return value;
+                    },
+                    unwrappedArgs: unknown[],
+                ) => {
+                    // This is the best i can come up with
+                    // Normally if we had a persistent document fragment with lifecyle,
+                    // we could have just wrapped signals with it in the DOM. Not doing these at all.
+                    //
+                    // I can wrap them with an element with lifecycle and give it `display:contents`,
+                    // but that causes other issues in the dx
+                    unwrappedArgs = args.map(unwrap);
+                    if (hasSignal) {
+                        computedArgs = computed(() => args.map(unwrap));
+                        cleanups[targetName] = node.$effect!(() =>
+                            computedArgs.follow((newArgs) => (node[nodeName] as Fn)(...newArgs), true)
+                        );
+                    } else {
+                        (node[nodeName] as Fn)(...unwrappedArgs);
                     }
-                : !(targetName in node)
-                ? node[nodeName]
-                : (value: unknown) => {
+                })
+                : (([value]: [unknown]) => {
                     if (instancesOf(value, Signal)) {
-                        cleanups[targetName] = node.$effect!(() => value.follow((value) => (node[nodeName] = value as never), true));
+                        cleanups[targetName] = node.$effect!(() => value.follow((value) => node[nodeName] = value as never, true));
                     } else {
                         node[nodeName] = value as never;
                     }
-
-                    return proxy;
                 });
+
+            return target[targetName] = (...args: unknown[]) => {
+                cleanups[targetName]?.();
+                cleanups[targetName] = null;
+
+                fn(args);
+
+                return proxy;
+            };
         },
     } as never);
 } as never;

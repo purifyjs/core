@@ -1,2 +1,2 @@
-import { computed, ref, tags } from "@purifyjs/core";
-console.log(computed, ref, tags);
+import { computed, tags } from "@purifyjs/core";
+[computed, tags];
