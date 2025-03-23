@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
-import { ref } from "./signals";
-import { Builder, tags as tags_type, WithLifecycle } from "./tags";
+import { ref } from "./signals.ts";
+import { Builder, type tags as tags_type, type WithLifecycle } from "./tags.ts";
 declare const tags: typeof tags_type;
 
-function _(fn: () => void) {}
+function _(_fn: () => void) {}
 
 _(() => {
     // Elements should still satisfy the native types
@@ -33,20 +33,20 @@ _(() => {
     /// @ts-expect-error Don't allow signals on elements without lifecycle
     svgBuilder.ariaLabel(ref("foo"));
     /// @ts-expect-error Don't allow signals on elements without lifecycle
-    svgBuilder.effect(() => {});
+    svgBuilder.$effect(() => {});
 
     divBuilder.replaceChildren("123");
-    divBuilder.replaceChildren(divWithLifecycleBuilder);
+    divBuilder.replaceChildren$(divWithLifecycleBuilder);
     /// @ts-expect-error Don't allow signals on elements without lifecycle
     divBuilder.replaceChildren(ref("123"));
     /// @ts-expect-error Don't allow signals on elements without lifecycle
     divBuilder.ariaLabel(ref("foo"));
     /// @ts-expect-error Don't allow signals on elements without lifecycle
-    divBuilder.effect(() => {});
+    divBuilder.$effect(() => {});
 
     divWithLifecycleBuilder.replaceChildren("123");
     divWithLifecycleBuilder.replaceChildren(ref("123"));
-    divWithLifecycleBuilder.replaceChildren(divWithLifecycleBuilder);
+    divWithLifecycleBuilder.replaceChildren$(divWithLifecycleBuilder);
     divWithLifecycleBuilder.ariaLabel(ref("foo"));
     divWithLifecycleBuilder.$effect(() => {});
 });

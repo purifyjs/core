@@ -15,11 +15,11 @@ export namespace StrictARIA {
      * properties of specific element types.
      */
     export type Attributes = {
-        [K in keyof Properties as K extends `aria${infer Name}` ?
-            Name extends `${infer Name}Elements` ?
-                `aria-${Lowercase<Name>}`
-            :   `aria-${Lowercase<Name>}`
-        :   never]: Element[] extends Properties[K] ? string | null : Properties[K];
+        [
+            K in keyof Properties as K extends `aria${infer Name}` ? Name extends `${infer Name}Elements` ? `aria-${Lowercase<Name>}`
+                : `aria-${Lowercase<Name>}`
+                : never
+        ]: Element[] extends Properties[K] ? string | null : Properties[K];
     };
 
     /**

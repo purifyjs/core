@@ -1,10 +1,15 @@
-/* eslint-disable @typescript-eslint/no-unused-expressions */
-import { deepEqual, deepStrictEqual, strictEqual } from "node:assert";
-import { describe, it } from "node:test";
-import { computed, ref, Signal } from "./signals";
+import { assertStrictEquals } from "jsr:@std/assert";
+import { computed, ref, Signal } from "./signals.ts";
 
-describe("Signals", () => {
-    it("Derive counter with immediate basics", () => {
+function assertTupleEqual(a: unknown[], b: unknown[]) {
+    assertStrictEquals(a.length, b.length);
+    for (let i = 0; i < a.length; i++) {
+        assertStrictEquals(a[i], b[i]);
+    }
+}
+
+Deno.test("Signals", () => {
+    Deno.test("Derive counter with immediate basics", () => {
         const value = ref(0);
         const double = computed(() => value.val * 2);
 
@@ -15,10 +20,10 @@ describe("Signals", () => {
             value.val++;
         }
 
-        deepEqual(results, [0, 2, 4, 6, 8, 10, 12, 14, 16]);
+        assertTupleEqual(results, [0, 2, 4, 6, 8, 10, 12, 14, 16]);
     });
 
-    it("Derive counter without immediate basics", () => {
+    Deno.test("Derive counter without immediate basics", () => {
         const value = ref(0);
         const double = computed(() => value.val * 2);
 
@@ -29,10 +34,10 @@ describe("Signals", () => {
             value.val++;
         }
 
-        deepEqual(results, [2, 4, 6, 8, 10, 12, 14, 16]);
+        assertTupleEqual(results, [2, 4, 6, 8, 10, 12, 14, 16]);
     });
 
-    it("Computed multiple dependency", () => {
+    Deno.test("Computed multiple dependency", () => {
         const a = ref(0);
         const b = ref(0);
         const ab = computed(() => `${a.val},${b.val}`);
@@ -45,10 +50,10 @@ describe("Signals", () => {
             a.val++;
         }
 
-        deepEqual(results, ["0,1", "1,1", "1,2", "2,2", "2,3", "3,3"]);
+        assertTupleEqual(results, ["0,1", "1,1", "1,2", "2,2", "2,3", "3,3"]);
     });
 
-    it("Computed multi follower should call getter once", () => {
+    Deno.test("Computed multi follower should call getter once", () => {
         let counter = 0;
         const a = ref(0);
         const b = computed(() => {
@@ -62,10 +67,10 @@ describe("Signals", () => {
 
         a.val++;
 
-        strictEqual(counter, 1 + 1); // +1 for the initial dependency discovery
+        assertStrictEquals(counter, 1 + 1); // +1 for the initial dependency discovery
     });
 
-    it("Computed shouldn't call followers if the value is the same as the previous value", () => {
+    Deno.test("Computed shouldn't call followers if the value is the same as the previous value", () => {
         const a = ref(0);
         const b = computed(() => a.val % 2);
         const results: unknown[] = [];
@@ -77,10 +82,10 @@ describe("Signals", () => {
         a.val = 3;
         a.val = 2;
 
-        deepStrictEqual(results, [1, 0]);
+        assertTupleEqual(results, [1, 0]);
     });
 
-    it("Computed should update as many times as the dependencies changes", () => {
+    Deno.test("Computed should update as many times as the dependencies changes", () => {
         let counter = 0;
         const a = ref(0);
         const b = computed(() => {
@@ -93,10 +98,10 @@ describe("Signals", () => {
         a.val++;
         a.val++;
 
-        strictEqual(counter, 2 + 1); // +1 for the initial dependency discovery
+        assertStrictEquals(counter, 2 + 1); // +1 for the initial dependency discovery
     });
 
-    it("Computed shouldn't run without followers", () => {
+    Deno.test("Computed shouldn't run without followers", () => {
         let counter = 0;
         const a = ref(0);
         computed(() => {
@@ -106,10 +111,10 @@ describe("Signals", () => {
 
         a.val++;
 
-        strictEqual(counter, 0);
+        assertStrictEquals(counter, 0);
     });
 
-    it("Computed shouldn't discover without followers", () => {
+    Deno.test("Computed shouldn't discover without followers", () => {
         let counter = 0;
         const a = ref(0);
         computed(() => {
@@ -117,10 +122,10 @@ describe("Signals", () => {
             counter++;
         });
 
-        strictEqual(counter, 0);
+        assertStrictEquals(counter, 0);
     });
 
-    it("State, no infinite follower emit", () => {
+    Deno.test("State, no infinite follower emit", () => {
         const a = ref(0);
         let counter = 0;
         function follower() {
@@ -136,10 +141,10 @@ describe("Signals", () => {
 
         a.val++;
 
-        strictEqual(counter, 1);
+        assertStrictEquals(counter, 1);
     });
 
-    it("Deep derivation shouldn't run multiple times", () => {
+    Deno.test("Deep derivation shouldn't run multiple times", () => {
         const a = ref(0);
         let counter = 0;
 
@@ -153,10 +158,10 @@ describe("Signals", () => {
             .derive((value) => value)
             .follow(() => {});
 
-        strictEqual(counter, 1);
+        assertStrictEquals(counter, 1);
     });
 
-    it("State should start on get, if there are no followers", () => {
+    Deno.test("State should start on get, if there are no followers", () => {
         const a = ref("abc");
 
         const b = a
@@ -165,10 +170,10 @@ describe("Signals", () => {
             .derive((value) => value)
             .derive((value) => value);
 
-        strictEqual(b.val, "abc");
+        assertStrictEquals(b.val, "abc");
     });
 
-    it("Verify computed recalculates correctly with internal dependency updates", () => {
+    Deno.test("Verify computed recalculates correctly with internal dependency updates", () => {
         const a = ref(0);
         let counter = 0;
         computed(() => {
@@ -179,10 +184,10 @@ describe("Signals", () => {
         }).follow(() => {}); // 1
         a.val = 2; // 3
 
-        strictEqual(counter, 4); // 4 times, no less, no more
+        assertStrictEquals(counter, 4); // 4 times, no less, no more
     });
 
-    it("Infinite loop test", () => {
+    Deno.test("Infinite loop test", () => {
         let counter = 0;
         const a = ref(0, () => {
             counter++;
@@ -191,11 +196,12 @@ describe("Signals", () => {
         });
         a.val;
 
-        strictEqual(counter, 1);
+        assertStrictEquals(counter, 1);
     });
 
-    it("No stop leak", () => {
+    Deno.test("No stop leak", () => {
         let counter = 0;
+        // deno-lint-ignore prefer-const
         let unfollow: Signal.Unfollower;
         const a = ref(0, () => {
             if (typeof unfollow !== "undefined") {
@@ -208,7 +214,7 @@ describe("Signals", () => {
         });
         unfollow = a.follow(() => {});
         unfollow();
-        strictEqual(counter, 1);
+        assertStrictEquals(counter, 1);
     });
 
     /* it("Basic awaited signal logic", async () => {

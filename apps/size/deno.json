@@ -1,0 +1,9 @@
+{
+    "imports": {
+        "vite": "npm:vite@6.2.2",
+        "@purifyjs/core": "../../lib/mod.ts"
+    },
+    "tasks": {
+        "build": "vite build"
+    }
+}

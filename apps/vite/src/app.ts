@@ -16,6 +16,6 @@ new Builder(document.body).replaceChildren$(
             .replaceChildren$([time], [[tags.div()]])
             .ariaLabel(time)
             .click()
-            .setAttribute("foo", "bar")
-    )
+            .setAttribute("foo", "bar"),
+    ),
 );

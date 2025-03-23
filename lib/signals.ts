@@ -1,4 +1,4 @@
-import { noop } from "./utils";
+import { noop } from "./utils.ts";
 
 /**
  * An abstract class representing a signal that holds a value and allows followers to react to changes.
@@ -161,7 +161,7 @@ let Dependency = (Signal.Dependency = {
         let result = callAndTrack();
         dependencyTrackingStack.pop();
         return result;
-    }
+    },
 });
 
 Signal.State = class<T> extends Signal<T> {
@@ -287,8 +287,7 @@ Signal.Computed = class<T> extends Signal<T> {
  * count.val = 10; // logs: 10
  * ```
  */
-export let ref = <T>(value: T, startStop?: Signal.State.Start<T>): Signal.State<T> =>
-    new Signal.State(value, startStop);
+export let ref = <T>(value: T, startStop?: Signal.State.Start<T>): Signal.State<T> => new Signal.State(value, startStop);
 
 /**
  * Creates a new computed signal from other signals.

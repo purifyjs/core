@@ -1,0 +1,12 @@
+{
+    "imports": {
+        "vite": "npm:vite@6.2.2",
+        "@purifyjs/core": "../../lib/mod.ts"
+    },
+    "tasks": {
+        "dev": "vite --host"
+    },
+    "fmt": {
+        "lineWidth": 80
+    }
+}

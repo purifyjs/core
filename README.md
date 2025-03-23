@@ -18,17 +18,18 @@
 
 # Features 🌟
 
--   🔥 **Keeps you close to the DOM.**
--   ✍️ `HTMLElement` builder allows you to differentiate between attributes and properties.
--   🌐 Builder doesn't only work with `HTMLElement`(s) but works with any `Node` instance including `ShadowRoot`, `DocumentFragment`, `Document`... any `Node` type, including future ones.
--   🎩 Builder converts existing methods on the `Node` instance to builder pattern with `Proxy`.
--   ⚡ **Uses signals for reactivity.**
--   🧙 **Signals are extendable,** allowing chaining with utilities like .pipe() and .derive() to build custom workflows..
--   ✂️ Allows direct DOM manipulation.
--   📁 No special file extensions.
--   🔧 Only deal with `.ts` files, so use it with any existing formatting, linting, and other tools.
--   ⚡ **No extra LSP and IDE extensions/plugins:** fast IDE responses, autocompletion, and no weird framework specific LSP issues.
--   ✅ **All verifiable TypeScript code.**
+- 🔥 **Keeps you close to the DOM.**
+- ✍️ `HTMLElement` builder allows you to differentiate between attributes and properties.
+- 🌐 Builder doesn't only work with `HTMLElement`(s) but works with any `Node` instance including `ShadowRoot`, `DocumentFragment`,
+  `Document`... any `Node` type, including future ones.
+- 🎩 Builder converts existing methods on the `Node` instance to builder pattern with `Proxy`.
+- ⚡ **Uses signals for reactivity.**
+- 🧙 **Signals are extendable,** allowing chaining with utilities like .pipe() and .derive() to build custom workflows..
+- ✂️ Allows direct DOM manipulation.
+- 📁 No special file extensions.
+- 🔧 Only deal with `.ts` files, so use it with any existing formatting, linting, and other tools.
+- ⚡ **No extra LSP and IDE extensions/plugins:** fast IDE responses, autocompletion, and no weird framework specific LSP issues.
+- ✅ **All verifiable TypeScript code.**
 
 ---
 
@@ -84,7 +85,7 @@ function Counter() {
                 button()
                     .title("Increment by 1")
                     .onclick(() => count.val++)
-                    .textContent("+")
+                    .textContent("+"),
             ),
         section({ class: "output" })
             .ariaLabel("Output")
@@ -92,9 +93,9 @@ function Counter() {
                 ul().children(
                     li().children("Count: ", count),
                     li().children("Double: ", double),
-                    li().children("Half: ", half)
-                )
-            )
+                    li().children("Half: ", half),
+                ),
+            ),
     );
 }
 
@@ -134,7 +135,7 @@ function Counter() {
         button()
             .title("Click me!")
             .onclick(() => count.val++)
-            .children("Count:", count)
+            .children("Count:", count),
     );
     return host;
 }
@@ -174,7 +175,7 @@ class CounterElement extends WithLifecycle(HTMLElement) {
             button()
                 .title("Click me!")
                 .onclick(() => this.#count.val++)
-                .children("Count:", this.#count)
+                .children("Count:", this.#count),
         );
     }
 }
@@ -188,42 +189,40 @@ Coming soon.
 
 ## Why Not JSX Templating? 🍕
 
--   **Lack of Type Safety**: An `<img>` element created with JSX cannot have the `HTMLImageElement` type because all JSX elements must return the same type. This causes issues if you expect a `HTMLImageElement` some where in the code but all JSX returns is `HTMLElement` or something like `JSX.Element`. Also, it has some other issues related to the generics, discriminated unions and more.
+- **Lack of Type Safety**: An `<img>` element created with JSX cannot have the `HTMLImageElement` type because all JSX elements must return
+  the same type. This causes issues if you expect a `HTMLImageElement` some where in the code but all JSX returns is `HTMLElement` or
+  something like `JSX.Element`. Also, it has some other issues related to the generics, discriminated unions and more.
 
--   **Build Step Required**: JSX necessitates a build step, adding complexity to the development workflow. In contrast, **purify.js** avoids this, enabling a simpler and more streamlined development process by working directly with native JavaScript and TypeScript.
+- **Build Step Required**: JSX necessitates a build step, adding complexity to the development workflow. In contrast, **purify.js** avoids
+  this, enabling a simpler and more streamlined development process by working directly with native JavaScript and TypeScript.
 
--   **Attributes vs. Properties**: In **purify.js**, I can differentiate between attributes and properties of an element while building it, which is not currently possible with JSX. This distinction enhances clarity and control when defining element characteristics.
+- **Attributes vs. Properties**: In **purify.js**, I can differentiate between attributes and properties of an element while building it,
+  which is not currently possible with JSX. This distinction enhances clarity and control when defining element characteristics.
 
 ## Current Limitations 🦀
 
--   **Lifecycle and Reactivity**: Currently, I use Custom Elements to detect if an
-    element is connected to the DOM. This means:
+- **Lifecycle and Reactivity**: Currently, I use Custom Elements to detect if an element is connected to the DOM. This means:
 
-    -   Every element created by the `tags` proxy, are Custom Elements. But they
-        look like normal `<div>`(s) and `<span>`(s) and etc on the DevTools, because
-        they extend the original element and use the original tag name. This way we
-        can follow the life cycle of every element. And it works amazingly.
-    -   But we also have signals, which might not return an HTMLElement. So we gotta
-        wrap signals with something in the DOM. So we can follow its lifecycle and
-        know where it starts and ends. Traditionally this is done via `Comment`
-        `Node`(s). But there is no feasible and sync way to follow a `Comment`
-        `Node` on the DOM while also allowing direct DOM manipulation
-        ([DOM#533](https://github.com/whatwg/dom/issues/533)). So instead of
-        `Comment` `Node`(s), I used Custom Elements with `display: contents` style
-        to wrap signal renders. This way, I can follow the lifecycle of the signal
-        render in the DOM, and decide to follow or unfollow the signal. Since signal
-        render itself is an `Element` this approach has limitations, such as
-        `.parent > *` selector wouldn't select all children if some are inside a
-        signal.
+  - Every element created by the `tags` proxy, are Custom Elements. But they look like normal `<div>`(s) and `<span>`(s) and etc on the
+    DevTools, because they extend the original element and use the original tag name. This way we can follow the life cycle of every
+    element. And it works amazingly.
+  - But we also have signals, which might not return an HTMLElement. So we gotta wrap signals with something in the DOM. So we can follow
+    its lifecycle and know where it starts and ends. Traditionally this is done via `Comment` `Node`(s). But there is no feasible and sync
+    way to follow a `Comment` `Node` on the DOM while also allowing direct DOM manipulation
+    ([DOM#533](https://github.com/whatwg/dom/issues/533)). So instead of `Comment` `Node`(s), I used Custom Elements with
+    `display: contents` style to wrap signal renders. This way, I can follow the lifecycle of the signal render in the DOM, and decide to
+    follow or unfollow the signal. Since signal render itself is an `Element` this approach has limitations, such as `.parent > *` selector
+    wouldn't select all children if some are inside a signal.
 
-        As another solution to this, a persistent DocumentFrament that acts similar
-        to `Element` with `display: contents` style but also intentionally skipped
-        by query selectors would also be useful.
-        Similar: ([DOM#739](https://github.com/whatwg/dom/issues/736))
+    As another solution to this, a persistent DocumentFrament that acts similar to `Element` with `display: contents` style but also
+    intentionally skipped by query selectors would also be useful. Similar: ([DOM#739](https://github.com/whatwg/dom/issues/736))
 
-But as long as the developer is aware of this limitation or difference, it
-shouldn't cause any issues.
+But as long as the developer is aware of this limitation or difference, it shouldn't cause any issues.
 
--   Since I use extended custom elements, safari doesn't support this yet, so if you care about safari for some reasons, use [ungap/custom-elements](https://github.com/ungap/custom-elements) polyfill. You can follow support at [caniuse](https://caniuse.com/mdn-html_global_attributes_is).
+- Since I use extended custom elements, safari doesn't support this yet, so if you care about safari for some reasons, use
+  [ungap/custom-elements](https://github.com/ungap/custom-elements) polyfill. You can follow support at
+  [caniuse](https://caniuse.com/mdn-html_global_attributes_is).
 
--   Treat built in elements with `WithLifecycle` as normal built in elements, and for example don't check if an element is `instanceof WithLifecycle(HTMLDivElement)`. Because this way of doing things might be changed in the future with things like [WICG/webcomponents/issues/1029](https://github.com/WICG/webcomponents/issues/1029).
+- Treat built in elements with `WithLifecycle` as normal built in elements, and for example don't check if an element is
+  `instanceof WithLifecycle(HTMLDivElement)`. Because this way of doing things might be changed in the future with things like
+  [WICG/webcomponents/issues/1029](https://github.com/WICG/webcomponents/issues/1029).
