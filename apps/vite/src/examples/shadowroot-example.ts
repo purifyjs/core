@@ -3,7 +3,7 @@ import { Builder, state, tags } from "@purifyjs/core";
 const { div, button } = tags;
 
 function App() {
-    return div().id("app").replaceChildren$(Counter());
+    return div().id("app").append$(Counter());
 }
 
 function Counter() {
@@ -12,11 +12,11 @@ function Counter() {
 
     const count = state(0);
 
-    shadow.replaceChildren$(
+    shadow.append$(
         button()
             .title("Click me!")
             .onclick(() => count.val++)
-            .replaceChildren$("Count:", count),
+            .append$("Count:", count),
     );
     return host;
 }

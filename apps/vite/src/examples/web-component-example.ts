@@ -3,7 +3,7 @@ import { Builder, state, tags, WithLifecycle } from "@purifyjs/core";
 const { div, button } = tags;
 
 function App() {
-    return div().id("app").replaceChildren$(new CounterElement());
+    return div().id("app").append$(new CounterElement());
 }
 
 declare global {
@@ -23,11 +23,11 @@ class CounterElement extends WithLifecycle(HTMLElement) {
         super();
         const self = new Builder<CounterElement>(this);
 
-        self.replaceChildren$(
+        self.append$(
             button()
                 .title("Click me!")
                 .onclick(() => this.#count.val++)
-                .replaceChildren$("Count:", this.#count),
+                .append$("Count:", this.#count),
         );
     }
 }

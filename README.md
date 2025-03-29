@@ -65,7 +65,7 @@ import { computed, Lifecycle, Signal, state, tags } from "@purifyjs/core";
 const { div, section, button, ul, li, input } = tags;
 
 function App() {
-    return div().id("app").replaceChildren$(Counter());
+    return div().id("app").append$(Counter());
 }
 
 function Counter() {
@@ -73,10 +73,10 @@ function Counter() {
     const double = count.derive((count) => count * 2);
     const half = computed(() => count.val * 0.5);
 
-    return div().replaceChildren$(
+    return div().append$(
         section({ class: "input" })
             .ariaLabel("Input")
-            .replaceChildren$(
+            .append$(
                 button()
                     .title("Decrement by 1")
                     .onclick(() => count.val--)
@@ -89,11 +89,11 @@ function Counter() {
             ),
         section({ class: "output" })
             .ariaLabel("Output")
-            .replaceChildren$(
-                ul().replaceChildren$(
-                    li().replaceChildren$("Count: ", count),
-                    li().replaceChildren$("Double: ", double),
-                    li().replaceChildren$("Half: ", half),
+            .append$(
+                ul().append$(
+                    li().append$("Count: ", count),
+                    li().append$("Double: ", double),
+                    li().append$("Half: ", half),
                 ),
             ),
     );
@@ -127,7 +127,7 @@ import { Builder, state, tags } from "@purifyjs/core";
 const { div, button } = tags;
 
 function App() {
-    return div().id("app").replaceChildren$(Counter());
+    return div().id("app").append$(Counter());
 }
 
 function Counter() {
@@ -136,11 +136,11 @@ function Counter() {
 
     const count = state(0);
 
-    shadow.replaceChildren$(
+    shadow.append$(
         button()
             .title("Click me!")
             .onclick(() => count.val++)
-            .replaceChildren$("Count:", count),
+            .append$("Count:", count),
     );
     return host;
 }
@@ -156,7 +156,7 @@ import { Builder, state, tags, WithLifecycle } from "@purifyjs/core";
 const { div, button } = tags;
 
 function App() {
-    return div().id("app").replaceChildren$(new CounterElement());
+    return div().id("app").append$(new CounterElement());
 }
 
 declare global {
@@ -176,11 +176,11 @@ class CounterElement extends WithLifecycle(HTMLElement) {
         super();
         const self = new Builder<CounterElement>(this);
 
-        self.replaceChildren$(
+        self.append$(
             button()
                 .title("Click me!")
                 .onclick(() => this.#count.val++)
-                .replaceChildren$("Count:", this.#count),
+                .append$("Count:", this.#count),
         );
     }
 }

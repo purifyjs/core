@@ -3,7 +3,7 @@ import { computed, Lifecycle, Signal, state, tags } from "@purifyjs/core";
 const { div, section, button, ul, li, input } = tags;
 
 function App() {
-    return div().id("app").replaceChildren$(Counter());
+    return div().id("app").append$(Counter());
 }
 
 function Counter() {
@@ -11,10 +11,10 @@ function Counter() {
     const double = count.derive((count) => count * 2);
     const half = computed(() => count.val * 0.5);
 
-    return div().replaceChildren$(
+    return div().append$(
         section({ class: "input" })
             .ariaLabel("Input")
-            .replaceChildren$(
+            .append$(
                 button()
                     .title("Decrement by 1")
                     .onclick(() => count.val--)
@@ -29,11 +29,11 @@ function Counter() {
             ),
         section({ class: "output" })
             .ariaLabel("Output")
-            .replaceChildren$(
-                ul().replaceChildren$(
-                    li().replaceChildren$("Count: ", count),
-                    li().replaceChildren$("Double: ", double),
-                    li().replaceChildren$("Half: ", half),
+            .append$(
+                ul().append$(
+                    li().append$("Count: ", count),
+                    li().append$("Double: ", double),
+                    li().append$("Half: ", half),
                 ),
             ),
     );

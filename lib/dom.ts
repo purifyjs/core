@@ -96,7 +96,7 @@ type IsProxyableFunction<T, K extends keyof T> = If<
 
 /*
     if a function has `Node` as argument then that function can have a "$"" suffixed version.
-    for example `.replaceChildren$()` that "$" tells runtime Proxy to convert Node like variables to a Node value.
+    for example `.append$()` that "$" tells runtime Proxy to convert Node like variables to a Node value.
     on the type side these functions should also be typed accordingly to allow reccusrive Node like values.
 */
 type IsProxyableNodeFunction<T, K extends keyof T> = If<

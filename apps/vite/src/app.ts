@@ -12,13 +12,13 @@ const time = signal<string>((set) => {
     };
 });
 
-new Builder(document.body).replaceChildren$(
-    tags.div({ "data-time": time }).replaceChildren$(
+new Builder(document.body).append$(
+    tags.div({ "data-time": time }).append$(
         "Hello ",
         tags.strong().textContent("World"),
         tags
             .span({ "data-time": time })
-            .replaceChildren$([time], [[tags.div()]])
+            .append$([time], [[tags.div()]])
             .ariaLabel(time)
             .click()
             .setAttribute("foo", "bar"),
