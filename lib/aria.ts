@@ -1,5 +1,3 @@
-export {};
-
 /**
  * @module ARIA
  *
@@ -34,7 +32,7 @@ export namespace StrictARIA {
         /**
          * Experimental ARIA properties that may not be fully standardized or cross-browser.
          */
-        export type Experimental = {
+        export interface Experimental {
             ariaOwnsElements: Element[] | null;
             ariaFlowToElements: Element[] | null;
             ariaDetailsElements: Element[] | null;
@@ -42,13 +40,13 @@ export namespace StrictARIA {
             ariaLabelledByElements: Element[] | null;
             ariaDescribedByElements: Element[] | null;
             ariaErrorMessageElements: Element[] | null;
-        };
+        }
 
         /**
          * Properties that override default ARIA types for stricter control over allowed values.
          * These types enforce specific string literal types for various ARIA attributes.
          */
-        export type Override = {
+        export interface Override {
             ariaAtomic: "false" | "true" | null;
             ariaAutoComplete: "inline" | "list" | "both" | "none" | null;
             ariaBusy: "true" | "false" | null;
@@ -82,7 +80,7 @@ export namespace StrictARIA {
             ariaValueMin: `${number}` | null;
             ariaValueNow: `${number}` | null;
             role: StrictARIA.Role | null;
-        };
+        }
     }
 
     /**

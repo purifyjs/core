@@ -1,7 +1,12 @@
-import { Builder, state, tags } from "@purifyjs/core";
+import { Builder, signal, tags } from "@purifyjs/core";
 
-const time = state(new Date().toLocaleString(), (set) => {
-    const interval = setInterval(() => set(new Date().toLocaleString()), 1000);
+const time = signal<string>((set) => {
+    const interval = setInterval(update, 1000);
+    update();
+    function update() {
+        set(new Date().toLocaleString());
+    }
+
     return () => {
         clearInterval(interval);
     };

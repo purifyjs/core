@@ -30,7 +30,7 @@ _(() => {
     const formWithLifecycleBuilder = new Builder(formElementWithLifecycle);
 
     svgBuilder.replaceChildren("123");
-    /// @ts-expect-error Don't allow signals on elements without lifecycle
+    /// @ts-expect-error Functions doesn't accept signals
     svgBuilder.replaceChildren(state("123"));
     /// @ts-expect-error Don't allow signals on elements without lifecycle
     svgBuilder.ariaLabel(state("foo"));
@@ -39,7 +39,7 @@ _(() => {
 
     divBuilder.replaceChildren("123");
     divBuilder.replaceChildren$(divWithLifecycleBuilder);
-    /// @ts-expect-error Don't allow signals on elements without lifecycle
+    /// @ts-expect-error Functions doesn't accept signals anymore
     divBuilder.replaceChildren(state("123"));
     /// @ts-expect-error Don't allow signals on elements without lifecycle
     divBuilder.ariaLabel(state("foo"));
@@ -47,6 +47,7 @@ _(() => {
     divBuilder.$bind(() => {});
 
     divWithLifecycleBuilder.replaceChildren("123");
+    /// @ts-expect-error Functions doesn't accept signals
     divWithLifecycleBuilder.replaceChildren(state("123"));
     divWithLifecycleBuilder.replaceChildren$(divWithLifecycleBuilder);
     divWithLifecycleBuilder.ariaLabel(state("foo"));

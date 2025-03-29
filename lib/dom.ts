@@ -1,36 +1,20 @@
-// Embrace some optimal ugly code, if it makes the minified code smaller.
+/**
+ * @module DOM
+ *
+ * DOM Utility
+ */
 
 import type { StrictARIA } from "./aria.ts";
 import { Signal } from "./signals.ts";
-import type { _Event, Equal, Extends, Fn, If, IsReadonly, Not } from "./utils.ts";
+import type { Equal, Extends, Fn, If, IsReadonly, Not } from "./utils.ts";
 import { instancesOf } from "./utils.ts";
+
+// Embrace some optimal ugly code, if it makes the minified code smaller.
 
 /**
  * Proxy object for building HTML elements.
  *
  * It separates attributes and properties.
-
- * @example
- * ```ts
- * let { div, span } = tags;
- *
- * div({ class: 'hello', 'aria-hidden': 'false' })
- *  .id("my-div")
- *  .ariaLabel("Hello, World!")
- *  .onclick(() => console.log('clicked!'))
- *  .children(span('Hello, World!'));
- * ```
- *
- * Also allows signals as properties or attributes:
- * ```ts
- * div({ class: computed(() => count.val & 1 ? 'odd' : 'even') })
- *  .onclick(computed(() =>
- *      count.val & 1 ?
- *          () => alert('odd') :
- *          () => alert('even')
- *  ))
- *  .children("Click me!");
- * ```
  */
 export let tags: Tags = new Proxy({} as any, {
     // Keep `any`(s) here, otherwise `tsc` and LSP gets slow as fuck
@@ -42,6 +26,9 @@ export let tags: Tags = new Proxy({} as any, {
         (attributes: Builder.Attributes<any> = {}) => new Builder(new constructor(), attributes))),
 });
 
+/**
+ * Represents a set of HTML element builders.
+ */
 export type Tags = {
     [K in keyof HTMLElementTagNameMap]: (
         attributes?: Builder.Attributes<WithLifecycle<HTMLElementTagNameMap[K]>>,
@@ -49,9 +36,19 @@ export type Tags = {
 };
 
 export namespace Builder {
+    /**
+     * Types related to builder attributes.
+     */
     export namespace Attributes {
+        /**
+         * Type for attribute value, which can be a signal if the element is of type WithLifecycle.
+         */
         export type Value<TElement extends Element, T> = TElement extends WithLifecycle ? T | Signal<T> : T;
     }
+
+    /**
+     * Interface representing builder attributes.
+     */
     export type Attributes<T extends Element> =
         & {
             class?: Attributes.Value<T, string | null>;
@@ -66,16 +63,12 @@ export namespace Builder {
         & {
             [key: string]: Attributes.Value<T, string | null>;
         };
-    export type Event<E extends _Event, T extends EventTarget> = E & { currentTarget: T };
+
+    /**
+     * Type for builder event.
+     */
+    export type Event<E extends globalThis.Event, T extends EventTarget> = E & { currentTarget: T };
 }
-
-/*
-    if a function has `Node` as argument then that function can have a "$"" suffixed version.
-    for example `.replaceChildren$()` that "$" tells runtime Proxy to convert Node like variables toto a Node value.
-    on the type side these functions should also be typed accordingly to allow reccusrive Node like values.
-
-    Seperaretly from that, Signals are only allowed with `WithLifecyle` mixin, and functions with single or spreding arguments.
-*/
 
 type IsProxyableProperty<T, K extends keyof T> = If<
     & Not<Extends<K, keyof EventTarget>>
@@ -98,6 +91,11 @@ type IsProxyableFunction<T, K extends keyof T> = If<
     & ((T[K] extends (...args: infer Args) => infer Return ? Equal<Return, void> : false))
 >;
 
+/*
+    if a function has `Node` as argument then that function can have a "$"" suffixed version.
+    for example `.replaceChildren$()` that "$" tells runtime Proxy to convert Node like variables to a Node value.
+    on the type side these functions should also be typed accordingly to allow reccusrive Node like values.
+*/
 type IsProxyableNodeFunction<T, K extends keyof T> = If<
     & IsProxyableFunction<T, K>
     & ((T[K] extends (...args: infer Args) => infer Return ?
@@ -125,6 +123,9 @@ type RecursiveSignalAndArrayArgs<Args extends unknown[], R extends unknown[] = [
     : Args extends (infer U)[] ? RecursiveSignalAndArrayOf<U>[]
     : R;
 
+/*
+    Signals are only allowed with `WithLifecyle` mixin.
+*/
 type ProxyPropertyArg<T extends Node, K extends keyof T> = NonNullable<T[K]> extends (this: infer X, event: infer U) => infer R
     ? U extends Event ? (this: X, event: Builder.Event<U, T>) => R
     : T[K]
@@ -132,9 +133,7 @@ type ProxyPropertyArg<T extends Node, K extends keyof T> = NonNullable<T[K]> ext
     : T[K];
 
 type ProxyFunctionArgs<T extends Node, K extends keyof T, Args extends unknown[] = T[K] extends (...args: infer U) => any ? U : never> =
-    Args extends [] | [any, any, ...any] ? Args
-        : T extends WithLifecycle ? RecursiveSignalArgs<Args>
-        : Args;
+    Args;
 
 type MaybeNodeLikeArg<T> = T extends Node ? T | Builder<T> | null | undefined
     : T extends string ? string | { toString(): string } | null | undefined
@@ -170,10 +169,19 @@ type BuilderProxy<T extends Node> =
         [K in keyof T as If<IsProxyableNodeFunction<T, K>, `${K & string}$`>]: (...args: ProxyNodeFunctionArgs<T, K>) => Builder<T>;
     };
 
+/**
+ * Builder for a DOM Node
+ *
+ * @template T - The type of the node being built.
+ */
 export type Builder<T extends Node = Node> = BuilderProxy<MapStrictAriaProperties<T>> & {
     $node: T;
 };
 
+/**
+ * Interface for constructing builders that wrap DOM nodes and provide a fluent API
+ * for setting attributes, properties, and event handlers.
+ */
 export interface BuilderConstructor {
     new <T extends Element>(node: T, attributes?: Builder.Attributes<T>): Builder<T>;
     new <T extends Node>(node: T): Builder<T>;
@@ -181,11 +189,12 @@ export interface BuilderConstructor {
 }
 
 // NOTE: Builder unwrapping logic and `$node` can be removed once DOM has a native way to have Node like objects with something like toNode() or Symbol.toNode
-// NOTE: Before signals had their own wrappers with 'display:contents' style. Which was letting us update signals on the DOM without updating sibilings on the DOM.
-//          But it was causing problems with CSS selectors.
-//          So instead I simplified it and used .replaceChildren() method to update all children at once.
-//          Signals can have their own wrappers again when JS DOM has a real DocumentFragment which is persistent.
 
+/**
+ * Constructor function for creating builder instances that wrap DOM nodes.
+ *
+ * @template T - The type of the node being built, which extends `Node` and optionally includes lifecycle methods.
+ */
 export let Builder: BuilderConstructor = function <T extends Node & Partial<WithLifecycle>>(
     this: Builder<T>,
     node: T,
@@ -251,18 +260,51 @@ export let Builder: BuilderConstructor = function <T extends Node & Partial<With
 
 // Note: Lifecycle stuff can be removed or simplified once DOM has a nice and simple native event to follow life cycle of any Node sync.
 //       It has to be a Node, that way we can even follow lifecycle of persistent DocumentFragment(s)
-export namespace Lifecycle {
-    export type OnDisconnected = () => void;
-    export type OnConnected<T extends HTMLElement = HTMLElement> = (element: T) => void | OnDisconnected;
-    export type OffConnected = () => void;
-}
+//       The way we do Lifecycle might also change once we have Custom Attributes
+
+/**
+ * Lifecycle management interface for elements.
+ */
 export type Lifecycle<T extends HTMLElement = HTMLElement> = {
+    /**
+     * Binds a callback to the element's lifecycle events.
+     *
+     * @param callback - The callback function to be called when the element is connected.
+     * @returns A function that can be used to remove the connection callback.
+     */
     $bind(callback: Lifecycle.OnConnected<T>): Lifecycle.OffConnected;
 };
 
+export namespace Lifecycle {
+    /**
+     * Callback for when an element is disconnected.
+     */
+    export type OnDisconnected = () => void;
+
+    /**
+     * Callback for when an element is connected, which can return a disconnection callback.
+     */
+    export type OnConnected<T extends HTMLElement = HTMLElement> = (element: T) => void | OnDisconnected;
+
+    /**
+     * Function to remove a connection callback.
+     */
+    export type OffConnected = () => void;
+}
+
+/**
+ * Interface representing an HTML element with lifecycle management.
+ */
 export type WithLifecycle<T extends HTMLElement = HTMLElement> = T & Lifecycle<T>;
 
 let withLifecycleCache = new WeakMap<{ new (): HTMLElement }, { new (): WithLifecycle<HTMLElement> }>();
+
+/**
+ * Mixes lifecycle management into a custom HTML element class.
+ *
+ * @param Base - The base class to be extended.
+ * @returns A new class that extends the base class and includes lifecycle methods.
+ */
 export let WithLifecycle = <BaseConstructor extends { new (...params: any[]): HTMLElement }>(
     Base: BaseConstructor,
 ): {
