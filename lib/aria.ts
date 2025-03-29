@@ -35,18 +35,55 @@ export namespace StrictARIA {
      * Properties namespace
      */
     export namespace Properties {
+        /**
+         * Combines override properties and experimental ARIA properties into a single type.
+         */
         export type Mixin = Properties.Override & Properties.Experimental;
 
         /**
          * Experimental ARIA properties that may not be fully standardized or cross-browser.
          */
         export interface Experimental {
+            /**
+             * Specifies a list of elements that are owned by the current element. This allows the element to control or affect the referenced elements.
+             * @type {Element[] | null}
+             */
             ariaOwnsElements: Element[] | null;
+
+            /**
+             * Defines a list of elements that should be considered in the flow of content from the current element.
+             * @type {Element[] | null}
+             */
             ariaFlowToElements: Element[] | null;
+
+            /**
+             * Identifies elements that provide additional details for the current element. These elements provide supplementary information.
+             * @type {Element[] | null}
+             */
             ariaDetailsElements: Element[] | null;
+
+            /**
+             * Represents a list of elements that the current element is responsible for controlling or manipulating.
+             * @type {Element[] | null}
+             */
             ariaControlsElements: Element[] | null;
+
+            /**
+             * Represents elements that are labeled by the current element. The current element provides an accessible name for these elements.
+             * @type {Element[] | null}
+             */
             ariaLabelledByElements: Element[] | null;
+
+            /**
+             * Identifies elements that provide descriptive information for the current element.
+             * @type {Element[] | null}
+             */
             ariaDescribedByElements: Element[] | null;
+
+            /**
+             * Specifies elements that provide error message information for the current element.
+             * @type {Element[] | null}
+             */
             ariaErrorMessageElements: Element[] | null;
         }
 

@@ -348,6 +348,10 @@ export let WithLifecycle = <BaseConstructor extends { new (...params: any[]): HT
     return constructor as never;
 };
 
+/**
+ * Represents a type that can be converted into a `Node` or `string`,
+ * including recursive signals and arrays of such elements.
+ */
 export type Member = RecursiveSignalAndArrayOf<MaybeNodeLikeArg<Node | string>>;
 let toChild = (member: Member): string | Node => {
     if (instancesOf(member, Builder)) {

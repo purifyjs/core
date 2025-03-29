@@ -175,6 +175,15 @@ export declare namespace Signal {
     }
 }
 
+/**
+ * Creates a new signal with the provided start/stop function.
+ * The start function is invoked when the signal becomes active (has at least one follower).
+ * The stop function is invoked when the signal becomes inactive (has no followers).
+ *
+ * @template T The type of value held by the signal.
+ * @param start A callback function that takes a setter function and returns a stop function or void.
+ * @returns A new signal instance.
+ */
 export class Signal<T = never> {
     #followers = new Set<Signal.Follower<any>>();
     #start: Signal.Start<T>;
