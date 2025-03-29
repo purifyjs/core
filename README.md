@@ -284,3 +284,7 @@ JSX is not part of this library natively, but a wrapper can be made quite easily
 
   This is why the **custom attributes proposal** could significantly improve how lifecycles work. It would make lifecycle-related behavior
   **explicit in the DOM**, which is a big advantage.
+
+- **Something like `.toNode()` or `Symbol.toNode`** would allow us to insert anything into the DOM without manually unwrapping them. This
+  would simplify DOM manipulation by letting custom objects, structures, or even signals to be automatically converted into valid DOM nodes
+  when inserted.
