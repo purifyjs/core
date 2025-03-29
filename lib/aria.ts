@@ -6,6 +6,11 @@
  * and the `Properties` interface for ARIA property type overrides and experimental attributes.
  */
 
+/**
+ * This module defines stricter types for ARIA.
+ * It includes the `Attributes` type, which transforms ARIA property keys to attribute-like strings,
+ * and the `Properties` interface for ARIA property type overrides and experimental attributes.
+ */
 export namespace StrictARIA {
     /**
      * Type representing ARIA attributes, which are derived from `Properties` and follow a
@@ -26,6 +31,9 @@ export namespace StrictARIA {
      */
     export type Properties = ARIAMixin & Properties.Mixin;
 
+    /**
+     * Properties namespace
+     */
     export namespace Properties {
         export type Mixin = Properties.Override & Properties.Experimental;
 
@@ -89,6 +97,9 @@ export namespace StrictARIA {
      */
     export type Role = Role.RichInternetApplications | Role.DigitalPublishing | Role.Experimental;
 
+    /**
+     * Role namespace
+     */
     export namespace Role {
         /**
          * Experimental role that may not be fully standardized or supported by all browsers.

@@ -149,6 +149,9 @@ export declare namespace Signal {
         public get(): T;
     }
 
+    /**
+     * Dependency namespace
+     */
     namespace Dependency {
         /**
          * Adds a signal to the dependency tracking system.

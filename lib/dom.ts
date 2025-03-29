@@ -35,9 +35,12 @@ export type Tags = {
     ) => Builder<WithLifecycle<HTMLElementTagNameMap[K]>>;
 };
 
+/**
+ * Builder namespace
+ */
 export namespace Builder {
     /**
-     * Types related to builder attributes.
+     * Attributes namespace
      */
     export namespace Attributes {
         /**
@@ -275,6 +278,9 @@ export type Lifecycle<T extends HTMLElement = HTMLElement> = {
     $bind(callback: Lifecycle.OnConnected<T>): Lifecycle.OffConnected;
 };
 
+/**
+ * Lifecycle namespace
+ */
 export namespace Lifecycle {
     /**
      * Callback for when an element is disconnected.
