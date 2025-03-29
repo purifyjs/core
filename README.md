@@ -49,9 +49,9 @@
 
 ---
 
-## Installation 📦🍙
+## Installation and Docs 📦🍙
 
-To install **purify.js**, follow the [jsr.io/@purifyjs/core](https://jsr.io/@purifyjs/core).
+[jsr.io/@purifyjs/core](https://jsr.io/@purifyjs/core).
 
 ---
 
