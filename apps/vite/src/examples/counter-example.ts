@@ -1,4 +1,4 @@
-import { computed, Lifecycle, ref, Signal, tags } from "@purifyjs/core";
+import { computed, Lifecycle, Signal, state, tags } from "@purifyjs/core";
 
 const { div, section, button, ul, li, input } = tags;
 
@@ -7,7 +7,7 @@ function App() {
 }
 
 function Counter() {
-    const count = ref(0);
+    const count = state(0);
     const double = count.derive((count) => count * 2);
     const half = computed(() => count.val * 0.5);
 
@@ -19,7 +19,9 @@ function Counter() {
                     .title("Decrement by 1")
                     .onclick(() => count.val--)
                     .textContent("-"),
-                input().type("number").$effect(useBindNumber(count)).step("1"),
+                input().type("number").$bind(useBindNumber(count)).step(
+                    "1",
+                ),
                 button()
                     .title("Increment by 1")
                     .onclick(() => count.val++)

@@ -1,4 +1,4 @@
-import { Builder, ref, tags } from "@purifyjs/core";
+import { Builder, state, tags } from "@purifyjs/core";
 
 const { div, button } = tags;
 
@@ -10,7 +10,7 @@ function Counter() {
     const host = div();
     const shadow = new Builder(host.$node.attachShadow({ mode: "open" }));
 
-    const count = ref(0);
+    const count = state(0);
 
     shadow.replaceChildren$(
         button()

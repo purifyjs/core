@@ -23,7 +23,7 @@
 - 🌐 Builder doesn't only work with `HTMLElement`(s) but works with any `Node` instance including `ShadowRoot`, `DocumentFragment`,
   `Document`... any `Node` type, including future ones.
 - 🎩 Builder converts existing methods on the `Node` instance to builder pattern with `Proxy`.
-- ⚡ **Uses signals for reactivity.**
+- ⚡ **Signal implementation that makes sense and useable.**
 - 🧙 **Signals are extendable,** allowing chaining with utilities like .pipe() and .derive() to build custom workflows..
 - ✂️ Allows direct DOM manipulation.
 - 📁 No special file extensions.
@@ -60,7 +60,7 @@ To install **purify.js**, follow the [jsr.io/@purifyjs/core](https://jsr.io/@pur
 ### Counter
 
 ```ts
-import { computed, Lifecycle, ref, Signal, tags } from "@purifyjs/core";
+import { computed, Lifecycle, Signal, state, tags } from "@purifyjs/core";
 
 const { div, section, button, ul, li, input } = tags;
 
@@ -69,7 +69,7 @@ function App() {
 }
 
 function Counter() {
-    const count = ref(0);
+    const count = state(0);
     const double = count.derive((count) => count * 2);
     const half = computed(() => count.val * 0.5);
 
@@ -81,7 +81,7 @@ function Counter() {
                     .title("Decrement by 1")
                     .onclick(() => count.val--)
                     .textContent("-"),
-                input().type("number").$effect(useBindNumber(count)).step("1"),
+                input().type("number").$bind(useBindNumber(count)).step("1"),
                 button()
                     .title("Increment by 1")
                     .onclick(() => count.val++)
@@ -122,7 +122,7 @@ document.body.append(App().$node);
 ### ShadowRoot
 
 ```ts
-import { Builder, ref, tags } from "@purifyjs/core";
+import { Builder, state, tags } from "@purifyjs/core";
 
 const { div, button } = tags;
 
@@ -134,7 +134,7 @@ function Counter() {
     const host = div();
     const shadow = new Builder(host.$node.attachShadow({ mode: "open" }));
 
-    const count = ref(0);
+    const count = state(0);
 
     shadow.replaceChildren$(
         button()
@@ -151,7 +151,7 @@ document.body.append(App().$node);
 ### Web Components
 
 ```ts
-import { Builder, ref, tags, WithLifecycle } from "@purifyjs/core";
+import { Builder, state, tags, WithLifecycle } from "@purifyjs/core";
 
 const { div, button } = tags;
 
@@ -170,7 +170,7 @@ class CounterElement extends WithLifecycle(HTMLElement) {
         customElements.define("x-counter", CounterElement);
     }
 
-    #count = ref(0);
+    #count = state(0);
 
     constructor() {
         super();
@@ -267,7 +267,7 @@ JSX is not part of this library natively, but a wrapper can be made quite easily
   WithLifecycle(HTMLElement); // or
   WithLifecycle(HTMLDivElement);
   ```
-  It adds a lifecycle function called `$effect()` to any `HTMLElement` type. Which can later be extended by a custom element like
+  It adds a lifecycle function called `$bind()` to any `HTMLElement` type. Which can later be extended by a custom element like
   ```ts
   class MyElement extends WithLifecycle(HTMLElement)
   ```

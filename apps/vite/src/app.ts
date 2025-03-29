@@ -1,6 +1,6 @@
-import { Builder, ref, tags } from "@purifyjs/core";
+import { Builder, state, tags } from "@purifyjs/core";
 
-const time = ref(new Date().toLocaleString(), (set) => {
+const time = state(new Date().toLocaleString(), (set) => {
     const interval = setInterval(() => set(new Date().toLocaleString()), 1000);
     return () => {
         clearInterval(interval);

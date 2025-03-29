@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
-import { ref } from "./signals.ts";
+import { state } from "./signals.ts";
 import { Builder, type tags as tags_type, type WithLifecycle } from "./dom.ts";
 declare const tags: typeof tags_type;
 
@@ -31,29 +31,29 @@ _(() => {
 
     svgBuilder.replaceChildren("123");
     /// @ts-expect-error Don't allow signals on elements without lifecycle
-    svgBuilder.replaceChildren(ref("123"));
+    svgBuilder.replaceChildren(state("123"));
     /// @ts-expect-error Don't allow signals on elements without lifecycle
-    svgBuilder.ariaLabel(ref("foo"));
+    svgBuilder.ariaLabel(state("foo"));
     /// @ts-expect-error Don't allow signals on elements without lifecycle
-    svgBuilder.$effect(() => {});
+    svgBuilder.$bind(() => {});
 
     divBuilder.replaceChildren("123");
     divBuilder.replaceChildren$(divWithLifecycleBuilder);
     /// @ts-expect-error Don't allow signals on elements without lifecycle
-    divBuilder.replaceChildren(ref("123"));
+    divBuilder.replaceChildren(state("123"));
     /// @ts-expect-error Don't allow signals on elements without lifecycle
-    divBuilder.ariaLabel(ref("foo"));
+    divBuilder.ariaLabel(state("foo"));
     /// @ts-expect-error Don't allow signals on elements without lifecycle
-    divBuilder.$effect(() => {});
+    divBuilder.$bind(() => {});
 
     divWithLifecycleBuilder.replaceChildren("123");
-    divWithLifecycleBuilder.replaceChildren(ref("123"));
+    divWithLifecycleBuilder.replaceChildren(state("123"));
     divWithLifecycleBuilder.replaceChildren$(divWithLifecycleBuilder);
-    divWithLifecycleBuilder.ariaLabel(ref("foo"));
-    divWithLifecycleBuilder.$effect(() => {});
+    divWithLifecycleBuilder.ariaLabel(state("foo"));
+    divWithLifecycleBuilder.$bind(() => {});
 
     // Form element sometimes might cause issues since it has [key: string] and [index: number] in it, so be careful, keep this in mind
     formWithLifecycleBuilder.replaceChildren$("");
-    formWithLifecycleBuilder.$effect(() => {});
+    formWithLifecycleBuilder.$bind(() => {});
     formWithLifecycleBuilder.ariaAtomic("true");
 });

@@ -1,7 +1,7 @@
 // Embrace some optimal ugly code, if it makes the minified code smaller.
 
 import type { StrictARIA } from "./aria.ts";
-import { computed, Signal } from "./signals.ts";
+import { Signal } from "./signals.ts";
 import type { _Event, Equal, Extends, Fn, If, IsReadonly, Not } from "./utils.ts";
 import { instancesOf } from "./utils.ts";
 
@@ -136,7 +136,9 @@ type ProxyFunctionArgs<T extends Node, K extends keyof T, Args extends unknown[]
         : T extends WithLifecycle ? RecursiveSignalArgs<Args>
         : Args;
 
-type MaybeNodeLikeArg<T> = T extends Node ? T | Builder<T> | null : T extends string ? string | { toString(): string } : T;
+type MaybeNodeLikeArg<T> = T extends Node ? T | Builder<T> | null | undefined
+    : T extends string ? string | { toString(): string } | null | undefined
+    : T;
 type MaybeNodeLikeArgs<Args extends unknown[], R extends unknown[] = []> = Args extends [infer Head, ...infer Tail]
     ? MaybeNodeLikeArgs<Tail, [...R, MaybeNodeLikeArg<Head>]>
     : Args extends (infer U)[] ? MaybeNodeLikeArg<U>[]
@@ -205,7 +207,7 @@ export let Builder: BuilderConstructor = function <T extends Node & Partial<With
         };
 
         if (instancesOf(value, Signal)) {
-            node.$effect!(() => value.follow(setOrRemoveAttribute, true));
+            node.$bind!(() => value.follow(setOrRemoveAttribute, true));
         } else {
             setOrRemoveAttribute(value);
         }
@@ -222,49 +224,14 @@ export let Builder: BuilderConstructor = function <T extends Node & Partial<With
                 return target[targetName];
             }
 
-            nodeName = (targetName.at(-1) == "$" ? targetName.slice(0, -1) : targetName) as keyof T & string;
+            nodeName = (targetName.at(-1) == "$" ? (targetName.slice(0, -1)) : targetName) as never;
             fn = (instancesOf(node[nodeName], Function) && !Object.hasOwn(node, nodeName))
-                ? (nodeName == targetName) ? (args: unknown[]) => (node[nodeName] as Fn)(...args) : ((
-                    args: unknown[],
-                    computedArgs: Signal<unknown[]>,
-                    hasSignal: boolean | undefined,
-                    unwrap = (value: unknown): string | Node | { toString(): string } => {
-                        if (value == null) {
-                            return unwrap([]);
-                        }
-                        if (instancesOf(value, Builder)) {
-                            return value.$node;
-                        }
-                        if (instancesOf(value, Signal)) {
-                            hasSignal = true;
-                            return unwrap(value.val);
-                        }
-                        if (instancesOf(value, Array)) {
-                            return unwrap(new Builder(document.createDocumentFragment()).append(...value.map(unwrap) as never[]));
-                        }
-                        return value;
-                    },
-                    unwrappedArgs: unknown[],
-                ) => {
-                    // This is the best i can come up with
-                    // Normally if we had a persistent document fragment with lifecyle,
-                    // we could have just wrapped signals with it in the DOM. Not doing these at all.
-                    //
-                    // I can wrap them with an element with lifecycle and give it `display:contents`,
-                    // but that causes other issues in the dx
-                    unwrappedArgs = args.map(unwrap);
-                    if (hasSignal) {
-                        computedArgs = computed(() => args.map(unwrap));
-                        cleanups[targetName] = node.$effect!(() =>
-                            computedArgs.follow((newArgs) => (node[nodeName] as Fn)(...newArgs), true)
-                        );
-                    } else {
-                        (node[nodeName] as Fn)(...unwrappedArgs);
-                    }
-                })
+                ? (nodeName == targetName)
+                    ? (args: unknown[]) => (node[nodeName] as Fn)(...args)
+                    : ((args: Member[]) => (node[nodeName] as Fn)(...args.map(toChild)))
                 : (([value]: [unknown]) => {
                     if (instancesOf(value, Signal)) {
-                        cleanups[targetName] = node.$effect!(() => value.follow((value) => node[nodeName] = value as never, true));
+                        cleanups[targetName] = node.$bind!(() => value.follow((value) => node[nodeName] = value as never, true));
                     } else {
                         node[nodeName] = value as never;
                     }
@@ -290,12 +257,12 @@ export namespace Lifecycle {
     export type OffConnected = () => void;
 }
 export type Lifecycle<T extends HTMLElement = HTMLElement> = {
-    $effect(callback: Lifecycle.OnConnected<T>): Lifecycle.OffConnected;
+    $bind(callback: Lifecycle.OnConnected<T>): Lifecycle.OffConnected;
 };
 
 export type WithLifecycle<T extends HTMLElement = HTMLElement> = T & Lifecycle<T>;
 
-let withLifecycleCache = new Map<{ new (): HTMLElement }, { new (): WithLifecycle<HTMLElement> }>();
+let withLifecycleCache = new WeakMap<{ new (): HTMLElement }, { new (): WithLifecycle<HTMLElement> }>();
 export let WithLifecycle = <BaseConstructor extends { new (...params: any[]): HTMLElement }>(
     Base: BaseConstructor,
 ): {
@@ -311,14 +278,14 @@ export let WithLifecycle = <BaseConstructor extends { new (...params: any[]): HT
                 #callbacks = new Map<Lifecycle.OnConnected<Base>, ReturnType<Lifecycle.OnConnected<Base>> | null>();
 
                 connectedCallback(): void {
-                    this.#callbacks.keys().forEach((callback) => this.#callbacks.set(callback, callback(this)));
+                    this.#callbacks.forEach((_, callback) => this.#callbacks.set(callback, callback(this)));
                 }
 
                 disconnectedCallback(): void {
                     this.#callbacks.forEach((disconnectedCallbackOrNullish) => disconnectedCallbackOrNullish?.());
                 }
 
-                $effect(callback: Lifecycle.OnConnected<Base>): Lifecycle.OffConnected {
+                $bind(callback: Lifecycle.OnConnected<Base>): Lifecycle.OffConnected {
                     this.#callbacks.set(callback, null);
                     return () => {
                         let off = this.#callbacks.get(callback);
@@ -331,4 +298,21 @@ export let WithLifecycle = <BaseConstructor extends { new (...params: any[]): HT
     }
 
     return constructor as never;
+};
+
+export type Member = RecursiveSignalAndArrayOf<MaybeNodeLikeArg<Node | string>>;
+let toChild = (member: Member): string | Node => {
+    if (instancesOf(member, Builder)) {
+        return member.$node;
+    }
+    if (instancesOf(member, Signal)) {
+        return toChild(
+            tags.div({ style: "display:contents" })
+                .$bind((element) => member.follow((value) => element.replaceChildren(toChild(value)), true)),
+        );
+    }
+    if (instancesOf(member, Array)) {
+        return toChild(new Builder(document.createDocumentFragment()).append(...member.map(toChild) as never[]));
+    }
+    return (member satisfies { toString(): string } | null | undefined) as string;
 };
