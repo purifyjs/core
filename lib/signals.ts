@@ -63,7 +63,7 @@ export class Signal<T> {
         this.#start = startStop;
     }
 
-    public get val() {
+    public get val(): T {
         return this.get();
     }
     public set val(newValue: T) {
