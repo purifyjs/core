@@ -1,6 +1,6 @@
 {
     "name": "@purifyjs/core",
-    "version": "0.2.0-alpha.22",
+    "version": "0.2.0-alpha.23",
     "workspace": ["./apps/vite", "./apps/size"],
     "exports": {
         ".": "./lib/mod.ts",
