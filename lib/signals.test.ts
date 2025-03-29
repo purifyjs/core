@@ -1,5 +1,5 @@
 import { assertStrictEquals } from "jsr:@std/assert";
-import { computed, Signal, state } from "./signals.ts";
+import { computed, Signal, signal, state } from "./signals.ts";
 
 function assertTupleEqual(a: unknown[], b: unknown[]) {
     assertStrictEquals(a.length, b.length);
@@ -7,6 +7,38 @@ function assertTupleEqual(a: unknown[], b: unknown[]) {
         assertStrictEquals(a[i], b[i]);
     }
 }
+
+function _(_fn: () => void) {}
+
+_(() => {
+    const signalSignal = signal<number>(() => {});
+    const stateSignal = state<number>(0);
+    const computedSignal = computed<number>(() => 0);
+
+    /// @ts-expect-error read-only
+    signalSignal.val = 0;
+    stateSignal.val = 0;
+    /// @ts-expect-error read-only
+    computedSignal.val = 0;
+
+    function acceptSignal(_: Signal<unknown>) {}
+    function acceptState(_: Signal.State<unknown>) {}
+    function acceptComputed(_: Signal.Computed<unknown>) {}
+
+    acceptSignal(signalSignal);
+    acceptSignal(stateSignal);
+    acceptSignal(computedSignal);
+
+    /// @ts-expect-error read-only
+    acceptState(signalSignal);
+    acceptState(stateSignal);
+    /// @ts-expect-error read-only
+    acceptState(computedSignal);
+
+    acceptComputed(signalSignal);
+    acceptComputed(stateSignal);
+    acceptComputed(computedSignal);
+});
 
 Deno.test("Derive counter with immediate basics", () => {
     const value = state(0);

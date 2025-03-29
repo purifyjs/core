@@ -36,6 +36,10 @@ export declare namespace Signal {
      */
     class State<T> extends Signal<T> {
         constructor(initial: T);
+        public get val(): T;
+        public set val(newValue: T);
+        public get(): T;
+        public set(newValue: T): void;
     }
 
     /**
@@ -45,10 +49,12 @@ export declare namespace Signal {
      */
     class Computed<T> extends Signal<T> {
         constructor(getter: Signal.Getter<T>);
+        public get val(): T;
+        public get(): T;
     }
 
     namespace Dependency {
-        export function add(signal: Signal<unknown>): void;
+        function add(signal: Signal<unknown>): void;
         function track<R>(callAndTrack: () => R, callback?: (signal: Signal<unknown>) => unknown): R;
     }
 }
@@ -66,11 +72,11 @@ export class Signal<T> {
     public get val(): T {
         return this.get();
     }
-    public set val(newValue: T) {
+    protected set val(newValue: T) {
         this.set(newValue);
     }
 
-    protected get(): T {
+    public get(): T {
         Dependency.add(this);
         if (!this.#stop) { // if is not active
             this.follow(noop)();
@@ -146,11 +152,11 @@ Signal.State = class<T> extends Signal<T> {
         this.last = initial;
     }
 
-    protected override get() {
+    public override get() {
         Dependency.add(this);
         return this.last;
     }
-};
+} satisfies new <T>(initial: T) => Omit<Signal.State<T>, "set"> as never;
 
 Signal.Computed = class<T> extends Signal<T> {
     #getter: Signal.Getter<T> | undefined | null;
@@ -188,13 +194,13 @@ Signal.Computed = class<T> extends Signal<T> {
         this.#getter = getter;
     }
 
-    protected override get(): T {
+    public override get(): T {
         Dependency.add(this);
         return this.#getter ? this.#getter() : this.last;
     }
 };
 
-export let signal = <T>(start: Signal.Start<T>): Signal.State<T> => new Signal(start);
+export let signal = <T>(start: Signal.Start<T>): Signal<T> => new Signal(start);
 
 /**
  * Creates a new state signal with an initial value.
