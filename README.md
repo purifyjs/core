@@ -222,6 +222,11 @@ JSX is not part of this library natively, but a wrapper can be made quite easily
   So, in version `0.2.0`, I made it so that **all children** of a `ParentNode` update when a `Signal` child changes. This issue can be
   managed by structuring code carefully or using `.replaceChild()`, since all nodes now support `Signal`(s).
 
+  ---
+  **UPDATE:** Switched back to using `<div>` with `display:contents`.
+
+  ---
+
   Some might ask, _"Why not just use comment nodes?"_ Yes, using comment nodes for tracking ranges is a traditional solution. But it’s not
   **a native ranging solution**, and frameworks that rely on it **break if the DOM is mutated manually**, which goes against this library’s
   philosophy.
