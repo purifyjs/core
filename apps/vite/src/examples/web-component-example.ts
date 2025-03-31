@@ -1,16 +1,6 @@
 import { Builder, state, tags, WithLifecycle } from "@purifyjs/core";
 
-const { div, button } = tags;
-
-function App() {
-    return div().id("app").append$(new CounterElement());
-}
-
-declare global {
-    interface HTMLElementTagNameMap {
-        "x-counter": CounterElement;
-    }
-}
+const { button } = tags;
 
 class CounterElement extends WithLifecycle(HTMLElement) {
     static {
@@ -31,5 +21,3 @@ class CounterElement extends WithLifecycle(HTMLElement) {
         );
     }
 }
-
-document.body.append(App().$node);
