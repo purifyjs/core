@@ -2,6 +2,12 @@ export type Extends<T, U> = T extends U ? true : false;
 
 export type Equal<T, U> = [T] extends [U] ? [U] extends [T] ? true : false : false;
 
+/**
+ * @example
+ * ```ts
+ * If<(HasFoo | HasBar) & Not<HasBaz>>
+ * ```
+ */
 export type If<T extends boolean, Then = true, Else = never> = true extends T ? Then : Else;
 
 export type Not<T extends boolean> = true extends T ? false : true;

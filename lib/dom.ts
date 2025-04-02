@@ -366,5 +366,5 @@ export let toChild = (member: Member): string | Node => {
     if (instancesOf(member, Array)) {
         return toChild(new Builder(document.createDocumentFragment()).append(...member.map(toChild) as never[]));
     }
-    return (member satisfies { toString(): string } | null | undefined) as string;
+    return (member ?? "" satisfies { toString(): string }) as string;
 };
