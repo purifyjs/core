@@ -1,4 +1,4 @@
-import { Builder, signal, tags } from "@purifyjs/core";
+import { Builder, signal, tags, toChild } from "@purifyjs/core";
 
 const time = signal<string>((set) => {
     const interval = setInterval(update, 1000);
@@ -22,5 +22,8 @@ new Builder(document.body).append$(
             .ariaLabel(time)
             .click()
             .setAttribute("foo", "bar"),
+        tags.div().$bind((element) =>
+            time.follow((time) => element.replaceChildren(toChild(time)))
+        ),
     ),
 );
