@@ -237,6 +237,11 @@ export let Builder: BuilderConstructor = function <T extends Node & Partial<With
             }
 
             nodeName = (targetName.at(-1) == "$" ? (targetName.slice(0, -1)) : targetName) as never;
+
+            if ((nodeName in node)) {
+                return node[nodeName];
+            }
+
             fn = (instancesOf(node[nodeName], Function) && !Object.hasOwn(node, nodeName))
                 ? (nodeName == targetName)
                     ? (args: unknown[]) => (node[nodeName] as Fn)(...args)
