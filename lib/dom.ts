@@ -177,7 +177,7 @@ type BuilderProxy<T extends Node> =
  *
  * @template T - The type of the node being built.
  */
-export type Builder<T extends Node = Node> = BuilderProxy<MapStrictAriaProperties<T>> & {
+export type Builder<T extends Node = Node> = BuilderProxy<T> & {
     $node: T;
 };
 
@@ -186,7 +186,7 @@ export type Builder<T extends Node = Node> = BuilderProxy<MapStrictAriaPropertie
  * for setting attributes, properties, and event handlers.
  */
 export interface BuilderConstructor {
-    new <T extends Element>(node: T, attributes?: Builder.Attributes<T>): Builder<T>;
+    new <T extends Element>(node: T, attributes?: Builder.Attributes<T>): Builder<MapStrictAriaProperties<T>>;
     new <T extends Node>(node: T): Builder<T>;
     new (node: Node): Builder<Node>;
 }
