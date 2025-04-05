@@ -29,7 +29,13 @@ export namespace StrictARIA {
      * Interface representing all ARIA properties, including those that override base properties and
      * experimental attributes that are supported by specific browsers.
      */
-    export type Properties = ARIAMixin & Properties.Mixin;
+    export type Properties = {
+        [K in keyof ARIAMixin | keyof Properties.Mixin]: K extends keyof ARIAMixin
+            ? string extends ARIAMixin[K] ? K extends keyof Properties.Mixin ? Properties.Mixin[K] : ARIAMixin[K]
+            : ARIAMixin[K]
+            : K extends keyof Properties.Mixin ? Properties.Mixin[K]
+            : never;
+    };
 
     /**
      * Properties namespace
@@ -43,7 +49,7 @@ export namespace StrictARIA {
         /**
          * Experimental ARIA properties that may not be fully standardized or cross-browser.
          */
-        export interface Experimental {
+        export type Experimental = {
             /**
              * Specifies a list of elements that are owned by the current element. This allows the element to control or affect the referenced elements.
              * @type {Element[] | null}
@@ -85,13 +91,13 @@ export namespace StrictARIA {
              * @type {Element[] | null}
              */
             ariaErrorMessageElements: Element[] | null;
-        }
+        };
 
         /**
          * Properties that override default ARIA types for stricter control over allowed values.
          * These types enforce specific string literal types for various ARIA attributes.
          */
-        export interface Override {
+        export type Override = {
             ariaAtomic: "false" | "true" | null;
             ariaAutoComplete: "inline" | "list" | "both" | "none" | null;
             ariaBusy: "true" | "false" | null;
@@ -125,7 +131,7 @@ export namespace StrictARIA {
             ariaValueMin: `${number}` | null;
             ariaValueNow: `${number}` | null;
             role: StrictARIA.Role | null;
-        }
+        };
     }
 
     /**
