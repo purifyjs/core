@@ -158,18 +158,18 @@ type MapStrictAriaProperties<T> = {
     [K in keyof T]: K extends keyof StrictARIA.Properties ? StrictARIA.Properties[K] : T[K];
 };
 
-type BuilderProxy<T extends Node> =
+type BuilderProxy<T extends Node, U extends Node> =
     & {
-        [K in keyof T as If<IsProxyableProperty<T, K>, K>]: (value: ProxyPropertyArg<T, K>) => Builder<T>;
+        [K in keyof T as If<IsProxyableProperty<T, K>, K>]: (value: ProxyPropertyArg<T, K>) => Builder<U>;
     }
     & {
-        [K in keyof T as If<IsReflectFunction<T, K>, K>]: T[K] extends (...args: infer Args) => any ? (...args: Args) => Builder<T> : never;
+        [K in keyof T as If<IsReflectFunction<T, K>, K>]: T[K] extends (...args: infer Args) => any ? (...args: Args) => Builder<U> : never;
     }
     & {
-        [K in keyof T as If<IsProxyableFunction<T, K>, K>]: (...args: ProxyFunctionArgs<T, K>) => Builder<T>;
+        [K in keyof T as If<IsProxyableFunction<T, K>, K>]: (...args: ProxyFunctionArgs<T, K>) => Builder<U>;
     }
     & {
-        [K in keyof T as If<IsProxyableNodeFunction<T, K>, `${K & string}$`>]: (...args: ProxyNodeFunctionArgs<T, K>) => Builder<T>;
+        [K in keyof T as If<IsProxyableNodeFunction<T, K>, `${K & string}$`>]: (...args: ProxyNodeFunctionArgs<T, K>) => Builder<U>;
     };
 
 /**
@@ -177,7 +177,7 @@ type BuilderProxy<T extends Node> =
  *
  * @template T - The type of the node being built.
  */
-export type Builder<T extends Node = Node> = BuilderProxy<T extends Element ? MapStrictAriaProperties<T> : T> & {
+export type Builder<T extends Node = Node> = BuilderProxy<T extends Element ? MapStrictAriaProperties<T> : T, T> & {
     $node: T;
 };
 
