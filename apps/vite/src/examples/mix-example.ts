@@ -1,25 +1,25 @@
 import {
     Builder,
-    computed,
     Lifecycle,
-    Signal,
-    signal,
-    state,
+    ref,
+    Sync,
+    sync,
     tags,
+    track,
 } from "@purifyjs/core";
 
 const { button, ul, li, input } = tags;
 
-const time = signal<number>((set) => {
+const time = sync<number>((set) => {
     const update = () => set(Date.now());
     const interval = setInterval(update, 1000);
     update();
     return () => clearInterval(interval);
 });
 
-const count = state(0);
+const count = ref(0);
 const double = count.derive((count) => count * 2);
-const half = computed(() => count.val * 0.5);
+const half = track(() => count.val * 0.5);
 
 new Builder(document.body).append$(
     button()
@@ -40,7 +40,7 @@ new Builder(document.body).append$(
 );
 
 function useValueAsNumber(
-    state: Signal.State<number>,
+    state: Sync.Ref<number>,
 ): Lifecycle.OnConnected<HTMLInputElement> {
     return (element) => {
         const abortController = new AbortController();

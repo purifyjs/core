@@ -4,7 +4,7 @@
  * DOM Utility
  */
 
-import { Signal } from "./signals.ts";
+import { Sync } from "./signals.ts";
 import type { StrictARIA } from "./strict/aria.ts";
 import type { StrictDOM } from "./strict/dom.ts";
 import type { Equal, Extends, Fn, If, IsReadonly, Not } from "./utils.ts";
@@ -47,7 +47,7 @@ export namespace Builder {
         /**
          * Type for attribute value, which can be a signal if the element is of type WithLifecycle.
          */
-        export type Value<TElement extends Element, T> = TElement extends WithLifecycle ? T | Signal<T> : T;
+        export type Value<TElement extends Element, T> = TElement extends WithLifecycle ? T | Sync<T> : T;
     }
 
     /**
@@ -115,13 +115,13 @@ type RecursiveArrayArgs<Args extends unknown[], R extends unknown[] = []> = Args
     : Args extends (infer U)[] ? RecursiveArrayOf<U>[]
     : R;
 
-type RecursiveSignalOf<T> = T | Signal<RecursiveSignalOf<T>>;
+type RecursiveSignalOf<T> = T | Sync<RecursiveSignalOf<T>>;
 type RecursiveSignalArgs<Args extends unknown[], R extends unknown[] = []> = Args extends [infer Head, ...infer Tail]
     ? RecursiveSignalArgs<Tail, [...R, RecursiveSignalOf<Head>]>
     : Args extends (infer U)[] ? RecursiveSignalOf<U>[]
     : R;
 
-type RecursiveSignalAndArrayOf<T> = T | Signal<RecursiveSignalAndArrayOf<T>> | RecursiveSignalAndArrayOf<T>[];
+type RecursiveSignalAndArrayOf<T> = T | Sync<RecursiveSignalAndArrayOf<T>> | RecursiveSignalAndArrayOf<T>[] | IteratorObject<T>;
 type RecursiveSignalAndArrayArgs<Args extends unknown[], R extends unknown[] = []> = Args extends [infer Head, ...infer Tail]
     ? RecursiveSignalAndArrayArgs<Tail, [...R, RecursiveSignalAndArrayOf<Head>]>
     : Args extends (infer U)[] ? RecursiveSignalAndArrayOf<U>[]
@@ -133,7 +133,7 @@ type RecursiveSignalAndArrayArgs<Args extends unknown[], R extends unknown[] = [
 type ProxyPropertyArg<T extends Node, K extends keyof T> = NonNullable<T[K]> extends (this: infer X, event: infer U) => infer R
     ? U extends Event ? (this: X, event: Builder.Event<U, T>) => R
     : T[K]
-    : T extends WithLifecycle ? T[K] | Signal<T[K]>
+    : T extends WithLifecycle ? T[K] | Sync<T[K]>
     : T[K];
 
 type ProxyFunctionArgs<T extends Node, K extends keyof T, Args extends unknown[] = T[K] extends (...args: infer U) => any ? U : never> =
@@ -222,7 +222,7 @@ export let Builder: BuilderConstructor = function <T extends Node & Partial<With
             }
         };
 
-        if (instancesOf(value, Signal)) {
+        if (instancesOf(value, Sync)) {
             node.$bind!(() => value.follow(setOrRemoveAttribute, true));
         } else {
             setOrRemoveAttribute(value);
@@ -251,7 +251,7 @@ export let Builder: BuilderConstructor = function <T extends Node & Partial<With
                     ? (args: unknown[]) => (node[nodeName] as Fn)(...args)
                     : ((args: Member[]) => (node[nodeName] as Fn)(...args.map(toChild)))
                 : (([value]: [unknown]) => {
-                    if (instancesOf(value, Signal)) {
+                    if (instancesOf(value, Sync)) {
                         cleanups[targetName] = node.$bind!(() => value.follow((value) => node[nodeName] = value as never, true));
                     } else {
                         node[nodeName] = value as never;
@@ -366,14 +366,18 @@ export let toChild = (member: Member): string | Node => {
     if (instancesOf(member, Builder)) {
         return member.$node;
     }
-    if (instancesOf(member, Signal)) {
+
+    if (instancesOf(member, Sync)) {
         return toChild(
             tags.div({ style: "display:contents" })
                 .$bind((element) => member.follow((value) => element.replaceChildren(toChild(value)), true)),
         );
     }
-    if (instancesOf(member, Array)) {
-        return toChild(new Builder(document.createDocumentFragment()).append(...member.map(toChild) as never[]));
+
+    if (instancesOf(member, Array) || instancesOf(member, Iterator)) {
+        return toChild(new Builder(document.createDocumentFragment()).append(...member.map(toChild)));
     }
-    return (member ?? "" satisfies { toString(): string }) as string;
+
+    // All .append() like functions accepts { toString(): string }, but dom types act like they are not supported, so we just say its a "string" here.
+    return (member ?? "") satisfies { toString(): string } as string;
 };

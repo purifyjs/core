@@ -1,6 +1,6 @@
-import { Builder, signal, tags, toChild } from "@purifyjs/core";
+import { Builder, sync, tags, toChild } from "@purifyjs/core";
 
-const time = signal<string>((set) => {
+const time = sync<string>((set) => {
     const interval = setInterval(update, 1000);
     update();
     function update() {

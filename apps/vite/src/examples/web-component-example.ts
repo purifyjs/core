@@ -1,4 +1,4 @@
-import { Builder, state, tags, WithLifecycle } from "@purifyjs/core";
+import { Builder, ref, tags, WithLifecycle } from "@purifyjs/core";
 
 const { button } = tags;
 
@@ -7,7 +7,7 @@ class CounterElement extends WithLifecycle(HTMLElement) {
         customElements.define("x-counter", CounterElement);
     }
 
-    #count = state(0);
+    #count = ref(0);
 
     constructor() {
         super();

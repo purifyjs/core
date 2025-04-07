@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
-import { state } from "./signals.ts";
+import { ref } from "./signals.ts";
 import { Builder, type tags as tags_type, type WithLifecycle } from "./dom.ts";
 declare const tags: typeof tags_type;
 
@@ -31,26 +31,26 @@ _(() => {
 
     svgBuilder.replaceChildren("123");
     /// @ts-expect-error Functions doesn't accept signals
-    svgBuilder.replaceChildren(state("123"));
+    svgBuilder.replaceChildren(ref("123"));
     /// @ts-expect-error Don't allow signals on elements without lifecycle
-    svgBuilder.ariaLabel(state("foo"));
+    svgBuilder.ariaLabel(ref("foo"));
     /// @ts-expect-error Don't allow signals on elements without lifecycle
     svgBuilder.$bind(() => {});
 
     divBuilder.replaceChildren("123");
     divBuilder.replaceChildren$(divWithLifecycleBuilder);
     /// @ts-expect-error Functions doesn't accept signals anymore
-    divBuilder.replaceChildren(state("123"));
+    divBuilder.replaceChildren(ref("123"));
     /// @ts-expect-error Don't allow signals on elements without lifecycle
-    divBuilder.ariaLabel(state("foo"));
+    divBuilder.ariaLabel(ref("foo"));
     /// @ts-expect-error Don't allow signals on elements without lifecycle
     divBuilder.$bind(() => {});
 
     divWithLifecycleBuilder.replaceChildren("123");
     /// @ts-expect-error Functions doesn't accept signals
-    divWithLifecycleBuilder.replaceChildren(state("123"));
+    divWithLifecycleBuilder.replaceChildren(ref("123"));
     divWithLifecycleBuilder.replaceChildren$(divWithLifecycleBuilder);
-    divWithLifecycleBuilder.ariaLabel(state("foo"));
+    divWithLifecycleBuilder.ariaLabel(ref("foo"));
     divWithLifecycleBuilder.$bind(() => {});
 
     // Form element sometimes might cause issues since it has [key: string] and [index: number] in it, so be careful, keep this in mind

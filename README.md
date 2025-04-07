@@ -37,7 +37,7 @@
 
 | Package         | .min.js | .min.js.gz |
 | --------------- | ------- | ---------- |
-| **purify.js**   | 2kB     | 1.0kB      |
+| **purify.js**   | 2kB     | 1kB        |
 | Preact 10.19.3  | 11kB    | 4kB        |
 | Solid 1.8.12    | 23kB    | 8kB        |
 | jQuery 3.7.1    | 85kB    | 29kB       |
@@ -58,20 +58,20 @@ Coming soon.
 ### Core Concepts
 
 ```ts
-import { Builder, computed, Lifecycle, Signal, signal, state, tags } from "@purifyjs/core";
+import { Builder, Lifecycle, ref, Sync, sync, tags, track } from "@purifyjs/core";
 
 const { button, ul, li, input } = tags;
 
-const time = signal<number>((set) => {
+const time = sync<number>((set) => {
     const update = () => set(Date.now());
     const interval = setInterval(update, 1000);
     update();
     return () => clearInterval(interval);
 });
 
-const count = state(0);
+const count = ref(0);
 const double = count.derive((count) => count * 2);
-const half = computed(() => count.val * 0.5);
+const half = track(() => count.val * 0.5);
 
 new Builder(document.body).append$(
     button()
@@ -92,7 +92,7 @@ new Builder(document.body).append$(
 );
 
 function useValueAsNumber(
-    state: Signal.State<number>,
+    state: Sync.Ref<number>,
 ): Lifecycle.OnConnected<HTMLInputElement> {
     return (element) => {
         const abortController = new AbortController();
@@ -116,7 +116,7 @@ function useValueAsNumber(
 ### ShadowRoot
 
 ```ts
-import { Builder, state, tags } from "@purifyjs/core";
+import { Builder, ref, tags } from "@purifyjs/core";
 
 const { div, button } = tags;
 
@@ -124,7 +124,7 @@ function Counter() {
     const host = div();
     const shadow = new Builder(host.$node.attachShadow({ mode: "open" }));
 
-    const count = state(0);
+    const count = ref(0);
 
     shadow.append$(
         button()
@@ -139,7 +139,7 @@ function Counter() {
 ### Web Components
 
 ```ts
-import { Builder, state, tags, WithLifecycle } from "@purifyjs/core";
+import { Builder, ref, tags, WithLifecycle } from "@purifyjs/core";
 
 const { button } = tags;
 
@@ -148,7 +148,7 @@ class CounterElement extends WithLifecycle(HTMLElement) {
         customElements.define("x-counter", CounterElement);
     }
 
-    #count = state(0);
+    #count = ref(0);
 
     constructor() {
         super();

@@ -1,5 +1,5 @@
 import { assertStrictEquals } from "jsr:@std/assert";
-import { computed, Signal, signal, state } from "./signals.ts";
+import { ref, Sync, sync, track } from "./signals.ts";
 
 function assertTupleEqual(a: unknown[], b: unknown[]) {
     assertStrictEquals(a.length, b.length);
@@ -11,9 +11,9 @@ function assertTupleEqual(a: unknown[], b: unknown[]) {
 function _(_fn: () => void) {}
 
 _(() => {
-    const signalSignal = signal<number>(() => {});
-    const stateSignal = state<number>(0);
-    const computedSignal = computed<number>(() => 0);
+    const signalSignal = sync<number>(() => {});
+    const stateSignal = ref<number>(0);
+    const computedSignal = track<number>(() => 0);
 
     /// @ts-expect-error read-only
     signalSignal.val = 0;
@@ -21,28 +21,23 @@ _(() => {
     /// @ts-expect-error read-only
     computedSignal.val = 0;
 
-    function acceptSignal(_: Signal<unknown>) {}
-    function acceptState(_: Signal.State<unknown>) {}
-    function acceptComputed(_: Signal.Computed<unknown>) {}
+    function acceptSignal(_: Sync<unknown>) {}
+    function acceptref(_: Sync.Ref<unknown>) {}
 
     acceptSignal(signalSignal);
     acceptSignal(stateSignal);
     acceptSignal(computedSignal);
 
     /// @ts-expect-error read-only
-    acceptState(signalSignal);
-    acceptState(stateSignal);
+    acceptref(signalSignal);
+    acceptref(stateSignal);
     /// @ts-expect-error read-only
-    acceptState(computedSignal);
-
-    acceptComputed(signalSignal);
-    acceptComputed(stateSignal);
-    acceptComputed(computedSignal);
+    acceptref(computedSignal);
 });
 
 Deno.test("Derive counter with immediate basics", () => {
-    const value = state(0);
-    const double = computed(() => value.val * 2);
+    const value = ref(0);
+    const double = track(() => value.val * 2);
 
     const results: number[] = [];
     double.follow((value) => results.push(value), true);
@@ -55,8 +50,8 @@ Deno.test("Derive counter with immediate basics", () => {
 });
 
 Deno.test("Derive counter without immediate basics", () => {
-    const value = state(0);
-    const double = computed(() => value.val * 2);
+    const value = ref(0);
+    const double = track(() => value.val * 2);
 
     const results: number[] = [];
     double.follow((value) => results.push(value));
@@ -69,9 +64,9 @@ Deno.test("Derive counter without immediate basics", () => {
 });
 
 Deno.test("Computed multiple dependency", () => {
-    const a = state(0);
-    const b = state(0);
-    const ab = computed(() => `${a.val},${b.val}`);
+    const a = ref(0);
+    const b = ref(0);
+    const ab = track(() => `${a.val},${b.val}`);
 
     const results: string[] = [];
     ab.follow((ab) => results.push(ab));
@@ -86,9 +81,9 @@ Deno.test("Computed multiple dependency", () => {
 
 Deno.test("Computed multi follower should call getter once", () => {
     let counter = 0;
-    const a = state(0);
-    const b = computed(() => {
-        Signal.Dependency.add(a);
+    const a = ref(0);
+    const b = track(() => {
+        Sync.Tracking.add(a);
         counter++;
     });
     b.follow(() => {});
@@ -102,8 +97,8 @@ Deno.test("Computed multi follower should call getter once", () => {
 });
 
 Deno.test("Computed shouldn't call followers if the value is the same as the previous value", () => {
-    const a = state(0);
-    const b = computed(() => a.val % 2);
+    const a = ref(0);
+    const b = track(() => a.val % 2);
     const results: unknown[] = [];
     b.follow((value) => {
         results.push(value);
@@ -118,9 +113,9 @@ Deno.test("Computed shouldn't call followers if the value is the same as the pre
 
 Deno.test("Computed should update as many times as the dependencies changes", () => {
     let counter = 0;
-    const a = state(0);
-    const b = computed(() => {
-        Signal.Dependency.add(a);
+    const a = ref(0);
+    const b = track(() => {
+        Sync.Tracking.add(a);
         counter++;
     });
     b.follow(() => {});
@@ -134,9 +129,9 @@ Deno.test("Computed should update as many times as the dependencies changes", ()
 
 Deno.test("Computed shouldn't run without followers", () => {
     let counter = 0;
-    const a = state(0);
-    computed(() => {
-        Signal.Dependency.add(a);
+    const a = ref(0);
+    track(() => {
+        Sync.Tracking.add(a);
         counter++;
     });
 
@@ -147,9 +142,9 @@ Deno.test("Computed shouldn't run without followers", () => {
 
 Deno.test("Computed shouldn't discover without followers", () => {
     let counter = 0;
-    const a = state(0);
-    computed(() => {
-        Signal.Dependency.add(a);
+    const a = ref(0);
+    track(() => {
+        Sync.Tracking.add(a);
         counter++;
     });
 
@@ -157,7 +152,7 @@ Deno.test("Computed shouldn't discover without followers", () => {
 });
 
 Deno.test("State, no infinite follower emit", () => {
-    const a = state(0);
+    const a = ref(0);
     let counter = 0;
     function follower() {
         // Prevent infinite loop
@@ -176,7 +171,7 @@ Deno.test("State, no infinite follower emit", () => {
 });
 
 Deno.test("Deep derivation shouldn't run multiple times", () => {
-    const a = state(0);
+    const a = ref(0);
     let counter = 0;
 
     a.derive((value) => {
@@ -193,7 +188,7 @@ Deno.test("Deep derivation shouldn't run multiple times", () => {
 });
 
 Deno.test("State should start on get, if there are no followers", () => {
-    const a = state("abc");
+    const a = ref("abc");
 
     const b = a
         .derive((value) => value)
@@ -205,12 +200,12 @@ Deno.test("State should start on get, if there are no followers", () => {
 });
 
 Deno.test("Verify computed recalculates correctly with internal dependency updates", () => {
-    const a = state(0);
+    const a = ref(0);
     let counter = 0;
-    computed(() => {
+    track(() => {
         counter++;
         if (counter > 100) return;
-        Signal.Dependency.add(a);
+        Sync.Tracking.add(a);
         a.val = 1; // 2, 4
     }).follow(() => {}); // 1
     a.val = 2; // 3
@@ -220,7 +215,7 @@ Deno.test("Verify computed recalculates correctly with internal dependency updat
 
 Deno.test("Infinite loop test", () => {
     let counter = 0;
-    const a = new Signal(() => {
+    const a = new Sync(() => {
         counter++;
         if (counter > 100) return;
         a.val;
@@ -233,8 +228,8 @@ Deno.test("Infinite loop test", () => {
 Deno.test("No stop leak", () => {
     let counter = 0;
     // deno-lint-ignore prefer-const
-    let unfollow: Signal.Unfollow;
-    const a = new Signal(() => {
+    let unfollow: Sync.Unfollow;
+    const a = new Sync(() => {
         if (typeof unfollow !== "undefined") {
             unfollow();
         }
