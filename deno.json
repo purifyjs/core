@@ -1,10 +1,10 @@
 {
     "name": "@purifyjs/core",
-    "version": "0.2.0-alpha.33",
+    "version": "0.2.0-alpha.34",
     "workspace": ["./apps/vite", "./apps/size"],
     "exports": {
         ".": "./lib/mod.ts",
-        "./aria": "./lib/aria.ts"
+        "./strict": "./lib/strict/mod.ts"
     },
     "publish": {
         "include": ["lib", "LICENSE", "README.md"],
