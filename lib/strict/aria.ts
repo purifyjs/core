@@ -1,5 +1,5 @@
 /**
- * @module ARIA
+ * @module StrictARIA
  *
  * This module defines stricter types for ARIA.
  * It includes the `Attributes` type, which transforms ARIA property keys to attribute-like strings,

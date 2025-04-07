@@ -4,8 +4,9 @@
  * DOM Utility
  */
 
-import type { StrictARIA } from "./aria.ts";
 import { Signal } from "./signals.ts";
+import type { StrictARIA } from "./strict/aria.ts";
+import type { StrictDOM } from "./strict/dom.ts";
 import type { Equal, Extends, Fn, If, IsReadonly, Not } from "./utils.ts";
 import { instancesOf } from "./utils.ts";
 
@@ -154,8 +155,11 @@ type ProxyNodeFunctionArgs<
     : T extends WithLifecycle ? RecursiveSignalAndArrayArgs<Args>
     : RecursiveArrayArgs<Args>;
 
-type MapStrictAriaProperties<T> = {
-    [K in keyof T]: K extends keyof StrictARIA.Properties ? StrictARIA.Properties[K] : T[K];
+type MapStrictProperties<T> = {
+    [K in keyof T]: 0 extends 1 ? never // This line is here for better formatting
+        : K extends keyof StrictARIA.Properties ? T extends Element ? StrictARIA.Properties[K] : T[K]
+        : K extends "type" ? T extends HTMLInputElement ? StrictDOM.HTMLInputElementType : T[K]
+        : T[K];
 };
 
 type BuilderProxy<T extends Node, U extends Node> =
@@ -177,7 +181,7 @@ type BuilderProxy<T extends Node, U extends Node> =
  *
  * @template T - The type of the node being built.
  */
-export type Builder<T extends Node = Node> = BuilderProxy<T extends Element ? MapStrictAriaProperties<T> : T, T> & {
+export type Builder<T extends Node = Node> = BuilderProxy<T extends Element ? MapStrictProperties<T> : T, T> & {
     $node: T;
 };
 
