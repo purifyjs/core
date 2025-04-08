@@ -38,7 +38,7 @@
 | Package         | .min.js | .min.js.gz |
 | --------------- | ------- | ---------- |
 | **purify.js**   | 2kB     | 1kB        |
-| Preact 10.19.3  | 11kB    | 4kB        |
+| Preact 10.26.2  | 12kB    | 5kB        |
 | Solid 1.8.12    | 23kB    | 8kB        |
 | jQuery 3.7.1    | 85kB    | 29kB       |
 | Vue 3.4.15      | 110kB   | 40kB       |
