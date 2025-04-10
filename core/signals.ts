@@ -24,7 +24,7 @@ export declare namespace Sync {
     type Unfollower = () => void;
 
     /**
-     * A function type that computes the value of a computed signal.
+     * A function type that gets the value of a signal.
      *
      * @template T - The type of the value returned by the computed signal.
      */
@@ -40,9 +40,9 @@ export declare namespace Sync {
 
     /**
      * A callback function type used to start the signal when it has at least one follower.
-     * This callback is invoked when the signal becomes active, meaning there is at least one follower subscribed to it.
+     * This callback is invoked when the signal starts.
      *
-     * @template T - The type of value held by the state signal.
+     * @template T - The type of the Signal.
      * @param set - A function to set the value of the signal.
      * @returns A function to stop the signal (cleanup) when there are no followers, or void if no cleanup is needed.
      */
