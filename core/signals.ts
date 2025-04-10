@@ -270,16 +270,14 @@ Sync.Ref = class<T> extends Sync<T> {
 } as typeof Sync.Ref;
 
 /**
- * @alias ```ts
- * new Sync<T>(start: Sync.Starter<T>)
- * ```
+ * @see Sync.Ref
+ * @see new Sync.Ref
  */
 export let sync = <T = never>(start: Sync.Starter<T>): Sync<T> => new Sync(start);
 
 /**
- * @alias ```ts
- * new Sync.Ref<T>(initial: T)
- * ```
+ * @see Sync.Ref
+ * @see new Sync.Ref
  */
 export let ref = <T>(initial: T): Sync.Ref<T> => new Sync.Ref(initial);
 
