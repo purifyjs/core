@@ -56,7 +56,7 @@ export declare namespace Sync {
 }
 
 /**
- * Creates a new signal with the provided start/stop function.
+ * Signal with the provided start/stop function.
  * The start function is invoked when the signal becomes active (has at least one follower).
  * The stop function is invoked when the signal becomes inactive (has no followers).
  *
@@ -241,9 +241,8 @@ let Tracking = (Sync.Tracking = {
 
 export declare namespace Sync {
     /**
-     * A writable state signal class that holds a mutable value.
-     * This class allows you to get and set the value of the signal, with automatic tracking of any followers
-     * that are dependent on the signal's value.
+     * A writable state signal that holds a mutable value.
+     * This signal allows you to get and set the value of the signal.
      *
      * @template T - The type of the value held by the signal.
      * @param initial The initial value of the signal.
@@ -251,7 +250,7 @@ export declare namespace Sync {
      * @example
      * ```ts
      * const count = ref(0);
-     * count.follow(console.log); // logs: 0
+     * count.follow(console.log, true); // logs: 0
      * count.val = 5; // logs: 5
      * count.val = 10; // logs: 10
      * ```
@@ -259,6 +258,7 @@ export declare namespace Sync {
     class Ref<T> extends Sync<T> {
         constructor(initial: T);
 
+        public override get val(): T;
         public override set val(newValue: T);
         public override set(newValue: T): void;
     }
