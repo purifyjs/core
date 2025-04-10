@@ -1,11 +1,3 @@
-/**
- * @module signals
- *
- * This module provides a Signal system that allows for reactive state management.
- * Signals represent values that can be observed and updated. They are used to model reactive
- * data flows where other components can "follow" a signal and react to its changes.
- */
-
 import { noop } from "./utils.ts";
 
 export declare namespace Sync {

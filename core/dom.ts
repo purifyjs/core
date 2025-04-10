@@ -1,9 +1,3 @@
-/**
- * @module dom
- *
- * DOM Utility
- */
-
 import { Sync } from "./signals.ts";
 import type { StrictARIA } from "./strict/aria.ts";
 import type { StrictDOM } from "./strict/dom.ts";
