@@ -1,5 +1,5 @@
 /**
- * @module purifyjs
+ * @module core
  *
  * 1.0kB DOM utility library, focusing on building reactive UI
  */

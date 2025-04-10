@@ -1,5 +1,5 @@
 /**
- * @module DOM
+ * @module dom
  *
  * DOM Utility
  */

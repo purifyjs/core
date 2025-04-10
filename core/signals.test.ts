@@ -228,7 +228,7 @@ Deno.test("Infinite loop test", () => {
 Deno.test("No stop leak", () => {
     let counter = 0;
     // deno-lint-ignore prefer-const
-    let unfollow: Sync.Unfollow;
+    let unfollow: Sync.Unfollower;
     const a = new Sync(() => {
         if (typeof unfollow !== "undefined") {
             unfollow();
