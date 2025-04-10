@@ -3,11 +3,11 @@
     "version": "0.2.0-alpha.35",
     "workspace": ["./apps/vite", "./apps/size"],
     "exports": {
-        ".": "./lib/mod.ts",
-        "./strict": "./lib/strict/mod.ts"
+        ".": "./core/mod.ts",
+        "./strict": "./core/strict/mod.ts"
     },
     "publish": {
-        "include": ["lib", "LICENSE", "README.md"],
+        "include": ["core", "LICENSE", "README.md"],
         "exclude": ["./**/*.test.ts"]
     },
     "compilerOptions": {
@@ -19,7 +19,6 @@
         "noImplicitOverride": true
     },
     "tasks": {
-        "publish": "deno publish",
         "publish:dry": "deno publish --dry-run --allow-dirty",
         "vite:dev": "deno task --cwd ./apps/vite dev",
         "size:build": "deno task --cwd ./apps/size build"

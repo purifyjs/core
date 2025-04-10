@@ -1,7 +1,7 @@
 {
     "imports": {
         "vite": "npm:vite@6.2.2",
-        "@purifyjs/core": "../../lib/mod.ts"
+        "@purifyjs/core": "../../core/mod.ts"
     },
     "tasks": {
         "dev": "vite --host"
