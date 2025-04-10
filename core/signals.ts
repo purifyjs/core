@@ -260,6 +260,7 @@ export declare namespace Sync {
 
         public override get val(): T;
         public override set val(newValue: T);
+        public override get(): T;
         public override set(newValue: T): void;
     }
 }
