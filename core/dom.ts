@@ -4,7 +4,23 @@ import type { StrictDOM } from "./strict/dom.ts";
 import type { Equal, Extends, Fn, If, IsReadonly, Not } from "./utils.ts";
 import { instancesOf } from "./utils.ts";
 
-// Embrace some optimal ugly code, if it makes the minified code smaller.
+// Embrace some optimally ugly code, if it makes the minified bundle smaller.
+// Also, smaller minified size doesn't always mean smaller gzip size. Repeating phrases are compressed by gzip, even if they are long.
+
+/*
+    Future Notes:
+
+    - Lifecycle stuff can be removed or simplified once DOM has a nice and simple native event to follow life cycle of any Node sync.
+        It has to be a Node, that way we can even follow lifecycle of persistent DocumentFragment(s)
+        The way we do Lifecycle might also change once we have Custom Attributes
+    - Builder unwrapping logic and `$node` can be removed once DOM has a native way to have Node like objects with something like toNode() or Symbol.toNode
+
+    - Signals are only allowed with `WithLifecyle` mixin.
+
+    - if a function has `Node` as argument then that function can have a "$"" suffixed version.
+        for example `.append$()` that "$" tells runtime Proxy to convert Node like variables to a Node value.
+        on the type side these functions should also be typed accordingly to allow reccusrive Node like values.
+*/
 
 /**
  * Proxy object for building HTML elements.
@@ -89,11 +105,6 @@ type IsProxyableFunction<T, K extends keyof T> = If<
     & ((T[K] extends (...args: infer Args) => infer Return ? Equal<Return, void> : false))
 >;
 
-/*
-    if a function has `Node` as argument then that function can have a "$"" suffixed version.
-    for example `.append$()` that "$" tells runtime Proxy to convert Node like variables to a Node value.
-    on the type side these functions should also be typed accordingly to allow reccusrive Node like values.
-*/
 type IsProxyableNodeFunction<T, K extends keyof T> = If<
     & IsProxyableFunction<T, K>
     & ((T[K] extends (...args: infer Args) => infer Return ?
@@ -121,9 +132,6 @@ type RecursiveSignalAndArrayArgs<Args extends unknown[], R extends unknown[] = [
     : Args extends (infer U)[] ? RecursiveSignalAndArrayOf<U>[]
     : R;
 
-/*
-    Signals are only allowed with `WithLifecyle` mixin.
-*/
 type ProxyPropertyArg<T extends Node, K extends keyof T> = NonNullable<T[K]> extends (this: infer X, event: infer U) => infer R
     ? U extends Event ? (this: X, event: Builder.Event<U, T>) => R
     : T[K]
@@ -188,8 +196,6 @@ export interface BuilderConstructor {
     new <T extends Node>(node: T): Builder<T>;
     new (node: Node): Builder<Node>;
 }
-
-// NOTE: Builder unwrapping logic and `$node` can be removed once DOM has a native way to have Node like objects with something like toNode() or Symbol.toNode
 
 /**
  * Constructor function for creating builder instances that wrap DOM nodes.
@@ -263,10 +269,6 @@ export let Builder: BuilderConstructor = function <T extends Node & Partial<With
         },
     } as never);
 } as never;
-
-// Note: Lifecycle stuff can be removed or simplified once DOM has a nice and simple native event to follow life cycle of any Node sync.
-//       It has to be a Node, that way we can even follow lifecycle of persistent DocumentFragment(s)
-//       The way we do Lifecycle might also change once we have Custom Attributes
 
 /**
  * Lifecycle management interface for elements.
