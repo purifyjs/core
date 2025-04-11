@@ -1,3 +1,5 @@
+/// <reference lib="deno.ns" />
+
 import { assertStrictEquals } from "jsr:@std/assert";
 import { ref, Sync, sync, track } from "./signals.ts";
 

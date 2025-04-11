@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-
 import { ref } from "./signals.ts";
 import { Builder, type tags as tags_type, type WithLifecycle } from "./dom.ts";
 declare const tags: typeof tags_type;

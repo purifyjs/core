@@ -11,7 +11,7 @@
         "exclude": ["./**/*.test.ts"]
     },
     "compilerOptions": {
-        "lib": ["es2024", "DOM", "DOM.Iterable", "deno.ns"],
+        "lib": ["esnext", "DOM", "DOM.Iterable"],
 
         "strict": true,
         "noUncheckedIndexedAccess": true,
