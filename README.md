@@ -51,7 +51,8 @@
 
 ## Guide 📖🥡
 
-Coming soon.
+Coming soon. At 1.0.0 if not sooner.
+I don't wanna write something that will become outdated 6 months later.
 
 ## Examples 🍤
 
