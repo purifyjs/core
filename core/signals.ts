@@ -171,7 +171,7 @@ export class Sync<T = never> {
      * @returns A new computed signal that derives its value from this signal.
      */
     public derive<R>(getter: (value: T) => R): Sync<R> {
-        return track(() => {
+        return computed(() => {
             // Add `this` as signal manually
             Tracking.add(this);
             // Ignore other signals that may be called during getting the val and calling getter.
@@ -294,12 +294,12 @@ export let ref = <T>(initial: T): Sync.Ref<T> => new Sync.Ref(initial);
  * ```ts
  * const a = ref(1);
  * const b = ref(2);
- * const sum = track(() => a.val + b.val);
+ * const sum = computed(() => a.val + b.val);
  * sum.follow(console.log, true); // logs: 3
  * a.val++; // logs: 4
  * ```
  */
-export let track = <T>(getter: Sync.Getter<T>): Sync<T> => {
+export let computed = <T>(getter: Sync.Getter<T>): Sync<T> => {
     let dependencies = new Map<Sync<unknown>, Sync.Unfollower>();
     let self = new Sync<T>((notify) => {
         let update = () => {

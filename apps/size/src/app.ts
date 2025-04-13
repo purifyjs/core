@@ -1,3 +1,3 @@
-import { ref, sync, tags, track } from "@purifyjs/core";
+import { computed, ref, sync, tags } from "@purifyjs/core";
 declare function _(...args: unknown[]): void;
-_(ref, track, sync, tags);
+_(ref, computed, sync, tags);

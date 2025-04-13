@@ -1,7 +1,7 @@
 /// <reference lib="deno.ns" />
 
 import { assertStrictEquals } from "jsr:@std/assert";
-import { ref, Sync, sync, track } from "./signals.ts";
+import { computed, ref, Sync, sync } from "./signals.ts";
 
 function assertTupleEqual(a: unknown[], b: unknown[]) {
     assertStrictEquals(a.length, b.length);
@@ -15,7 +15,7 @@ function _(_fn: () => void) {}
 _(() => {
     const signalSignal = sync<number>(() => {});
     const stateSignal = ref<number>(0);
-    const computedSignal = track<number>(() => 0);
+    const computedSignal = computed<number>(() => 0);
 
     /// @ts-expect-error read-only
     signalSignal.val = 0;
@@ -39,7 +39,7 @@ _(() => {
 
 Deno.test("Derive counter with immediate basics", () => {
     const value = ref(0);
-    const double = track(() => value.val * 2);
+    const double = computed(() => value.val * 2);
 
     const results: number[] = [];
     double.follow((value) => results.push(value), true);
@@ -53,7 +53,7 @@ Deno.test("Derive counter with immediate basics", () => {
 
 Deno.test("Derive counter without immediate basics", () => {
     const value = ref(0);
-    const double = track(() => value.val * 2);
+    const double = computed(() => value.val * 2);
 
     const results: number[] = [];
     double.follow((value) => results.push(value));
@@ -68,7 +68,7 @@ Deno.test("Derive counter without immediate basics", () => {
 Deno.test("Computed multiple dependency", () => {
     const a = ref(0);
     const b = ref(0);
-    const ab = track(() => `${a.val},${b.val}`);
+    const ab = computed(() => `${a.val},${b.val}`);
 
     const results: string[] = [];
     ab.follow((ab) => results.push(ab));
@@ -84,7 +84,7 @@ Deno.test("Computed multiple dependency", () => {
 Deno.test("Computed multi follower should call getter once", () => {
     let counter = 0;
     const a = ref(0);
-    const b = track(() => {
+    const b = computed(() => {
         Sync.Tracking.add(a);
         counter++;
     });
@@ -100,7 +100,7 @@ Deno.test("Computed multi follower should call getter once", () => {
 
 Deno.test("Computed shouldn't call followers if the value is the same as the previous value", () => {
     const a = ref(0);
-    const b = track(() => a.val % 2);
+    const b = computed(() => a.val % 2);
     const results: unknown[] = [];
     b.follow((value) => {
         results.push(value);
@@ -116,7 +116,7 @@ Deno.test("Computed shouldn't call followers if the value is the same as the pre
 Deno.test("Computed should update as many times as the dependencies changes", () => {
     let counter = 0;
     const a = ref(0);
-    const b = track(() => {
+    const b = computed(() => {
         Sync.Tracking.add(a);
         counter++;
     });
@@ -132,7 +132,7 @@ Deno.test("Computed should update as many times as the dependencies changes", ()
 Deno.test("Computed shouldn't run without followers", () => {
     let counter = 0;
     const a = ref(0);
-    track(() => {
+    computed(() => {
         Sync.Tracking.add(a);
         counter++;
     });
@@ -145,7 +145,7 @@ Deno.test("Computed shouldn't run without followers", () => {
 Deno.test("Computed shouldn't discover without followers", () => {
     let counter = 0;
     const a = ref(0);
-    track(() => {
+    computed(() => {
         Sync.Tracking.add(a);
         counter++;
     });
@@ -204,7 +204,7 @@ Deno.test("State should start on get, if there are no followers", () => {
 Deno.test("Verify computed recalculates correctly with internal dependency updates", () => {
     const a = ref(0);
     let counter = 0;
-    track(() => {
+    computed(() => {
         counter++;
         if (counter > 100) return;
         Sync.Tracking.add(a);
