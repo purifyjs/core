@@ -16,7 +16,7 @@
     <b>purify.js</b> is a 1.0kB <i>(minified, gzipped)</i> 1.0kB DOM utility library, focusing on building reactive UI. 🚀
 </p>
 
-## Features 🌟🚀
+## ✨ Features
 
 - 🔥 **Keeps you close to the DOM.**
 - ✍️ `HTMLElement` builder allows you to differentiate between attributes and properties.
@@ -31,9 +31,7 @@
 - ⚡ **No extra LSP and IDE extensions/plugins:** fast IDE responses, autocompletion, and no weird framework-specific LSP issues.
 - ✅ **All verifiable TypeScript code.**
 
-## Compare 📏⚖️
-
-### Size ⚡📊
+## 📦 Size
 
 | Package         | .min.js | .min.js.gz |
 | --------------- | ------- | ---------- |
@@ -45,16 +43,23 @@
 | ReactDOM 18.2.0 | 130kB   | 42kB       |
 | Angular 17.1.0  | 310kB   | 104kB      |
 
-## Installation and Docs 📦🍙
+## 😤 SSR is Overrated (Fight Me) 💥📦🔥
+
+A full dashboard app created for a customer using picocss, vite, and **purify.js**.
+
+<img src="https://raw.githubusercontent.com/purifyjs/core/refs/heads/master/assets/ssr-is-overrated.png" alt="All 100s on Chrome Lighthouse">
+
+I can't share customer's code or site, but when I finish one of my own app projects with **purify.js**, I will drop a link here.
+
+## 📦 Installation and Docs
 
 [jsr.io/@purifyjs/core](https://jsr.io/@purifyjs/core)
 
-## Guide 📖🥡
+## 🥡 Guide
 
-Coming soon. At 1.0.0 if not sooner.
-I don't wanna write something that will become outdated 6 months later.
+Coming soon. At 1.0.0 if not sooner. I don't wanna write something that will become outdated 6 months later.
 
-## Examples 🍤
+## 🔥 Examples
 
 ### Core Concepts
 
@@ -165,7 +170,7 @@ class CounterElement extends WithLifecycle(HTMLElement) {
 }
 ```
 
-## Why Not JSX Templating? 🤔🍕
+## 🤷‍♂️ Why Not JSX Templating?
 
 - **Lack of Type Safety**: An `<img>` element created with JSX cannot have the `HTMLImageElement` type because all JSX elements must return
   the same type. This causes issues if you expect an `HTMLImageElement` somewhere in the code but all JSX returns is `HTMLElement` or
@@ -179,7 +184,7 @@ class CounterElement extends WithLifecycle(HTMLElement) {
 
 JSX is not part of this library natively, but a wrapper can be made quite easily.
 
-## Limitations ⚠️🦀
+## 🙄 Limitations
 
 - Since purify.js uses extended custom elements, **Safari doesn’t support this yet**. If you care about Safari for some reason, use the
   [ungap/custom-elements](https://github.com/ungap/custom-elements) polyfill. You can follow support status at
@@ -188,7 +193,7 @@ JSX is not part of this library natively, but a wrapper can be made quite easily
   But **I don’t recommend that you support Safari.**\
   _Don't suffer for Safari, let Safari users suffer._
 
-## Future 🔮🦀
+## 🔮 The Future: DOM Dreams & Proposals
 
 - Right now, when a `Signal` is connected to the DOM via `Builder`, it updates all children of the `ParentNode` with
   `ParentNode.prototype.replaceChildren()`.
