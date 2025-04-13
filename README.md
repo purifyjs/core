@@ -43,14 +43,6 @@
 | ReactDOM 18.2.0 | 130kB   | 42kB       |
 | Angular 17.1.0  | 310kB   | 104kB      |
 
-## 😤 SSR is Overrated (Fight Me) 💥📦🔥
-
-A full dashboard app created for a customer using picocss, vite, and **purify.js**.
-
-<img src="https://raw.githubusercontent.com/purifyjs/core/refs/heads/master/assets/ssr-is-overrated.png" alt="All 100s on Chrome Lighthouse">
-
-I can't share customer's code or site, but when I finish one of my own app projects with **purify.js**, I will drop a link here.
-
 ## 📦 Installation and Docs
 
 [jsr.io/@purifyjs/core](https://jsr.io/@purifyjs/core)
