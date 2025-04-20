@@ -234,7 +234,7 @@ export let Builder: BuilderConstructor = function <T extends Node & Partial<With
     return new Proxy(this, {
         get: (
             target: any,
-            targetName: { [K in keyof string]?: string[K] } & PropertyKey,
+            targetName: string,
             proxy: any,
         ) => {
             let nodeName: keyof T;
@@ -244,7 +244,7 @@ export let Builder: BuilderConstructor = function <T extends Node & Partial<With
                 return target[targetName];
             }
 
-            nodeName = (targetName.at?.(-1) == "$" ? (targetName.slice?.(0, -1)) : targetName) as never;
+            nodeName = (targetName.at?.(-1) == "$" ? (targetName.slice(0, -1)) : targetName) as never;
 
             if (!(nodeName in node)) {
                 return node[nodeName];
