@@ -408,3 +408,16 @@ You don’t need a thousand nodes rendering your UI logic around the world.\
 ## 
 
 > “Nah. I’ll build my own stack. From scratch. On top of the raw DOM — with hookers and blackjack!”
+
+
+
+> **5 years.**  
+> **5 name changes.**  
+> **4 rewrites.**  
+> **2 license flips with full commit purge.**  
+> And many more tweaks later.   
+>  
+> ⚡ *It's finally here.*  
+> **purify.js** — tiny DOM magic for big ideas.
+
+
