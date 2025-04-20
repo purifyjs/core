@@ -232,15 +232,19 @@ export let Builder: BuilderConstructor = function <T extends Node & Partial<With
     let cleanups: Partial<Record<PropertyKey, (() => void) | null>> = {};
 
     return new Proxy(this, {
-        get: (target: any, targetName: string, proxy: any) => {
-            let nodeName: keyof T & string;
+        get: (
+            target: any,
+            targetName: { [K in keyof string]?: string[K] } & PropertyKey,
+            proxy: any,
+        ) => {
+            let nodeName: keyof T;
             let fn: Fn;
 
             if (targetName in target) {
                 return target[targetName];
             }
 
-            nodeName = (targetName.at(-1) == "$" ? (targetName.slice(0, -1)) : targetName) as never;
+            nodeName = (targetName.at?.(-1) == "$" ? (targetName.slice?.(0, -1)) : targetName) as never;
 
             if (!(nodeName in node)) {
                 return node[nodeName];
@@ -375,5 +379,5 @@ export let toChild = (member: Member): string | Node => {
     }
 
     // All .append() like functions accepts { toString(): string }, but dom types act like they are not supported, so we just say its a "string" here.
-    return (member ?? "") satisfies { toString(): string } as string;
+    return (member ?? "") satisfies { toString(): string } as string | Node;
 };
