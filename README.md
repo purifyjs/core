@@ -16,20 +16,49 @@
     <b>purify.js</b> is a 1.0kB <i>(minified, gzipped)</i> DOM utility library, focusing on building reactive UI.
 </p>
 
+```js
+import { ref, tags } from "@purifyjs/core";
+
+const { div, button } = tags;
+
+export function Hello() {
+    const counter = ref(0);
+    return div().append$(
+        ["Hello, ", counter.derive((n) => new Array(n).fill("👋"))],
+        button().onclick(() => counter.val++).textContent("Hi!"),
+    );
+}
+
+document.body.append(Hello().$node);
+```
+
+[👉 Play on JSFiddle](https://jsfiddle.net/nomadshiba/zjgqxd83/4/)
+
 ## ✨ Features
 
+### DOM
+
 - **Keeps you close to the DOM.**
-- `HTMLElement` builder allows you to differentiate between attributes and properties.
-- Builder doesn't only work with `HTMLElement`(s) but works with any `Node` instance including `ShadowRoot`, `DocumentFragment`,
-  `Document`... any `Node` type, including future ones.
-- Builder converts existing methods on the `Node` instance to builder pattern with `Proxy`.
-- **Signal implementation that makes sense and useable.**
-- **Signals are extendable,** allowing chaining with utilities like `.pipe()` and `.derive()` to build custom workflows.
+- Works well with existing DOM methods, properties and features.
+- Everything you can do with DOM is allowed, and expected.
 - Allows direct DOM manipulation.
+- **Doesn't break after a direct DOM manipulation.**
+- Allows you to work with any `Node` instance using the builder pattern, `Element`, `ShadowRoot`, `DocumentFragment`, `Document`, even
+  `Attr` and any future ones.
+- Allows you to bind any custom lifecycle logic to `HTMLElement`(s) with lifecycle.
+
+### Signals
+
+- **Everything reactive are just signals.**
+- Signals are extendable, allowing chaining with utilities like `.pipe()` and `.derive()` to build custom workflows.
+
+### Typescript/Javascript
+
 - No special file extensions.
-- Only deal with `.ts` files, so use it with any existing formatting, linting, and other tools.
+- Only deal with `ts/js` files.
+- Use it with any existing formatting, linting, and other tools.
 - **No extra LSP and IDE extensions/plugins:** fast IDE responses, autocompletion, and no weird framework-specific LSP issues.
-- ✅ **All verifiable TypeScript code.**
+- ✅ **All verifiable TypeScript/Javascript code.**
 
 ## 📦 Size
 
