@@ -43,11 +43,6 @@
 | ReactDOM 18.2.0 | 130kB   | 42kB       |
 | Angular 17.1.0  | 310kB   | 104kB      |
 
-Absolutely — making the **Importing** and **Import Maps** sections expandable is a great move for readability. Here’s how you can do that
-using `<details>`/`<summary>` tags in markdown (which render as collapsibles in most markdown renderers, including GitHub):
-
----
-
 ## 🚀 Installation and Docs
 
 At: [jsr.io/@purifyjs/core](https://jsr.io/@purifyjs/core)
