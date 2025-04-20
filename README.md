@@ -45,7 +45,59 @@
 
 ## 🚀 Installation and Docs
 
-[jsr.io/@purifyjs/core](https://jsr.io/@purifyjs/core)
+At: [jsr.io/@purifyjs/core](https://jsr.io/@purifyjs/core)
+
+### deno
+
+```
+deno add jsr:@purifyjs/core
+```
+
+Or
+
+```ts
+import { ... } from "jsr:@purifyjs/core";
+```
+
+---
+
+### browser (esm)
+
+```js
+import { ... } from "https://esm.sh/jsr/@purifyjs/core";
+```
+
+---
+
+### npm
+
+```
+npx jsr add @purifyjs/core
+```
+
+---
+
+### bun
+
+```
+bunx jsr add @purifyjs/core
+```
+
+---
+
+### yarn
+
+```
+yarn dlx jsr add @purifyjs/core
+```
+
+---
+
+### pnpm
+
+```
+pnpm dlx jsr add @purifyjs/core
+```
 
 ## 🥡 Guide
 
