@@ -49,7 +49,7 @@ document.body.append(Hello().$node);
 
 ### Signals
 
-- **Everything reactive are just signals.**
+- **Everything reactive is just signals.**
 - Signals are extendable, allowing chaining with utilities like `.pipe()` and `.derive()` to build custom workflows.
 
 ### Typescript/Javascript
@@ -271,8 +271,8 @@ class CounterElement extends WithLifecycle(HTMLElement) {
 - **Build Step Required**: JSX necessitates a build step, adding complexity to the development workflow. In contrast, **purify.js** avoids
   this, enabling a simpler and more streamlined development process by working directly with native JavaScript and TypeScript.
 
-- **Attributes vs. Properties**: In **purify.js**, you can differentiate between attributes and properties of an element while building it,
-  which is not currently possible with JSX. This distinction enhances clarity and control when defining element characteristics.
+- **Attributes vs. Properties**: In purify.js, you can clearly distinguish between attributes and properties while building elements, which
+  is not currently possible with JSX. This distinction enhances clarity and control when defining element characteristics.
 
 JSX is not part of this library natively, but a wrapper can be made quite easily.
 
@@ -303,7 +303,7 @@ aggressively cached.
 
 Embrace SPA. Embrace PWA.\
 Heck, bundle everything into a single HTML file.\
-Servers don’t need to render UI — that’s the browser’s job. Rendering isn’t just data, it’s behavior. Offload that computation, distribute
+Servers don’t need to render UI — that’s the browser’s job. Rendering isn’t just data, it’s behavior. Offload that computation. Distribute
 it. Don’t centralize it.
 
 Your frontend should be nothing more than a CDN-hosted file.\
