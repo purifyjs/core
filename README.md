@@ -53,13 +53,11 @@ At: [jsr.io/@purifyjs/core](https://jsr.io/@purifyjs/core)
 deno add jsr:@purifyjs/core
 ```
 
-Or
+or
 
 ```ts
 import { ... } from "jsr:@purifyjs/core";
 ```
-
----
 
 ### browser (esm)
 
@@ -67,15 +65,11 @@ import { ... } from "jsr:@purifyjs/core";
 import { ... } from "https://esm.sh/jsr/@purifyjs/core";
 ```
 
----
-
 ### npm
 
 ```
 npx jsr add @purifyjs/core
 ```
-
----
 
 ### bun
 
@@ -83,15 +77,11 @@ npx jsr add @purifyjs/core
 bunx jsr add @purifyjs/core
 ```
 
----
-
 ### yarn
 
 ```
 yarn dlx jsr add @purifyjs/core
 ```
-
----
 
 ### pnpm
 
