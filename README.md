@@ -101,22 +101,22 @@ import { ... } from "https://esm.sh/jsr/@purifyjs/core";
 </script>
 ```
 
-#### Deno (via esm.sh)
-
-```json
-{
-    "imports": {
-        "@purifyjs/core": "https://esm.sh/jsr/@purifyjs/core"
-    }
-}
-```
-
 #### Deno (via jsr.io)
 
 ```json
 {
     "imports": {
         "@purifyjs/core": "jsr:@purifyjs/core"
+    }
+}
+```
+
+#### Deno (via esm.sh)
+
+```json
+{
+    "imports": {
+        "@purifyjs/core": "https://esm.sh/jsr/@purifyjs/core"
     }
 }
 ```
