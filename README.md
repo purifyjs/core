@@ -47,46 +47,76 @@
 
 At: [jsr.io/@purifyjs/core](https://jsr.io/@purifyjs/core)
 
-### deno
+### deno cli
 
 ```
 deno add jsr:@purifyjs/core
 ```
 
-or
-
-```ts
-import { ... } from "jsr:@purifyjs/core";
-```
-
-### browser (esm)
-
-```js
-import { ... } from "https://esm.sh/jsr/@purifyjs/core";
-```
-
-### npm
+### npm cli
 
 ```
 npx jsr add @purifyjs/core
 ```
 
-### bun
+### bun cli
 
 ```
 bunx jsr add @purifyjs/core
 ```
 
-### yarn
+### yarn cli
 
 ```
 yarn dlx jsr add @purifyjs/core
 ```
 
-### pnpm
+### pnpm cli
 
 ```
 pnpm dlx jsr add @purifyjs/core
+```
+
+### deno import
+
+```ts
+import { ... } from "jsr:@purifyjs/core";
+```
+
+### deno or browser import
+
+```js
+import { ... } from "https://esm.sh/jsr/@purifyjs/core";
+```
+
+### browser imports
+
+```html
+<script type="importmap">
+    {
+        "imports": {
+            "@purifyjs/core": "https://esm.sh/jsr/@purifyjs/core"
+        }
+    }
+</script>
+```
+
+### deno imports
+
+```json
+{
+    "imports": {
+        "@purifyjs/core": "https://esm.sh/jsr/@purifyjs/core"
+    }
+}
+```
+
+```json
+{
+    "imports": {
+        "@purifyjs/core": "jsr:@purifyjs/core"
+    }
+}
 ```
 
 ## 🥡 Guide
