@@ -48,7 +48,6 @@ using `<details>`/`<summary>` tags in markdown (which render as collapsibles in 
 
 ---
 
-````md
 ## 🚀 Installation and Docs
 
 At: [jsr.io/@purifyjs/core](https://jsr.io/@purifyjs/core)
@@ -60,7 +59,6 @@ At: [jsr.io/@purifyjs/core](https://jsr.io/@purifyjs/core)
 ```bash
 deno add jsr:@purifyjs/core
 ```
-````
 
 #### npm, bun, yarn, pnpm (via jsr.io)
 
