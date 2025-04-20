@@ -43,53 +43,55 @@
 | ReactDOM 18.2.0 | 130kB   | 42kB       |
 | Angular 17.1.0  | 310kB   | 104kB      |
 
+Absolutely — making the **Importing** and **Import Maps** sections expandable is a great move for readability. Here’s how you can do that
+using `<details>`/`<summary>` tags in markdown (which render as collapsibles in most markdown renderers, including GitHub):
+
+---
+
+````md
 ## 🚀 Installation and Docs
 
 At: [jsr.io/@purifyjs/core](https://jsr.io/@purifyjs/core)
 
-### deno cli
+### Quick CLI Install
 
-```
+#### Deno (via jsr.io)
+
+```bash
 deno add jsr:@purifyjs/core
 ```
+````
 
-### npm cli
+#### npm, bun, yarn, pnpm (via jsr.io)
 
-```
-npx jsr add @purifyjs/core
-```
-
-### bun cli
-
-```
-bunx jsr add @purifyjs/core
+```bash
+npx jsr add @purifyjs/core      # npm
+bunx jsr add @purifyjs/core     # bun
+yarn dlx jsr add @purifyjs/core # yarn
+pnpm dlx jsr add @purifyjs/core # pnpm
 ```
 
-### yarn cli
+<details>
+<summary><strong>Importing</strong></summary>
 
-```
-yarn dlx jsr add @purifyjs/core
-```
-
-### pnpm cli
-
-```
-pnpm dlx jsr add @purifyjs/core
-```
-
-### deno import
+#### Deno (via jsr.io)
 
 ```ts
 import { ... } from "jsr:@purifyjs/core";
 ```
 
-### deno or browser import
+#### Deno or Browser (via esm.sh)
 
 ```js
 import { ... } from "https://esm.sh/jsr/@purifyjs/core";
 ```
 
-### browser imports
+</details>
+
+<details>
+<summary><strong>Import Maps</strong></summary>
+
+#### Browser (via esm.sh)
 
 ```html
 <script type="importmap">
@@ -101,7 +103,7 @@ import { ... } from "https://esm.sh/jsr/@purifyjs/core";
 </script>
 ```
 
-### deno imports
+#### Deno (via esm.sh)
 
 ```json
 {
@@ -111,6 +113,8 @@ import { ... } from "https://esm.sh/jsr/@purifyjs/core";
 }
 ```
 
+#### Deno (via jsr.io)
+
 ```json
 {
     "imports": {
@@ -118,6 +122,8 @@ import { ... } from "https://esm.sh/jsr/@purifyjs/core";
     }
 }
 ```
+
+</details>
 
 ## 🥡 Guide
 
