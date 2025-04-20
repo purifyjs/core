@@ -1,4 +1,4 @@
-<h1 align="center"> purify.js ✨</h1>
+<h1 align="center"> purify.js ⚡ </h1>
 
 <p align="center">
     <img width="100px" height="auto" alt="purify.js logo" src="https://avatars.githubusercontent.com/u/173010374" />
@@ -7,28 +7,28 @@
      <strong>tiny dom magic for big ideas 🎉</strong>
 </p>
 <p align="center">
-    <i>fresh and light ✨🍃</i>
+    <i>fresh and light 🍃</i>
 </p>
 
 ---
 
 <p align="center">
-    <b>purify.js</b> is a 1.0kB <i>(minified, gzipped)</i> DOM utility library, focusing on building reactive UI. 🚀
+    <b>purify.js</b> is a 1.0kB <i>(minified, gzipped)</i> DOM utility library, focusing on building reactive UI.
 </p>
 
 ## ✨ Features
 
-- 🔥 **Keeps you close to the DOM.**
-- ✍️ `HTMLElement` builder allows you to differentiate between attributes and properties.
-- 🌐 Builder doesn't only work with `HTMLElement`(s) but works with any `Node` instance including `ShadowRoot`, `DocumentFragment`,
+- **Keeps you close to the DOM.**
+- `HTMLElement` builder allows you to differentiate between attributes and properties.
+- Builder doesn't only work with `HTMLElement`(s) but works with any `Node` instance including `ShadowRoot`, `DocumentFragment`,
   `Document`... any `Node` type, including future ones.
-- 🎩 Builder converts existing methods on the `Node` instance to builder pattern with `Proxy`.
-- ⚡ **Signal implementation that makes sense and useable.**
-- 🧙 **Signals are extendable,** allowing chaining with utilities like `.pipe()` and `.derive()` to build custom workflows.
-- ✂️ Allows direct DOM manipulation.
-- 📁 No special file extensions.
-- 🔧 Only deal with `.ts` files, so use it with any existing formatting, linting, and other tools.
-- ⚡ **No extra LSP and IDE extensions/plugins:** fast IDE responses, autocompletion, and no weird framework-specific LSP issues.
+- Builder converts existing methods on the `Node` instance to builder pattern with `Proxy`.
+- **Signal implementation that makes sense and useable.**
+- **Signals are extendable,** allowing chaining with utilities like `.pipe()` and `.derive()` to build custom workflows.
+- Allows direct DOM manipulation.
+- No special file extensions.
+- Only deal with `.ts` files, so use it with any existing formatting, linting, and other tools.
+- **No extra LSP and IDE extensions/plugins:** fast IDE responses, autocompletion, and no weird framework-specific LSP issues.
 - ✅ **All verifiable TypeScript code.**
 
 ## 📦 Size
@@ -43,7 +43,7 @@
 | ReactDOM 18.2.0 | 130kB   | 42kB       |
 | Angular 17.1.0  | 310kB   | 104kB      |
 
-## 📦 Installation and Docs
+## 🚀 Installation and Docs
 
 [jsr.io/@purifyjs/core](https://jsr.io/@purifyjs/core)
 
