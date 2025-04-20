@@ -276,6 +276,46 @@ class CounterElement extends WithLifecycle(HTMLElement) {
 
 JSX is not part of this library natively, but a wrapper can be made quite easily.
 
+## 🗑️ SSR?
+
+**Will purify.js ever support SSR?**\
+**No. And it never will.**
+
+purify.js is a **DOM utility library**, not a framework. It’s built for the browser — where apps are meant to _actually run_.
+
+Supporting SSR means sacrificing what makes SPAs powerful. It breaks the direct connection with the DOM — the very thing purify.js is
+designed to embrace.
+
+Let’s be honest: **SSR has no place in the future of the web**.
+
+Projects like **Nostr**, **Cachu**, **Blossom**, **IPFS**, and others are shaping a web that’s decentralized, distributed, and
+browser-native.
+
+That world doesn’t need server-rendered HTML. It needs small, portable apps that run fully in the client — fast, simple, self-contained, and
+aggressively cached.
+
+**purify.js is built for that world.**
+
+---
+
+> The problem was never the SPA.\
+> The problem was React — and the bloated, over-engineered mess it encouraged.
+
+Embrace SPA. Embrace PWA.\
+Heck, bundle everything into a single HTML file.\
+Servers don’t need to render UI — that’s the browser’s job. Rendering isn’t just data, it’s behavior. Offload that computation, distribute
+it. Don’t centralize it.
+
+Your frontend should be nothing more than a CDN-hosted file.\
+You don’t need a thousand nodes rendering your UI logic around the world.\
+**Let the browser do what it was built to do.**
+
+---
+
+<img alt="all 100s on Chrome Lighthouse" src="./assets/ssr-is-overrated.png">
+
+<sub><i>Full-fledged dashboard built for a private project, running entirely with purify.js and PicoCSS. SSR is overrated.</i></sub>
+
 ## 🙄 Limitations
 
 - Since purify.js uses extended custom elements, **Safari doesn’t support this yet**. If you care about Safari for some reason, use the
