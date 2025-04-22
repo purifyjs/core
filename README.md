@@ -60,18 +60,6 @@ document.body.append(Hello().$node);
 - **No extra LSP and IDE extensions/plugins:** fast IDE responses, autocompletion, and no weird framework-specific LSP issues.
 - ✅ **All verifiable TypeScript/Javascript code.**
 
-## 📦 Size
-
-| Package         | .min.js | .min.js.gz |
-| --------------- | ------- | ---------- |
-| **purify.js**   | 2kB     | 1kB        |
-| Preact 10.26.2  | 12kB    | 5kB        |
-| Solid 1.8.12    | 23kB    | 8kB        |
-| jQuery 3.7.1    | 85kB    | 29kB       |
-| Vue 3.4.15      | 110kB   | 40kB       |
-| ReactDOM 18.2.0 | 130kB   | 42kB       |
-| Angular 17.1.0  | 310kB   | 104kB      |
-
 ## 🚀 Installation and Docs
 
 At: [jsr.io/@purifyjs/core](https://jsr.io/@purifyjs/core)
