@@ -393,8 +393,4 @@ You don’t need a thousand nodes rendering your UI logic around the world.\
   would simplify DOM manipulation by letting custom objects, structures, or even signals to be automatically converted into valid DOM nodes
   when inserted.
 
-## 
-
-> “Nah. I’ll build my own stack. From scratch. On top of the raw DOM — with hookers and blackjack!”
-
 
