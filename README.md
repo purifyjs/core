@@ -32,7 +32,7 @@ export function Hello() {
 document.body.append(Hello().$node);
 ```
 
-👉 [Play on JSFiddle](https://jsfiddle.net/nomadshiba/zjgqxd83/4/)
+👉 [Fiddle it on JSFiddle](https://jsfiddle.net/nomadshiba/zjgqxd83/4/)
 
 ## ✨ Features
 
