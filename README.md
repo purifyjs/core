@@ -24,7 +24,7 @@ const { div, button } = tags;
 export function Hello() {
     const counter = ref(0);
     return div().append$(
-        ["Hello, ", counter.derive((n) => new Array(n).fill("👋"))],
+        ["Hello, ", counter.derive((n) => "👋".repeat(n))],
         button().onclick(() => counter.val++).textContent("Hi!"),
     );
 }
@@ -32,7 +32,7 @@ export function Hello() {
 document.body.append(Hello().$node);
 ```
 
-👉 [Fiddle it on JSFiddle](https://jsfiddle.net/nomadshiba/zjgqxd83/4/)
+👉 [Fiddle it on JSFiddle](https://jsfiddle.net/f8nx5d17/1/)
 
 ## ✨ Features
 
