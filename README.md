@@ -231,7 +231,7 @@ const { button } = tags;
 
 class CounterElement extends WithLifecycle(HTMLElement) {
     static {
-        customElements.define("x-counter", CounterElement);
+        customElements.define("x-counter", this);
     }
 
     #count = ref(0);
