@@ -2,7 +2,7 @@ import { Sync } from "./signals.ts";
 import type { StrictARIA } from "./strict/aria.ts";
 import type { StrictDOM } from "./strict/dom.ts";
 import type { Equal, Extends, Fn, If, IsReadonly, Not } from "./utils.ts";
-import { instancesOf } from "./utils.ts";
+import { instanceOf } from "./utils.ts";
 
 // Embrace some optimally ugly code, if it makes the minified bundle smaller.
 // Also, smaller minified size doesn't always mean smaller gzip size. Repeating phrases are compressed by gzip, even if they are long.
@@ -222,7 +222,7 @@ export let Builder: BuilderConstructor = function <T extends Node & Partial<With
             }
         };
 
-        if (instancesOf(value, Sync)) {
+        if (instanceOf(value, Sync)) {
             node.$bind!(() => value.follow(setOrRemoveAttribute, true));
         } else {
             setOrRemoveAttribute(value);
@@ -250,12 +250,12 @@ export let Builder: BuilderConstructor = function <T extends Node & Partial<With
                 return node[nodeName];
             }
 
-            fn = (instancesOf(node[nodeName], Function) && !Object.hasOwn(node, nodeName))
+            fn = (instanceOf(node[nodeName], Function) && !Object.hasOwn(node, nodeName))
                 ? (nodeName == targetName)
                     ? (args: unknown[]) => (node[nodeName] as Fn)(...args)
                     : ((args: Member[]) => (node[nodeName] as Fn)(...args.map(toChild)))
                 : (([value]: [unknown]) => {
-                    if (instancesOf(value, Sync)) {
+                    if (instanceOf(value, Sync)) {
                         cleanups[targetName] = node.$bind!(() => value.follow((value) => node[nodeName] = value as never, true));
                     } else {
                         node[nodeName] = value as never;
@@ -363,18 +363,18 @@ export let WithLifecycle = <BaseConstructor extends { new (...params: any[]): HT
  */
 export type Member = RecursiveSignalAndArrayOf<MaybeNodeLikeArg<Node | string>>;
 export let toChild = (member: Member): string | Node => {
-    if (instancesOf(member, Builder)) {
+    if (instanceOf(member, Builder)) {
         return member.$node;
     }
 
-    if (instancesOf(member, Sync)) {
+    if (instanceOf(member, Sync)) {
         return toChild(
             tags.div({ style: "display:contents" })
                 .$bind((element) => member.follow((value) => element.replaceChildren(toChild(value)), true)),
         );
     }
 
-    if (instancesOf(member, Array) || instancesOf(member, Iterator)) {
+    if (instanceOf(member, Array) || instanceOf(member, Iterator)) {
         return toChild(new Builder(document.createDocumentFragment()).append(...member.map(toChild)));
     }
 

@@ -38,13 +38,13 @@ export declare namespace Sync {
      * @param set - A function to set the value of the signal.
      * @returns A function to stop the signal (cleanup) when there are no followers, or void if no cleanup is needed.
      */
-    type Starter<T> = (set: Setter<T>) => Stoper | void;
+    type Starter<T> = (set: Setter<T>) => Stopper | void;
 
     /**
      * A callback function type used to stop the signal and perform cleanup when there are no followers.
      * This callback is invoked when the signal becomes inactive, meaning there are no more followers.
      */
-    type Stoper = () => void;
+    type Stopper = () => void;
 }
 
 /**
@@ -74,7 +74,7 @@ export declare namespace Sync {
 export class Sync<T = never> {
     #followers = new Set<Sync.Follower<any>>();
     #start: Sync.Starter<T>;
-    #stop: Sync.Stoper | undefined | null;
+    #stop: Sync.Stopper | undefined | null;
 
     constructor(start: Sync.Starter<T>) {
         this.#start = start;

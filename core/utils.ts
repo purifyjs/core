@@ -30,7 +30,7 @@ export type IsReadonly<T, K extends keyof T> = (<T_1>() => T_1 extends { [Q in K
 
 export let noop = (): void => {};
 
-export let instancesOf = <T extends abstract new (...args: never) => unknown, U>(
+export let instanceOf = <T extends abstract new (...args: never) => unknown, U>(
     target: U,
     constructor: T,
 ): target is EscapeNever<Extract<U, InstanceType<T>>, U & InstanceType<T>> => target instanceof constructor;
