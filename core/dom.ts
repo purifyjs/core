@@ -23,9 +23,23 @@ import { instanceOf } from "./utils.ts";
 */
 
 /**
- * Proxy object for building HTML elements.
+ * A proxy object that creates enhanced HTML elements with lifecycle management.
+ * Use this to create DOM elements in a fluent, chainable way with automatic signal handling.
  *
- * It separates attributes and properties.
+ * Each property of the `tags` object is a function that creates a specific HTML element.
+ *
+ * @example
+ * ```ts
+ * const { div, button, span } = tags;
+ *
+ * const container = div({ class: "container" })
+ *   .append$(
+ *     span().textContent("Hello"),
+ *     button().textContent("Click me").onclick(() => alert("Clicked!"))
+ *   );
+ *
+ * document.body.append(container.$node);
+ * ```
  */
 export let tags: Tags = new Proxy({} as any, {
     // Keep `any`(s) here, otherwise `tsc` and LSP gets slow as fuck
@@ -38,7 +52,8 @@ export let tags: Tags = new Proxy({} as any, {
 });
 
 /**
- * Represents a set of HTML element builders.
+ * Type that represents all available HTML element builders.
+ * Each property is a function that creates a specific type of HTML element with lifecycle capabilities.
  */
 export type Tags = {
     [K in keyof HTMLElementTagNameMap]: (
@@ -47,21 +62,28 @@ export type Tags = {
 };
 
 /**
- * Builder namespace
+ * Builder namespace containing types and utilities for the DOM building system.
  */
 export namespace Builder {
     /**
-     * Attributes namespace
+     * Namespace for attribute-related types in the builder system.
      */
     export namespace Attributes {
         /**
-         * Type for attribute value, which can be a signal if the element is of type WithLifecycle.
+         * Type for an attribute value, which can be either a direct value or a signal
+         * (if the element has lifecycle capabilities).
+         *
+         * @template TElement The element type
+         * @template T The value type
          */
         export type Value<TElement extends Element, T> = TElement extends WithLifecycle ? T | Sync<T> : T;
     }
 
     /**
-     * Interface representing builder attributes.
+     * Type representing the attributes object that can be passed when creating elements.
+     * Includes standard HTML attributes, ARIA attributes, and allows for custom string attributes.
+     *
+     * @template T The element type
      */
     export type Attributes<T extends Element> =
         & {
@@ -79,7 +101,11 @@ export namespace Builder {
         };
 
     /**
-     * Type for builder event.
+     * Type for events in the builder system, extending the standard DOM Event
+     * with a strongly-typed currentTarget property.
+     *
+     * @template E The event type
+     * @template T The target element type
      */
     export type Event<E extends globalThis.Event, T extends EventTarget> = E & { currentTarget: T };
 }
@@ -179,28 +205,64 @@ type BuilderProxy<T extends Node, U extends Node> =
     };
 
 /**
- * Builder for a DOM Node
+ * A builder for DOM nodes that provides a fluent API for manipulating elements.
+ * The Builder wraps a DOM node and adds chainable methods for setting properties,
+ * attributes, event handlers, and managing child elements.
  *
- * @template T - The type of the node being built.
+ * Methods with a '$' suffix handle signals and arrays automatically.
+ * Properties with a '$' prefix are custom additions to the standard DOM interface.
+ *
+ * @template T The type of the wrapped node.
+ *
+ * @property $node The actual DOM node being built.
  */
 export type Builder<T extends Node = Node> = BuilderProxy<T extends Element ? MapStrictProperties<T> : T, T> & {
+    /**
+     * The underlying DOM node being managed by this builder.
+     * Use this when you need to access the raw node, such as when appending to the document.
+     */
     $node: T;
 };
 
 /**
- * Interface for constructing builders that wrap DOM nodes and provide a fluent API
- * for setting attributes, properties, and event handlers.
+ * Interface for the Builder constructor that creates builder instances around DOM nodes.
  */
 export interface BuilderConstructor {
+    /**
+     * Creates a new builder for an Element, optionally with initial attributes.
+     */
     new <T extends Element>(node: T, attributes?: Builder.Attributes<T>): Builder<T>;
+
+    /**
+     * Creates a new builder for any Node type.
+     */
     new <T extends Node>(node: T): Builder<T>;
+
+    /**
+     * Generic Node builder constructor.
+     */
     new (node: Node): Builder<Node>;
 }
 
 /**
  * Constructor function for creating builder instances that wrap DOM nodes.
+ * The Builder provides a fluent interface for manipulating DOM elements
+ * with automatic signal handling and lifecycle management.
  *
- * @template T - The type of the node being built, which extends `Node` and optionally includes lifecycle methods.
+ * @template T - The type of the node being built
+ * @param node - The DOM node to wrap
+ * @param attributes - Optional initial attributes to set on the element
+ *
+ * @example
+ * ```ts
+ * // Create a div element with the Builder
+ * const div = new Builder(document.createElement('div'))
+ *   .className('container')
+ *   .textContent('Hello world');
+ *
+ * // Access the underlying node
+ * document.body.append(div.$node);
+ * ```
  */
 export let Builder: BuilderConstructor = function <T extends Node & Partial<WithLifecycle>>(
     this: Builder<T>,
@@ -275,50 +337,85 @@ export let Builder: BuilderConstructor = function <T extends Node & Partial<With
 } as never;
 
 /**
- * Lifecycle management interface for elements.
+ * Interface for elements with lifecycle management capabilities.
+ * Elements with lifecycle support can track when they are connected to
+ * or disconnected from the DOM, enabling proper cleanup of resources.
  */
 export type Lifecycle<T extends HTMLElement = HTMLElement> = {
     /**
      * Binds a callback to the element's lifecycle events.
+     * The callback runs when the element is connected to the DOM.
+     * If the callback returns a function, that function will run when the element is disconnected.
      *
-     * @param callback - The callback function to be called when the element is connected.
-     * @returns A function that can be used to remove the connection callback.
+     * @param callback - Function to call when the element connects to the DOM
+     * @returns A function that can be called to manually remove the lifecycle binding
+     *
+     * @example
+     * ```ts
+     * div().$bind((element) => {
+     *   console.log('Element connected!');
+     *   return () => console.log('Element disconnected!');
+     * });
+     * ```
      */
     $bind(callback: Lifecycle.OnConnected<T>): Lifecycle.OffConnected;
 };
 
 /**
- * Lifecycle namespace
+ * Namespace containing types related to the lifecycle management system.
  */
 export namespace Lifecycle {
     /**
-     * Callback for when an element is disconnected.
+     * Callback type for when an element is disconnected from the DOM.
+     * Use this to clean up resources like event listeners, intervals, or subscriptions.
      */
     export type OnDisconnected = () => void;
 
     /**
-     * Callback for when an element is connected, which can return a disconnection callback.
+     * Callback type for when an element is connected to the DOM.
+     * Can optionally return a disconnection callback for cleanup.
+     *
+     * @template T The element type
+     * @param element The element that was connected
+     * @returns Optional cleanup function that runs on disconnection
      */
     export type OnConnected<T extends HTMLElement = HTMLElement> = (element: T) => void | OnDisconnected;
 
     /**
-     * Function to remove a connection callback.
+     * Function type to manually remove a connection callback.
+     * Call this function to stop tracking a particular lifecycle binding.
      */
     export type OffConnected = () => void;
 }
 
 /**
- * Interface representing an HTML element with lifecycle management.
+ * Type representing an HTML element with added lifecycle management capabilities.
+ * These elements can track when they are connected to or disconnected from the DOM.
+ *
+ * @template T The base HTML element type
  */
 export type WithLifecycle<T extends HTMLElement = HTMLElement> = T & Lifecycle<T>;
 
 let withLifecycleCache = new WeakMap<{ new (): HTMLElement }, { new (): WithLifecycle<HTMLElement> }>();
 
 /**
- * Mixes lifecycle management into a custom HTML element class.
+ * Enhances an HTML element class with lifecycle management capabilities.
+ * The resulting class can track when instances are connected to or disconnected from the DOM,
+ * enabling proper setup and cleanup of resources like event listeners and signal subscriptions.
  *
- * @param Base - The base class to be extended.
- * @returns A new class that extends the base class and includes lifecycle methods.
+ * @param Base - The base HTMLElement constructor to enhance
+ * @returns A new constructor that extends the base class with lifecycle methods
+ *
+ * @example
+ * ```ts
+ * const LifecycleDiv = WithLifecycle(HTMLDivElement);
+ * const div = new LifecycleDiv();
+ * div.$bind((element) => {
+ *   console.log('Connected!');
+ *   return () => console.log('Disconnected!');
+ * });
+ * document.body.append(div);
+ * ```
  */
 export let WithLifecycle = <BaseConstructor extends { new (...params: any[]): HTMLElement }>(
     Base: BaseConstructor,
@@ -358,10 +455,26 @@ export let WithLifecycle = <BaseConstructor extends { new (...params: any[]): HT
 };
 
 /**
- * Represents a type that can be converted into a `Node` or `string`,
- * including recursive signals and arrays of such elements.
+ * Represents a type that can be converted into a DOM Node or string.
+ * This includes direct nodes, signals of nodes, arrays of nodes, and recursive combinations.
+ * Used by methods with the '$' suffix to handle various input types.
  */
 export type Member = RecursiveSignalAndArrayOf<MaybeNodeLikeArg<Node | string>>;
+
+/**
+ * Converts any supported value into a DOM Node or string that can be inserted into the DOM.
+ * Handles:
+ * - DOM Nodes directly
+ * - Builder objects (extracts the node)
+ * - Signals (wraps in a container with display:contents)
+ * - Arrays (converts to DocumentFragment)
+ * - Strings and objects with toString()
+ *
+ * This is used internally by methods with '$' suffix to handle diverse input types.
+ *
+ * @param member - The value to convert to a DOM-compatible child
+ * @returns A string or Node that can be inserted into the DOM
+ */
 export let toChild = (member: Member): string | Node => {
     if (instanceOf(member, Builder)) {
         return member.$node;

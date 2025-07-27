@@ -12,27 +12,30 @@ export declare namespace Sync {
     /**
      * A function type used to unfollow a signal.
      * It stops the signal from notifying a follower when its value changes.
+     * Call this function to clean up and prevent memory leaks.
      */
     type Unfollower = () => void;
 
     /**
      * A function type that gets the value of a signal.
+     * Used primarily in computed signals to retrieve the current value.
      *
-     * @template T - The type of the value returned by the computed signal.
+     * @template T - The type of the value returned by the getter.
      */
     type Getter<T> = () => T;
 
     /**
      * A function type that sets the value of a signal.
+     * Used primarily in sync signals to update the signal's value.
      *
      * @template T - The type of the value to set.
-     * @param value - The value to set.
+     * @param value - The new value to set.
      */
     type Setter<T> = (value: T) => void;
 
     /**
-     * A callback function type used to start the signal when it has at least one follower.
-     * This callback is invoked when the signal starts.
+     * A callback function used to start the signal when it has at least one follower.
+     * This callback is invoked when the signal transitions from inactive to active.
      *
      * @template T - The type of the Signal.
      * @param set - A function to set the value of the signal.
@@ -41,16 +44,19 @@ export declare namespace Sync {
     type Starter<T> = (set: Setter<T>) => Stopper | void;
 
     /**
-     * A callback function type used to stop the signal and perform cleanup when there are no followers.
+     * A callback function used to stop the signal and perform cleanup when there are no followers.
      * This callback is invoked when the signal becomes inactive, meaning there are no more followers.
+     * Use this to clean up resources like timers, subscriptions, or event listeners.
      */
     type Stopper = () => void;
 }
 
 /**
- * Signal with the provided start/stop function.
- * The start function is invoked when the signal becomes active (has at least one follower).
- * The stop function is invoked when the signal becomes inactive (has no followers).
+ * A reactive signal that manages a value and notifies followers when that value changes.
+ * This base signal class provides the foundation for all reactive state in purify.js.
+ *
+ * Signals become active when they have at least one follower and inactive when they have none.
+ * The start function is invoked when the signal becomes active, and the stop function when it becomes inactive.
  *
  * @template T The type of value held by the signal.
  * @param start A callback function that takes a setter function and returns a stop function or void.
@@ -59,15 +65,12 @@ export declare namespace Sync {
  * @example
  * ```ts
  * const time_ms = sync<number>((set) => {
- *      const interval = setInterval(update, 1000)
- *      update()
- *      function update() {
- *          set(Date.now())
- *      }
+ *      // This runs when the signal gets its first follower
+ *      const interval = setInterval(() => set(Date.now()), 1000)
+ *      set(Date.now()) // Set initial value
  *
- *      return () => {
- *          clearInterval(interval)
- *      }
+ *      // This cleanup runs when the signal has no more followers
+ *      return () => clearInterval(interval)
  * });
  * ```
  */
@@ -102,8 +105,9 @@ export class Sync<T = never> {
     }
 
     /**
-     * Sets a new value for the signal and notifies followers.
-     * If the new value is the same as the current value, no action is taken.
+     * Sets a new value for the signal and notifies followers if the value has changed.
+     * If the new value is the same as the current value (by strict equality ===),
+     * no update occurs and followers are not notified.
      *
      * @param value - The new value to set for the signal.
      */
@@ -120,26 +124,48 @@ export class Sync<T = never> {
     }
 
     /**
-     * Getter for `get()`.
+     * Getter property that provides syntactic sugar for accessing the signal's value.
+     * Equivalent to calling .get() but with property access syntax.
+     *
+     * @example
+     * ```ts
+     * const count = ref(0);
+     * console.log(count.val); // Same as count.get()
+     * ```
      */
     public get val(): T {
         return this.get();
     }
 
     /**
-     * Setter for `set()`
+     * Setter property that provides syntactic sugar for updating the signal's value.
+     * Equivalent to calling .set() but with property assignment syntax.
+     *
+     * @example
+     * ```ts
+     * const count = ref(0);
+     * count.val++; // Same as count.set(count.get() + 1)
+     * ```
      */
     protected set val(newValue: T) {
         this.set(newValue);
     }
 
     /**
-     * Adds a follower to the signal. The follower will be notified whenever the signal's value changes.
+     * Adds a follower to the signal that will be notified whenever the signal's value changes.
+     * If this is the first follower, the signal becomes active and starts its internal processes.
      *
      * @param follower - The function that will be called when the signal's value changes.
-     * @param immediate - Whether to call the follower immediately with the current value of the signal.
+     * @param immediate - When true, immediately calls the follower with the current value.
+     * @returns A function that can be called to stop following the signal and clean up resources.
      *
-     * @returns A function that can be called to stop following the signal.
+     * @example
+     * ```ts
+     * const count = ref(0);
+     * const unfollow = count.follow(value => console.log(`Count changed to ${value}`));
+     * count.val = 5; // Console logs: "Count changed to 5"
+     * unfollow(); // Stop following
+     * ```
      */
     public follow(follower: Sync.Follower<T>, immediate?: boolean): Sync.Unfollower {
         if (!this.#stop) {
@@ -165,10 +191,18 @@ export class Sync<T = never> {
     /**
      * Derives a new computed signal based on the value of this signal.
      * The computed signal will be updated whenever this signal's value changes.
+     * This provides a simple way to transform a signal's value without creating dependencies manually.
      *
      * @param getter - A function that computes a new value based on the current value of the signal.
-     *
      * @returns A new computed signal that derives its value from this signal.
+     *
+     * @example
+     * ```ts
+     * const count = ref(0);
+     * const doubled = count.derive(n => n * 2);
+     * doubled.follow(console.log); // Logs 0 initially
+     * count.val = 5; // Logs 10 automatically
+     * ```
      */
     public derive<R>(getter: (value: T) => R): Sync<R> {
         return computed(() => {
@@ -181,10 +215,18 @@ export class Sync<T = never> {
 
     /**
      * Pipes the signal to another function for further processing.
+     * This is a utility method that enables functional-style composition with signals.
      *
      * @param fn - A function that takes the signal and returns a derived value.
+     * @returns The result of calling the provided function with this signal.
      *
-     * @returns The result of calling the getter function with this signal.
+     * @example
+     * ```ts
+     * const count = ref(0);
+     * const element = count.pipe(signal =>
+     *   div().textContent(computed(() => `Count: ${signal.get()}`))
+     * );
+     * ```
      */
     public pipe<R>(fn: (signal: Sync<T>) => R): R {
         return fn(this);
@@ -193,25 +235,27 @@ export class Sync<T = never> {
 
 export declare namespace Sync {
     /**
-     * Dependency namespace
+     * Dependency tracking system that allows signals to automatically detect and
+     * manage dependencies in computed values.
      */
     namespace Tracking {
         /**
-         * Adds a signal to the dependency tracking system.
-         * Signals added to the system can be tracked for changes and dependencies.
+         * Adds a signal to the current dependency tracking context.
+         * When a signal's value is accessed inside a tracked function, this method
+         * is called to register the signal as a dependency.
          *
          * @param signal - The signal to add to the dependency system.
          */
         function add(signal: Sync<unknown>): void;
 
         /**
-         * Tracks a function and its dependencies. Any signals accessed during the function's execution
-         * will be tracked as dependencies.
+         * Tracks a function and its dependencies by creating a tracking context.
+         * Any signals accessed during the function's execution will be registered as dependencies
+         * through the provided callback.
          *
          * @template R - The return type of the tracked function.
          * @param callAndTrack - A function that will be tracked for dependencies.
-         * @param callback - An optional callback function that will be invoked when a signal is accessed.
-         *
+         * @param callback - An optional callback function invoked when a signal is accessed.
          * @returns The result of the `callAndTrack` function.
          */
         function track<R>(callAndTrack: () => R, callback?: (signal: Sync<unknown>) => unknown): R;
@@ -233,26 +277,51 @@ let Tracking = (Sync.Tracking = {
 
 export declare namespace Sync {
     /**
-     * A writable state signal that holds a mutable value.
-     * This signal allows you to get and set the value of the signal.
+     * A writable (mutable) signal that allows both reading and writing values.
+     * Use this when you need to create a piece of reactive state that can be updated.
      *
      * @template T - The type of the value held by the signal.
-     * @param initial The initial value of the signal.
      *
      * @example
      * ```ts
-     * const count = ref(0);
-     * count.follow(console.log, true); // logs: 0
-     * count.val = 5; // logs: 5
-     * count.val = 10; // logs: 10
+     * const count = ref(0); // Creates a new Sync.Ref instance
+     * count.follow(console.log, true); // Logs: 0
+     * count.val = 5; // Logs: 5
+     * count.set(10); // Logs: 10
      * ```
      */
     class Ref<T> extends Sync<T> {
+        /**
+         * Creates a new writable signal with the provided initial value.
+         *
+         * @param initial The initial value of the signal.
+         */
         constructor(initial: T);
 
+        /**
+         * Gets the current value of this writable signal.
+         */
         public override get val(): T;
+
+        /**
+         * Sets a new value for this writable signal.
+         *
+         * @param newValue The new value to set.
+         */
         public override set val(newValue: T);
+
+        /**
+         * Gets the current value of this writable signal.
+         *
+         * @returns The current value.
+         */
         public override get(): T;
+
+        /**
+         * Sets a new value for this writable signal.
+         *
+         * @param newValue The new value to set.
+         */
         public override set(newValue: T): void;
     }
 }
@@ -270,33 +339,62 @@ Sync.Ref = class<T> extends Sync<T> {
 } as typeof Sync.Ref;
 
 /**
- * @alias Sync
- * @see Sync
+ * Creates a signal with custom lifecycle management through a start/stop function.
+ * This is the most flexible way to create signals that need to manage external resources.
+ *
+ * @template T The type of value held by the signal.
+ * @param start A callback function that takes a setter function and returns a stop function or void.
+ * @returns A new signal instance that will start when it gets its first follower and stop when it has no followers.
+ *
+ * @example
+ * ```ts
+ * const time = sync<number>((set) => {
+ *   // Start: runs when the signal gets its first follower
+ *   const interval = setInterval(() => set(Date.now()), 1000);
+ *   set(Date.now()); // Set initial value
+ *
+ *   // Stop/cleanup: runs when the signal has no more followers
+ *   return () => clearInterval(interval);
+ * });
+ * ```
  */
 export let sync = <T = never>(start: Sync.Starter<T>): Sync<T> => new Sync(start);
 
 /**
- * @alias Sync.Ref
- * @see Sync.Ref
+ * Creates a writable signal with the provided initial value.
+ * This is the most common way to create a piece of reactive state.
+ *
+ * @template T The type of the initial value.
+ * @param initial The initial value for the signal.
+ * @returns A new writable signal that can be both read from and written to.
+ *
+ * @example
+ * ```ts
+ * const count = ref(0);
+ * console.log(count.val); // 0
+ * count.val = 5;
+ * console.log(count.val); // 5
+ * ```
  */
 export let ref = <T>(initial: T): Sync.Ref<T> => new Sync.Ref(initial);
 
 /**
- * Creates a new computed signal that derives its value from other signals.
- * Computed signals are readonly and cannot have their value directly set.
- * They automatically update when the signals they depend on change.
+ * Creates a computed signal that automatically tracks its dependencies.
+ * A computed signal derives its value from other signals and updates automatically
+ * when any of its dependencies change.
  *
  * @template T The type of the computed value.
- * @param getter A function that computes the value based on the values of other signals.
- * @returns A new computed signal that reflects the value derived from other signals.
+ * @param getter A function that computes the value based on other signals.
+ * @returns A read-only signal that updates when its dependencies change.
  *
  * @example
  * ```ts
- * const a = ref(1);
- * const b = ref(2);
- * const sum = computed(() => a.val + b.val);
- * sum.follow(console.log, true); // logs: 3
- * a.val++; // logs: 4
+ * const firstName = ref('John');
+ * const lastName = ref('Doe');
+ * const fullName = computed(() => `${firstName.val} ${lastName.val}`);
+ *
+ * fullName.follow(console.log); // Logs: "John Doe"
+ * firstName.val = 'Jane'; // Logs: "Jane Doe"
  * ```
  */
 export let computed = <T>(getter: Sync.Getter<T>): Sync<T> => {
