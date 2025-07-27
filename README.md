@@ -144,7 +144,7 @@ Coming soon. At 1.0.0 if not sooner. I don't wanna write something that will bec
 ### Core Concepts
 
 ```ts
-import { Builder, Lifecycle, ref, Sync, sync, tags, track } from "@purifyjs/core";
+import { Builder, computed, Lifecycle, ref, Sync, sync, tags } from "@purifyjs/core";
 
 const { button, ul, li, input } = tags;
 
@@ -392,5 +392,3 @@ You don’t need a thousand nodes rendering your UI logic around the world.\
 - **Something like `.toNode()` or `Symbol.toNode`** would allow us to insert anything into the DOM without manually unwrapping them. This
   would simplify DOM manipulation by letting custom objects, structures, or even signals to be automatically converted into valid DOM nodes
   when inserted.
-
-
