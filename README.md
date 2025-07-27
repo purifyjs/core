@@ -60,7 +60,7 @@ document.body.append(Hello().$node);
 - **No extra LSP and IDE extensions/plugins:** fast IDE responses, autocompletion, and no weird framework-specific LSP issues.
 - ✅ **All verifiable TypeScript/Javascript code.**
 
-## 🚀 Installation and Docs
+## 🚀 Installation
 
 At: [jsr.io/@purifyjs/core](https://jsr.io/@purifyjs/core)
 
@@ -135,121 +135,10 @@ import { ... } from "https://esm.sh/jsr/@purifyjs/core";
 
 </details>
 
-## 🥡 Guide
+## 📖 Documentation
 
 - [Guide](GUIDE.md)
 - [Documentation](https://jsr.io/@purifyjs/core/doc)
-
-## 🔥 Examples
-
-### Core Concepts
-
-```ts
-import { Builder, computed, Lifecycle, ref, Sync, sync, tags } from "@purifyjs/core";
-
-const { button, ul, li, input } = tags;
-
-const time = sync<number>((set) => {
-    const update = () => set(Date.now());
-    const interval = setInterval(update, 1000);
-    update();
-    return () => clearInterval(interval);
-});
-
-const count = ref(0);
-const double = count.derive((count) => count * 2);
-const half = computed(() => count.val * 0.5);
-
-new Builder(document.body).append$(
-    button()
-        .onclick(() => count.val--)
-        .textContent("-"),
-    input().type("number")
-        .$bind(useValueAsNumber(count))
-        .step("1"),
-    button()
-        .onclick(() => count.val++)
-        .textContent("+"),
-    ul().append$(
-        li().append$("Count: ", count),
-        li().append$("Double: ", double),
-        li().append$("Half: ", half),
-        li().append$("Time: ", time),
-    ),
-);
-
-function useValueAsNumber(
-    state: Sync.Ref<number>,
-): Lifecycle.OnConnected<HTMLInputElement> {
-    return (element) => {
-        const abortController = new AbortController();
-        element.addEventListener(
-            "input",
-            () => (state.val = element.valueAsNumber),
-            { signal: abortController.signal },
-        );
-        const unfollow = state.follow(
-            (value) => (element.valueAsNumber = value),
-            true,
-        );
-        return () => {
-            abortController.abort();
-            unfollow();
-        };
-    };
-}
-```
-
-### ShadowRoot
-
-```ts
-import { Builder, ref, tags } from "@purifyjs/core";
-
-const { div, button } = tags;
-
-function Counter() {
-    const host = div();
-    const shadow = new Builder(host.$node.attachShadow({ mode: "open" }));
-
-    const count = ref(0);
-
-    shadow.append$(
-        button()
-            .title("Click me!")
-            .onclick(() => count.val++)
-            .append$("Count:", count),
-    );
-    return host;
-}
-```
-
-### Web Components
-
-```ts
-import { Builder, ref, tags, WithLifecycle } from "@purifyjs/core";
-
-const { button } = tags;
-
-class CounterElement extends WithLifecycle(HTMLElement) {
-    static {
-        customElements.define("x-counter", this);
-    }
-
-    #count = ref(0);
-
-    constructor() {
-        super();
-        const self = new Builder<CounterElement>(this);
-
-        self.append$(
-            button()
-                .title("Click me!")
-                .onclick(() => this.#count.val++)
-                .append$("Count:", this.#count),
-        );
-    }
-}
-```
 
 ## 🤷‍♂️ Why Not JSX Templating?
 
