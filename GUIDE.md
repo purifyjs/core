@@ -3,6 +3,36 @@
 Welcome to **purify.js**—a lightweight (≈1 kB) reactive DOM utility library focused on simplicity and performance. This guide will walk you
 through all aspects of using **purify.js** to build reactive UIs.
 
+## Table of Contents
+
+- [Reactivity System](#reactivity-system)
+  - [Signal Basics](#signal-basics)
+  - [Signal Architecture](#signal-architecture)
+  - [Signal Types](#signal-types)
+  - [Following Changes](#following-changes)
+  - [Deriving New Signals](#deriving-new-signals)
+  - [derive() vs computed()](#derive-vs-computed)
+- [DOM Building](#dom-building)
+  - [Creating Elements](#creating-elements)
+  - [Attributes vs Properties](#attributes-vs-properties)
+  - [The Builder Pattern](#the-builder-pattern)
+  - [Understanding $ in Method Names](#understanding--in-method-and-property-names)
+  - [Working with Signals in the DOM](#working-with-signals-in-the-dom)
+  - [Helper Functions for DOM Updates](#helper-functions-for-dom-updates)
+  - [Signals Require Lifecycle Support](#signals-require-lifecycle-support)
+- [Lifecycle Management](#lifecycle-management)
+  - [WithLifecycle Mixin](#withlifecycle-mixin)
+  - [Using $bind for Lifecycle Events](#using-bind-for-lifecycle-events)
+  - [Building Components](#building-components)
+- [Advanced Patterns](#advanced-patterns)
+  - [Two-way Binding](#two-way-binding)
+  - [Shadow DOM Integration](#shadow-dom-integration)
+  - [Web Components](#web-components)
+- [Performance Considerations](#performance-considerations)
+- [Summary](#summary)
+
+---
+
 ## Reactivity System
 
 ### Signal Basics
@@ -25,8 +55,8 @@ count.set(5); // Method approach
 count.val = 5; // Property approach
 ```
 
-Under the hood, signals are lightweight objects that track dependencies and notify subscribers when their values change. Every signal
-provides both `.get()`/`.set()` methods and a `.val` property that triggers the same functionality.
+> Under the hood, signals are lightweight objects that track dependencies and notify subscribers when their values change. Every signal
+> provides both `.get()`/`.set()` methods and a `.val` property that triggers the same functionality.
 
 ### Signal Architecture
 
@@ -48,40 +78,47 @@ const count = ref(0); // Function alias
 const count = new Sync.Ref(0); // Constructor
 ```
 
-The function aliases are preferred for their conciseness and readability.
+> **Tip:** The function aliases are preferred for their conciseness and readability.
 
 ### Signal Types
 
 **purify.js** offers three kinds of signals:
 
-1. **`ref(initialValue)`**: A mutable signal you can both read and write.
+#### 1. `ref(initialValue)`
 
-2. **`computed(() => expression)`**: A derived signal that automatically recalculates when its dependencies change.
+A mutable signal you can both read and write.
 
-   ```ts
-   const count = ref(0);
-   const doubled = computed(() => count.get() * 2);
+#### 2. `computed(() => expression)`
 
-   console.log(doubled.get()); // 0
-   count.set(5);
-   console.log(doubled.get()); // 10
-   ```
+A derived signal that automatically recalculates when its dependencies change.
 
-   Computed signals are clever: they only recalculate when both:
-   - One of their dependencies changes
-   - Someone is actively using the computed value
+```ts
+const count = ref(0);
+const doubled = computed(() => count.get() * 2);
 
-3. **`sync(setter => {...})`**: A signal with manual control over its lifecycle:
+console.log(doubled.get()); // 0
+count.set(5);
+console.log(doubled.get()); // 10
+```
 
-   ```ts
-   const time = sync<number>((set) => {
-       // This runs when the signal gets its first follower
-       const interval = setInterval(() => set(Date.now()), 1000);
+> **Note:** Computed signals are clever: they only recalculate when both:
+>
+> - One of their dependencies changes
+> - Someone is actively using the computed value
 
-       // This cleanup runs when the signal has no more followers
-       return () => clearInterval(interval);
-   });
-   ```
+#### 3. `sync(setter => {...})`
+
+A signal with manual control over its lifecycle:
+
+```ts
+const time = sync<number>((set) => {
+    // This runs when the signal gets its first follower
+    const interval = setInterval(() => set(Date.now()), 1000);
+
+    // This cleanup runs when the signal has no more followers
+    return () => clearInterval(interval);
+});
+```
 
 ### Following Changes
 
@@ -97,7 +134,8 @@ const stopFollowing = count.follow((value) => {
 stopFollowing();
 ```
 
-Inside `.follow()`, purify tracks when signals start and stop being used. When a signal has no followers, its resources can be cleaned up.
+> Inside `.follow()`, **purify.js** tracks when signals start and stop being used. When a signal has no followers, its resources can be
+> cleaned up.
 
 ### Deriving New Signals
 
@@ -129,20 +167,19 @@ const sum = computed(() => count1.get() + count2.get());
 
 Key differences:
 
-1. **Dependency tracking**:
-   - `.derive()` always depends on the source signal it's called on
-   - `computed()` automatically tracks any signal accessed in its callback
+| Feature                 | `.derive()`                                      | `computed()`                                                |
+| ----------------------- | ------------------------------------------------ | ----------------------------------------------------------- |
+| **Dependency tracking** | Always depends on the source signal              | Automatically tracks any signal accessed in its callback    |
+| **Chaining**            | Chainable for multiple transformations           | Creates standalone signals                                  |
+| **Usage context**       | Perfect for transforming a single signal's value | Better when combining multiple signals or for complex logic |
 
-2. **Chaining**:
-   - `.derive()` is chainable for multiple transformations:
-     ```ts
-     count.derive((n) => n * 2).derive((n) => `Value: ${n}`);
-     ```
-   - `computed()` creates standalone signals, better for complex calculations
+Example of chaining with `.derive()`:
 
-3. **Usage context**:
-   - `.derive()` is perfect for transforming a single signal's value
-   - `computed()` is better when combining multiple signals or for complex logic
+```ts
+count.derive((n) => n * 2).derive((n) => `Value: ${n}`);
+```
+
+---
 
 ## DOM Building
 
@@ -161,18 +198,19 @@ const container = div({ class: "container", id: "app" });
 // Or configured with methods after creation
 const submitButton = button()
     .type("submit")
+    .className("my-button")
     .textContent("Submit");
 ```
 
-Under the hood, `tags` creates custom elements that extend the native element types, enabling lifecycle hooks while preserving all native
-behavior.
+> **Behind the scenes:** `tags` creates custom elements that extend the native element types, enabling lifecycle hooks while preserving all
+> native behavior.
 
 ### Attributes vs Properties
 
 The DOM offers two ways to configure elements:
 
-- Attributes
-- Properties
+- **Attributes**: Attributes on element objects (e.g., `class`, `id`)
+- **Properties**: Properties on element objects (e.g., `textContent`, `className`)
 
 **purify.js** supports both approaches:
 
@@ -191,11 +229,11 @@ const div2 = div()
     .className("Hello"); // Sets the className property
 ```
 
-Some important distinctions:
-
-- Use the attribute syntax for attributes: `div({ class: "x" })`
-- Use method calls for properties: `div().textContent("x")`
-- Both approaches are chainable, but attributes must be set during element creation
+> **Important distinctions:**
+>
+> - Use the attribute syntax for attributes: `div({ class: "x" })`
+> - Use method calls for properties: `div().textContent("x")`
+> - Both approaches are valid, but attributes must be set during element creation
 
 ### The Builder Pattern
 
@@ -228,7 +266,7 @@ bodyBuilder.append$(
 
 ### Understanding `$` in Method and Property Names
 
-**purify.js** uses the `$` character in two important ways to distinguish special functionality.
+**purify.js** uses the `$` character in two important ways to distinguish special functionality:
 
 #### Methods with `$` Suffix
 
@@ -245,7 +283,7 @@ div({ class: "container" }).append$(
 );
 ```
 
-Without the `$` suffix, you'd need to manually convert everything to DOM nodes using `toChild()`.
+> **What's happening:** Without the `$` suffix, you'd need to manually convert everything to DOM nodes using `toChild()`.
 
 The internal conversion for signals wraps them in a container element with `display: contents`:
 
@@ -299,7 +337,7 @@ input().type("text").$bind((element) => {
 
 ### Working with Signals in the DOM
 
-When you include a signal in `.append$()` or similar methods, purify automatically sets up subscriptions:
+When you include a signal in `.append$()` or similar methods, **purify.js** automatically sets up subscriptions:
 
 ```ts
 const { div } = tags;
@@ -308,12 +346,15 @@ const currentUser = ref("Guest");
 div({ class: "greeting" }).append$("Welcome, ", currentUser);
 ```
 
-As mention before `$` suffix removes the need for `toChild()`:
+The `$` suffix removes the need for `toChild()`:
 
 ```ts
-const { div } = tags;
-const currentUser = ref("Guest");
+// These two examples do the same thing:
 
+// With $ suffix (recommended):
+div({ class: "greeting" }).append$("Welcome, ", currentUser);
+
+// Without $ suffix (more verbose):
 div({ class: "greeting" }).append("Welcome, ", toChild(currentUser));
 ```
 
@@ -367,7 +408,7 @@ export function useToggleClass(className: string, condition: Sync<boolean>): Lif
 div().$bind(useToggleClass("active", isActiveSignal));
 ```
 
-This pattern helps keep your code clean and encourages reusability.
+> This pattern helps keep your code clean and encourages reusability.
 
 ### Signals Require Lifecycle Support
 
@@ -392,8 +433,10 @@ const enhancedDiv = new LifecycleDiv();
 new Builder(enhancedDiv).textContent(count); // ✓ OK
 ```
 
-This limitation exists because purify needs to track when elements connect and disconnect from the DOM to properly manage signal
-subscriptions and cleanup.
+> **Why this limitation?** **purify.js** needs to track when elements connect and disconnect from the DOM to properly manage signal
+> subscriptions and cleanup.
+
+---
 
 ## Lifecycle Management
 
@@ -410,13 +453,14 @@ const button = new LifecycleButton();
 
 // The mixin is cached, so subsequent calls return the same extended class
 const SameLifecycleButton = WithLifecycle(HTMLButtonElement); // Uses cached version
+LifecycleButton === SameLifecycleButton; // true
 
 // Most commonly used through the tags proxy, which applies WithLifecycle automatically
 const { button: buttonTag } = tags;
 const lifecycledButton = buttonTag(); // Already has lifecycle capabilities
 ```
 
-The mixin only works with HTMLElement subclasses, not other Node types like Text or DocumentFragment.
+> **Note:** The mixin only works with HTMLElement subclasses, not other Node types like Text or DocumentFragment.
 
 ### Using $bind for Lifecycle Events
 
@@ -434,7 +478,7 @@ div().$bind((el) => {
 });
 ```
 
-This is how purify implements efficient cleanup of event listeners and signal subscriptions.
+> This is how **purify.js** implements efficient cleanup of event listeners and signal subscriptions.
 
 ### Building Components
 
@@ -469,6 +513,8 @@ document.body.replaceWith(
     tags.body().append$(Counter()),
 );
 ```
+
+---
 
 ## Advanced Patterns
 
@@ -552,6 +598,8 @@ class CounterElement extends WithLifecycle(HTMLElement) {
     }
 }
 ```
+
+---
 
 ## Performance Considerations
 

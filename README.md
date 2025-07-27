@@ -137,7 +137,8 @@ import { ... } from "https://esm.sh/jsr/@purifyjs/core";
 
 ## 🥡 Guide
 
-Coming soon. At 1.0.0 if not sooner. I don't wanna write something that will become outdated 6 months later.
+- [Guide](GUIDE.md)
+- [Documentation](https://jsr.io/@purifyjs/core/doc)
 
 ## 🔥 Examples
 
