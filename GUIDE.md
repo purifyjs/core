@@ -253,15 +253,15 @@ You can also create a Builder from any existing DOM node:
 import { Builder } from "@purifyjs/core";
 
 // Works with any Node type (Element, Document, ShadowRoot, DocumentFragment, etc)
-const bodyBuilder = new Builder(document.body);
-const shadowBuilder = new Builder(element.$node.attachShadow({ mode: "open" }));
+const host = new Builder(document.createElement("div"));
+const shadow = new Builder(host.$node.attachShadow({ mode: "open" }));
 
 // Use the builder to modify the node
-bodyBuilder.append$(
-    div({ class: "container" }).append$(
-        "Hello world",
-    ),
+shadow.append$(
+    div({ class: "container" }).textContent("Hello world"),
 );
+
+document.body.append(host.$node);
 ```
 
 ### Understanding `$` in Method and Property Names
@@ -449,15 +449,15 @@ import { WithLifecycle } from "@purifyjs/core";
 
 // Add lifecycle capabilities to any HTMLElement type
 const LifecycleButton = WithLifecycle(HTMLButtonElement);
-const button = new LifecycleButton();
+const myButton = new LifecycleButton() satisfies WithLifecycle<HTMLButtonElement>;
 
 // The mixin is cached, so subsequent calls return the same extended class
 const SameLifecycleButton = WithLifecycle(HTMLButtonElement); // Uses cached version
 LifecycleButton === SameLifecycleButton; // true
 
 // Most commonly used through the tags proxy, which applies WithLifecycle automatically
-const { button: buttonTag } = tags;
-const lifecycledButton = buttonTag(); // Already has lifecycle capabilities
+const { button } = tags;
+const buttonBuilder = button() satisfies Builder<WithLifecycle<HTMLButtonElement>>;
 ```
 
 > **Note:** The mixin only works with HTMLElement subclasses, not other Node types like Text or DocumentFragment.
@@ -579,7 +579,7 @@ const { button } = tags;
 class CounterElement extends WithLifecycle(HTMLElement) {
     static {
         // Define the element in the registry
-        customElements.define("x-counter", CounterElement);
+        customElements.define("x-counter", this);
     }
 
     #count = ref(0);
