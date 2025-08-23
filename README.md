@@ -140,6 +140,15 @@ import { ... } from "https://esm.sh/jsr/@purifyjs/core";
 - [Guide](GUIDE.md)
 - [Documentation](https://jsr.io/@purifyjs/core/doc)
 
+## 🙄 Limitations
+
+- Since purify.js uses extended custom elements, **Safari doesn’t support this yet**. If you care about Safari for some reason, use the
+  [ungap/custom-elements](https://github.com/ungap/custom-elements) polyfill. You can follow support status at
+  [caniuse](https://caniuse.com/mdn-html_global_attributes_is).
+
+  But **I don’t recommend that you support Safari.**\
+  _Don't suffer for Safari, let Safari users suffer._
+
 ## 🤷‍♂️ Why Not JSX Templating?
 
 - **Lack of Type Safety**: An `<img>` element created with JSX cannot have the `HTMLImageElement` type because all JSX elements must return
@@ -193,15 +202,6 @@ You don’t need a thousand nodes rendering your UI logic around the world.\
 <img alt="all 100s on Chrome Lighthouse" src="./assets/ssr-is-overrated.png">
 
 <sub><i>Full-fledged dashboard built for a private project, running entirely with purify.js and PicoCSS. SSR is overrated.</i></sub>
-
-## 🙄 Limitations
-
-- Since purify.js uses extended custom elements, **Safari doesn’t support this yet**. If you care about Safari for some reason, use the
-  [ungap/custom-elements](https://github.com/ungap/custom-elements) polyfill. You can follow support status at
-  [caniuse](https://caniuse.com/mdn-html_global_attributes_is).
-
-  But **I don’t recommend that you support Safari.**\
-  _Don't suffer for Safari, let Safari users suffer._
 
 ## 🔮 The Future
 
