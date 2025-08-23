@@ -210,6 +210,7 @@ Deno.test("Verify computed recalculates correctly with internal dependency updat
         Sync.Tracking.add(a);
         a.val = 1; // 2, 4
     }).follow(() => {}); // 1
+    assertStrictEquals(counter, 2);
     a.val = 2; // 3
 
     assertStrictEquals(counter, 4); // 4 times, no less, no more

@@ -398,30 +398,37 @@ export let ref = <T>(initial: T): Sync.Ref<T> => new Sync.Ref(initial);
  * ```
  */
 export let computed = <T>(getter: Sync.Getter<T>): Sync<T> => {
-    let dependencies = new Map<Sync<unknown>, Sync.Unfollower>();
-    let self = sync<T>((notify) => {
-        let update = () => {
-            let newDependencies = new Set<Sync<any>>();
-            let newValue = Tracking.track(getter, (dependency) => {
-                newDependencies.add(dependency);
-                if (!dependencies.has(dependency)) {
-                    dependencies.set(dependency, dependency.follow(update));
-                }
-            });
-            newDependencies.delete(self);
-            notify(newValue);
+    type DependencyDetails =
+        | [unfollower: Sync.Unfollower, version: boolean]
+        | [unfollower: Sync.Unfollower];
 
-            for (let [dependency, unfollow] of dependencies) {
-                if (!newDependencies.has(dependency)) {
-                    unfollow();
-                    dependencies.delete(dependency);
-                }
+    let dependencies = new Map<Sync<unknown>, DependencyDetails>();
+
+    let currentVersion = false;
+    let details: DependencyDetails | undefined;
+    let update: () => void;
+
+    let self = sync<T>((notify) => {
+        update = () => {
+            currentVersion = !currentVersion;
+            notify(
+                Tracking.track(getter, (dependency) => {
+                    details = dependencies.get(dependency);
+                    if (!details) dependencies.set(dependency, details = [dependency.follow(update)]);
+                    details[1] = currentVersion;
+                }),
+            );
+
+            for (let [dependency, [unfollow, version]] of dependencies) {
+                if (version === currentVersion) continue;
+                unfollow();
+                dependencies.delete(dependency);
             }
         };
         update();
 
         return () => {
-            dependencies.forEach((unfollow) => unfollow());
+            dependencies.forEach(([unfollow]) => unfollow());
             dependencies.clear();
         };
     });
