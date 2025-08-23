@@ -399,7 +399,7 @@ export let ref = <T>(initial: T): Sync.Ref<T> => new Sync.Ref(initial);
  */
 export let computed = <T>(getter: Sync.Getter<T>): Sync<T> => {
     let dependencies = new Map<Sync<unknown>, Sync.Unfollower>();
-    let self = new Sync<T>((notify) => {
+    let self = sync<T>((notify) => {
         let update = () => {
             let newDependencies = new Set<Sync<any>>();
             let newValue = Tracking.track(getter, (dependency) => {
