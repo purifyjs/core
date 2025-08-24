@@ -76,11 +76,11 @@ export declare namespace Sync {
  */
 export class Sync<T = never> {
     #followers = new Set<Sync.Follower<any>>();
-    #start: Sync.Starter<T>;
-    #stop: Sync.Stopper | undefined | null;
+    #starter: Sync.Starter<T>;
+    #stopper: Sync.Stopper | undefined | null;
 
-    constructor(start: Sync.Starter<T>) {
-        this.#start = start;
+    constructor(starter: Sync.Starter<T>) {
+        this.#starter = starter;
     }
 
     /**
@@ -98,7 +98,7 @@ export class Sync<T = never> {
      */
     public get(): T {
         Tracking.add(this);
-        if (!this.#stop) { // if is not active
+        if (!this.#stopper) { // if is not active
             this.follow(noop)();
         }
         return this.last;
@@ -168,11 +168,11 @@ export class Sync<T = never> {
      * ```
      */
     public follow(follower: Sync.Follower<T>, immediate?: boolean): Sync.Unfollower {
-        if (!this.#stop) {
+        if (!this.#stopper) {
             // start might call follow internally, so we set stop as noop here to prevent recursive infinite loop of defining stop
-            this.#stop = noop;
+            this.#stopper = noop;
 
-            this.#stop = this.#start((value) => this.set(value)) ?? noop;
+            this.#stopper = this.#starter((value) => this.set(value)) ?? noop;
         }
 
         if (immediate) follower(this.last);
@@ -182,8 +182,8 @@ export class Sync<T = never> {
         return () => {
             this.#followers.delete(follower);
             if (!this.#followers.size) {
-                this.#stop?.();
-                this.#stop = null;
+                this.#stopper?.();
+                this.#stopper = null;
             }
         };
     }
@@ -280,6 +280,9 @@ export declare namespace Sync {
      * A writable (mutable) signal that allows both reading and writing values.
      * Use this when you need to create a piece of reactive state that can be updated.
      *
+     * The Ref class extends the base Sync signal with direct read/write capabilities,
+     * making it ideal for storing application state that changes over time.
+     *
      * @template T - The type of the value held by the signal.
      *
      * @example
@@ -288,6 +291,10 @@ export declare namespace Sync {
      * count.follow(console.log, true); // Logs: 0
      * count.val = 5; // Logs: 5
      * count.set(10); // Logs: 10
+     *
+     * // Using getter/setter methods
+     * const newValue = count.get() + 1; // Get current value
+     * count.set(newValue); // Update the value
      * ```
      */
     class Ref<T> extends Sync<T> {
@@ -295,8 +302,10 @@ export declare namespace Sync {
          * Creates a new writable signal with the provided initial value.
          *
          * @param initial The initial value of the signal.
+         * @param starter An optional starter function that can be used to initialize
+         *                custom behavior when the signal becomes active.
          */
-        constructor(initial: T);
+        constructor(initial: T, starter?: Sync.Starter<T>);
 
         /**
          * Gets the current value of this writable signal.
@@ -327,14 +336,9 @@ export declare namespace Sync {
 }
 
 Sync.Ref = class<T> extends Sync<T> {
-    constructor(initial: T) {
-        super(noop);
+    constructor(initial: T, starter: Sync.Starter<T> = noop) {
+        super(starter);
         this.last = initial;
-    }
-
-    public override get() {
-        Tracking.add(this);
-        return this.last;
     }
 } as typeof Sync.Ref;
 
@@ -362,21 +366,30 @@ export let sync = <T = never>(start: Sync.Starter<T>): Sync<T> => new Sync(start
 
 /**
  * Creates a writable signal with the provided initial value.
- * This is the most common way to create a piece of reactive state.
+ * This is the most common way to create a piece of reactive state that can be both read and modified.
  *
  * @template T The type of the initial value.
  * @param initial The initial value for the signal.
- * @returns A new writable signal that can be both read from and written to.
+ * @param starter An optional function that runs when the signal gets its first follower.
+ *                This allows for custom setup and teardown logic, similar to the sync function.
+ * @returns A new writable signal (Sync.Ref) that can be both read from and written to.
  *
  * @example
  * ```ts
+ * // Basic usage
  * const count = ref(0);
  * console.log(count.val); // 0
  * count.val = 5;
  * console.log(count.val); // 5
+ *
+ * // With custom starter logic
+ * const timestamp = ref(Date.now(), (set) => {
+ *   const interval = setInterval(() => set(Date.now()), 1000);
+ *   return () => clearInterval(interval);
+ * });
  * ```
  */
-export let ref = <T>(initial: T): Sync.Ref<T> => new Sync.Ref(initial);
+export let ref = <T>(initial: T, starter?: Sync.Starter<T>): Sync.Ref<T> => new Sync.Ref(initial, starter);
 
 /**
  * Creates a computed signal that automatically tracks its dependencies.
