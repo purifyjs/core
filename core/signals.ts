@@ -302,10 +302,8 @@ export declare namespace Sync {
          * Creates a new writable signal with the provided initial value.
          *
          * @param initial The initial value of the signal.
-         * @param starter An optional starter function that can be used to initialize
-         *                custom behavior when the signal becomes active.
          */
-        constructor(initial: T, starter?: Sync.Starter<T>);
+        constructor(initial: T);
 
         /**
          * Gets the current value of this writable signal.
@@ -336,8 +334,8 @@ export declare namespace Sync {
 }
 
 Sync.Ref = class<T> extends Sync<T> {
-    constructor(initial: T, starter: Sync.Starter<T> = noop) {
-        super(starter);
+    constructor(initial: T) {
+        super(noop);
         this.last = initial;
     }
 } as typeof Sync.Ref;
@@ -370,8 +368,6 @@ export let sync = <T = never>(start: Sync.Starter<T>): Sync<T> => new Sync(start
  *
  * @template T The type of the initial value.
  * @param initial The initial value for the signal.
- * @param starter An optional function that runs when the signal gets its first follower.
- *                This allows for custom setup and teardown logic, similar to the sync function.
  * @returns A new writable signal (Sync.Ref) that can be both read from and written to.
  *
  * @example
@@ -381,15 +377,9 @@ export let sync = <T = never>(start: Sync.Starter<T>): Sync<T> => new Sync(start
  * console.log(count.val); // 0
  * count.val = 5;
  * console.log(count.val); // 5
- *
- * // With custom starter logic
- * const timestamp = ref(Date.now(), (set) => {
- *   const interval = setInterval(() => set(Date.now()), 1000);
- *   return () => clearInterval(interval);
- * });
  * ```
  */
-export let ref = <T>(initial: T, starter?: Sync.Starter<T>): Sync.Ref<T> => new Sync.Ref(initial, starter);
+export let ref = <T>(initial: T): Sync.Ref<T> => new Sync.Ref(initial);
 
 /**
  * Creates a computed signal that automatically tracks its dependencies.
