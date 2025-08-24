@@ -17,7 +17,7 @@
 </p>
 
 ```js
-import { ref, tags } from "@purifyjs/core";
+import { ref, tags, toChild } from "@purifyjs/core";
 
 const { div, button } = tags;
 
@@ -29,7 +29,7 @@ export function Hello() {
     );
 }
 
-document.body.append(Hello().$node);
+document.body.append(toChild(Hello()));
 ```
 
 👉 [Fiddle it on JSFiddle](https://jsfiddle.net/f8nx5d17/1/)
