@@ -245,3 +245,23 @@ Deno.test("No stop leak", () => {
     unfollow();
     assertStrictEquals(counter, 1);
 });
+
+Deno.test("Computed should not crash if a dependency triggers follow() inline during initialization", () => {
+    const a = ref(0);
+
+    // This will try to follow `a` inline during computed's setup
+    const b = computed(() => {
+        // Synchronously subscribe to `a` — this will call a.follow(update)
+        // *before* computed() assigns update in the sync callback if there's a bug.
+        a.follow(() => {});
+        return a.val + 1;
+    });
+
+    // If bug exists, this line would throw (cannot call undefined update)
+    const initial = b.val;
+
+    assertStrictEquals(initial, 1);
+
+    a.val = 41;
+    assertStrictEquals(b.val, 42);
+});
