@@ -3,36 +3,6 @@
 Welcome to **purify.js**—a lightweight (≈1 kB) reactive DOM utility library focused on simplicity and performance. This guide will walk you
 through all aspects of using **purify.js** to build reactive UIs.
 
-## Table of Contents
-
-- [Reactivity System](#reactivity-system)
-  - [Signal Basics](#signal-basics)
-  - [Signal Architecture](#signal-architecture)
-  - [Signal Types](#signal-types)
-  - [Following Changes](#following-changes)
-  - [Deriving New Signals](#deriving-new-signals)
-  - [derive() vs computed()](#derive-vs-computed)
-- [DOM Building](#dom-building)
-  - [Creating Elements](#creating-elements)
-  - [Attributes vs Properties](#attributes-vs-properties)
-  - [The Builder Pattern](#the-builder-pattern)
-  - [Understanding $ in Method Names](#understanding--in-method-and-property-names)
-  - [Working with Signals in the DOM](#working-with-signals-in-the-dom)
-  - [Helper Functions for DOM Updates](#helper-functions-for-dom-updates)
-  - [Signals Require Lifecycle Support](#signals-require-lifecycle-support)
-- [Lifecycle Management](#lifecycle-management)
-  - [WithLifecycle Mixin](#withlifecycle-mixin)
-  - [Using $bind for Lifecycle Events](#using-bind-for-lifecycle-events)
-  - [Building Components](#building-components)
-- [Advanced Patterns](#advanced-patterns)
-  - [Two-way Binding](#two-way-binding)
-  - [Shadow DOM Integration](#shadow-dom-integration)
-  - [Web Components](#web-components)
-- [Performance Considerations](#performance-considerations)
-- [Summary](#summary)
-
----
-
 ## Reactivity System
 
 ### Signal Basics
