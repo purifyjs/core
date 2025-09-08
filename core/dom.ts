@@ -379,7 +379,7 @@ export namespace Lifecycle {
      * @param element The element that was connected
      * @returns Optional cleanup function that runs on disconnection
      */
-    export type OnConnected<T extends HTMLElement = HTMLElement> = (element: T) => void | OnDisconnected;
+    export type OnConnected<T extends HTMLElement = HTMLElement> = (element: WithLifecycle<T>) => void | OnDisconnected;
 
     /**
      * Function type to manually remove a connection callback.
