@@ -440,7 +440,7 @@ export let WithLifecycle = <BaseConstructor extends { new (...params: any[]): HT
                 }
 
                 $bind(callback: Lifecycle.OnConnected<Base>): Lifecycle.OffConnected {
-                    this.#callbacks.set(callback, null);
+                    this.#callbacks.set(callback, this.isConnected ? callback(this) : null);
                     return () => {
                         let off = this.#callbacks.get(callback);
                         this.#callbacks.delete(callback);
