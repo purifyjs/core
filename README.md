@@ -142,7 +142,7 @@ import { ... } from "https://esm.sh/jsr/@purifyjs/core";
 
 ## 🙄 Limitations
 
-- Since purify.js uses extended custom elements, **Safari doesn’t support this yet**. If you care about Safari for some reason, use the
+- Since purify.js uses extended custom elements (internally) for lifecycles, **Safari doesn’t support this yet**. If you care about Safari for some reason, use the
   [ungap/custom-elements](https://github.com/ungap/custom-elements) polyfill. You can follow support status at
   [caniuse](https://caniuse.com/mdn-html_global_attributes_is).
 
