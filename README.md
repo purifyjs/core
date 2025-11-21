@@ -282,3 +282,11 @@ You don’t need a thousand nodes rendering your UI logic around the world.\
 - **Something like `.toNode()` or `Symbol.toNode`** would allow us to insert anything into the DOM without manually unwrapping them. This
   would simplify DOM manipulation by letting custom objects, structures, or even signals to be automatically converted into valid DOM nodes
   when inserted.
+
+## What now?
+
+Right now, purify.js works perfectly and being used with every project I and some of my friends make. It works perfectly. No issues.
+
+So what is next then? Well expect no updates until DOM itself gets some updates. Then if a new path for making things even better emerges, then expect new updates.
+
+So when 1.0.0? For 1.0.0 to happen we should get some new updates to DOM, which let's us solves problems like lifecycles, appendablity, fragments in a more elegant way. And when we apply those changes and make sure there are no issues, then we can call it 1.0.0.
