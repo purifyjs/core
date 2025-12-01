@@ -290,3 +290,9 @@ Right now, purify.js works perfectly and being used with every project I and som
 So what is next then? Well expect no updates until DOM itself gets some updates. Then if a new path for making things even better emerges, then expect new updates.
 
 So when 1.0.0? For 1.0.0 to happen we should get some new updates to DOM, which let's us solves problems like lifecycles, appendablity, fragments in a more elegant way. And when we apply those changes and make sure there are no issues, then we can call it 1.0.0.
+
+Custom Attributes would be useful for lifecyles.
+
+I'm not sure about fragment solutions, but maybe something completely different comes up, solving the issue differently.
+
+Appendability means being about append anything to DOM with something like `Symbol.toNode`. 
