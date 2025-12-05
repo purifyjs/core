@@ -175,7 +175,7 @@ designed to embrace.
 
 Let’s be honest: **SSR has no place in the future of the web**.
 
-Projects like **Nostr**, **Cachu**, **Blossom**, **IPFS**, and others are shaping a web that’s decentralized, distributed, and
+Projects like **Nostr**, **Blossom**, **IPFS**, and others are shaping a web that’s decentralized, distributed, and
 browser-native.
 
 That world doesn’t need server-rendered HTML. It needs small, portable apps that run fully in the client — fast, simple, self-contained, and
