@@ -64,9 +64,8 @@ document.body.append(toChild(Hello()));
 
 purify.js is designed to stay close to the platform: direct DOM APIs, minimal abstraction, and no required build step.
 
-<img alt="all 100s on Chrome Lighthouse" src="./assets/ssr-is-overrated.png">
-
-<sub><i>Full-fledged dashboard built for a private project, running entirely with purify.js and PicoCSS, scoring all 100s on Chrome Lighthouse.</i></sub>
+<img alt="all 100s on Lighthouse" src="./assets/ssr-is-overrated.png">
+<sub><i>Full-fledged dashboard built for a private project, running entirely with purify.js and PicoCSS, scoring all 100s on Lighthouse.</i></sub>
 
 ## 🚀 Installation
 
