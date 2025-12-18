@@ -60,6 +60,14 @@ document.body.append(toChild(Hello()));
 - **No extra LSP and IDE extensions/plugins:** fast IDE responses, autocompletion, and no weird framework-specific LSP issues.
 - ✅ **All verifiable TypeScript/Javascript code.**
 
+## ⚡ Performance
+
+purify.js is designed to stay close to the platform: direct DOM APIs, minimal abstraction, and no required build step.
+
+<img alt="all 100s on Chrome Lighthouse" src="./assets/ssr-is-overrated.png">
+
+<sub><i>Full-fledged dashboard built for a private project, running entirely with purify.js and PicoCSS, scoring all 100s on Chrome Lighthouse.</i></sub>
+
 ## 🚀 Installation
 
 At: [jsr.io/@purifyjs/core](https://jsr.io/@purifyjs/core)
@@ -163,39 +171,21 @@ import { ... } from "https://esm.sh/jsr/@purifyjs/core";
 
 JSX is not part of this library natively, but a wrapper can be made quite easily.
 
-## 🗑️ SSR?
+## 🧰 Server-Side Rendering (SSR)
 
 **Will purify.js ever support SSR?**\
-**No. And it never will.**
+**No — SSR is intentionally out of scope.**
 
-purify.js is a **DOM utility library**, not a framework. It’s built for the browser — where apps are meant to _actually run_.
+purify.js is built around the real browser DOM: `Node`, `Element`, `DocumentFragment`, lifecycles, and direct DOM manipulation. It assumes a DOM
+exists.
 
-Supporting SSR means sacrificing what makes SPAs powerful. It breaks the direct connection with the DOM — the very thing purify.js is
-designed to embrace.
+“Supporting SSR” would require turning purify.js into a framework: a server renderer, an SSR-compatible runtime, and a hydration /
+reconciliation layer that can re-attach server-produced HTML to live DOM behavior. That’s a different project, with different tradeoffs.
 
-Let’s be honest: **SSR has no place in the future of the web**.
+You *can* still use purify.js in SSR applications by doing SSR with any framework/tool you want, then using purify.js on the client where the
+DOM actually exists (progressive enhancement, islands, etc.).
 
-Projects like **Nostr**, **Blossom**, **IPFS**, and others are shaping a web that’s decentralized, distributed, and
-browser-native.
-
-That world doesn’t need server-rendered HTML. It needs small, portable apps that run fully in the client — fast, simple, self-contained, and
-aggressively cached.
-
-**purify.js is built for that world.**
-
----
-
-> The problem was never the SPA.\
-> The problem was React — and the bloated, over-engineered mess it encouraged.
-
-Embrace SPA. Embrace PWA.\
-Heck, bundle everything into a single HTML file.\
-Servers don’t need to render UI — that’s the browser’s job. Rendering isn’t just data, it’s behavior. Offload that computation. Distribute
-it. Don’t centralize it.
-
-Your frontend should be nothing more than a CDN-hosted file.\
-You don’t need a thousand nodes rendering your UI logic around the world.\
-**Let the browser do what it was built to do.**
+**Bottom line:** purify.js is a **DOM utility library** (no build step required), **not** a framework.
 
 ---
 
