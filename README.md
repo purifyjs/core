@@ -187,11 +187,6 @@ DOM actually exists (progressive enhancement, islands, etc.).
 
 **Bottom line:** purify.js is a **DOM utility library** (no build step required), **not** a framework.
 
----
-
-<img alt="all 100s on Chrome Lighthouse" src="./assets/ssr-is-overrated.png">
-
-<sub><i>Full-fledged dashboard built for a private project, running entirely with purify.js and PicoCSS. SSR is overrated.</i></sub>
 
 ## 🔮 The Future
 
