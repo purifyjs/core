@@ -168,7 +168,8 @@ type ProxyFunctionArgs<T extends Node, K extends keyof T, Args extends unknown[]
     Args;
 
 type MaybeAlsoBuilder<T> = T extends Node ? T | Builder : T;
-type NodeLike<T> = T | null | undefined | MaybeAlsoBuilder<T>;
+type MaybeAlsoStringLike<T> = T extends string ? string | number | boolean | bigint : T;
+type NodeLike<T> = T | null | undefined | MaybeAlsoBuilder<T> | MaybeAlsoStringLike<T>;
 
 type MaybeNodeLikeArgs<Args extends unknown[], R extends unknown[] = []> = Args extends [infer Head, ...infer Tail]
     ? MaybeNodeLikeArgs<Tail, [...R, NodeLike<Head>]>
@@ -483,6 +484,10 @@ export type Member = RecursiveSignalAndArrayOf<NodeLike<Node | string>>;
  * @returns A string or Node that can be inserted into the DOM
  */
 export let toChild = ((member: Member): string | Node => {
+    if (instanceOf(member, Node)) {
+        return member;
+    }
+
     if (instanceOf(member, Builder)) {
         return member.$node;
     }
@@ -498,7 +503,7 @@ export let toChild = ((member: Member): string | Node => {
         return toChild(new Builder(document.createDocumentFragment()).append(...member.map(toChild)));
     }
 
-    return member ?? "";
+    return String(member ?? "");
 }) as {
     <T extends Node>(member: Builder<T>): T;
     (member: Sync<Member>): HTMLDivElement;

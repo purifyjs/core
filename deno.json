@@ -1,7 +1,6 @@
 {
     "name": "@purifyjs/core",
     "version": "0.5.0-preview.1",
-    "workspace": ["./apps/vite", "./apps/size"],
     "exports": {
         ".": "./core/mod.ts",
         "./strict": "./core/strict/mod.ts"
@@ -20,8 +19,8 @@
     },
     "tasks": {
         "publish:dry": "deno publish --dry-run --allow-dirty",
-        "vite:dev": "deno task --cwd ./apps/vite dev",
-        "size:build": "deno task --cwd ./apps/size build"
+        "vite:dev": "deno task --cwd=apps/vite dev",
+        "size": "./bundle_size.sh"
     },
     "fmt": {
         "lineWidth": 140,
