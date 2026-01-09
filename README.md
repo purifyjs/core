@@ -52,6 +52,27 @@ document.body.append(toChild(Hello()));
 - **Everything reactive is just signals.**
 - Signals are extendable, allowing chaining with utilities like `.pipe()` and `.derive()` to build custom workflows.
 
+## 🧠 Philosophy
+
+**purify.js is a thin wrapper, not a framework.**
+
+This library follows strict rules that shape every design decision:
+
+1. **Don't break the DOM.** You can mix purify.js with `querySelector`, `remove`, `append`, `replaceChildren`, or any DOM API. The library
+   doesn't own the DOM—you do.
+
+2. **Don't abstract the DOM away.** purify.js enhances the platform; it doesn't hide it.
+
+3. **Just make the DOM easier to work with.** That's it. That's the goal.
+
+4. **Allow direct DOM manipulation.** Always. No exceptions.
+
+5. **Platform evolution removes complexity.** Features like `WithLifecycle` exist only because the platform lacks native alternatives. When
+   proposals like [Custom Attributes](https://github.com/WICG/webcomponents/issues/1029) land, that code gets removed entirely.
+
+**Limitation makes creativity.** These constraints aren't restrictions—they're what make purify.js possible. The library will **shrink**
+over time as the web platform improves, rather than accumulating framework baggage.
+
 ### Typescript/Javascript
 
 - No special file extensions.
@@ -149,8 +170,8 @@ import { ... } from "https://esm.sh/jsr/@purifyjs/core";
 
 ## 🙄 Limitations
 
-- Since purify.js uses extended custom elements (internally) for lifecycles, **Safari doesn’t support this yet**. If you care about Safari for some reason, use the
-  [ungap/custom-elements](https://github.com/ungap/custom-elements) polyfill. You can follow support status at
+- Since purify.js uses extended custom elements (internally) for lifecycles, **Safari doesn’t support this yet**. If you care about Safari
+  for some reason, use the [ungap/custom-elements](https://github.com/ungap/custom-elements) polyfill. You can follow support status at
   [caniuse](https://caniuse.com/mdn-html_global_attributes_is).
 
   But **I don’t recommend that you support Safari.**\
@@ -175,17 +196,16 @@ JSX is not part of this library natively, but a wrapper can be made quite easily
 **Will purify.js ever support SSR?**\
 **No — SSR is intentionally out of scope.**
 
-purify.js is built around the real browser DOM: `Node`, `Element`, `DocumentFragment`, lifecycles, and direct DOM manipulation. It assumes a DOM
-exists.
+purify.js is built around the real browser DOM: `Node`, `Element`, `DocumentFragment`, lifecycles, and direct DOM manipulation. It assumes a
+DOM exists.
 
 “Supporting SSR” would require turning purify.js into a framework: a server renderer, an SSR-compatible runtime, and a hydration /
 reconciliation layer that can re-attach server-produced HTML to live DOM behavior. That’s a different project, with different tradeoffs.
 
-You *can* still use purify.js in SSR applications by doing SSR with any framework/tool you want, then using purify.js on the client where the
-DOM actually exists (progressive enhancement, islands, etc.).
+You _can_ still use purify.js in SSR applications by doing SSR with any framework/tool you want, then using purify.js on the client where
+the DOM actually exists (progressive enhancement, islands, etc.).
 
 **Bottom line:** purify.js is a **DOM utility library** (no build step required), **not** a framework.
-
 
 ## 🔮 The Future
 
@@ -271,12 +291,14 @@ DOM actually exists (progressive enhancement, islands, etc.).
 
 Right now, purify.js works perfectly and being used with every project I and some of my friends make. It works perfectly. No issues.
 
-So what is next then? Well expect no updates until DOM itself gets some updates. Then if a new path for making things even better emerges, then expect new updates.
+So what is next then? Well expect no updates until DOM itself gets some updates. Then if a new path for making things even better emerges,
+then expect new updates.
 
-So when 1.0.0? For 1.0.0 to happen we should get some new updates to DOM, which let's us solve problems like lifecycles, appendablity, fragments in a more elegant way. And when we apply those changes and make sure there are no issues, then we can call it 1.0.0.
+So when 1.0.0? For 1.0.0 to happen we should get some new updates to DOM, which let's us solve problems like lifecycles, appendablity,
+fragments in a more elegant way. And when we apply those changes and make sure there are no issues, then we can call it 1.0.0.
 
 Custom Attributes would be useful for lifecyles.
 
 I'm not sure about fragment solutions, but maybe something completely different comes up, solving the issue differently.
 
-Appendability means being able to append anything to DOM with something like `Symbol.toNode`. 
+Appendability means being able to append anything to DOM with something like `Symbol.toNode`.
