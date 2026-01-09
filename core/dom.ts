@@ -167,12 +167,12 @@ type ProxyPropertyArg<T extends Node, K extends keyof T> = NonNullable<T[K]> ext
 type ProxyFunctionArgs<T extends Node, K extends keyof T, Args extends unknown[] = T[K] extends (...args: infer U) => any ? U : never> =
     Args;
 
-type MaybeNodeLikeArg<T> = T extends Node ? T | Builder<T> | null | undefined
-    : T extends string ? string | { toString(): string } | null | undefined
-    : T;
+type MaybeAlsoBuilder<T> = T extends Node ? T | Builder : T;
+type NodeLike<T> = T | null | undefined | MaybeAlsoBuilder<T>;
+
 type MaybeNodeLikeArgs<Args extends unknown[], R extends unknown[] = []> = Args extends [infer Head, ...infer Tail]
-    ? MaybeNodeLikeArgs<Tail, [...R, MaybeNodeLikeArg<Head>]>
-    : Args extends (infer U)[] ? MaybeNodeLikeArg<U>[]
+    ? MaybeNodeLikeArgs<Tail, [...R, NodeLike<Head>]>
+    : Args extends (infer U)[] ? NodeLike<U>[]
     : R;
 
 type ProxyNodeFunctionArgs<
@@ -204,6 +204,11 @@ type BuilderProxy<T extends Node, U extends Node> =
         [K in keyof T as If<IsProxyableNodeFunction<T, K>, `${K & string}$`>]: (...args: ProxyNodeFunctionArgs<T, K>) => Builder<U>;
     };
 
+type Builder_PropertyAsArgFix<T extends Node> =
+    | T
+    | (DocumentFragment extends T ? DocumentFragment : never)
+    | (CharacterData extends T ? CharacterData : never);
+
 /**
  * A builder for DOM nodes that provides a fluent API for manipulating elements.
  * The Builder wraps a DOM node and adds chainable methods for setting properties,
@@ -216,7 +221,9 @@ type BuilderProxy<T extends Node, U extends Node> =
  *
  * @property $node The actual DOM node being built.
  */
-export type Builder<T extends Node = Node> = BuilderProxy<T extends Element ? MapStrictProperties<T> : T, T> & {
+export type Builder<
+    T extends Node = Node,
+> = BuilderProxy<Builder_PropertyAsArgFix<T extends Element ? MapStrictProperties<T> : T>, Builder_PropertyAsArgFix<T>> & {
     /**
      * The underlying DOM node being managed by this builder.
      * Use this when you need to access the raw node, such as when appending to the document.
@@ -459,7 +466,7 @@ export let WithLifecycle = <BaseConstructor extends { new (...params: any[]): HT
  * This includes direct nodes, signals of nodes, arrays of nodes, and recursive combinations.
  * Used by methods with the '$' suffix to handle various input types.
  */
-export type Member = RecursiveSignalAndArrayOf<MaybeNodeLikeArg<Node | string>>;
+export type Member = RecursiveSignalAndArrayOf<NodeLike<Node | string>>;
 
 /**
  * Converts any supported value into a DOM Node or string that can be inserted into the DOM.
@@ -475,7 +482,7 @@ export type Member = RecursiveSignalAndArrayOf<MaybeNodeLikeArg<Node | string>>;
  * @param member - The value to convert to a DOM-compatible child
  * @returns A string or Node that can be inserted into the DOM
  */
-export let toChild = (member: Member): string | Node => {
+export let toChild = ((member: Member): string | Node => {
     if (instanceOf(member, Builder)) {
         return member.$node;
     }
@@ -491,6 +498,11 @@ export let toChild = (member: Member): string | Node => {
         return toChild(new Builder(document.createDocumentFragment()).append(...member.map(toChild)));
     }
 
-    // All .append() like functions accepts { toString(): string }, but dom types act like they are not supported, so we just say its a "string" here.
-    return (member ?? "") satisfies { toString(): string } as string | Node;
+    return member ?? "";
+}) as {
+    <T extends Node>(member: Builder<T>): T;
+    (member: Sync<Member>): HTMLDivElement;
+    (member: Array<Member> | Iterator<Member>): DocumentFragment;
+    (member: NodeLike<string>): string;
+    (member: Member): Node | string;
 };
