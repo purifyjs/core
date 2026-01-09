@@ -505,10 +505,9 @@ export let toChild = ((member: Member): string | Node => {
 
     return String(member ?? "");
 }) as {
-    <T extends Node>(member: T): T;
-    <T extends Node>(member: Builder<T>): T;
-    (member: Sync<Member>): HTMLDivElement;
-    (member: Array<Member> | Iterator<Member>): DocumentFragment;
-    (member: NodeLike<string>): string;
-    (member: Member): string | Node;
+    <T extends Member>(member: T): T extends Node ? T
+        : T extends Builder<infer U> ? U
+        : T extends Sync<infer U> ? U extends Node ? U : HTMLDivElement
+        : T extends Array<infer U> | Iterator<infer U> ? U extends Node ? DocumentFragment : string
+        : string;
 };
