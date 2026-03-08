@@ -302,3 +302,7 @@ Custom Attributes would be useful for lifecyles.
 I'm not sure about fragment solutions, but maybe something completely different comes up, solving the issue differently.
 
 Appendability means being able to append anything to DOM with something like `Symbol.toNode`.
+
+## License
+
+[LGPL v2.1](LICENSE)
