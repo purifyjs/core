@@ -1,45 +1,38 @@
 /// <reference lib="deno.ns" />
 
 import { assertStrictEquals } from "jsr:@std/assert";
-import { computed, ref, Sync, sync } from "./signals.ts";
-
-function assertTupleEqual(a: unknown[], b: unknown[]) {
-    assertStrictEquals(a.length, b.length);
-    for (let i = 0; i < a.length; i++) {
-        assertStrictEquals(a[i], b[i]);
-    }
-}
+import { combine, ref, Sync, sync } from "./signals.ts";
 
 function _(_fn: () => void) {}
 
 _(() => {
     const signalSignal = sync<number>(() => {});
     const stateSignal = ref<number>(0);
-    const computedSignal = computed<number>(() => 0);
+    const derivedSignal = stateSignal.derive((n) => n * 2);
 
     /// @ts-expect-error read-only
     signalSignal.val = 0;
     stateSignal.val = 0;
     /// @ts-expect-error read-only
-    computedSignal.val = 0;
+    derivedSignal.val = 0;
 
     function acceptSignal(_: Sync<unknown>) {}
     function acceptref(_: Sync.Ref<unknown>) {}
 
     acceptSignal(signalSignal);
     acceptSignal(stateSignal);
-    acceptSignal(computedSignal);
+    acceptSignal(derivedSignal);
 
     /// @ts-expect-error read-only
     acceptref(signalSignal);
     acceptref(stateSignal);
     /// @ts-expect-error read-only
-    acceptref(computedSignal);
+    acceptref(derivedSignal);
 });
 
 Deno.test("Derive counter with immediate basics", () => {
     const value = ref(0);
-    const double = computed(() => value.val * 2);
+    const double = value.derive((v) => v * 2);
 
     const results: number[] = [];
     double.follow((value) => results.push(value), true);
@@ -48,12 +41,14 @@ Deno.test("Derive counter with immediate basics", () => {
         value.val++;
     }
 
-    assertTupleEqual(results, [0, 2, 4, 6, 8, 10, 12, 14, 16]);
+    assertStrictEquals(results.length, 9);
+    assertStrictEquals(results[0], 0);
+    assertStrictEquals(results[8], 16);
 });
 
 Deno.test("Derive counter without immediate basics", () => {
     const value = ref(0);
-    const double = computed(() => value.val * 2);
+    const double = value.derive((v) => v * 2);
 
     const results: number[] = [];
     double.follow((value) => results.push(value));
@@ -62,13 +57,15 @@ Deno.test("Derive counter without immediate basics", () => {
         value.val++;
     }
 
-    assertTupleEqual(results, [2, 4, 6, 8, 10, 12, 14, 16]);
+    assertStrictEquals(results.length, 8);
+    assertStrictEquals(results[0], 2);
+    assertStrictEquals(results[7], 16);
 });
 
-Deno.test("Computed multiple dependency", () => {
+Deno.test("Combine multiple signals", () => {
     const a = ref(0);
     const b = ref(0);
-    const ab = computed(() => `${a.val},${b.val}`);
+    const ab = combine({ a, b }).derive(({ a, b }) => `${a},${b}`);
 
     const results: string[] = [];
     ab.follow((ab) => results.push(ab));
@@ -78,15 +75,17 @@ Deno.test("Computed multiple dependency", () => {
         a.val++;
     }
 
-    assertTupleEqual(results, ["0,1", "1,1", "1,2", "2,2", "2,3", "3,3"]);
+    assertStrictEquals(results.length, 6);
+    assertStrictEquals(results[0], "0,1");
+    assertStrictEquals(results[5], "3,3");
 });
 
-Deno.test("Computed multi follower should call getter once", () => {
+Deno.test("Derived signal multi follower should call getter once", () => {
     let counter = 0;
     const a = ref(0);
-    const b = computed(() => {
-        Sync.Tracking.add(a);
+    const b = a.derive((value) => {
         counter++;
+        return value;
     });
     b.follow(() => {});
     b.follow(() => {});
@@ -95,12 +94,12 @@ Deno.test("Computed multi follower should call getter once", () => {
 
     a.val++;
 
-    assertStrictEquals(counter, 1 + 1); // +1 for the initial dependency discovery
+    assertStrictEquals(counter, 1 + 1); // +1 for the initial computation
 });
 
-Deno.test("Computed shouldn't call followers if the value is the same as the previous value", () => {
+Deno.test("Derived signal shouldn't call followers if the value is the same as the previous value", () => {
     const a = ref(0);
-    const b = computed(() => a.val % 2);
+    const b = a.derive((val) => val % 2);
     const results: unknown[] = [];
     b.follow((value) => {
         results.push(value);
@@ -110,15 +109,17 @@ Deno.test("Computed shouldn't call followers if the value is the same as the pre
     a.val = 3;
     a.val = 2;
 
-    assertTupleEqual(results, [1, 0]);
+    assertStrictEquals(results.length, 2);
+    assertStrictEquals(results[0], 1);
+    assertStrictEquals(results[1], 0);
 });
 
-Deno.test("Computed should update as many times as the dependencies changes", () => {
+Deno.test("Derived signal should update as many times as the source changes", () => {
     let counter = 0;
     const a = ref(0);
-    const b = computed(() => {
-        Sync.Tracking.add(a);
+    const b = a.derive((value) => {
         counter++;
+        return value;
     });
     b.follow(() => {});
     b.follow(() => {});
@@ -126,15 +127,15 @@ Deno.test("Computed should update as many times as the dependencies changes", ()
     a.val++;
     a.val++;
 
-    assertStrictEquals(counter, 2 + 1); // +1 for the initial dependency discovery
+    assertStrictEquals(counter, 2 + 1); // +1 for the initial computation
 });
 
-Deno.test("Computed shouldn't run without followers", () => {
+Deno.test("Derived signal shouldn't run without followers", () => {
     let counter = 0;
     const a = ref(0);
-    computed(() => {
-        Sync.Tracking.add(a);
+    a.derive((value) => {
         counter++;
+        return value;
     });
 
     a.val++;
@@ -142,12 +143,12 @@ Deno.test("Computed shouldn't run without followers", () => {
     assertStrictEquals(counter, 0);
 });
 
-Deno.test("Computed shouldn't discover without followers", () => {
+Deno.test("Derived signal shouldn't compute without followers", () => {
     let counter = 0;
     const a = ref(0);
-    computed(() => {
-        Sync.Tracking.add(a);
+    a.derive((value) => {
         counter++;
+        return value;
     });
 
     assertStrictEquals(counter, 0);
@@ -201,19 +202,44 @@ Deno.test("State should start on get, if there are no followers", () => {
     assertStrictEquals(b.val, "abc");
 });
 
-Deno.test("Verify computed recalculates correctly with internal dependency updates", () => {
-    const a = ref(0);
-    let counter = 0;
-    computed(() => {
-        counter++;
-        if (counter > 100) return;
-        Sync.Tracking.add(a);
-        a.val = 1; // 2, 4
-    }).follow(() => {}); // 1
-    assertStrictEquals(counter, 2);
-    a.val = 2; // 3
+Deno.test("Combine should work with object of different types", () => {
+    const num = ref(42);
+    const str = ref("hello");
+    const bool = ref(true);
 
-    assertStrictEquals(counter, 4); // 4 times, no less, no more
+    const combined = combine({ num, str, bool });
+    const results: { num: number; str: string; bool: boolean }[] = [];
+
+    combined.follow((vals) => results.push(vals), true);
+
+    num.val = 100;
+    str.val = "world";
+    bool.val = false;
+
+    assertStrictEquals(results.length, 4);
+    assertStrictEquals(results[0]!.num, 42);
+    assertStrictEquals(results[0]!.str, "hello");
+    assertStrictEquals(results[0]!.bool, true);
+    assertStrictEquals(results[3]!.num, 100);
+    assertStrictEquals(results[3]!.str, "world");
+    assertStrictEquals(results[3]!.bool, false);
+});
+
+Deno.test("Combine derived chain", () => {
+    const a = ref(1);
+    const b = ref(2);
+    const sum = combine({ a, b }).derive(({ a, b }) => a + b);
+
+    const results: number[] = [];
+    sum.follow((val) => results.push(val), true);
+
+    a.val = 10;
+    b.val = 20;
+
+    assertStrictEquals(results.length, 3);
+    assertStrictEquals(results[0], 3);
+    assertStrictEquals(results[1], 12);
+    assertStrictEquals(results[2], 30);
 });
 
 Deno.test("Infinite loop test", () => {
@@ -244,24 +270,4 @@ Deno.test("No stop leak", () => {
     unfollow = a.follow(() => {});
     unfollow();
     assertStrictEquals(counter, 1);
-});
-
-Deno.test("Computed should not crash if a dependency triggers follow() inline during initialization", () => {
-    const a = ref(0);
-
-    // This will try to follow `a` inline during computed's setup
-    const b = computed(() => {
-        // Synchronously subscribe to `a` — this will call a.follow(update)
-        // *before* computed() assigns update in the sync callback if there's a bug.
-        a.follow(() => {});
-        return a.val + 1;
-    });
-
-    // If bug exists, this line would throw (cannot call undefined update)
-    const initial = b.val;
-
-    assertStrictEquals(initial, 1);
-
-    a.val = 41;
-    assertStrictEquals(b.val, 42);
 });

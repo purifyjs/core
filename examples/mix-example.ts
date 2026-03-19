@@ -1,12 +1,4 @@
-import {
-    Builder,
-    computed,
-    Lifecycle,
-    ref,
-    Sync,
-    sync,
-    tags,
-} from "@purifyjs/core";
+import { Builder, Lifecycle, ref, Sync, sync, tags } from "@purifyjs/core";
 
 const { button, ul, li, input } = tags;
 
@@ -19,7 +11,7 @@ const time = sync<number>((set) => {
 
 const count = ref(0);
 const double = count.derive((count) => count * 2);
-const half = computed(() => count.val * 0.5);
+const half = count.derive((c) => c * 0.5);
 
 new Builder(document.body).append$(
     button()

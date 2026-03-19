@@ -17,14 +17,6 @@ export declare namespace Sync {
     type Unfollower = () => void;
 
     /**
-     * A function type that gets the value of a signal.
-     * Used primarily in computed signals to retrieve the current value.
-     *
-     * @template T - The type of the value returned by the getter.
-     */
-    type Getter<T> = () => T;
-
-    /**
      * A function type that sets the value of a signal.
      * Used primarily in sync signals to update the signal's value.
      *
@@ -91,14 +83,11 @@ export class Sync<T = never> {
 
     /**
      * Gets the current value of the signal.
-     * This method also adds the signal to the dependency tracking system, ensuring that any function
-     * depending on this signal will automatically update when the signal's value changes.
      *
      * @returns The current value of the signal.
      */
     public get(): T {
-        Tracking.add(this);
-        if (!this.#stopper) { // if is not active
+        if (!this.#stopper) {
             this.follow(noop)();
         }
         return this.last;
@@ -189,12 +178,12 @@ export class Sync<T = never> {
     }
 
     /**
-     * Derives a new computed signal based on the value of this signal.
-     * The computed signal will be updated whenever this signal's value changes.
-     * This provides a simple way to transform a signal's value without creating dependencies manually.
+     * Derives a new signal based on the value of this signal.
+     * The derived signal will be updated whenever this signal's value changes.
+     * This provides a simple way to transform a signal's value.
      *
      * @param getter - A function that computes a new value based on the current value of the signal.
-     * @returns A new computed signal that derives its value from this signal.
+     * @returns A new signal that derives its value from this signal.
      *
      * @example
      * ```ts
@@ -205,12 +194,7 @@ export class Sync<T = never> {
      * ```
      */
     public derive<R>(getter: (value: T) => R): Sync<R> {
-        return computed(() => {
-            // Add `this` as signal manually
-            Tracking.add(this);
-            // Ignore other signals that may be called during getting the val and calling getter.
-            return Tracking.track(() => getter(this.get()));
-        });
+        return sync<R>((set) => this.follow((value) => set(getter(value)), true));
     }
 
     /**
@@ -224,7 +208,7 @@ export class Sync<T = never> {
      * ```ts
      * const count = ref(0);
      * const element = count.pipe(signal =>
-     *   div().textContent(computed(() => `Count: ${signal.get()}`))
+     *   div().textContent(signal.derive(n => `Count: ${n}`))
      * );
      * ```
      */
@@ -232,48 +216,6 @@ export class Sync<T = never> {
         return fn(this);
     }
 }
-
-export declare namespace Sync {
-    /**
-     * Dependency tracking system that allows signals to automatically detect and
-     * manage dependencies in computed values.
-     */
-    namespace Tracking {
-        /**
-         * Adds a signal to the current dependency tracking context.
-         * When a signal's value is accessed inside a tracked function, this method
-         * is called to register the signal as a dependency.
-         *
-         * @param signal - The signal to add to the dependency system.
-         */
-        function add(signal: Sync<unknown>): void;
-
-        /**
-         * Tracks a function and its dependencies by creating a tracking context.
-         * Any signals accessed during the function's execution will be registered as dependencies
-         * through the provided callback.
-         *
-         * @template R - The return type of the tracked function.
-         * @param callAndTrack - A function that will be tracked for dependencies.
-         * @param callback - An optional callback function invoked when a signal is accessed.
-         * @returns The result of the `callAndTrack` function.
-         */
-        function track<R>(callAndTrack: () => R, callback?: (signal: Sync<unknown>) => unknown): R;
-    }
-}
-
-let dependencyTrackingStack: (((signal: Sync<unknown>) => unknown) | undefined)[] = [];
-let Tracking = (Sync.Tracking = {
-    add(signal: Sync<unknown>): void {
-        dependencyTrackingStack.at(-1)?.(signal);
-    },
-    track<R>(callAndTrack: () => R, callback?: (signal: Sync<unknown>) => unknown): R {
-        dependencyTrackingStack.push(callback);
-        let result = callAndTrack();
-        dependencyTrackingStack.pop();
-        return result;
-    },
-});
 
 export declare namespace Sync {
     /**
@@ -382,58 +324,41 @@ export let sync = <T = never>(start: Sync.Starter<T>): Sync<T> => new Sync(start
 export let ref = <T>(initial: T): Sync.Ref<T> => new Sync.Ref(initial);
 
 /**
- * Creates a computed signal that automatically tracks its dependencies.
- * A computed signal derives its value from other signals and updates automatically
- * when any of its dependencies change.
+ * Combines multiple signals into a single signal that holds their values as a tuple.
+ * The combined signal updates whenever any of the input signals change.
  *
- * @template T The type of the computed value.
- * @param getter A function that computes the value based on other signals.
- * @returns A read-only signal that updates when its dependencies change.
+ * @template T Array of signal types
+ * @param signals A tuple of signals to combine
+ * @returns A signal that holds a tuple of all the input signal values
  *
  * @example
  * ```ts
  * const firstName = ref('John');
  * const lastName = ref('Doe');
- * const fullName = computed(() => `${firstName.val} ${lastName.val}`);
+ * const fullName = combine([firstName, lastName]).derive(([first, last]) => `${first} ${last}`);
  *
  * fullName.follow(console.log); // Logs: "John Doe"
  * firstName.val = 'Jane'; // Logs: "Jane Doe"
  * ```
  */
-export let computed = <T>(getter: Sync.Getter<T>): Sync<T> => {
-    type DependencyDetails =
-        | [unfollower: Sync.Unfollower, version: boolean]
-        | [unfollower: Sync.Unfollower];
-
-    let dependencies = new Map<Sync<unknown>, DependencyDetails>();
-
-    let currentVersion = false;
-    let details: DependencyDetails | undefined;
-    let update: () => void;
-
-    let self = sync<T>((notify) => {
-        update = () => {
-            currentVersion = !currentVersion;
-            notify(
-                Tracking.track(getter, (dependency) => {
-                    details = dependencies.get(dependency);
-                    if (!details) dependencies.set(dependency, details = [dependency.follow(update)]);
-                    details[1] = currentVersion;
-                }),
-            );
-
-            for (let [dependency, [unfollow, version]] of dependencies) {
-                if (version === currentVersion) continue;
+export let combine = <T extends Record<string, Sync<any>>>(signals: T): Sync<{ [K in keyof T]: T[K]["val"] }> => {
+    return sync((set) => {
+        let entries = Object.entries(signals) as [keyof T, Sync<any>][];
+        let values = {} as { [K in keyof T]: T[K] extends Sync<infer V> ? V : never };
+        let unfollows: Sync.Unfollower[] = [];
+        for (let [key, signal] of entries) {
+            values[key] = signal.get();
+            unfollows.push(signal.follow((value) => {
+                values[key] = value;
+                set({ ...values });
+            }));
+        }
+        // Set initial value after subscribing to all signals
+        set({ ...values });
+        return () => {
+            for (let unfollow of unfollows) {
                 unfollow();
-                dependencies.delete(dependency);
             }
         };
-        update();
-
-        return () => {
-            dependencies.forEach(([unfollow]) => unfollow());
-            dependencies.clear();
-        };
     });
-    return self;
 };
