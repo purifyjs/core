@@ -1,6 +1,6 @@
 {
     "name": "@purifyjs/core",
-    "version": "0.5.0-preview.4",
+    "version": "0.5.0-preview.5",
     "exports": {
         ".": "./core/mod.ts",
         "./strict": "./core/strict/mod.ts"
