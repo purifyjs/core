@@ -1,11 +1,4 @@
-import {
-    Builder,
-    Lifecycle,
-    ref,
-    Sync,
-    sync,
-    tags,
-} from "@purifyjs/core";
+import { Builder, Lifecycle, ref, Sync, sync, tags } from "@purifyjs/core";
 
 const { button, ul, li, input } = tags;
 

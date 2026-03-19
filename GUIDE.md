@@ -11,7 +11,7 @@ At the core of **purify.js** is a powerful signal-based reactivity system. Unlik
 reactivity with minimal abstractions:
 
 ```ts
-import { computed, ref, sync } from "@purifyjs/core";
+import { ref, sync } from "@purifyjs/core";
 
 // Create a writable signal with an initial value
 const count = ref(0);
@@ -34,7 +34,7 @@ All signals in **purify.js** are built on the `Sync` class:
 
 - `Sync` is the base class for all signals
 - `Sync.Ref` extends `Sync` to add mutability (for read-write signals)
-- `computed()` creates a `Sync` with automatic dependency tracking
+
 
 While you can create signals with constructors like `new Sync()` or `new Sync.Ref()`, **purify.js** provides convenient function aliases:
 
@@ -52,31 +52,13 @@ const count = new Sync.Ref(0); // Constructor
 
 ### Signal Types
 
-**purify.js** offers three kinds of signals:
+**purify.js** offers two kinds of signals:
 
 #### 1. `ref(initialValue)`
 
 A mutable signal you can both read and write.
 
-#### 2. `computed(() => expression)`
-
-A derived signal that automatically recalculates when its dependencies change.
-
-```ts
-const count = ref(0);
-const doubled = computed(() => count.get() * 2);
-
-console.log(doubled.get()); // 0
-count.set(5);
-console.log(doubled.get()); // 10
-```
-
-> **Note:** Computed signals are clever: they only recalculate when both:
->
-> - One of their dependencies changes
-> - Someone is actively using the computed value
-
-#### 3. `sync(setter => {...})`
+#### 2. `sync(setter => {...})`
 
 A signal with manual control over its lifecycle:
 
@@ -120,33 +102,29 @@ message.follow(console.log); // "The count is 0" when count changes
 
 The `.derive()` method creates a new signal that updates whenever the source signal changes.
 
-### derive() vs computed()
-
-Both `.derive()` and `computed()` create reactive values, but they serve different purposes:
-
-```ts
-// derive() transforms a single signal
-const count = ref(0);
-const doubled = count.derive((n) => n * 2);
-
-// computed() can depend on multiple signals
-const count1 = ref(0);
-const count2 = ref(0);
-const sum = computed(() => count1.get() + count2.get());
-```
-
-Key differences:
-
-| Feature                 | `.derive()`                                      | `computed()`                                                |
-| ----------------------- | ------------------------------------------------ | ----------------------------------------------------------- |
-| **Dependency tracking** | Always depends on the source signal              | Automatically tracks any signal accessed in its callback    |
-| **Chaining**            | Chainable for multiple transformations           | Creates standalone signals                                  |
-| **Usage context**       | Perfect for transforming a single signal's value | Better when combining multiple signals or for complex logic |
-
 Example of chaining with `.derive()`:
 
 ```ts
 count.derive((n) => n * 2).derive((n) => `Value: ${n}`);
+```
+
+### Combining Multiple Signals
+
+When you need to combine multiple signals, use `combine()`:
+
+```ts
+import { combine } from "@purifyjs/core";
+
+const firstName = ref("John");
+const lastName = ref("Doe");
+
+// Combine signals into a single signal
+const fullName = combine({ firstName, lastName }).derive(
+    ({ firstName, lastName }) => `${firstName} ${lastName}`
+);
+
+fullName.follow(console.log); // "John Doe"
+firstName.set("Jane");        // Logs "Jane Doe"
 ```
 
 ---
@@ -282,7 +260,7 @@ To avoid these issues with signal containers, consider:
 1. Using property setters for text content where possible:
    ```ts
    // Better than append$(textSignal) for simple text
-   div().textContent(computed(() => `Welcome ${currentUser.get().name}`));
+   div().textContent(currentUser.derive((user) => `Welcome ${user.name}`));
    ```
 
 2. Creating custom helper functions for specific DOM updates (see the "Helper Functions" section)
@@ -364,7 +342,7 @@ export function useReplaceChildren<T extends Member>(signal: Sync<T>): Lifecycle
 }
 
 // Using the helper
-div().$bind(useReplaceChildren(computed(() => ["Welcome", currentUser.get()])));
+div().$bind(useReplaceChildren(currentUser.derive((user) => ["Welcome", user])));
 
 // Helper for class toggling based on a signal
 export function useToggleClass(className: string, condition: Sync<boolean>): Lifecycle.OnConnected {
@@ -584,7 +562,7 @@ class CounterElement extends WithLifecycle(HTMLElement) {
 
 **purify.js** provides a minimalist yet powerful approach to building reactive UIs:
 
-- Use signals (`ref`, `computed`, `sync`) for reactivity
+- Use signals (`ref`, `sync`) for reactivity
 - Create elements with the `tags` proxy
 - Configure elements with the `Builder` pattern
 - Use `$` suffix methods for working with signals and arrays
