@@ -103,10 +103,13 @@ deno add jsr:@purifyjs/core
 #### npm, bun, yarn, pnpm (via jsr.io)
 
 ```bash
-npx jsr add @purifyjs/core      # npm
-bunx jsr add @purifyjs/core     # bun
-yarn dlx jsr add @purifyjs/core # yarn
-pnpm dlx jsr add @purifyjs/core # pnpm
+npx jsr add @purifyjs/core       # npm
+pnpm i jsr:@purifyjs/core        # pnpm >=10.8
+pnpm dlx jsr add @purifyjs/core  # pnpm <10.8
+yarn add jsr:@purifyjs/core      # yarn >=4.8
+yarn dlx jsr add @purifyjs/core  # yarn <4.8
+bunx jsr add @purifyjs/core      # bun
+vlt install jsr:@purifyjs/core   # vlt
 ```
 
 <details>
