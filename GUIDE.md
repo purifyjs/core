@@ -35,7 +35,6 @@ All signals in **purify.js** are built on the `Sync` class:
 - `Sync` is the base class for all signals
 - `Sync.Ref` extends `Sync` to add mutability (for read-write signals)
 
-
 While you can create signals with constructors like `new Sync()` or `new Sync.Ref()`, **purify.js** provides convenient function aliases:
 
 ```ts
@@ -97,7 +96,7 @@ You can transform signals using `.derive()`:
 const count = ref(0);
 const message = count.derive((n) => `The count is ${n}`);
 
-message.follow(console.log); // "The count is 0" when count changes
+message.follow(console.log, true); // Logs "The count is 0" immediately, then again on every change
 ```
 
 The `.derive()` method creates a new signal that updates whenever the source signal changes.
@@ -105,8 +104,12 @@ The `.derive()` method creates a new signal that updates whenever the source sig
 Example of chaining with `.derive()`:
 
 ```ts
-count.derive((n) => n * 2).derive((n) => `Value: ${n}`);
+count.derive((n) => n > 10).derive((isHigh) => (isHigh ? "High" : "Low"));
 ```
+
+> **Quick Tip:** Chaining like this acts as a memoization boundary. The first `.derive()` collapses `count` into a `boolean`, and the second
+> one only runs when that boolean actually changes — going from `11` to `12` doesn't rebuild the string, since `n > 10` stays `true`. Put
+> the cheap, coarse transform first and the expensive one after it.
 
 ### Combining Multiple Signals
 
@@ -120,12 +123,16 @@ const lastName = ref("Doe");
 
 // Combine signals into a single signal
 const fullName = combine({ firstName, lastName }).derive(
-    ({ firstName, lastName }) => `${firstName} ${lastName}`
+    ({ firstName, lastName }) => `${firstName} ${lastName}`,
 );
 
-fullName.follow(console.log); // "John Doe"
-firstName.set("Jane");        // Logs "Jane Doe"
+fullName.follow(console.log, true); // Logs "John Doe" immediately
+firstName.set("Jane"); // Logs "Jane Doe"
 ```
+
+> We previously had a `computed(() => ...)` signal, but its call-stack-based dependency registration made it easy to misuse — both humans
+> and AI agents reached for it everywhere. It was removed in favor of `combine()` + `.derive()`, which also simplified the codebase
+> significantly.
 
 ---
 
@@ -157,8 +164,8 @@ const submitButton = button()
 
 The DOM offers two ways to configure elements:
 
-- **Attributes**: Attributes on element objects (e.g., `class`, `id`)
-- **Properties**: Properties on element objects (e.g., `textContent`, `className`)
+- **Attributes**: HTML attributes set via `setAttribute()`, visible in markup (e.g., `class`, `id`, `data-*`)
+- **Properties**: JavaScript properties on the element object (e.g., `textContent`, `className`, `value`)
 
 **purify.js** supports both approaches:
 
@@ -231,24 +238,12 @@ div({ class: "container" }).append$(
 );
 ```
 
-> **What's happening:** Without the `$` suffix, you'd need to manually convert everything to DOM nodes using `toChild()`.
-
-The internal conversion for signals wraps them in a container element with `display: contents`:
-
-```ts
-// What happens internally when you append a signal
-tags.div({ style: "display:contents" })
-    .$bind((element) =>
-        signal.follow(
-            (value) => element.replaceChildren(toChild(value)),
-            true,
-        )
-    );
-```
+> **What's happening:** Without the `$` suffix, you'd need to manually convert everything to DOM nodes using `toChild()`. See "Working with
+> Signals in the DOM" below for how signals are wrapped internally.
 
 ##### CSS Selector Considerations
 
-Although container elements use `display: contents`, they still exist in the DOM tree. This can impact CSS selectors like:
+Although signal container elements use `display: contents`, they still exist in the DOM tree. This can impact CSS selectors like:
 
 ```css
 .parent > .child {} /* Won't match if there's a signal wrapper in between */
@@ -363,7 +358,7 @@ div().$bind(useToggleClass("active", isActiveSignal));
 An important restriction to know is that signals can only be used with elements that have the `WithLifecycle` mixin applied:
 
 ```ts
-import { Builder, ref } from "@purifyjs/core";
+import { Builder, ref, tags, WithLifecycle } from "@purifyjs/core";
 const { div } = tags;
 const count = ref(0);
 
@@ -375,7 +370,6 @@ const regularDiv = document.createElement("div");
 new Builder(regularDiv).textContent(count); // ❌ Error: type and runtime
 
 // To use signals with regular DOM elements, apply WithLifecycle first
-import { WithLifecycle } from "@purifyjs/core";
 const LifecycleDiv = WithLifecycle(HTMLDivElement);
 const enhancedDiv = new LifecycleDiv();
 new Builder(enhancedDiv).textContent(count); // ✓ OK
@@ -430,7 +424,7 @@ div().$bind((el) => {
 
 ### Building Components
 
-**purify.js** doesn't have an idea of "components". It doesn't enforce any specific structure for building components like larger
+**purify.js** doesn't have a notion of "components". It doesn't enforce any specific structure for building components like larger
 frameworks, but you can create reusable UI pieces using the Builder pattern:
 
 ```ts
@@ -458,7 +452,7 @@ new Builder(document.body).append$(
 document.body.append(Counter().$node);
 // Or change the body
 document.body.replaceWith(
-    tags.body().append$(Counter()),
+    tags.body().append$(Counter()).$node,
 );
 ```
 
@@ -475,7 +469,7 @@ function useValue(value: Sync.Ref<string>): Lifecycle.OnConnected<HTMLInputEleme
     return (element) => {
         const abortController = new AbortController();
         element.addEventListener("input", () => value.set(element.value), { signal: abortController.signal });
-        const unfollow = value.follow((value) => element.value = value, true);
+        const unfollow = value.follow((newValue) => element.value = newValue, true);
 
         return () => {
             abortController.abort();
@@ -520,7 +514,7 @@ function ShadowComponent() {
 Create standards-compliant custom elements:
 
 ```ts
-import { Builder, ref, WithLifecycle } from "@purifyjs/core";
+import { Builder, ref, tags, WithLifecycle } from "@purifyjs/core";
 
 const { button } = tags;
 
@@ -554,7 +548,7 @@ class CounterElement extends WithLifecycle(HTMLElement) {
 - Signal followers are called synchronously during updates.
 - Signals only update when their value actually changes (equality check).
 - If a signal has no followers, it cleans up resources automatically.
-- Computed signals only recalculate when both accessed and dependent values change
+- Derived signals only recalculate while they have followers, and only propagate when their result actually changes.
 - For simplicity, maximum flexibility, and control, DOM updates are decided by the user, not the library, allowing for fine-grained control
   over when and how the DOM is updated.
 
