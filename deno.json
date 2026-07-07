@@ -19,7 +19,6 @@
     },
     "tasks": {
         "publish:dry": "deno publish --dry-run --allow-dirty",
-        "vite:dev": "deno task --cwd=apps/vite dev",
         "size": "./bundle_size.sh"
     },
     "fmt": {
