@@ -152,7 +152,12 @@ type RecursiveSignalArgs<Args extends unknown[], R extends unknown[] = []> = Arg
     : Args extends (infer U)[] ? RecursiveSignalOf<U>[]
     : R;
 
-type RecursiveSignalAndArrayOf<T> = T | Sync<RecursiveSignalAndArrayOf<T>> | RecursiveSignalAndArrayOf<T>[] | IteratorObject<T>;
+type RecursiveSignalAndArrayOf<T> =
+    | T
+    | Sync<RecursiveSignalAndArrayOf<T>>
+    | RecursiveSignalAndArrayOf<T>[]
+    | readonly RecursiveSignalAndArrayOf<T>[]
+    | IteratorObject<T>;
 type RecursiveSignalAndArrayArgs<Args extends unknown[], R extends unknown[] = []> = Args extends [infer Head, ...infer Tail]
     ? RecursiveSignalAndArrayArgs<Tail, [...R, RecursiveSignalAndArrayOf<Head>]>
     : Args extends (infer U)[] ? RecursiveSignalAndArrayOf<U>[]

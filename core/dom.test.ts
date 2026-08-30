@@ -1,5 +1,5 @@
+import { Builder, type Member, type tags as tags_type, type WithLifecycle } from "./dom.ts";
 import { ref } from "./signals.ts";
-import { Builder, type tags as tags_type, type WithLifecycle } from "./dom.ts";
 declare const tags: typeof tags_type;
 
 function _(_fn: () => void) {}
@@ -16,6 +16,8 @@ declare const bar: Builder<HTMLDivElement> | Builder<WithLifecycle<HTMLElement>>
 _(() => {
     foo(bar);
 });
+
+declare function assertMember(member: Member): void;
 
 declare const svgElement: SVGSVGElement;
 declare const divElement: HTMLDivElement;
@@ -55,4 +57,7 @@ _(() => {
     formWithLifecycleBuilder.replaceChildren$("");
     formWithLifecycleBuilder.$bind(() => {});
     formWithLifecycleBuilder.ariaAtomic("true");
+
+    const constMembers = [divBuilder] as const;
+    assertMember(constMembers);
 });
