@@ -1,3 +1,13 @@
+> [!IMPORTANT]
+> **This repo is moving to Nostr.** GitHub will stay as a mirror. New issues and patches go there.
+>
+> - Browse: [gitworkshop.dev/nomadshiba.me/purifyjs](https://gitworkshop.dev/nomadshiba.me/purifyjs)
+> - Clone: `git clone nostr://nomadshiba.me/purifyjs`
+>
+> To clone `nostr://` URLs and send patches, install [ngit](https://ngit.dev). It's git collaboration over Nostr, with no accounts and no platform.
+>
+> <sub>If NIP-05 doesn't resolve: [gitworkshop (npub)](https://gitworkshop.dev/npub1gkp4cdh5rktehjqjnqc09awey4302dpadlka6mes4fu5spes7fhqfsppqk/purifyjs) · `nostr://npub1gkp4cdh5rktehjqjnqc09awey4302dpadlka6mes4fu5spes7fhqfsppqk/purifyjs`</sub>
+
 <h1 align="center"> purify.js ⚡ </h1>
 
 <p align="center">
